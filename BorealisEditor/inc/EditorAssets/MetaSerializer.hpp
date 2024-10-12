@@ -42,6 +42,12 @@ namespace Borealis
 
 		/*!***********************************************************************
 			\brief
+				create meta data at file path with given asset handle
+		*************************************************************************/
+		static AssetMetaData CreateAssetMetaFile(std::filesystem::path const& path, AssetHandle handle);
+
+		/*!***********************************************************************
+			\brief
 				serialize registry
 		*************************************************************************/
 		static void SerialzeRegistry(std::filesystem::path assetRegistryPath, std::unordered_map<AssetHandle, AssetMetaData> const& assetRegistry);

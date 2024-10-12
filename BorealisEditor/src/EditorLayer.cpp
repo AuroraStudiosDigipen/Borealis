@@ -21,9 +21,11 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/Project.hpp>
 #include <Scene/SceneManager.hpp>
 #include <Scene/Serialiser.hpp>	
+#include <Scene/ComponentRegistry.hpp>
 #include <Scripting/ScriptingSystem.hpp>
 #include <Scripting/ScriptInstance.hpp>
 #include <EditorLayer.hpp>
+#include <Prefab.hpp>
 //	#include <Project/Project.hpp>
 #include "Audio/AudioEngine.hpp"
 #include <ResourceManager.hpp>
@@ -71,10 +73,31 @@ namespace Borealis {
 		mEditorScene = MakeRef<Scene>();
 		SceneManager::AddScene(mEditorScene->GetName(), mEditorScene->GetScenePath());
 		SceneManager::SetActiveScene(mEditorScene->GetName());
+		mEditorScene = SceneManager::GetActiveScene();
 
 		SCPanel.SetContext(SceneManager::GetActiveScene());
 
 		mEditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
+
+		//PREFAB TESTING AREA
+		auto entity = mEditorScene->CreateEntity("testEntity");
+		auto& src = entity.AddComponent<SpriteRendererComponent>();
+		src.Colour.r = 0.5f;
+		//auto& transform = entity.AddComponent<TransformComponent>();
+		//transform.Scale.x = 100;
+
+		Prefab prefab(entity);
+		prefab.AddChild(MakeRef<Entity>(entity));
+		prefab.GetComponent<SpriteRendererComponent>().Colour.g = 0.5f;
+		prefab.GetComponent<TransformComponent>().Scale.x = 50;
+		prefab.UpdateAllInstances();
+		prefab.PrintComponentList();
+
+		//Entity makePrefab(prefab.GetPrefabID(), PrefabManager::GetScenePtr());
+
+		//Serialiser::SerialisePrefab("assets/Prefab/test.prefab", makePrefab);
+
+
 		ScriptingSystem::InitCoreAssembly();
 		ResourceManager::Init();
 
@@ -85,6 +108,15 @@ namespace Borealis {
 			font.SetTexture(std::filesystem::path("engineResources/fonts/OpenSans_Condensed-Bold.dds"));
 			Font::SetDefaultFont(MakeRef<Font>(font));
 		}
+
+		for (auto name : ComponentRegistry::GetComponentNames())
+		{
+			for (auto variable : ComponentRegistry::GetPropertyNames(name))
+			{
+				BOREALIS_CORE_TRACE(name + "::" + variable);
+			}
+		}
+
 	}
 
 	void EditorLayer::Free()
@@ -877,12 +909,20 @@ namespace Borealis {
 				mAssetImporter.LoadRegistry(Project::GetProjectInfo());
 				SceneManager::SetActiveScene(activeSceneName);
 
-				std::string assetsPath = Project::GetProjectPath() + "\\Assets";
-				CBPanel.SetCurrDir(assetsPath);
-				DeserialiseEditorScene();
+				for (auto [handle,meta] : Project::GetEditorAssetsManager()->GetAssetRegistry())
+				{
+					if (meta.Type == AssetType::Prefab)
+					{
+						PrefabManager::DeserialisePrefab(meta.SourcePath.string());
+					}
+				}
 			}
+		
 
 
+			std::string assetsPath = Project::GetProjectPath() + "\\Assets";
+			CBPanel.SetCurrDir(assetsPath);
+			DeserialiseEditorScene();
 			// Clear Scenes in Scene Manager
 			// Clear Assets in Assets Manager
 			// Load Scenes in Assets Manager

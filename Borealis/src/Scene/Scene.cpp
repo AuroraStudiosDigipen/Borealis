@@ -297,12 +297,14 @@ namespace Borealis
 	}
 	Entity Scene::CreateEntity(const std::string& name)
 	{
+
+		UUID id;
 		static unsigned unnamedID = 1;
 		auto entity = Entity(mRegistry.create(), this);
-		entity.AddComponent<IDComponent>();
+		entity.AddComponent<IDComponent>(id);
 		name == "" ? entity.AddComponent<TagComponent>("unnamedEntity" + std::to_string(unnamedID++)) : entity.AddComponent<TagComponent>(name);
 		entity.AddComponent<TransformComponent>();
-		mEntityMap[entity.GetUUID()] = entity;
+		mEntityMap[id] = entity;
 		return entity;
 	}
 	Entity Scene::CreateEntityWithUUID(const std::string& name, uint64_t UUID)

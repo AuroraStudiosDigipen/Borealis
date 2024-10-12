@@ -12,9 +12,13 @@ prior written consent of DigiPen Institute of Technology is prohibited.
  *
  /******************************************************************************/
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <Panels/ContentBrowserPanel.hpp>
 #include <Core/LoggerSystem.hpp>
 #include <Scene/SceneManager.hpp>
+#include <Scene/Serialiser.hpp>
+#include <Scene/Scene.hpp>
+#include <Prefab.hpp>
 #include <Assets/AssetMetaData.hpp>
 #include <Assets/AssetManager.hpp>
 #include <EditorAssets/MetaSerializer.hpp>
@@ -23,6 +27,28 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include "EditorAssets/MaterialEditor.hpp"
 #include <EditorAssets/AssetImporter.hpp>
 
+namespace ImGui
+{
+	static bool BeginDrapDropTargetWindow(const char* payload_type)
+	{
+		using namespace ImGui;
+		ImRect inner_rect = GetCurrentWindow()->InnerRect;
+		if (BeginDragDropTargetCustom(inner_rect, GetID("##WindowBgArea")))
+			if (const ImGuiPayload* payload = AcceptDragDropPayload(payload_type, ImGuiDragDropFlags_AcceptBeforeDelivery | ImGuiDragDropFlags_AcceptNoDrawDefaultRect))
+			{
+				if (payload->IsPreview())
+				{
+					ImDrawList* draw_list = GetForegroundDrawList();
+					draw_list->AddRectFilled(inner_rect.Min, inner_rect.Max, GetColorU32(ImGuiCol_DragDropTarget, 0.05f));
+					draw_list->AddRect(inner_rect.Min, inner_rect.Max, GetColorU32(ImGuiCol_DragDropTarget), 0.0f, 0, 2.0f);
+				}
+				if (payload->IsDelivery())
+					return true;
+				EndDragDropTarget();
+			}
+		return false;
+	}
+}
 namespace Borealis
 {
 	UUID ContentBrowserPanel::sSelectedAsset = 0;
@@ -33,13 +59,27 @@ namespace Borealis
 		mAssetsDir = "assets";
 	}
 
+
 	void ContentBrowserPanel::ImGuiRender() 
 	{
 		ImGui::Begin("Content Browser");
 
+
+
 		ImVec2 windowSize = ImGui::GetWindowSize();
 		float scrollableHeight = windowSize.y - 100; // Adjust for the fixed bottom row
 		ImGui::BeginChild("ScrollableRegion", ImVec2(windowSize.x, scrollableHeight), true);
+		
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropEntity"))
+			{
+				const char* data = (const char*)payload->Data;
+				
+			}
+
+			ImGui::EndDragDropTarget();
+		}
 
 		// Begin the upper scrollable section
 
@@ -272,6 +312,11 @@ namespace Borealis
 					{
 						payloadName = "DragDropMeshItem";
 					}
+					else if (extension == ".prefab")
+					{
+						// Correct the assignment of payloadName
+						payloadName = "DragPrefab";
+					}
 					else if (extension == ".mp3" || extension == ".wav")
 					{
 						payloadName = "DragDropAudioItem";
@@ -315,6 +360,35 @@ namespace Borealis
 		{
 			ImGui::PopStyleColor();
 			ImGui::Columns(1);
+		}
+
+		//WORK IN PROGRESS
+//Dragged Prefab
+// Content Browser panel drop target for creating prefabs
+		if (ImGui::BeginDrapDropTargetWindow("DragCreatePrefab"))
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragCreatePrefab"))
+			{
+				UUID droppedEntityID = *(const UUID*)payload->Data; // Retrieve the dragged entity ID
+
+				// Retrieve the entity using the dropped entity ID
+				Entity droppedEntity = SceneManager::GetActiveScene()->GetEntityByUUID(droppedEntityID); // Assuming you have a function to get an entity by UUID
+
+				Ref<Prefab> prefab = MakeRef<Prefab>(droppedEntity);
+				prefab->AddChild(MakeRef<Entity>(droppedEntity));
+
+				Entity makePrefab(prefab->GetPrefabID(), PrefabManager::GetScenePtr());
+				std::string dir = mCurrDir.string();
+				dir += +"\\" + droppedEntity.GetName() + ".prefab";
+				Serialiser::SerialisePrefab(dir.c_str(), makePrefab);
+				PrefabManager::Register(prefab);
+
+				AssetManager::InsertMetaData(MetaFileSerializer::CreateAssetMetaFile(dir, prefab->GetUUID()));
+
+				// You might want to add some feedback or a log message here to indicate success
+				std::cout << "Prefab created at: " << mCurrDir.string() << std::endl;
+			}
+			ImGui::EndDragDropTarget();
 		}
 
 		// End the upper scrollable section

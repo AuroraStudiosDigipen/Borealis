@@ -14,6 +14,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #ifndef COMPONENTS_HPP
 #define COMPONENTS_HPP
+#include <any>
 #include <unordered_set>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -30,12 +31,6 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace Borealis
 {
-	class ComponentRegistry
-	{
-	public:
-		static std::vector<std::string> getPropertyNames(std::string componentName);
-		static std::vector<std::string> getComponentNames();
-	};
 
 	struct IDComponent
 	{
@@ -315,6 +310,7 @@ namespace Borealis
 		float Volume = 1.0f;
 		int channelID = 0;
 
+	
 		Ref<Audio> audio;
 
 		AudioSourceComponent() = default;

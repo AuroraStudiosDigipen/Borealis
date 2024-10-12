@@ -938,6 +938,21 @@ namespace Borealis
 		return true;
 	}
 
+	void Serialiser::SerialisePrefab(const std::string& filepath, Entity entity)
+	{
+		YAML::Emitter out;
+	
+		SerializeEntity(out, entity);
+
+		// Create directory if doesnt exist
+		std::filesystem::path fileSystemPaths = filepath;
+		std::filesystem::create_directories(fileSystemPaths.parent_path());
+
+		std::ofstream outStream(filepath);
+		outStream << out.c_str();
+		outStream.close();
+	}
+
 	bool Serialiser::DeserialiseEditorStyle()
 	{
 		std::string filepath = "settings/style.setting";

@@ -221,6 +221,7 @@
     <ClInclude Include="inc\ImGui\ImGuiFontLib.hpp" />
     <ClInclude Include="inc\ImGui\ImGuiLayer.hpp" />
     <ClInclude Include="inc\Physics\PhysicsSystem.hpp" />
+    <ClInclude Include="inc\Scene\ComponentRegistry.hpp" />
     <ClInclude Include="inc\Scene\Components.hpp" />
     <ClInclude Include="inc\Scene\Entity.hpp" />
     <ClInclude Include="inc\Scene\OrthographicCameraController.hpp" />
@@ -816,7 +817,7 @@
     <ClCompile Include="src\ImGui\ImGuiFontLib.cpp" />
     <ClCompile Include="src\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="src\Physics\PhysicsSystem.cpp" />
-    <ClCompile Include="src\Scene\Components.cpp" />
+    <ClCompile Include="src\Scene\ComponentRegistry.cpp" />
     <ClCompile Include="src\Scene\Entity.cpp" />
     <ClCompile Include="src\Scene\OrthographicCameraController.cpp" />
     <ClCompile Include="src\Scene\Scene.cpp" />

@@ -34,6 +34,7 @@ namespace Borealis
 		Font,
 		Scene,
 		Material,
+		Prefab
 	};
 
 	class Asset

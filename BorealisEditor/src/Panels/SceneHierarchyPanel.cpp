@@ -12,6 +12,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
  *
  /******************************************************************************/
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <ImGui/ImGuiFontLib.hpp>
 #include <Scene/Components.hpp>
@@ -21,6 +22,10 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Panels/SceneHierarchyPanel.hpp>
 #include <Panels/ContentBrowserPanel.hpp>
 #include <Physics/PhysicsSystem.hpp>
+#include <PrefabManager.hpp>
+#include <Prefab.hpp>
+#include <PrefabComponent.hpp>
+
 #include <EditorAssets/MeshImporter.hpp>
 #include <EditorAssets/FontImporter.hpp>
 #include <EditorAssets/AssetImporter.hpp>
@@ -32,6 +37,31 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/Project.hpp>
 
 #include "EditorAssets/MaterialEditor.hpp"
+
+
+namespace ImGui
+{
+	static bool BeginDrapDropTargetWindow(const char* payload_type)
+	{
+		using namespace ImGui;
+		ImRect inner_rect = GetCurrentWindow()->InnerRect;
+		if (BeginDragDropTargetCustom(inner_rect, GetID("##WindowBgArea")))
+			if (const ImGuiPayload* payload = AcceptDragDropPayload(payload_type, ImGuiDragDropFlags_AcceptBeforeDelivery | ImGuiDragDropFlags_AcceptNoDrawDefaultRect))
+			{
+				if (payload->IsPreview())
+				{
+					ImDrawList* draw_list = GetForegroundDrawList();
+					draw_list->AddRectFilled(inner_rect.Min, inner_rect.Max, GetColorU32(ImGuiCol_DragDropTarget, 0.05f));
+					draw_list->AddRect(inner_rect.Min, inner_rect.Max, GetColorU32(ImGuiCol_DragDropTarget), 0.0f, 0, 2.0f);
+				}
+				if (payload->IsDelivery())
+					return true;
+				EndDragDropTarget();
+			}
+		return false;
+	}
+}
+
 
 namespace Borealis
 {
@@ -181,6 +211,51 @@ namespace Borealis
 	{
 		ImGui::Begin("Scene Hierarchy");
 
+		ImGuiIO& io = ImGui::GetIO();
+		ImFont* bold = io.Fonts->Fonts[ImGuiFonts::bold];
+		ImGui::PushFont(bold);
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.1f, 0.1f, 0.1f, 0.4f));
+		for (auto& [name, path] : SceneManager::GetSceneLibrary())
+		{
+			
+			if (SceneManager::GetActiveScene()->GetName() == name)
+			{
+				ImGui::PopStyleColor();
+				ImGui::MenuItem(name.c_str());
+				ImGui::PopFont();
+				for (auto& item : mContext->mRegistry.view<entt::entity>())
+				{
+					
+					Entity entity{ item, mContext.get() };
+					DrawEntityNode(entity);
+				}
+				ImGui::PushFont(bold);
+				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.1f, 0.1f, 0.1f, 0.4f));
+			}
+			else
+			{
+				ImGui::MenuItem(name.c_str());
+				ImGui::PopStyleColor();
+				ImGui::PopFont();
+				if (ImGui::BeginPopupContextItem())
+				{
+					if (EditorLayer::mSceneState == EditorLayer::SceneState::Edit)
+					{
+						if (ImGui::MenuItem("Load Scene"))
+						{
+							SceneManager::SaveActiveScene();
+							SceneManager::SetActiveScene(name);
+							mContext = SceneManager::GetActiveScene();
+							mSelectedEntity = {};
+						}
+					}
+					ImGui::EndPopup();
+				}
+				ImGui::PushFont(bold);
+				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.1f, 0.1f, 0.1f, 0.4f));
+			}
+		}
+
 		if (Project::GetProjectPath() != "")
 		{
 			ImGuiIO& io = ImGui::GetIO();
@@ -249,6 +324,20 @@ namespace Borealis
 			}
 			ImGui::EndPopup();
 		}
+		
+		//Create Entities from prefab
+		if (ImGui::BeginDrapDropTargetWindow("DragPrefab"))
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragPrefab"))
+			{
+				AssetHandle data = *(const uint64_t*)payload->Data;
+				Ref<Prefab> prefab = PrefabManager::GetPrefab(data);
+				prefab->CreateChild(mContext);
+
+			}
+			ImGui::EndDragDropTarget();
+		}
+
 
 		ImGui::End();
 
@@ -319,6 +408,15 @@ namespace Borealis
 		flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 		uint64_t entityID = static_cast<uint64_t>((uint32_t)entity);
 		bool opened = ImGui::TreeNodeEx((void*)entityID, flags, tag.c_str());
+
+		//Dragging of items for creation of prefab
+		if (ImGui::BeginDragDropSource())
+		{
+			ImGui::SetDragDropPayload("DragCreatePrefab", (const void*)&entity.GetUUID(), sizeof(UUID));
+			ImGui::Text("%s", tag.c_str()); // Display the entity tag as the payload text
+			ImGui::EndDragDropSource();
+		}
+
 		if (ImGui::IsItemClicked())
 		{
 			mSelectedEntity = entity;
@@ -732,9 +830,16 @@ namespace Borealis
 				}
 			});
 
-		DrawComponent<SpriteRendererComponent>("Sprite Renderer", mSelectedEntity, [](auto& component)
+		DrawComponent<SpriteRendererComponent>("Sprite Renderer", mSelectedEntity, [&](auto& component)
 			{
-				ImGui::ColorEdit4("Color", glm::value_ptr(component.Colour));
+				if (ImGui::ColorEdit4("Color", glm::value_ptr(component.Colour)))
+				{
+					if (mSelectedEntity.HasComponent<PrefabComponent>()) // it's a prefab instance
+					{
+						auto& pComp = mSelectedEntity.GetComponent<PrefabComponent>();
+						pComp.mEditedComponentList.insert("SpriteRendererComponent::Color");
+					}
+				}
 				ImGui::Button("Texture");
 				if(ImGui::BeginDragDropTarget())
 				{

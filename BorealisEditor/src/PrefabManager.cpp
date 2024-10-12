@@ -231,16 +231,16 @@ namespace Borealis
 		if (rigidBodyComponent)
 		{
 			auto& rbc = loadedEntity.AddComponent<RigidBodyComponent>();
-			rbc.mass = rigidBodyComponent["mass"].as<float>();
-			rbc.drag = rigidBodyComponent["drag"].as<float>();
-			rbc.angularDrag = rigidBodyComponent["angularDrag"].as<float>();
-			rbc.centerOfMass = rigidBodyComponent["centerOfMass"].as<glm::vec3>();
-			rbc.inertiaTensor = rigidBodyComponent["inertiaTensor"].as<glm::vec3>();
-			rbc.inertiaTensorRotation = rigidBodyComponent["inertiaTensorRotation"].as<glm::vec3>();
-			rbc.AutomaticCenterOfMass = rigidBodyComponent["AutomaticCenterOfMass"].as<bool>();
-			rbc.AutomaticTensor = rigidBodyComponent["AutomaticTensor"].as<bool>();
-			rbc.useGravity = rigidBodyComponent["useGravity"].as<bool>();
-			rbc.isKinematic = rigidBodyComponent["isKinematic"].as<bool>();
+			//rbc.mass = rigidBodyComponent["mass"].as<float>();
+			//rbc.drag = rigidBodyComponent["drag"].as<float>();
+			//rbc.angularDrag = rigidBodyComponent["angularDrag"].as<float>();
+			//rbc.centerOfMass = rigidBodyComponent["centerOfMass"].as<glm::vec3>();
+			//rbc.inertiaTensor = rigidBodyComponent["inertiaTensor"].as<glm::vec3>();
+			//rbc.inertiaTensorRotation = rigidBodyComponent["inertiaTensorRotation"].as<glm::vec3>();
+			//rbc.AutomaticCenterOfMass = rigidBodyComponent["AutomaticCenterOfMass"].as<bool>();
+			//rbc.AutomaticTensor = rigidBodyComponent["AutomaticTensor"].as<bool>();
+			//rbc.useGravity = rigidBodyComponent["useGravity"].as<bool>();
+			//rbc.isKinematic = rigidBodyComponent["isKinematic"].as<bool>();
 		}
 
 		auto lightComponent = data["LightComponent"];

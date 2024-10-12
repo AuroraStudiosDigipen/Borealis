@@ -255,6 +255,8 @@ namespace Borealis
 				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.1f, 0.1f, 0.1f, 0.4f));
 			}
 		}
+		ImGui::PopStyleColor();
+		ImGui::PopFont();
 
 		if (Project::GetProjectPath() != "")
 		{

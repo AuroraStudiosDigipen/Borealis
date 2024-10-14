@@ -123,9 +123,9 @@ namespace Borealis
             (metadata("Component", true))
             .constructor<>()
             .property("Is Box", &RigidBodyComponent::isBox)
-            .property("Radius ", &RigidBodyComponent::radius)
+            .property("Radius", &RigidBodyComponent::radius)
             (metadata("Dependency", "Is Box"), metadata("Visible for", "Sphere"))
-            .property("HalfExtent ", &RigidBodyComponent::radius)
+            .property("HalfExtent", &RigidBodyComponent::radius)
             (metadata("Dependency", "Is Box"), metadata("Visible for", "Box"));
 
         registration::class_<SpriteRendererComponent>("Sprite Renderer Component")

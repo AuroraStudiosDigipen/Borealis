@@ -79,7 +79,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;YAML_CPP_STATIC_DEFINE;JPH_FLOATING_POINT_EXCEPTIONS_ENABLED;JPH_CROSS_PLATFORM_DETERMINISTIC;JPH_ENABLE_ASSERTS;_DEB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Borealis;..\Borealis\inc;..\Borealis\lib\spdlog\include;..\Borealis\lib\yaml-cpp\include;..\Borealis\lib\glm;..\Borealis\lib\imgui;inc;..\Borealis\lib\ENTT\include;..\Borealis\lib\ImGuizmo;lib\imgui-node-editor;lib\assimp\include;lib\MSDF\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Borealis;..\Borealis\inc;..\Borealis\lib\spdlog\include;..\Borealis\lib\yaml-cpp\include;..\Borealis\lib\glm;..\Borealis\lib\imgui;inc;..\Borealis\lib\ENTT\include;..\Borealis\lib\ImGuizmo;lib\imgui-node-editor;lib\assimp\include;lib\MSDF\Include;..\Borealis\lib\RTTR\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -109,7 +109,7 @@ IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;YAML_CPP_STATIC_DEFINE;JPH_FLOATING_POINT_EXCEPTIONS_ENABLED;JPH_CROSS_PLATFORM_DETERMINISTIC;JPH_ENABLE_ASSERTS;_REL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Borealis;..\Borealis\inc;..\Borealis\lib\spdlog\include;..\Borealis\lib\yaml-cpp\include;..\Borealis\lib\glm;..\Borealis\lib\imgui;inc;..\Borealis\lib\ENTT\include;..\Borealis\lib\ImGuizmo;lib\imgui-node-editor;lib\assimp\include;lib\MSDF\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Borealis;..\Borealis\inc;..\Borealis\lib\spdlog\include;..\Borealis\lib\yaml-cpp\include;..\Borealis\lib\glm;..\Borealis\lib\imgui;inc;..\Borealis\lib\ENTT\include;..\Borealis\lib\ImGuizmo;lib\imgui-node-editor;lib\assimp\include;lib\MSDF\Include;..\Borealis\lib\RTTR\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -143,7 +143,7 @@ IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;YAML_CPP_STATIC_DEFINE;JPH_FLOATING_POINT_EXCEPTIONS_ENABLED;JPH_CROSS_PLATFORM_DETERMINISTIC;JPH_ENABLE_ASSERTS;_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Borealis;..\Borealis\inc;..\Borealis\lib\spdlog\include;..\Borealis\lib\yaml-cpp\include;..\Borealis\lib\glm;..\Borealis\lib\imgui;inc;..\Borealis\lib\ENTT\include;..\Borealis\lib\ImGuizmo;lib\imgui-node-editor;lib\assimp\include;lib\MSDF\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Borealis;..\Borealis\inc;..\Borealis\lib\spdlog\include;..\Borealis\lib\yaml-cpp\include;..\Borealis\lib\glm;..\Borealis\lib\imgui;inc;..\Borealis\lib\ENTT\include;..\Borealis\lib\ImGuizmo;lib\imgui-node-editor;lib\assimp\include;lib\MSDF\Include;..\Borealis\lib\RTTR\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>

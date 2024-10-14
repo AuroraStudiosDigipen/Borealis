@@ -13,6 +13,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
  /******************************************************************************/
 
 #include <BorealisPCH.hpp>
+#include <entt.hpp>
 #include <rttr/registration>
 #include <Scene/ComponentRegistry.hpp>
 #include <Core/LoggerSystem.hpp>
@@ -20,6 +21,142 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 using namespace rttr;
 namespace Borealis
 {
+    RTTR_REGISTRATION
+    {
+         registration::class_<AudioListenerComponent>("Audio Listener Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("Is Audio Listener", &AudioListenerComponent::isAudioListener);
+
+        registration::class_<AudioSourceComponent>("Audio Source Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("Is Looping", &AudioSourceComponent::isLoop)
+            .property("Is Mute", &AudioSourceComponent::isMute)
+            .property("Is Playing", &AudioSourceComponent::isPlaying)
+            .property("Volume", &AudioSourceComponent::Volume)
+            .property("Audio", &AudioSourceComponent::audio);
+
+        registration::class_<BehaviourTreeComponent>("Behaviour Tree Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("Behaviour Tree", &BehaviourTreeComponent::mBehaviourTrees);
+
+        registration::class_<BoxColliderComponent>("Box Collider Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("Is Trigger", &BoxColliderComponent::isTrigger)
+            .property("Provides Contact", &BoxColliderComponent::providesContact)
+            .property("Center", &BoxColliderComponent::Center)
+            .property("Size", &BoxColliderComponent::Size);
+
+        registration::class_<CameraComponent>("Camera Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("Primary Camera", &CameraComponent::Primary)
+            .property("Fixed Aspect Ratio", &CameraComponent::FixedAspectRatio);
+
+        registration::class_<CapsuleColliderComponent>("Capsule Collider Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("Is Trigger", &CapsuleColliderComponent::isTrigger)
+            .property("Provides Contact", &CapsuleColliderComponent::providesContact)
+            .property("Radius", &CapsuleColliderComponent::radius)
+            .property("Height", &CapsuleColliderComponent::height)
+            .property("Direction", &CapsuleColliderComponent::direction);
+
+        registration::class_<CircleRendererComponent>("Circle Renderer Component")
+            .constructor<>()
+            .property("Colour", &CircleRendererComponent::Colour)
+                (metadata("Colour", true))
+            .property("Thickness", &CircleRendererComponent::thickness)
+            .property("Fade", &CircleRendererComponent::fade);
+
+        registration::class_<IDComponent>("ID Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("ID", &IDComponent::ID);
+
+        registration::enumeration<LightComponent::Type>("Light Type")
+            (
+                value("Directional", LightComponent::Type::Directional),
+                value("Point", LightComponent::Type::Point),
+                value("Spot", LightComponent::Type::Spot)
+                );
+
+        registration::class_<LightComponent>("Light Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("Offset", &LightComponent::offset)
+            .property("Inner Outer Spot", &LightComponent::InnerOuterSpot)
+            (metadata("Dependency", "Type"), metadata("Visible for", "Spot"))
+            .property("Type", &LightComponent::type)
+            .property("Direction", &LightComponent::direction)
+            (metadata("Dependency", "Type"), metadata("Visible for", "Directional"))
+            .property("Ambient", &LightComponent::ambient)
+            (metadata("Colour", true))
+            .property("Diffuse", &LightComponent::diffuse)
+            (metadata("Colour", true))
+            .property("Specular", &LightComponent::specular)
+            (metadata("Colour", true))
+            .property("Quadratic", &LightComponent::quadratic)
+            .property("Linear", &LightComponent::linear);
+
+        registration::class_<MeshFilterComponent>("Mesh Filter Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("Model", &MeshFilterComponent::Model);
+
+        registration::class_<MeshRendererComponent>("Mesh Renderer Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("Material", &MeshRendererComponent::Material)
+            .property("Cast Shadow", &MeshRendererComponent::castShadow);
+
+        registration::enumeration<RigidBodyType>("Rigidbody Collider Type")
+            (
+                value("Box", RigidBodyType::Box),
+                value("Sphere", RigidBodyType::Circle)
+                );
+
+        registration::class_<RigidBodyComponent>("Rigid Body Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("Is Box", &RigidBodyComponent::isBox)
+            .property("Radius ", &RigidBodyComponent::radius)
+            (metadata("Dependency", "Is Box"), metadata("Visible for", "Sphere"))
+            .property("HalfExtent ", &RigidBodyComponent::radius)
+            (metadata("Dependency", "Is Box"), metadata("Visible for", "Box"));
+
+        registration::class_<SpriteRendererComponent>("Sprite Renderer Component")
+            .constructor<>()
+            .property("Colour", &SpriteRendererComponent::Colour)
+            (metadata("Colour", true))
+            .property("Texture", &SpriteRendererComponent::Texture)
+            .property("Tiling Factor", &SpriteRendererComponent::TilingFactor);
+
+        registration::class_<TextComponent>("Text Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("Text", &TextComponent::text)
+            .property("Font", &TextComponent::font)
+            .property("Font Size", &TextComponent::fontSize);
+
+        registration::class_<TagComponent>("Tag Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("Tag", &TagComponent::Tag);
+
+        registration::class_<TransformComponent>("Transform Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("Translate", &TransformComponent::Translate)
+            .property("Rotation", &TransformComponent::Rotation)
+            .property("Scale", &TransformComponent::Scale)
+            (metadata("Min", 1.f))
+            .method("GetTransform", &TransformComponent::GetTransform);
+    }
+
     enum dataTypes
     {
         INT,
@@ -44,38 +181,6 @@ namespace Borealis
         {type::get<glm::mat4>(), dataTypes::MAT4}
     };
 
-    RTTR_REGISTRATION
-    {
-        registration::class_<TransformComponent>("TransformComponent")
-        (metadata("Component", true))
-             .constructor<>()
-             .property("Translate", &TransformComponent::Translate)
-             .property("Rotation", &TransformComponent::Rotation)
-             .property("Scale", &TransformComponent::Scale)
-             .method("GetTransform", &TransformComponent::GetTransform);
-
-        registration::class_<SpriteRendererComponent>("SpriteRendererComponent")
-            (metadata("Component", true))
-            .constructor<>()
-            .property("Colour", &SpriteRendererComponent::Colour)
-            .property("Texture", &SpriteRendererComponent::Texture)
-            .property("TilingFactor", &SpriteRendererComponent::TilingFactor);
-
-        registration::class_<CircleRendererComponent>("CircleRendererComponent")
-            (metadata("Component", true))
-            .constructor<>()
-            .property("Colour", &CircleRendererComponent::Colour)
-            .property("Thickness", &CircleRendererComponent::thickness)
-            .property("Fade", &CircleRendererComponent::fade);
-
-        registration::class_<CameraComponent>("CameraComponent")
-            (metadata("Component", true))
-            .constructor<>()
-            .property("Colour", &CameraComponent::Camera)
-            .property("Primary", &CameraComponent::Primary)
-            .property("Primary", &CameraComponent::FixedAspectRatio);
-    }
-
     std::vector<std::string> ComponentRegistry::GetComponentNames()
     {
         std::vector<std::string> componentNames;
@@ -83,10 +188,10 @@ namespace Borealis
         {
             if (t.is_class() && t.get_metadata("Component"))
             {
-				componentNames.push_back(t.get_name().to_string());
-			}
-		}
-		return componentNames;
+                componentNames.push_back(t.get_name().to_string());
+            }
+        }
+        return componentNames;
     }
 
     std::vector<std::string> ComponentRegistry::GetPropertyNames(std::string componentName)
@@ -96,13 +201,13 @@ namespace Borealis
 
         for (auto prop : t.get_properties())
         {
-			properties.push_back(prop.get_name().to_string());
-		}
+            properties.push_back(prop.get_name().to_string());
+        }
         variant r;
         return properties;
     }
 
-    
+
 
 #ifndef RegisterSetPropertyFunction
 #define RegisterSetPropertyFunction(datatype) \
@@ -221,5 +326,4 @@ void Borealis::ComponentRegistry::SetPropertyInternal(const std::string& propert
     RegisterCopyPropertyFunction(RigidBodyComponent);
     RegisterCopyPropertyFunction(LightComponent);
     RegisterCopyPropertyFunction(TextComponent);
-
 }

@@ -16,7 +16,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #define Font_HPP
 
 #include <map>
-
+#include <Assets/Asset.hpp>
 namespace Borealis
 {
 	class Texture2D; //forward declare

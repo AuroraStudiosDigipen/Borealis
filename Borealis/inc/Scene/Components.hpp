@@ -204,10 +204,16 @@ namespace Borealis
 		CapsuleColliderComponent(const CapsuleColliderComponent&) = default;
 	};
 
+
+	enum class RigidBodyType : int
+	{
+		Box,
+		Circle
+	};
 	struct RigidBodyComponent
 	{
 
-		bool isBox = false;
+		RigidBodyType isBox = RigidBodyType::Box;
 		float radius = 1.5f; //radius for circle, side for cube
 
 		

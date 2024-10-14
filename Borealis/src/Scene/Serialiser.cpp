@@ -357,7 +357,7 @@ namespace Borealis
 
 			auto& rigidBodyComponent = entity.GetComponent<RigidBodyComponent>();
 
-			out << YAML::Key << "isBox" << YAML::Value << rigidBodyComponent.isBox;
+			out << YAML::Key << "isBox" << YAML::Value << (int)rigidBodyComponent.isBox;
 			out << YAML::Key << "Radius" << YAML::Value << rigidBodyComponent.radius;
 			//out << YAML::Key << "mass" << YAML::Value << rigidBodyComponent.mass;
 			//out << YAML::Key << "drag" << YAML::Value << rigidBodyComponent.drag;
@@ -726,7 +726,7 @@ namespace Borealis
 				if (rigidBodyComponent)
 				{
 					auto& rbc = loadedEntity.AddComponent<RigidBodyComponent>();
-					rbc.isBox = rigidBodyComponent["isBox"].as<bool>();
+					rbc.isBox = (RigidBodyType)rigidBodyComponent["isBox"].as<int>();
 					rbc.radius = rigidBodyComponent["Radius"].as<float>();
 					// run the update of the shape here once
 

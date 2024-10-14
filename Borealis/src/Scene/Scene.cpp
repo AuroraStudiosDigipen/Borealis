@@ -347,7 +347,7 @@ namespace Borealis
 		if (src.HasComponent<RigidBodyComponent>())
 			dst.AddOrReplaceComponent<RigidBodyComponent>(src.GetComponent<RigidBodyComponent>());
 
-		if (dst.GetComponent<RigidBodyComponent>().isBox)
+		if ((bool)dst.GetComponent<RigidBodyComponent>().isBox)
 		{
 			PhysicsSystem::UpdateBoxValues(dst.GetComponent<RigidBodyComponent>());
 		}
@@ -447,7 +447,7 @@ namespace Borealis
 			auto& newRbComponent = dst.emplace<RigidBodyComponent>(dstEntity);
 
 			newRbComponent = rbComponent;
-			if (newRbComponent.isBox)
+			if (newRbComponent.isBox == RigidBodyType::Box)
 			{
 				PhysicsSystem::addSquareBody(newRbComponent.radius, dst.get<TransformComponent>(dstEntity).Translate, newRbComponent);
 			}

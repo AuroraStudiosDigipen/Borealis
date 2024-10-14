@@ -17,6 +17,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <ImGui/ImGuiFontLib.hpp>
 #include <Scene/Components.hpp>
 #include <Scene/SceneManager.hpp>
+#include <Scene/ReflectionInstance.hpp>
 #include <Scripting/ScriptingSystem.hpp>
 #include <Scripting/ScriptInstance.hpp>
 #include <Panels/SceneHierarchyPanel.hpp>
@@ -65,8 +66,9 @@ namespace ImGui
 
 namespace Borealis
 {
-	static void DrawVec3Controller(const std::string& label, glm::vec3& values, float resetValue = 0.f, float columnWidth = 100.f)
+	static bool DrawVec3Controller(const std::string& label, glm::vec3& values, float resetValue = 0.f, float columnWidth = 100.f)
 	{
+		bool output = false;
 		ImGuiIO& io = ImGui::GetIO();
 		ImFont* bold = io.Fonts->Fonts[ImGuiFonts::bold];
 
@@ -89,12 +91,16 @@ namespace Borealis
 		if (ImGui::Button("X", buttonSize))
 		{
 			values.x = resetValue;
+			output = true;
 		}
 		ImGui::PopStyleColor(3);
 		ImGui::PopFont();
 
 		ImGui::SameLine();
-		ImGui::DragFloat("##X", &values.x, 0.1f, 0.0f, 0.0f, "%.2f");
+		if (ImGui::DragFloat("##X", &values.x, 0.1f, 0.0f, 0.0f, "%.2f"))
+		{
+			output = true;
+		}
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 
@@ -107,12 +113,17 @@ namespace Borealis
 		if (ImGui::Button("Y", buttonSize))
 		{
 			values.y = resetValue;
+			output = true;
 		}
 		ImGui::PopStyleColor(3);
 		ImGui::PopFont();
 
 		ImGui::SameLine();
-		ImGui::DragFloat("##Y", &values.y, 0.1f, 0.0f, 0.0f, "%.2f");
+
+		if(ImGui::DragFloat("##Y", &values.y, 0.1f, 0.0f, 0.0f, "%.2f"))
+		{
+			output = true;
+		}
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 
@@ -124,23 +135,299 @@ namespace Borealis
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.05f, 0.1f, 0.7f, 1.0f));
 		if (ImGui::Button("Z", buttonSize))
 		{
+			output = true;
 			values.z = resetValue;
 		}
 		ImGui::PopStyleColor(3);
 		ImGui::PopFont();
 
 		ImGui::SameLine();
-		ImGui::DragFloat("##Z", &values.z, 0.1f, 0.0f, 0.0f, "%.2f");
+
+		if(ImGui::DragFloat("##Z", &values.z, 0.1f, 0.0f, 0.0f, "%.2f"))
+		{
+			output = true;
+		}
 		ImGui::PopItemWidth();
 
 		ImGui::PopStyleVar();
 
 		ImGui::Columns(1);
 		ImGui::PopID();
+		return output;
 	}
 
-	template <typename T, typename UIFunction>
-	static void DrawComponent(const std::string& name, Entity entity, UIFunction uiFunction, bool allowDelete = true)
+	template <typename Type>
+	static void DrawComponent(Type& component)
+	{
+		ReflectionInstance rInstance(component);
+		auto properties = rInstance.get_type().get_properties();
+		for (auto Property : properties)
+		{
+			auto propType = Property.get_type();
+			auto propName = Property.get_name().to_string();
+			auto name = propName;
+
+
+			if (Property.get_metadata("Dependency").is_valid())
+			{
+				auto dependencyVariable = Property.get_metadata("Dependency").get_value<std::string>(); //Is Box
+				auto dependencyValue = Property.get_metadata("Visible for").get_value<std::string>(); // Box
+				auto dependencyProperty = rInstance.get_type().get_property(dependencyVariable);
+				if (dependencyProperty.get_enumeration().name_to_value(dependencyValue) != dependencyProperty.get_value(rInstance))
+				{
+					continue;
+				}
+			}
+
+
+			if (Property.is_enumeration())
+			{
+				auto enumValues = Property.get_enumeration().get_names();
+				std::map<rttr::string_view, rttr::variant> enumMap;
+				for (auto value : enumValues)
+				{
+					enumMap[value] = Property.get_enumeration().name_to_value(value);
+				}
+				auto currentEnum = Property.get_value(rInstance);
+				auto currentEnumString = Property.get_enumeration().value_to_name(currentEnum);
+
+				if (ImGui::BeginCombo((name + "##" + propName).c_str(), currentEnumString.to_string().c_str()))
+				{
+					for (int i = 0; i < enumMap.size(); i++)
+					{
+						auto& [enumName, enumValue] = *std::next(enumMap.begin(), i);
+						bool isSelected = currentEnum == enumValue;
+						if (ImGui::Selectable(enumName.to_string().c_str(), isSelected))
+						{
+							Property.set_value(rInstance, enumValue);
+						}
+						if (isSelected)
+						{
+							ImGui::SetItemDefaultFocus();
+						}
+					}
+					ImGui::EndCombo();
+				}
+				continue;
+			}
+
+			if (propType == rttr::type::get<bool>())
+			{
+				bool Data = Property.get_value(rInstance).to_bool();
+				if (ImGui::Checkbox((name + "##" + propName).c_str(), &Data))
+				{
+					Property.set_value(rInstance, Data);
+				}
+				continue;
+			}
+			if (propType == rttr::type::get<float>())
+			{
+				float Data = Property.get_value(rInstance).to_float();
+				if (ImGui::DragFloat((name + "##" + propName).c_str(), &Data))
+				{
+					Property.set_value(rInstance, Data);
+				}
+				continue;
+			}
+
+			if (propType == rttr::type::get<int>())
+			{
+				int Data = Property.get_value(rInstance).to_int();
+				if (ImGui::DragInt((name + "##" + propName).c_str(), &Data))
+				{
+					Property.set_value(rInstance, Data);
+				}
+				continue;
+			}
+
+			if (propType == rttr::type::get<std::string>())
+			{
+				std::string Data = Property.get_value(rInstance).to_string();
+				char buffer[256];
+				memset(buffer, 0, sizeof(buffer));
+				strcpy_s(buffer, sizeof(buffer), Data.c_str());
+				if (ImGui::InputText((name + "##" + propName).c_str(), buffer, sizeof(buffer)))
+				{
+					Data = std::string(buffer);
+					Property.set_value(rInstance, Data);
+				}
+				continue;
+			}
+
+			if (propType == rttr::type::get<glm::vec2>())
+			{
+				rttr::variant value = Property.get_value(rInstance);
+				glm::vec2 Data = value.get_value<glm::vec2>();
+				if (ImGui::DragFloat2((name + "##" + propName).c_str(), glm::value_ptr(Data)))
+				{
+					Property.set_value(rInstance, Data);
+				}
+				continue;
+			}
+
+			if (propType == rttr::type::get<glm::vec3>())
+			{
+				rttr::variant value = Property.get_value(rInstance);
+				glm::vec3 Data = value.get_value<glm::vec3>();
+
+				float min = 0;
+
+				if (Property.get_metadata("Min").is_valid())
+				{
+					min = Property.get_metadata("Min").get_value<float>();
+				}
+
+				if (Property.get_metadata("Colour").is_valid())
+				{
+					if (ImGui::ColorEdit3((name + "##" + propName).c_str(), glm::value_ptr(Data)))
+					{
+						Property.set_value(rInstance, Data);
+					}
+				}
+
+				else if (DrawVec3Controller(name, Data, min))
+				{
+					Property.set_value(rInstance, Data);
+				}
+				continue;
+			}
+
+			if (propType == rttr::type::get<glm::vec4>())
+			{
+				rttr::variant value = Property.get_value(rInstance);
+				glm::vec4 Data = value.get_value<glm::vec4>();
+
+				if (Property.get_metadata("Colour").is_valid())
+				{
+					if (ImGui::ColorEdit4((name + "##" + propName).c_str(), glm::value_ptr(Data)))
+					{
+						Property.set_value(rInstance, Data);
+					}
+				}
+
+				else if (ImGui::DragFloat4((name + "##" + propName).c_str(), glm::value_ptr(Data)))
+				{
+					Property.set_value(rInstance, Data);
+				}
+
+				continue;
+			}
+
+			if (propType == rttr::type::get<unsigned char>())
+			{
+				unsigned char Data = Property.get_value(rInstance).to_uint8();
+				if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_U8, &Data))
+				{
+					Property.set_value(rInstance, Data);
+				}
+				continue;
+			}
+
+			if (propType == rttr::type::get<char>())
+			{
+				char Data = Property.get_value(rInstance).to_int8();
+				if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_S8, &Data))
+				{
+					Property.set_value(rInstance, Data);
+				}
+				continue;
+			}
+
+			if (propType == rttr::type::get<unsigned short>())
+			{
+				unsigned short Data = Property.get_value(rInstance).to_uint16();
+				if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_U16, &Data))
+				{
+					Property.set_value(rInstance, Data);
+				}
+				continue;
+			}
+
+			if (propType == rttr::type::get<short>())
+			{
+				short Data = Property.get_value(rInstance).to_int16();
+				if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_S16, &Data))
+				{
+					Property.set_value(rInstance, Data);
+				}
+				continue;
+			}
+
+			if (propType == rttr::type::get<unsigned int>())
+			{
+				unsigned int Data = Property.get_value(rInstance).to_uint32();
+				if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_U32, &Data))
+				{
+					Property.set_value(rInstance, Data);
+				}
+				continue;
+			}
+
+			if (propType == rttr::type::get<long long>())
+			{
+				long long Data = Property.get_value(rInstance).to_int64();
+				if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_S64, &Data))
+				{
+					Property.set_value(rInstance, Data);
+				}
+				continue;
+			}
+
+			if (propType == rttr::type::get<unsigned long long>())
+			{
+				unsigned long long Data = Property.get_value(rInstance).to_uint64();
+				if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_U64, &Data))
+				{
+					Property.set_value(rInstance, Data);
+				}
+				continue;
+			}
+
+			if (propType == rttr::type::get<double>())
+			{
+				double Data = Property.get_value(rInstance).to_double();
+				if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_Double, &Data))
+				{
+					Property.set_value(rInstance, Data);
+				}
+				continue;
+			}
+
+			if (propType == rttr::type::get<Ref<Model>>())
+			{
+				ImGui::Button(propName.c_str());
+				if (ImGui::BeginDragDropTarget())
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropMeshItem"))
+					{
+						AssetHandle data = *(const uint64_t*)payload->Data;
+						rttr::variant value(AssetManager::GetAsset<Model>(data));
+						Property.set_value(rInstance, value);
+					}
+					ImGui::EndDragDropTarget();
+				}
+			}
+
+			if (propType == rttr::type::get<Ref<Material>>())
+			{
+				ImGui::Button(propName.c_str());
+				if (ImGui::BeginDragDropTarget())
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropMaterialItem"))
+					{
+		
+						AssetHandle data = *(const uint64_t*)payload->Data;
+						rttr::variant value(AssetManager::GetAsset<Material>(data));
+						Property.set_value(rInstance, value);
+					}
+					ImGui::EndDragDropTarget();
+				}
+			}
+		}
+	}
+
+	template <typename T>
+	static void DrawComponentLayout(const std::string& name, Entity entity, bool allowDelete = true)
 	{
 		if (entity.HasComponent<T>())
 		{
@@ -183,7 +470,7 @@ namespace Borealis
 			if (open)
 			{
 				ImGui::Spacing();
-				uiFunction(component);
+				DrawComponent(component);
 			}
 
 			if (deleteComponent)
@@ -543,10 +830,9 @@ namespace Borealis
 			if (field.mType == ScriptFieldType::Vector3)
 			{
 				glm::vec3 Data = component->GetFieldValue<glm::vec3>(name);
-				if (ImGui::DragFloat3((name + "##" + component->GetKlassName()).c_str(), glm::value_ptr(Data)))
-				{
+				if(DrawVec3Controller(name, Data))
 					component->SetFieldValue(name, &Data);
-				}
+				
 			}
 
 			if (field.mType == ScriptFieldType::Vector4)
@@ -756,20 +1042,25 @@ namespace Borealis
 
 
 			ImGui::EndPopup();
-					
 		}
-
-		DrawComponent<TransformComponent>("Transform", mSelectedEntity, [](auto& transformComponent)
-			{
-				ImGuiIO& io = ImGui::GetIO();
-				float textScale = io.FontGlobalScale;
-				DrawVec3Controller("Translation", transformComponent.Translate,0.f, textScale * 100.f);
-				DrawVec3Controller("Rotation", transformComponent.Rotation,0.f, textScale * 100.f);
-				DrawVec3Controller("Scale", transformComponent.Scale, 1.f, textScale * 100.f);
-			}, false);
 		
+		DrawComponentLayout<TransformComponent>("Transform Component", mSelectedEntity);
+		DrawComponentLayout<SpriteRendererComponent>("Sprite Renderer", mSelectedEntity);
+		DrawComponentLayout<CircleRendererComponent>("Circle Renderer", mSelectedEntity);
+		DrawComponentLayout<CameraComponent>("Camera", mSelectedEntity);
+		DrawComponentLayout<MeshFilterComponent>("Mesh Filter", mSelectedEntity);
+		DrawComponentLayout<MeshRendererComponent>("Mesh Renderer", mSelectedEntity);
+		DrawComponentLayout<BoxColliderComponent>("Box Collider", mSelectedEntity);
+		DrawComponentLayout<CapsuleColliderComponent>("Capsule Collider", mSelectedEntity);
+		DrawComponentLayout<RigidBodyComponent>("Rigidbody", mSelectedEntity);
+		DrawComponentLayout<LightComponent>("Light", mSelectedEntity);
+		DrawComponentLayout<TextComponent>("Text", mSelectedEntity);
+		DrawComponentLayout<BehaviourTreeComponent>("Behaviour Tree", mSelectedEntity);
+		DrawComponentLayout<AudioSourceComponent>("Audio Source", mSelectedEntity);
+		DrawComponentLayout<AudioListenerComponent>("Audio Listener", mSelectedEntity);
 
-		DrawComponent<CameraComponent>("Camera", mSelectedEntity, [](auto& cameraComponent)
+
+		/*DrawComponent<CameraComponent>("Camera", mSelectedEntity, [](auto& cameraComponent)
 			{
 				const char* CameraTypeStr[]{ "Perspective", "Orthographic" };
 				const char* currentCameraTypeStr = CameraTypeStr[(int)cameraComponent.Camera.GetCameraType()];
@@ -830,368 +1121,17 @@ namespace Borealis
 
 					ImGui::Checkbox("Fixed Aspect Ratio", &cameraComponent.FixedAspectRatio);
 				}
-			});
+			});*/
 
-		DrawComponent<SpriteRendererComponent>("Sprite Renderer", mSelectedEntity, [&](auto& component)
-			{
-				if (ImGui::ColorEdit4("Color", glm::value_ptr(component.Colour)))
-				{
-					if (mSelectedEntity.HasComponent<PrefabComponent>()) // it's a prefab instance
-					{
-						auto& pComp = mSelectedEntity.GetComponent<PrefabComponent>();
-						pComp.mEditedComponentList.insert("SpriteRendererComponent::Color");
-					}
-				}
-				ImGui::Button("Texture");
-				if(ImGui::BeginDragDropTarget())
-				{
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropImageItem"))
-					{
-						AssetHandle data = *(const uint64_t*)payload->Data;
-						component.Texture = AssetManager::GetAsset<Texture2D>(data);
-					}
-					ImGui::EndDragDropTarget();
-				}
-				ImGui::DragFloat("Tiling Factor", &component.TilingFactor, 0.1f, 0.0f, 100.f);
-			});
 
-		DrawComponent<CircleRendererComponent>("Circle Renderer", mSelectedEntity, [](auto& component)
-			{
-				ImGui::ColorEdit4("Color", glm::value_ptr(component.Colour));
-				ImGui::DragFloat("Thickness", &component.thickness, 0.025f, 0.0f, 1.0f);
-				ImGui::DragFloat("fade", &component.fade, 0.005f, 0.0f, 1.0f);
-			});
-
-		DrawComponent<MeshFilterComponent>("Mesh Filter", mSelectedEntity, [](auto& component)
-			{
-				ImGui::Button("Mesh");
-				//{
-				//	if (!component.Model)
-				//		component.Model = MakeRef<Model>();
-				//	component.Model->LoadModel();
-				//}
-				
-				if (ImGui::BeginDragDropTarget())
-				{
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropMeshItem"))
-					{
-						//const char* data = (const char*)payload->Data;
-						//std::string meshName = "assets/";
-						//meshName += data;
-						// Should reference off asset manager's mesh
-						// imageName += ".meta";
-						// Read UUID from .meta
-						// Example Interface: component.mesh = AssetManager::GetMesh(UUID);
-						//component.mesh->Load(filename);
-						//Model model;
-						//LoadModel(meshName, model);
-						//component.Model = MakeRef<Model>(model); 
-						//component.Model = MeshImporter::LoadFBXModel(meshName);
-
-						//component.Model = MeshImporter::LoadFBXModel("assets/meshes/dragon.fbx");
-						AssetHandle data = *(const uint64_t*)payload->Data;
-						component.Model = AssetManager::GetAsset<Model>(data);
-					}
-					ImGui::EndDragDropTarget();
-				}
-			});
-		DrawComponent<MeshRendererComponent>("Mesh Renderer", mSelectedEntity, [](auto& component)
-			{
-				ImGui::Button("Material");
-				if (ImGui::BeginDragDropTarget())
-				{
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropMaterialItem"))
-					{
-						AssetHandle data = *(const uint64_t*)payload->Data;
-						component.Material = AssetManager::GetAsset<Material>(data);
-					}
-					ImGui::EndDragDropTarget();
-				}
-				if (component.Material)
-				{
-					MaterialEditor::RenderProperties(component.Material);
-				}
-
-				
-				ImGui::Checkbox("Cast Shadow", &component.castShadow);
-			});
-
-		DrawComponent<BoxColliderComponent>("Box Collider", mSelectedEntity, [](auto& component)
-			{
-				ImGui::Checkbox("Is Trigger", &component.isTrigger);
-				ImGui::Checkbox("Provides Contact", &component.providesContact);
-
-				float textScale = ImGui::GetIO().FontGlobalScale;
-				DrawVec3Controller("Center", component.Center, 0.f, textScale * 100.f);
-				DrawVec3Controller("Size", component.Size, 1.f, textScale * 100.f);
-			});
-
-		DrawComponent<CapsuleColliderComponent>("Capsule Collider", mSelectedEntity, [](auto& component)
-			{
-				ImGui::Checkbox("Is Trigger##capsule", &component.isTrigger);
-				ImGui::Checkbox("Provides Contact##capsule", &component.providesContact);
-				ImGui::DragFloat("Radius", &component.radius, 0.025f);
-				ImGui::DragFloat("Height", &component.height, 0.025f);
-
-				const char* DirectionTypeStr[]{ "X-Axis", "Y-Axis", "Z-Axis"};
-				const char* currentDirectionTypeStr = DirectionTypeStr[(int)component.direction];
-				if (ImGui::BeginCombo("Direction", currentDirectionTypeStr))
-				{
-					for (int i = 0; i < 3; i++)
-					{
-						bool isSelected = currentDirectionTypeStr == DirectionTypeStr[i];
-						if (ImGui::Selectable(DirectionTypeStr[i], isSelected))
-						{
-							currentDirectionTypeStr = DirectionTypeStr[i];
-							component.direction = (CapsuleColliderComponent::Direction)(i);
-						}
-						if (isSelected)
-						{
-							ImGui::SetItemDefaultFocus();
-						}
-					}
-					ImGui::EndCombo();
-				}
-			});
-
-		DrawComponent<RigidBodyComponent>("Rigidbody", mSelectedEntity, [](auto& component)
-			{
-
-				if (ImGui::Checkbox("isBox", &component.isBox))
-				{
-					if (component.isBox)
-					{
-						PhysicsSystem::UpdateBoxValues(component);
-					}
-					else
-					{
-						PhysicsSystem::UpdateSphereValues(component);
-					}
-				}
-				if (component.isBox)
-				{
-					if (ImGui::DragFloat("HalfExtent", &component.radius))
-					{
-						PhysicsSystem::UpdateBoxValues(component);
-					}
-				}
-				else
-				{
-					if (ImGui::DragFloat("Radius", &component.radius))
-					{
-						PhysicsSystem::UpdateSphereValues(component);
-					}
-				}
-
-				/*ImGui::DragFloat("Mass", &component.mass, 0.025f);
-				ImGui::DragFloat("Drag", &component.drag, 0.025f);
-				ImGui::DragFloat("Angular Drag", &component.angularDrag, 0.025f);
-				ImGui::Checkbox("Automatic Center of Mass", &component.AutomaticCenterOfMass);
-				if (!component.AutomaticCenterOfMass)
-				{
-					float textScale = ImGui::GetIO().FontGlobalScale;
-					DrawVec3Controller("Center of Mass", component.centerOfMass, 0.f, textScale * 100.f);
-				}
-				ImGui::Checkbox("Automatic Tensor", &component.AutomaticTensor);
-				if (!component.AutomaticTensor)
-				{
-					float textScale = ImGui::GetIO().FontGlobalScale;
-					DrawVec3Controller("Inertia Tensor", component.inertiaTensor, 1.f, textScale * 100.f);
-					DrawVec3Controller("Inertia Tensor Rotation", component.inertiaTensorRotation, 0.f, textScale * 100.f);
-				}
-				ImGui::Checkbox("Use Gravity", &component.useGravity);
-				ImGui::Checkbox("Kinematic", &component.isKinematic);*/
-			});
 
 		if (mSelectedEntity.HasComponent<ScriptComponent>())
 		{
 			DrawScriptComponent(mSelectedEntity.GetComponent<ScriptComponent>(), mSelectedEntity);
 		}
 
-		DrawComponent<LightComponent>("Light", mSelectedEntity, [](auto& component)
-			{
-				if (ImGui::CollapsingHeader("General", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap))
-				{
-					const char* LightTypeStr[]{ "Spot", "Directional", "Point" };
-					const char* currentLightTypeStr = LightTypeStr[(int)component.type];
-					if (ImGui::BeginCombo("Type", currentLightTypeStr))
-					{
-						for (int i = 0; i < 3; i++)
-						{
-							bool isSelected = currentLightTypeStr == LightTypeStr[i];
-							if (ImGui::Selectable(LightTypeStr[i], isSelected))
-							{
-								currentLightTypeStr = LightTypeStr[i];
-								component.type = (LightComponent::Type)(i);
-							}
-							if (isSelected)
-							{
-								ImGui::SetItemDefaultFocus();
-							}
-						}
-						ImGui::EndCombo();
-					}
 
-					ImGui::ColorEdit3("Ambient", glm::value_ptr(component.ambient));
-					ImGui::ColorEdit3("Diffuse", glm::value_ptr(component.diffuse));
-					ImGui::ColorEdit3("Specular", glm::value_ptr(component.specular));
-					
-
-					if (component.type == LightComponent::Type::Spot)
-					{
-						ImGui::DragFloat("Inner Spot", &component.InnerOuterSpot.x, 0.025f);
-						ImGui::DragFloat("Outer Spot", &component.InnerOuterSpot.y, 0.025f);
-					}
-
-					if (component.type == LightComponent::Type::Directional)
-					{
-						ImGui::PushItemWidth(80.f);
-						ImGui::Text("Direction");
-						ImGui::SameLine(100.f);
-						ImGui::DragFloat("X##direction", &component.direction.x, 0.025f, -1, 1);
-						ImGui::SameLine();
-						ImGui::DragFloat("Y##direction", &component.direction.y, 0.025f, -1, 1);
-						ImGui::SameLine();
-						ImGui::DragFloat("Z##direction", &component.direction.z, 0.025f, -1, 1);
-						ImGui::PopItemWidth();
-					}
-
-					if (component.type == LightComponent::Type::Spot || component.type == LightComponent::Type::Point)
-					{
-						ImGui::DragFloat("Linear", &component.linear, 0.025f);
-						ImGui::DragFloat("Quadratic", &component.quadratic, 0.025f);
-					}
-				}
-
-				/*if (ImGui::CollapsingHeader("Emission", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap))
-				{
-					const char* LightAppearanceStr[]{ "Colour", "Filter and Temperature" };
-					const char* currentLightAppearanceStr = LightAppearanceStr[(int)component.lightAppearance];
-					if (ImGui::BeginCombo("Light Appearance", currentLightAppearanceStr))
-					{
-						for (int i = 0; i < 2; i++)
-						{
-							bool isSelected = currentLightAppearanceStr == LightAppearanceStr[i];
-							if (ImGui::Selectable(LightAppearanceStr[i], isSelected))
-							{
-								currentLightAppearanceStr = LightAppearanceStr[i];
-								component.lightAppearance = (LightComponent::LightAppearance)(i);
-							}
-							if (isSelected)
-							{
-								ImGui::SetItemDefaultFocus();
-							}
-						}
-						ImGui::EndCombo();
-					}
-
-					if (component.lightAppearance == LightComponent::LightAppearance::Colour)
-					{
-						ImGui::ColorEdit4("Colour", glm::value_ptr(component.Colour));
-					}
-					else
-					{
-						ImGui::ColorEdit4("Filter", glm::value_ptr(component.Colour));
-						ImGui::DragFloat("Temperature", &component.Temperature, 0.025f);
-					}
-
-					ImGui::DragFloat("Intensity", &component.Intensity, 0.025f);
-					ImGui::DragFloat("Indirect Multiplier", &component.IndirectMultiplier, 0.025f);
-					ImGui::DragFloat("Range", &component.Range, 0.025f);
-				}*/
-
-				
-				/*if (ImGui::CollapsingHeader("Shadows", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap))
-				{
-					const char* ShadowStr[]{ "No Shadows", "Soft Shadows", "Hard Shadows" };
-					const char* currentShadowStr = ShadowStr[(int)component.shadowType];
-					if (ImGui::BeginCombo("Shadow Type", currentShadowStr))
-					{
-						for (int i = 0; i < 3; i++)
-						{
-							bool isSelected = currentShadowStr == ShadowStr[i];
-							if (ImGui::Selectable(ShadowStr[i], isSelected))
-							{
-								currentShadowStr = ShadowStr[i];
-								component.shadowType = (LightComponent::ShadowType)(i);
-							}
-							if (isSelected)
-							{
-								ImGui::SetItemDefaultFocus();
-							}
-						}
-						ImGui::EndCombo();
-					}
-				}*/
-			});
-
-		DrawComponent<TextComponent>("Text", mSelectedEntity, [](auto& component)
-			{
-				if (!component.font)
-				{
-					component.font = Font::GetDefaultFont();
-				}
-
-				char inputText[256] = "";
-				strncpy_s(inputText, sizeof(inputText), component.text.c_str(), _TRUNCATE);
-				int textSize = component.fontSize;
-
-				ImGui::InputText("Text Input", inputText, IM_ARRAYSIZE(inputText));
-
-				ImGui::InputInt("Text Size", &textSize);
-
-				component.text = inputText;
-				component.fontSize = textSize;
-			});
-
-			DrawComponent<AudioSourceComponent>("Audio Source", mSelectedEntity, [](auto& component)
-			{
-				ImGui::Button("Audio");
-
-				if (ImGui::BeginDragDropTarget())
-				{
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropAudioItem"))
-					{
-						AssetHandle data = *(const uint64_t*)payload->Data;
-						component.audio = AssetManager::GetAsset<Audio>(data);
-					}
-					ImGui::EndDragDropTarget();
-				}
-
-				if(component.audio)
-				{
-					bool loop = component.isLoop;
-					ImGui::Checkbox("Mute", &component.isMute);
-					ImGui::Checkbox("Loop", &component.isLoop);
-					if (loop != component.isLoop)
-					{
-						component.isPlaying = true;
-					}
-
-					// DragFloat for volume control (range: -80 dB to 0 dB)
-					ImGui::DragFloat("Volume", &component.Volume, 0.5f, -80.0f, 0.0f);
-					if (ImGui::Button("Play"))
-					{
-						component.isPlaying = true;
-					}
-				}
-			});
-
-		DrawComponent<AudioListenerComponent>("Audio Listener", mSelectedEntity, [](auto& component)
-			{
-				ImGui::Checkbox("Audio Listener", &component.isAudioListener);
-
-			});
-
-		
-		DrawComponent<BehaviourTreeComponent>("Behaviour Tree", mSelectedEntity, [](auto& component)
-			{
-				// Get the window size
-				ImVec2 windowSize = ImGui::GetWindowSize();		
-				if (ImGui::Button("Open Node Editor", ImVec2(500,0)))
-				{
-					// Open the node editor
-				}
-			});
 	}
+
+	
 }

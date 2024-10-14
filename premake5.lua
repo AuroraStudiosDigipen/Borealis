@@ -166,17 +166,16 @@ workspace "Borealis"
 			"BOREALIS_BUILD_DLL",
 			"_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS",
 			"GLFW_INCLUDE_NONE",
-			
 		}
-
+		
 		pchheader "BorealisPCH.hpp"
 		pchsource "Borealis/src/BorealisPCH.cpp"
+
+		buildoptions { "/bigobj" }
 
 		filter "files:Borealis/lib/ImGuizmo/**.cpp"
 		flags {"NoPCH"}
 		
-		
-
 		filter "configurations:Debug"
 			defines "_DEB"
 			symbols "On"
@@ -265,6 +264,7 @@ workspace "Borealis"
 			"%{IncludeDir.ImGuiNodeEditor}",
 			"%{IncludeDir.assimp}",
 			"%{IncludeDir.MSDF}",
+			"%{IncludeDir.RTTR}"
 		}
 
 		defines

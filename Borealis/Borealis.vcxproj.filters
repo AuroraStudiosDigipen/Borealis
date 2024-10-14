@@ -385,6 +385,9 @@
     <ClInclude Include="inc\Scene\OrthographicCameraController.hpp">
       <Filter>inc\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Scene\ReflectionInstance.hpp">
+      <Filter>inc\Scene</Filter>
+    </ClInclude>
     <ClInclude Include="inc\Scene\Scene.hpp">
       <Filter>inc\Scene</Filter>
     </ClInclude>

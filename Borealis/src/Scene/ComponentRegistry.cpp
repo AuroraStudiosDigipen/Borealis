@@ -50,11 +50,36 @@ namespace Borealis
             .property("Center", &BoxColliderComponent::Center)
             .property("Size", &BoxColliderComponent::Size);
 
+        registration::enumeration<SceneCamera::CameraType>("Camera Type")
+        (
+            value("Orthographic", SceneCamera::CameraType::Orthographic),
+            value("Perspective", SceneCamera::CameraType::Perspective)
+        );
+
+        registration::class_<SceneCamera>("Scene Camera")
+            (metadata("SubComponent", true))
+            .constructor<>()
+            .property("Camera Type", &SceneCamera::GetCameraType, &SceneCamera::SetCameraType)
+            .property("Perspective Near Clip", &SceneCamera::GetPerspNear, &SceneCamera::SetPerspNear)
+            (metadata("Dependency", "Camera Type"), metadata("Visible for", "Perspective"))
+            .property("Perspective Far Clip", &SceneCamera::GetPerspFar, &SceneCamera::SetPerspFar)
+            (metadata("Dependency", "Camera Type"), metadata("Visible for", "Perspective"))
+            .property("Perspective FOV", &SceneCamera::GetPerspFOV, &SceneCamera::SetPerspFOV)
+            (metadata("Dependency", "Camera Type"), metadata("Visible for", "Perspective"))
+            .property("Orthographic Near Clip", &SceneCamera::GetOrthoNear, &SceneCamera::SetOrthoNear)
+            (metadata("Dependency", "Camera Type"), metadata("Visible for", "Orthographic"))
+            .property("Orthographic Far Clip", &SceneCamera::GetOrthoFar, &SceneCamera::SetOrthoFar)
+            (metadata("Dependency", "Camera Type"), metadata("Visible for", "Orthographic"))
+            .property("Orthographic Size", &SceneCamera::GetOrthoSize, &SceneCamera::SetOrthoSize)
+            (metadata("Dependency", "Camera Type"), metadata("Visible for", "Orthographic"));
+            
         registration::class_<CameraComponent>("Camera Component")
             (metadata("Component", true))
             .constructor<>()
             .property("Primary Camera", &CameraComponent::Primary)
-            .property("Fixed Aspect Ratio", &CameraComponent::FixedAspectRatio);
+            .property("Fixed Aspect Ratio", &CameraComponent::FixedAspectRatio)
+            .property("Camera", &CameraComponent::Camera);
+
 
         registration::class_<CapsuleColliderComponent>("Capsule Collider Component")
             (metadata("Component", true))
@@ -87,12 +112,6 @@ namespace Borealis
         registration::class_<LightComponent>("Light Component")
             (metadata("Component", true))
             .constructor<>()
-            .property("Offset", &LightComponent::offset)
-            .property("Inner Outer Spot", &LightComponent::InnerOuterSpot)
-            (metadata("Dependency", "Type"), metadata("Visible for", "Spot"))
-            .property("Type", &LightComponent::type)
-            .property("Direction", &LightComponent::direction)
-            (metadata("Dependency", "Type"), metadata("Visible for", "Directional"))
             .property("Ambient", &LightComponent::ambient)
             (metadata("Colour", true))
             .property("Diffuse", &LightComponent::diffuse)
@@ -100,7 +119,13 @@ namespace Borealis
             .property("Specular", &LightComponent::specular)
             (metadata("Colour", true))
             .property("Quadratic", &LightComponent::quadratic)
-            .property("Linear", &LightComponent::linear);
+            .property("Linear", &LightComponent::linear)
+            .property("Offset", &LightComponent::offset)
+            .property("Type", &LightComponent::type)
+            .property("Direction", &LightComponent::direction)
+            (metadata("Dependency", "Type"), metadata("Visible for", "Directional"))
+            .property("Inner Outer Spot", &LightComponent::InnerOuterSpot)
+            (metadata("Dependency", "Type"), metadata("Visible for", "Spot"));
 
         registration::class_<MeshFilterComponent>("Mesh Filter Component")
             (metadata("Component", true))

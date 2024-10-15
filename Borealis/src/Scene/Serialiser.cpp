@@ -228,114 +228,124 @@ namespace Borealis
 		auto propType = prop.get_type();
 		auto propName = prop.get_name();
 		auto propValue = prop.get_value(instance);
-		out << YAML::Key << propName.to_string() << YAML::Value;
 
 		if (propType.is_enumeration())
 		{
-			out << propType.get_enumeration().value_to_name(propValue).to_string();
+			out << YAML::Key << propName.to_string() << YAML::Value << propType.get_enumeration().value_to_name(propValue).to_string();
 			return true;
 		}
 
 		if (propType == rttr::type::get<int>())
 		{
-			out << propValue.to_int();
+			out << YAML::Key << propName.to_string() << YAML::Value << propValue.to_int();
 			return true;
 		}
 
 		if (propType == rttr::type::get<float>())
 		{
-			out << propValue.to_float();
+			out << YAML::Key << propName.to_string() << YAML::Value << propValue.to_float();
 			return true;
 		}
 
 		if (propType == rttr::type::get<bool>())
 		{
-			out << propValue.to_bool();
+			out << YAML::Key << propName.to_string() << YAML::Value << propValue.to_bool();
 			return true;
 		}
 
 		if (propType == rttr::type::get<std::string>())
 		{
-			out << propValue.to_string();
+			out << YAML::Key << propName.to_string() << YAML::Value << propValue.to_string();
 			return true;
 		}
 
 		if (propType == rttr::type::get<unsigned char>())
 		{
-			out << (unsigned)propValue.to_uint8();
+			out << YAML::Key << propName.to_string() << YAML::Value << (unsigned)propValue.to_uint8();
 			return true;
 		}
 
 		if (propType == rttr::type::get<char>())
 		{
-			out << (int)propValue.to_int8();
+			out << YAML::Key << propName.to_string() << YAML::Value << (int)propValue.to_int8();
 			return true;
 		}
 
 		if (propType == rttr::type::get<unsigned short>())
 		{
-			out << (unsigned)propValue.to_uint16();
+			out << YAML::Key << propName.to_string() << YAML::Value << (unsigned)propValue.to_uint16();
 			return true;
 		}
 
 		if (propType == rttr::type::get<short>())
 		{
-			out << (int)propValue.to_int16();
+			out << YAML::Key << propName.to_string() << YAML::Value << (int)propValue.to_int16();
 			return true;
 		}
 
 		if (propType == rttr::type::get<unsigned>())
 		{
-			out << propValue.to_uint32();
+			out << YAML::Key << propName.to_string() << YAML::Value << propValue.to_uint32();
 			return true;
 		}
 
 		if (propType == rttr::type::get<long long>())
 		{
-			out << propValue.to_int64();
+			out << YAML::Key << propName.to_string() << YAML::Value << propValue.to_int64();
 			return true;
 		}
 
 		if (propType == rttr::type::get<unsigned long long>())
 		{
-			out << propValue.to_uint64();
+			out << YAML::Key << propName.to_string() << YAML::Value  << propValue.to_uint64();
 			return true;
 		}
 
-
 		if (propType == rttr::type::get<double>())
 		{
-			out << propValue.to_double();
+			out << YAML::Key << propName.to_string() << YAML::Value << propValue.to_double();
 			return true;
 		}
 
 		if (propType == rttr::type::get<glm::vec2>())
 		{
-			out << propValue.get_value<glm::vec2>();
+			out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<glm::vec2>();
 			return true;
 		}
 
 		if (propType == rttr::type::get<glm::vec3>())
 		{
-			out << propValue.get_value<glm::vec3>();
+			out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<glm::vec3>();
 			return true;
 		}
 
 		if (propType == rttr::type::get<glm::vec4>())
 		{
-			out << propValue.get_value<glm::vec4>();
+			out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<glm::vec4>();
 			return true;
 		}
 
 		if (propType == rttr::type::get<Ref<Model>>())
 		{
-			out << propValue.get_value<Ref<Model>>()->mAssetHandle;
+			out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<Ref<Model>>()->mAssetHandle;
 			return true;
 		}
 
 		if (propType == rttr::type::get<Ref<Material>>())
 		{
-			out << propValue.get_value<Ref<Material>>()->mAssetHandle;
+			out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<Ref<Material>>()->mAssetHandle;
+			return true;
+		}
+
+		if (propType.is_class() && propType.is_valid()) // all custom classes
+		{
+			out << YAML::Key << propName.to_string() << YAML::BeginMap;
+			auto properties = propType.get_properties();
+			for (auto nestedProperty : properties)
+			{
+				SerializeProperty(out, nestedProperty, prop.get_value(instance));
+			}
+			out << YAML::EndMap;
 			return true;
 		}
 
@@ -629,13 +639,19 @@ namespace Borealis
 	}
 
 
-	static bool DeserialiseProperty(YAML::Node& data, rttr::property& prop, rttr::instance& instance)
+	static bool DeserialiseProperty(YAML::Node data, rttr::property& prop, rttr::instance& instance)
 	{
 		auto propName = prop.get_name();
 		auto propData = data[propName.to_string().c_str()]; // entity["TransformComponent"]["Translate"]
 		auto propType = prop.get_type();
 		if (propData)
 		{
+			if (propType.is_enumeration())
+			{
+				auto datastr = propData.as<std::string>();
+				prop.set_value(instance, propType.get_enumeration().name_to_value(propData.as<std::string>()));
+				return true;
+			}
 			if (propType == rttr::type::get<int>())
 			{
 				prop.set_value(instance, propData.as<int>());
@@ -738,6 +754,23 @@ namespace Borealis
 				return true;
 			}
 
+			if (propType.is_class() && propType.is_valid()) // all custom classes
+			{
+				auto properties = propType.get_properties();
+				rttr::variant oldVariant = prop.get_value(instance);
+				rttr::instance oldInstance(oldVariant);
+				if (oldInstance.is_valid())
+				{
+					for (auto nestedProperty : properties)
+					{
+						DeserialiseProperty(data[propName.to_string()], nestedProperty, oldInstance);
+					}
+
+					prop.set_value(instance, oldVariant);
+				}
+				return true;
+			}
+
 			// other types
 		}
 
@@ -788,7 +821,8 @@ namespace Borealis
 
 		std::string sceneName = data["Scene"].as<std::string>();
 		BOREALIS_CORE_INFO("Deserialising scene: {}", sceneName);
-
+		// Deserialise scene info such as viewport sizes
+		mScene->ResizeViewport(1920, 1080);
 		auto entities = data["Entities"];
 		if (entities)
 		{
@@ -801,7 +835,7 @@ namespace Borealis
 				DeserialiseComponent<TransformComponent>(entity, loadedEntity);
 				DeserialiseComponent<SpriteRendererComponent>(entity, loadedEntity);
 				DeserialiseComponent<CircleRendererComponent>(entity, loadedEntity);
-				//DeserialiseComponent<CameraComponent>(entity, loadedEntity);
+				DeserialiseComponent<CameraComponent>(entity, loadedEntity);
 				DeserialiseComponent<MeshFilterComponent>(entity, loadedEntity);
 				DeserialiseComponent<MeshRendererComponent>(entity, loadedEntity);
 				DeserialiseComponent<BoxColliderComponent>(entity, loadedEntity);

@@ -156,6 +156,322 @@ namespace Borealis
 		return output;
 	}
 
+	static void DrawProperty(rttr::property& Property, ReflectionInstance& rInstance)
+	{
+
+		auto propType = Property.get_type();
+		auto propName = Property.get_name().to_string();
+		auto name = propName;
+
+		if (Property.get_metadata("Dependency").is_valid())
+		{
+			auto dependencyVariable = Property.get_metadata("Dependency").get_value<std::string>(); //Is Box
+			auto dependencyValue = Property.get_metadata("Visible for").get_value<std::string>(); // Box
+			auto dependencyProperty = rInstance.get_type().get_property(dependencyVariable);
+			if (dependencyProperty.get_enumeration().name_to_value(dependencyValue) != dependencyProperty.get_value(rInstance))
+			{
+				return;
+			}
+		}
+
+
+		if (Property.is_enumeration())
+		{
+			auto enumValues = Property.get_enumeration().get_names();
+			std::map<rttr::string_view, rttr::variant> enumMap;
+			for (auto value : enumValues)
+			{
+				enumMap[value] = Property.get_enumeration().name_to_value(value);
+			}
+			auto currentEnum = Property.get_value(rInstance);
+			auto currentEnumString = Property.get_enumeration().value_to_name(currentEnum);
+
+			if (ImGui::BeginCombo((name + "##" + propName).c_str(), currentEnumString.to_string().c_str()))
+			{
+				for (int i = 0; i < enumMap.size(); i++)
+				{
+					auto& [enumName, enumValue] = *std::next(enumMap.begin(), i);
+					bool isSelected = currentEnum == enumValue;
+					if (ImGui::Selectable(enumName.to_string().c_str(), isSelected))
+					{
+						Property.set_value(rInstance, enumValue);
+					}
+					if (isSelected)
+					{
+						ImGui::SetItemDefaultFocus();
+					}
+				}
+				ImGui::EndCombo();
+			}
+			return;
+		}
+
+		if (propType == rttr::type::get<bool>())
+		{
+			bool Data = Property.get_value(rInstance).to_bool();
+			if (ImGui::Checkbox((name + "##" + propName).c_str(), &Data))
+			{
+				Property.set_value(rInstance, Data);
+			}
+			return;
+		}
+		if (propType == rttr::type::get<float>())
+		{
+			float Data = Property.get_value(rInstance).to_float();
+			if (ImGui::DragFloat((name + "##" + propName).c_str(), &Data))
+			{
+				Property.set_value(rInstance, Data);
+			}
+			return;
+		}
+
+		if (propType == rttr::type::get<int>())
+		{
+			int Data = Property.get_value(rInstance).to_int();
+			if (ImGui::DragInt((name + "##" + propName).c_str(), &Data))
+			{
+				Property.set_value(rInstance, Data);
+			}
+			return;
+		}
+
+		if (propType == rttr::type::get<std::string>())
+		{
+			std::string Data = Property.get_value(rInstance).to_string();
+			char buffer[256];
+			memset(buffer, 0, sizeof(buffer));
+			strcpy_s(buffer, sizeof(buffer), Data.c_str());
+			if (ImGui::InputText((name + "##" + propName).c_str(), buffer, sizeof(buffer)))
+			{
+				Data = std::string(buffer);
+				Property.set_value(rInstance, Data);
+			}
+			return;
+		}
+
+		if (propType == rttr::type::get<glm::vec2>())
+		{
+			rttr::variant value = Property.get_value(rInstance);
+			glm::vec2 Data = value.get_value<glm::vec2>();
+			if (ImGui::DragFloat2((name + "##" + propName).c_str(), glm::value_ptr(Data)))
+			{
+				Property.set_value(rInstance, Data);
+			}
+			return;
+		}
+
+		if (propType == rttr::type::get<glm::vec3>())
+		{
+			rttr::variant value = Property.get_value(rInstance);
+			glm::vec3 Data = value.get_value<glm::vec3>();
+
+			float min = 0;
+
+			if (Property.get_metadata("Min").is_valid())
+			{
+				min = Property.get_metadata("Min").get_value<float>();
+			}
+
+			if (Property.get_metadata("Colour").is_valid())
+			{
+				if (ImGui::ColorEdit3((name + "##" + propName).c_str(), glm::value_ptr(Data)))
+				{
+					Property.set_value(rInstance, Data);
+				}
+			}
+
+			else if (DrawVec3Controller(name, Data, min))
+			{
+				Property.set_value(rInstance, Data);
+			}
+			return;
+		}
+
+		if (propType == rttr::type::get<glm::vec4>())
+		{
+			rttr::variant value = Property.get_value(rInstance);
+			glm::vec4 Data = value.get_value<glm::vec4>();
+
+			if (Property.get_metadata("Colour").is_valid())
+			{
+				if (ImGui::ColorEdit4((name + "##" + propName).c_str(), glm::value_ptr(Data)))
+				{
+					Property.set_value(rInstance, Data);
+				}
+			}
+
+			else if (ImGui::DragFloat4((name + "##" + propName).c_str(), glm::value_ptr(Data)))
+			{
+				Property.set_value(rInstance, Data);
+			}
+
+			return;
+		}
+
+		if (propType == rttr::type::get<unsigned char>())
+		{
+			unsigned char Data = Property.get_value(rInstance).to_uint8();
+			if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_U8, &Data))
+			{
+				Property.set_value(rInstance, Data);
+			}
+			return;
+		}
+
+		if (propType == rttr::type::get<char>())
+		{
+			char Data = Property.get_value(rInstance).to_int8();
+			if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_S8, &Data))
+			{
+				Property.set_value(rInstance, Data);
+			}
+			return;
+		}
+
+		if (propType == rttr::type::get<unsigned short>())
+		{
+			unsigned short Data = Property.get_value(rInstance).to_uint16();
+			if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_U16, &Data))
+			{
+				Property.set_value(rInstance, Data);
+			}
+			return;
+		}
+
+		if (propType == rttr::type::get<short>())
+		{
+			short Data = Property.get_value(rInstance).to_int16();
+			if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_S16, &Data))
+			{
+				Property.set_value(rInstance, Data);
+			}
+			return;
+		}
+
+		if (propType == rttr::type::get<unsigned int>())
+		{
+			unsigned int Data = Property.get_value(rInstance).to_uint32();
+			if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_U32, &Data))
+			{
+				Property.set_value(rInstance, Data);
+			}
+			return;
+		}
+
+		if (propType == rttr::type::get<long long>())
+		{
+			long long Data = Property.get_value(rInstance).to_int64();
+			if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_S64, &Data))
+			{
+				Property.set_value(rInstance, Data);
+			}
+			return;
+		}
+
+		if (propType == rttr::type::get<unsigned long long>())
+		{
+			unsigned long long Data = Property.get_value(rInstance).to_uint64();
+			if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_U64, &Data))
+			{
+				Property.set_value(rInstance, Data);
+			}
+			return;
+		}
+
+		if (propType == rttr::type::get<double>())
+		{
+			double Data = Property.get_value(rInstance).to_double();
+			if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_Double, &Data))
+			{
+				Property.set_value(rInstance, Data);
+			}
+			return;
+		}
+
+		if (propType == rttr::type::get<Ref<Model>>())
+		{
+			ImGui::Button(propName.c_str());
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropMeshItem"))
+				{
+					AssetHandle data = *(const uint64_t*)payload->Data;
+					rttr::variant value(AssetManager::GetAsset<Model>(data));
+					Property.set_value(rInstance, value);
+				}
+				ImGui::EndDragDropTarget();
+			}
+		}
+
+		if (propType == rttr::type::get<Ref<Material>>())
+		{
+			ImGui::Button(propName.c_str());
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropMaterialItem"))
+				{
+
+					AssetHandle data = *(const uint64_t*)payload->Data;
+					rttr::variant value(AssetManager::GetAsset<Material>(data));
+					Property.set_value(rInstance, value);
+				}
+				ImGui::EndDragDropTarget();
+			}
+			return;
+		}
+
+		if (propType == rttr::type::get<Ref<Texture2D>>())
+		{
+			ImGui::Button(propName.c_str());
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropTextureItem"))
+				{
+					AssetHandle data = *(const uint64_t*)payload->Data;
+					rttr::variant value(AssetManager::GetAsset<Texture2D>(data));
+					Property.set_value(rInstance, value);
+				}
+				ImGui::EndDragDropTarget();
+			}
+			return;
+		}
+
+		if (propType == rttr::type::get<Ref<Audio>>())
+		{
+			ImGui::Button(propName.c_str());
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropAudioItem"))
+				{
+					AssetHandle data = *(const uint64_t*)payload->Data;
+					rttr::variant value(AssetManager::GetAsset<Audio>(data));
+					Property.set_value(rInstance, value);
+				}
+				ImGui::EndDragDropTarget();
+			}
+			return;
+		}
+
+		if (propType.is_valid() && propType.is_class()) // any other type that is registered but not in above "basic types"
+		{
+			
+			auto properties = propType.get_properties();
+			rttr::variant oldVariant = Property.get_value(rInstance);
+			rttr::instance oldInstance(oldVariant);
+			if (oldInstance.is_valid())
+			{
+				for (auto prop : properties)
+				{
+					DrawProperty(prop, oldInstance);
+				}
+
+				Property.set_value(rInstance, oldVariant);
+
+			}
+		}
+
+	}
+
 	template <typename Type>
 	static void DrawComponent(Type& component)
 	{
@@ -163,266 +479,7 @@ namespace Borealis
 		auto properties = rInstance.get_type().get_properties();
 		for (auto Property : properties)
 		{
-			auto propType = Property.get_type();
-			auto propName = Property.get_name().to_string();
-			auto name = propName;
-
-
-			if (Property.get_metadata("Dependency").is_valid())
-			{
-				auto dependencyVariable = Property.get_metadata("Dependency").get_value<std::string>(); //Is Box
-				auto dependencyValue = Property.get_metadata("Visible for").get_value<std::string>(); // Box
-				auto dependencyProperty = rInstance.get_type().get_property(dependencyVariable);
-				if (dependencyProperty.get_enumeration().name_to_value(dependencyValue) != dependencyProperty.get_value(rInstance))
-				{
-					continue;
-				}
-			}
-
-
-			if (Property.is_enumeration())
-			{
-				auto enumValues = Property.get_enumeration().get_names();
-				std::map<rttr::string_view, rttr::variant> enumMap;
-				for (auto value : enumValues)
-				{
-					enumMap[value] = Property.get_enumeration().name_to_value(value);
-				}
-				auto currentEnum = Property.get_value(rInstance);
-				auto currentEnumString = Property.get_enumeration().value_to_name(currentEnum);
-
-				if (ImGui::BeginCombo((name + "##" + propName).c_str(), currentEnumString.to_string().c_str()))
-				{
-					for (int i = 0; i < enumMap.size(); i++)
-					{
-						auto& [enumName, enumValue] = *std::next(enumMap.begin(), i);
-						bool isSelected = currentEnum == enumValue;
-						if (ImGui::Selectable(enumName.to_string().c_str(), isSelected))
-						{
-							Property.set_value(rInstance, enumValue);
-						}
-						if (isSelected)
-						{
-							ImGui::SetItemDefaultFocus();
-						}
-					}
-					ImGui::EndCombo();
-				}
-				continue;
-			}
-
-			if (propType == rttr::type::get<bool>())
-			{
-				bool Data = Property.get_value(rInstance).to_bool();
-				if (ImGui::Checkbox((name + "##" + propName).c_str(), &Data))
-				{
-					Property.set_value(rInstance, Data);
-				}
-				continue;
-			}
-			if (propType == rttr::type::get<float>())
-			{
-				float Data = Property.get_value(rInstance).to_float();
-				if (ImGui::DragFloat((name + "##" + propName).c_str(), &Data))
-				{
-					Property.set_value(rInstance, Data);
-				}
-				continue;
-			}
-
-			if (propType == rttr::type::get<int>())
-			{
-				int Data = Property.get_value(rInstance).to_int();
-				if (ImGui::DragInt((name + "##" + propName).c_str(), &Data))
-				{
-					Property.set_value(rInstance, Data);
-				}
-				continue;
-			}
-
-			if (propType == rttr::type::get<std::string>())
-			{
-				std::string Data = Property.get_value(rInstance).to_string();
-				char buffer[256];
-				memset(buffer, 0, sizeof(buffer));
-				strcpy_s(buffer, sizeof(buffer), Data.c_str());
-				if (ImGui::InputText((name + "##" + propName).c_str(), buffer, sizeof(buffer)))
-				{
-					Data = std::string(buffer);
-					Property.set_value(rInstance, Data);
-				}
-				continue;
-			}
-
-			if (propType == rttr::type::get<glm::vec2>())
-			{
-				rttr::variant value = Property.get_value(rInstance);
-				glm::vec2 Data = value.get_value<glm::vec2>();
-				if (ImGui::DragFloat2((name + "##" + propName).c_str(), glm::value_ptr(Data)))
-				{
-					Property.set_value(rInstance, Data);
-				}
-				continue;
-			}
-
-			if (propType == rttr::type::get<glm::vec3>())
-			{
-				rttr::variant value = Property.get_value(rInstance);
-				glm::vec3 Data = value.get_value<glm::vec3>();
-
-				float min = 0;
-
-				if (Property.get_metadata("Min").is_valid())
-				{
-					min = Property.get_metadata("Min").get_value<float>();
-				}
-
-				if (Property.get_metadata("Colour").is_valid())
-				{
-					if (ImGui::ColorEdit3((name + "##" + propName).c_str(), glm::value_ptr(Data)))
-					{
-						Property.set_value(rInstance, Data);
-					}
-				}
-
-				else if (DrawVec3Controller(name, Data, min))
-				{
-					Property.set_value(rInstance, Data);
-				}
-				continue;
-			}
-
-			if (propType == rttr::type::get<glm::vec4>())
-			{
-				rttr::variant value = Property.get_value(rInstance);
-				glm::vec4 Data = value.get_value<glm::vec4>();
-
-				if (Property.get_metadata("Colour").is_valid())
-				{
-					if (ImGui::ColorEdit4((name + "##" + propName).c_str(), glm::value_ptr(Data)))
-					{
-						Property.set_value(rInstance, Data);
-					}
-				}
-
-				else if (ImGui::DragFloat4((name + "##" + propName).c_str(), glm::value_ptr(Data)))
-				{
-					Property.set_value(rInstance, Data);
-				}
-
-				continue;
-			}
-
-			if (propType == rttr::type::get<unsigned char>())
-			{
-				unsigned char Data = Property.get_value(rInstance).to_uint8();
-				if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_U8, &Data))
-				{
-					Property.set_value(rInstance, Data);
-				}
-				continue;
-			}
-
-			if (propType == rttr::type::get<char>())
-			{
-				char Data = Property.get_value(rInstance).to_int8();
-				if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_S8, &Data))
-				{
-					Property.set_value(rInstance, Data);
-				}
-				continue;
-			}
-
-			if (propType == rttr::type::get<unsigned short>())
-			{
-				unsigned short Data = Property.get_value(rInstance).to_uint16();
-				if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_U16, &Data))
-				{
-					Property.set_value(rInstance, Data);
-				}
-				continue;
-			}
-
-			if (propType == rttr::type::get<short>())
-			{
-				short Data = Property.get_value(rInstance).to_int16();
-				if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_S16, &Data))
-				{
-					Property.set_value(rInstance, Data);
-				}
-				continue;
-			}
-
-			if (propType == rttr::type::get<unsigned int>())
-			{
-				unsigned int Data = Property.get_value(rInstance).to_uint32();
-				if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_U32, &Data))
-				{
-					Property.set_value(rInstance, Data);
-				}
-				continue;
-			}
-
-			if (propType == rttr::type::get<long long>())
-			{
-				long long Data = Property.get_value(rInstance).to_int64();
-				if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_S64, &Data))
-				{
-					Property.set_value(rInstance, Data);
-				}
-				continue;
-			}
-
-			if (propType == rttr::type::get<unsigned long long>())
-			{
-				unsigned long long Data = Property.get_value(rInstance).to_uint64();
-				if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_U64, &Data))
-				{
-					Property.set_value(rInstance, Data);
-				}
-				continue;
-			}
-
-			if (propType == rttr::type::get<double>())
-			{
-				double Data = Property.get_value(rInstance).to_double();
-				if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_Double, &Data))
-				{
-					Property.set_value(rInstance, Data);
-				}
-				continue;
-			}
-
-			if (propType == rttr::type::get<Ref<Model>>())
-			{
-				ImGui::Button(propName.c_str());
-				if (ImGui::BeginDragDropTarget())
-				{
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropMeshItem"))
-					{
-						AssetHandle data = *(const uint64_t*)payload->Data;
-						rttr::variant value(AssetManager::GetAsset<Model>(data));
-						Property.set_value(rInstance, value);
-					}
-					ImGui::EndDragDropTarget();
-				}
-			}
-
-			if (propType == rttr::type::get<Ref<Material>>())
-			{
-				ImGui::Button(propName.c_str());
-				if (ImGui::BeginDragDropTarget())
-				{
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropMaterialItem"))
-					{
-		
-						AssetHandle data = *(const uint64_t*)payload->Data;
-						rttr::variant value(AssetManager::GetAsset<Material>(data));
-						Property.set_value(rInstance, value);
-					}
-					ImGui::EndDragDropTarget();
-				}
-			}
+			DrawProperty(Property, rInstance);
 		}
 	}
 

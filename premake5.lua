@@ -441,7 +441,8 @@ workspace "Borealis"
 			"%{IncludeDir.GLM}",
 			"%{IncludeDir.ImGui}",
 			"%{prj.name}/inc",
-			"%{IncludeDir.ENTT}"
+			"%{IncludeDir.ENTT}",
+			"%{IncludeDir.RTTR}"
 		}
 
 		defines
@@ -449,7 +450,8 @@ workspace "Borealis"
 			"_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS",
 			"JPH_FLOATING_POINT_EXCEPTIONS_ENABLED",
 			"JPH_CROSS_PLATFORM_DETERMINISTIC",
-			"JPH_ENABLE_ASSERTS"		
+			"JPH_ENABLE_ASSERTS"
+				
 		}
 
 		links

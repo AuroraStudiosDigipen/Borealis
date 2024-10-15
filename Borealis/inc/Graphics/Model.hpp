@@ -53,6 +53,9 @@ namespace Borealis
 
 		std::vector<Mesh> mMeshes;
 	private:
+
+		RTTR_ENABLE(Asset)
+
 	}; // class Model
 } // namespace Borealis
 #endif

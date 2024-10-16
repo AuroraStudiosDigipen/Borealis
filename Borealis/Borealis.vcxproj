@@ -213,6 +213,14 @@
     <ClInclude Include="inc\Graphics\Renderer2D.hpp" />
     <ClInclude Include="inc\Graphics\Renderer3D.hpp" />
     <ClInclude Include="inc\Graphics\RendererAPI.hpp" />
+    <ClInclude Include="inc\Graphics\RenderGraph\RenderGraph.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="inc\Graphics\RenderGraph\RenderGraphOld.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="inc\Graphics\Shader.hpp" />
     <ClInclude Include="inc\Graphics\SkinnedMesh.hpp" />
     <ClInclude Include="inc\Graphics\SubTexture2D.hpp" />
@@ -807,6 +815,14 @@
     <ClCompile Include="src\Graphics\Renderer2D.cpp" />
     <ClCompile Include="src\Graphics\Renderer3D.cpp" />
     <ClCompile Include="src\Graphics\RendererAPI.cpp" />
+    <ClCompile Include="src\Graphics\RenderGraph\RenderGraph.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\RenderGraph\RenderGraphOld.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="src\Graphics\Shader.cpp" />
     <ClCompile Include="src\Graphics\SkinnedMesh.cpp" />
     <ClCompile Include="src\Graphics\SubTexture2D.cpp" />

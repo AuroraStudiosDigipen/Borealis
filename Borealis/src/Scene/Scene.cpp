@@ -31,7 +31,13 @@ namespace Borealis
 {
 	Scene::Scene(std::string name, std::string path) : mName(name), mScenePath(path)
 	{
+		FrameBufferProperties props{ 1280, 720, false };
+		props.Attachments = { FramebufferTextureFormat::RGBA8,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
+		mViewportFrameBuffer = FrameBuffer::Create(props);
 
+		FrameBufferProperties propsRuntime{ 1280, 720, false };
+		propsRuntime.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RedInteger,FramebufferTextureFormat::Depth };
+		mRuntimeFrameBuffer = FrameBuffer::Create(propsRuntime);
 	}
 
 	Scene::~Scene()
@@ -76,7 +82,7 @@ namespace Borealis
 	{
 		//3D pass
 		{
-			auto group = mRegistry.group<>(entt::get<TransformComponent, LightComponent>);
+			entt::basic_group group = mRegistry.group<>(entt::get<TransformComponent, LightComponent>);
 			for (auto& entity : group)
 			{
 				auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
@@ -243,6 +249,19 @@ namespace Borealis
 			Renderer2D::Begin(*mainCamera, mainCameratransform);
 			Render2DPass();
 			Renderer2D::End();
+
+			{
+				BufferSource runtimeBuffer("RunTimeBuffer", mRuntimeFrameBuffer);
+				mRenderGraph.AddGlobalSource(std::make_shared<BufferSource>(runtimeBuffer));
+
+				RenderPass3D render3DPass;
+				render3DPass.AddSource(std::make_shared<BufferSource>(runtimeBuffer));
+				render3DPass.LinkEntityRegistry(mRegistry);
+
+				mRenderGraph.AddRenderPass(std::make_shared<RenderPass3D>(render3DPass));
+				mRenderGraph.SetSinkTarget();
+				mRenderGraph.Execute();
+			}
 		}
 	}
 

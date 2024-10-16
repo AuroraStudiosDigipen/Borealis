@@ -17,6 +17,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <entt.hpp>
 #include <Core/UUID.hpp>
 #include <Graphics/EditorCamera.hpp>
+#include <Graphics/RenderGraph/RenderGraph.hpp>
 namespace Borealis
 {
 	class Entity;
@@ -208,6 +209,9 @@ namespace Borealis
 
 		bool hasRuntimeStarted = false;
 
+		Ref<FrameBuffer> mViewportFrameBuffer;
+		Ref<FrameBuffer> mRuntimeFrameBuffer;
+		RenderGraph mRenderGraph;
 	};
 }
 

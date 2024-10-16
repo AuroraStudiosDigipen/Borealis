@@ -555,53 +555,6 @@ namespace Borealis
 	{
 		ImGui::Begin("Scene Hierarchy");
 
-		ImGuiIO& io = ImGui::GetIO();
-		ImFont* bold = io.Fonts->Fonts[ImGuiFonts::bold];
-		ImGui::PushFont(bold);
-		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.1f, 0.1f, 0.1f, 0.4f));
-		for (auto& [name, path] : SceneManager::GetSceneLibrary())
-		{
-			
-			if (SceneManager::GetActiveScene()->GetName() == name)
-			{
-				ImGui::PopStyleColor();
-				ImGui::MenuItem(name.c_str());
-				ImGui::PopFont();
-				for (auto& item : mContext->mRegistry.view<entt::entity>())
-				{
-					
-					Entity entity{ item, mContext.get() };
-					DrawEntityNode(entity);
-				}
-				ImGui::PushFont(bold);
-				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.1f, 0.1f, 0.1f, 0.4f));
-			}
-			else
-			{
-				ImGui::MenuItem(name.c_str());
-				ImGui::PopStyleColor();
-				ImGui::PopFont();
-				if (ImGui::BeginPopupContextItem())
-				{
-					if (EditorLayer::mSceneState == EditorLayer::SceneState::Edit)
-					{
-						if (ImGui::MenuItem("Load Scene"))
-						{
-							SceneManager::SaveActiveScene();
-							SceneManager::SetActiveScene(name);
-							mContext = SceneManager::GetActiveScene();
-							mSelectedEntity = {};
-						}
-					}
-					ImGui::EndPopup();
-				}
-				ImGui::PushFont(bold);
-				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.1f, 0.1f, 0.1f, 0.4f));
-			}
-		}
-		ImGui::PopStyleColor();
-		ImGui::PopFont();
-
 		if (Project::GetProjectPath() != "")
 		{
 			ImGuiIO& io = ImGui::GetIO();
@@ -753,13 +706,18 @@ namespace Borealis
 		ImGuiTreeNodeFlags flags = ((mSelectedEntity == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
 		flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 		uint64_t entityID = static_cast<uint64_t>((uint32_t)entity);
+		if (entity.HasComponent<PrefabComponent>())
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.16f, 0.34f, 0.63f, 1.f));
 		bool opened = ImGui::TreeNodeEx((void*)entityID, flags, tag.c_str());
+		if (entity.HasComponent<PrefabComponent>())
+			ImGui::PopStyleColor();
 
 		//Dragging of items for creation of prefab
 		if (ImGui::BeginDragDropSource())
 		{
 			ImGui::SetDragDropPayload("DragCreatePrefab", (const void*)&entity.GetUUID(), sizeof(UUID));
-			ImGui::Text("%s", tag.c_str()); // Display the entity tag as the payload text
+			
+			ImGui::Text("%s", tag.c_str()); // Display the entity tag as the payload text				
 			ImGui::EndDragDropSource();
 		}
 

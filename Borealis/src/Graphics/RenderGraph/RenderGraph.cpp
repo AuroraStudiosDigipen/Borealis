@@ -44,6 +44,29 @@ namespace Borealis
 			buffer->Unbind();
 	}
 
+	CameraSource::CameraSource(std::string name, EditorCamera const& camera)
+	{
+		sourceName = name;
+		sourceType = RenderSourceType::Camera;
+
+		viewProj = camera.GetViewProjectionMatrix();
+		editor = true;
+	}
+
+	CameraSource::CameraSource(std::string name, const Camera& camera, const glm::mat4& transform)
+	{
+		sourceName = name;
+		sourceType = RenderSourceType::Camera;
+
+		viewProj = camera.GetProjectionMatrix() * glm::inverse(transform);
+		editor = false;
+	}
+
+	glm::mat4 CameraSource::GetViewProj()
+	{
+		return viewProj;
+	}
+
 	//========================================================================
 	//RENDERPASS
 	//========================================================================
@@ -99,6 +122,15 @@ namespace Borealis
 	//========================================================================
 	void Render3D::Execute()
 	{
+		for (auto source : sourceList)
+		{
+			if (source->sourceType == RenderSourceType::Camera)
+			{
+				Renderer3D::Begin(std::dynamic_pointer_cast<CameraSource>(source)->GetViewProj());
+				break;
+			}
+		}
+
 		{
 			entt::basic_group group = registryPtr->group<>(entt::get<TransformComponent, LightComponent>);
 			for (auto& entity : group)
@@ -117,10 +149,20 @@ namespace Borealis
 				Renderer3D::DrawMesh(transform, meshFilter, meshRenderer, (int)entity);
 			}
 		}
+		Renderer3D::End();
 	}
 
 	void Render2D::Execute()
 	{
+		for (auto source : sourceList)
+		{
+			if (source->sourceType == RenderSourceType::Camera)
+			{
+				Renderer2D::Begin(std::dynamic_pointer_cast<CameraSource>(source)->GetViewProj());
+				break;
+			}
+		}
+
 		{
 			auto group = registryPtr->group<>(entt::get<TransformComponent, SpriteRendererComponent>);
 			for (auto& entity : group)
@@ -145,7 +187,6 @@ namespace Borealis
 				Renderer2D::DrawString(text.text, text.font, transform, (int)entity);
 			}
 		}
-
 		Renderer2D::End();
 	}
 	//========================================================================

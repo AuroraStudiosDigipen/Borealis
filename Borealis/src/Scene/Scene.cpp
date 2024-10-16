@@ -242,30 +242,36 @@ namespace Borealis
 		// Pre-Render
 		if (mainCamera)
 		{
-			Renderer3D::Begin(*mainCamera, mainCameratransform);
-			Render3DPass();
-			Renderer3D::End();
+			//Renderer3D::Begin(*mainCamera, mainCameratransform);
+			//Render3DPass();
+			//Renderer3D::End();
 
-			Renderer2D::Begin(*mainCamera, mainCameratransform);
-			Render2DPass();
-			Renderer2D::End();
+			//Renderer2D::Begin(*mainCamera, mainCameratransform);
+			//Render2DPass();
+			//Renderer2D::End();
 
 			{
 				mRenderGraph.Init();
 				BufferSource runtimeBuffer("RunTimeBuffer", mRuntimeFrameBuffer);
-				mRenderGraph.SetGlobalSource(std::make_shared<BufferSource>(runtimeBuffer));
+				mRenderGraph.SetGlobalSource(MakeRef<BufferSource>(runtimeBuffer));
+
+				//CameraSource editorCameraSource("EditorCamera", editorCamera);
+				CameraSource runTimeCameraSource("RunTimeCamera", *mainCamera, mainCameratransform);
+				mRenderGraph.SetGlobalSource(MakeRef<CameraSource>(runTimeCameraSource));
 
 				Render3D render3DPass("Render3D");
 				render3DPass.SetSinkLinkage("renderTarget", "RunTimeBuffer");
+				render3DPass.SetSinkLinkage("camera", "RunTimeCamera");
 				render3DPass.SetEntityRegistry(mRegistry);
-				mRenderGraph.AddPass(std::make_shared<Render3D>(render3DPass));
+				mRenderGraph.AddPass(MakeRef<Render3D>(render3DPass));
 
 				Render2D render2DPass("Render2D");
 				render2DPass.SetSinkLinkage("renderTarget", "Render3D.renderTarget");
+				render2DPass.SetSinkLinkage("camera", "RunTimeCamera");
 				render2DPass.SetEntityRegistry(mRegistry);
-				mRenderGraph.AddPass(std::make_shared<Render2D>(render2DPass));
+				mRenderGraph.AddPass(MakeRef<Render2D>(render2DPass));
 
-				mRenderGraph.SetFinalSink("BackBuffer", "Render2D.renderTarget");
+				mRenderGraph.SetFinalSink("BackBuffer", "Render2D.renderTarget"); //do i need it for immediate mode?
 				mRenderGraph.Execute();
 			}
 		}

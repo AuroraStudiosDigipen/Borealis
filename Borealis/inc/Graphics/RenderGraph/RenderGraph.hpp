@@ -17,6 +17,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include <Core/Core.hpp>
 #include <Graphics/Framebuffer.hpp>
+#include <Graphics/EditorCamera.hpp>
 
 #include <string>
 #include <vector>
@@ -29,7 +30,8 @@ namespace Borealis
 	{
 		RenderTargetColor,
 		Texture2D,
-		UniformBuffers
+		UniformBuffers,
+		Camera
 	};
 
 	class RenderSource
@@ -48,6 +50,19 @@ namespace Borealis
 		void Bind() override;
 		void Unbind() override;
 		Ref<FrameBuffer> buffer;
+	};
+
+	class CameraSource : public RenderSource
+	{
+	public:
+		CameraSource(std::string name, EditorCamera const& camera);
+		CameraSource(std::string name, const Camera& camera, const glm::mat4& transform);
+
+		bool editor;
+		glm::mat4 viewProj;
+		
+		void Bind() override {};
+		glm::mat4 GetViewProj();
 	};
 
 	class RenderSink

@@ -38,16 +38,19 @@ namespace Borealis
 
 	void Renderer3D::Begin(const EditorCamera& camera)
 	{
-		sData->mModelShader->Bind();
-		sData->mModelShader->Set("u_ViewProjection", camera.GetViewProjectionMatrix());
-
-		mLightEngine.Begin();
+		Renderer3D::Begin(camera.GetViewProjectionMatrix());
 	}
 
 	void Renderer3D::Begin(const Camera& camera, const glm::mat4& transform)
 	{
-		sData->mModelShader->Bind();
 		glm::mat4 viewProj = camera.GetProjectionMatrix() * glm::inverse(transform);
+
+		Renderer3D::Begin(viewProj);
+	}
+
+	void Renderer3D::Begin(glm::mat4 viewProj)
+	{
+		sData->mModelShader->Bind();
 		sData->mModelShader->Set("u_ViewProjection", viewProj);
 
 		mLightEngine.Begin();

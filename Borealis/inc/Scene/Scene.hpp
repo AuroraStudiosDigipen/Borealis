@@ -63,6 +63,9 @@ namespace Borealis
 		*************************************************************************/
 		void UpdateRuntime(float dt);
 
+		void Render2DPass();
+		void Render3DPass();
+
 		/*!***********************************************************************
 			\brief
 				Editor update function

@@ -271,7 +271,8 @@ namespace Borealis
 	void Renderer2D::Begin(const EditorCamera& camera)
 	{
 		PROFILE_FUNCTION();
-
+		//Consider merging into one shader file to avoid constant switching or some other method
+		//profile first to see if its affecting performance
 		sData->mQuadShader->Bind();
 		sData->mQuadShader->Set("u_ViewProjection", camera.GetViewProjectionMatrix());
 

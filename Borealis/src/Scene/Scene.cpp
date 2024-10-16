@@ -42,6 +42,60 @@ namespace Borealis
 			PhysicsSystem::FreeRigidBody(view.get<RigidBodyComponent>(entity));
 		}
 	}
+
+	void Scene::Render2DPass()
+	{
+		//2D pass
+		{
+			auto group = mRegistry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);
+			for (auto& entity : group)
+			{
+				auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
+				Renderer2D::DrawSprite(transform, sprite, (int)entity);
+			}
+		}
+		{
+			auto group = mRegistry.group<>(entt::get<TransformComponent, CircleRendererComponent>);
+			for (auto& entity : group)
+			{
+				auto [transform, circle] = group.get<TransformComponent, CircleRendererComponent>(entity);
+				Renderer2D::DrawCircle(transform, circle.Colour, circle.thickness, circle.fade, (int)entity);
+			}
+		}
+		{
+			auto group = mRegistry.group<>(entt::get<TransformComponent, TextComponent>);
+			for (auto& entity : group)
+			{
+				auto [transform, text] = group.get<TransformComponent, TextComponent>(entity);
+				Renderer2D::DrawString(text.text, text.font, transform, (int)entity);
+			}
+		}
+	}
+
+	void Scene::Render3DPass()
+	{
+		//3D pass
+		{
+			auto group = mRegistry.group<>(entt::get<TransformComponent, LightComponent>);
+			for (auto& entity : group)
+			{
+				auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
+				lightComponent.offset = transform.Translate;
+				Renderer3D::AddLight(lightComponent);
+			}
+		}
+		{
+			auto group = mRegistry.group<>(entt::get<TransformComponent, MeshFilterComponent, MeshRendererComponent>);
+			for (auto& entity : group)
+			{
+				auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
+				auto groupLight = mRegistry.group<>(entt::get<TransformComponent, LightComponent>);
+
+				Renderer3D::DrawMesh(transform, meshFilter, meshRenderer, (int)entity);
+			}
+		}
+	}
+
 	void Scene::UpdateRuntime(float dt)
 	{
 		if (hasRuntimeStarted)
@@ -145,69 +199,6 @@ namespace Borealis
 			}
 		}
 
-		// Pre-Render
-		if (mainCamera)
-		{
-			Renderer3D::Begin(*mainCamera, mainCameratransform);
-			{
-				{
-					auto group = mRegistry.group<>(entt::get<TransformComponent, LightComponent>);
-					for (auto& entity : group)
-					{
-						auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
-						lightComponent.offset = transform.Translate;
-						Renderer3D::AddLight(lightComponent);
-					}
-				}
-
-				auto group = mRegistry.group<>(entt::get<TransformComponent, MeshFilterComponent, MeshRendererComponent>);
-				for (auto& entity : group)
-				{
-					auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
-					auto groupLight = mRegistry.group<>(entt::get<TransformComponent, LightComponent>);
-
-					Renderer3D::DrawMesh(transform, meshFilter, meshRenderer, (int)entity);
-				}
-			}
-			Renderer3D::End();
-
-			Renderer2D::Begin(*mainCamera, mainCameratransform);
-			{
-				auto group = mRegistry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);
-				for (auto& entity : group)
-				{
-					auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-					Renderer2D::DrawSprite(transform, sprite, (int)entity);
-				}
-				//Renderer2D::End();
-			}
-
-			{
-				//Renderer2D::Begin(*mainCamera, mainCameratransform);
-				auto group = mRegistry.group<>(entt::get<TransformComponent, CircleRendererComponent>);
-				for (auto& entity : group)
-				{
-					auto [transform, circle] = group.get<TransformComponent, CircleRendererComponent>(entity);
-					Renderer2D::DrawCircle(transform, circle.Colour, circle.thickness, circle.fade);
-				}
-				//Renderer2D::End();
-			}
-
-			{
-				//Renderer2D::Begin(*mainCamera, mainCameratransform);
-				auto group = mRegistry.group<>(entt::get<TransformComponent, TextComponent>);
-				for (auto& entity : group)
-				{
-
-					auto [transform, text] = group.get<TransformComponent, TextComponent>(entity);
-					// multiply text scale into transform
-					Renderer2D::DrawString(text.text, text.font, transform, (int)entity);
-				}
-			}
-				Renderer2D::End();
-			
-		}
-
 		//Audio
 		{
 			auto group = mRegistry.group<>(entt::get<TransformComponent, AudioListenerComponent>);
@@ -241,60 +232,31 @@ namespace Borealis
 				}
 			}
 		}
+
+		// Pre-Render
+		if (mainCamera)
+		{
+			Renderer3D::Begin(*mainCamera, mainCameratransform);
+			Render3DPass();
+			Renderer3D::End();
+
+			Renderer2D::Begin(*mainCamera, mainCameratransform);
+			Render2DPass();
+			Renderer2D::End();
+		}
 	}
 
 	void Scene::UpdateEditor(float dt, EditorCamera& camera)
 	{
 		Renderer3D::Begin(camera);
-		{
-			auto group = mRegistry.group<>(entt::get<TransformComponent, LightComponent>);
-			for (auto& entity : group)
-			{
-				auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
-				lightComponent.offset = transform.Translate;
-				Renderer3D::AddLight(lightComponent);
-			}
-		}
-		{
-			auto group = mRegistry.group<>(entt::get<TransformComponent, MeshFilterComponent, MeshRendererComponent>);
-			for (auto& entity : group)
-			{
-				auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
-				auto groupLight = mRegistry.group<>(entt::get<TransformComponent, LightComponent>);
-
-				Renderer3D::DrawMesh(transform, meshFilter, meshRenderer, (int)entity);
-			}
-		}
+		Render3DPass();
+		Renderer3D::End();
 
 		Renderer2D::Begin(camera);
-		{
-			auto group = mRegistry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);
-			for (auto& entity : group)
-			{
-				auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-				Renderer2D::DrawSprite(transform, sprite, (int)entity);
-			}
-		}
-		{
-			auto group = mRegistry.group<>(entt::get<TransformComponent, CircleRendererComponent>);
-			for (auto& entity : group)
-			{
-				auto [transform, circle] = group.get<TransformComponent, CircleRendererComponent>(entity);
-				Renderer2D::DrawCircle(transform, circle.Colour, circle.thickness, circle.fade, (int)entity);
-			}
-		}
-		{
-			auto group = mRegistry.group<>(entt::get<TransformComponent, TextComponent>);
-			for (auto& entity : group)
-			{
-				auto [transform, text] = group.get<TransformComponent, TextComponent>(entity);
-				Renderer2D::DrawString(text.text, text.font, transform, (int)entity);
-			}
-		}
-
+		Render2DPass();
 		Renderer2D::End();
-
 	}
+
 	Entity Scene::CreateEntity(const std::string& name)
 	{
 		static unsigned unnamedID = 1;

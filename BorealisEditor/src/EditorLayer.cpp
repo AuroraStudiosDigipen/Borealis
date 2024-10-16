@@ -124,6 +124,13 @@ namespace Borealis {
 			mEditorCamera.UpdateFn(dt);
 		}
 
+		//RenderPass::Create(EditorPass, mViewportFrameBuffer, mEditorCamera)
+		//RenderPass::Create(RuntimePass, mRuntimeFrameBuffer);
+
+		//RenderGraph::Begin();
+		//RenderGraph::AddPass(EditorPass);
+		//RenderGraph::AddPass(RuntimePass);
+		//RenderGraph::Execute();
 
 		Renderer2D::ResetStats();
 		{

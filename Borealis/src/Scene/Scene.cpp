@@ -251,15 +251,21 @@ namespace Borealis
 			Renderer2D::End();
 
 			{
+				mRenderGraph.Init();
 				BufferSource runtimeBuffer("RunTimeBuffer", mRuntimeFrameBuffer);
-				mRenderGraph.AddGlobalSource(std::make_shared<BufferSource>(runtimeBuffer));
+				mRenderGraph.SetGlobalSource(std::make_shared<BufferSource>(runtimeBuffer));
 
-				RenderPass3D render3DPass;
-				render3DPass.AddSource(std::make_shared<BufferSource>(runtimeBuffer));
-				render3DPass.LinkEntityRegistry(mRegistry);
+				Render3D render3DPass("Render3D");
+				render3DPass.SetSinkLinkage("renderTarget", "RunTimeBuffer");
+				render3DPass.SetEntityRegistry(mRegistry);
+				mRenderGraph.AddPass(std::make_shared<Render3D>(render3DPass));
 
-				mRenderGraph.AddRenderPass(std::make_shared<RenderPass3D>(render3DPass));
-				mRenderGraph.SetSinkTarget();
+				Render2D render2DPass("Render2D");
+				render2DPass.SetSinkLinkage("renderTarget", "Render3D.renderTarget");
+				render2DPass.SetEntityRegistry(mRegistry);
+				mRenderGraph.AddPass(std::make_shared<Render2D>(render2DPass));
+
+				mRenderGraph.SetFinalSink("BackBuffer", "Render2D.renderTarget");
 				mRenderGraph.Execute();
 			}
 		}

@@ -21,6 +21,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <string>
 #include <vector>
 
+#include <entt.hpp>
+
 namespace Borealis
 {
 	enum class RenderSourceType
@@ -36,6 +38,7 @@ namespace Borealis
 		std::string sourceName;
 		RenderSourceType sourceType;
 		virtual void Bind() = 0;
+		virtual void Unbind() {};
 	};
 
 	class BufferSource : public RenderSource
@@ -43,6 +46,7 @@ namespace Borealis
 	public:
 		BufferSource(std::string name, Ref<FrameBuffer> framebuffer);
 		void Bind() override;
+		void Unbind() override;
 		Ref<FrameBuffer> buffer;
 	};
 
@@ -52,37 +56,61 @@ namespace Borealis
 		std::string sinkName;
 		std::string outputName;//source belonging to the sink, pass+sinkName;
 
-		Ref<RenderSource> outputSource;
+		std::string sourceName{};
+		Ref<RenderSource> source = nullptr;
 	};
 
 	class RenderPass 
 	{
 	public:
+		RenderPass(std::string name);
 		std::string passName;
 
 		void SetSinkLinkage(std::string sinkName, std::string sourceName);
 		virtual void Execute() = 0;
 
+		void Bind();
+		void Unbind();
+
 		std::vector<Ref<RenderSink>> sinkList;
+		std::vector<Ref<RenderSource>> sourceList;
 	};
 
 	class EntityPass : public RenderPass
 	{
 	public:
-		void SetEntityRegistry();
+		EntityPass(std::string name) : RenderPass(name) {};
+		void SetEntityRegistry(entt::registry& registry);
 		void Execute() override {};
 
-		//entt registry
+		entt::registry* registryPtr;
+	};
+
+	class Render3D : public EntityPass
+	{
+	public:
+		Render3D(std::string name) : EntityPass(name) {};
+		void Execute() override;
+	};
+
+	class Render2D : public EntityPass
+	{
+	public:
+		Render2D(std::string name) : EntityPass(name) {};
+		void Execute() override;
 	};
 
 	class RenderGraph
 	{
 	public:
+		void Init();
 		void AddPass(Ref<RenderPass> pass);
 		void Execute();
 
+		Ref<RenderSource> FindSource(std::string sourceName);
+
 		void SetGlobalSource(Ref<RenderSource> source);
-		void SetFinalSink();//set render output
+		void SetFinalSink(std::string sinkName, std::string sourceName);//set render output
 
 		std::vector<Ref<RenderPass>> renderPassList;
 		std::vector<Ref<RenderSource>> globalSource;

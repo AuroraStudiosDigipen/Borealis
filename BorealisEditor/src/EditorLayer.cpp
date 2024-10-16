@@ -144,6 +144,11 @@ namespace Borealis {
 			RenderCommand::Clear();
 			RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
 			mRuntimeFrameBuffer->Unbind();
+
+			SceneManager::GetActiveScene()->GetRunTimeFB()->Bind();
+			RenderCommand::Clear();
+			RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
+			SceneManager::GetActiveScene()->GetRunTimeFB()->Unbind();
 		}
 		mViewportFrameBuffer->ClearAttachment(1, -1);
 		{
@@ -514,7 +519,8 @@ namespace Borealis {
 					mRuntimeFocused = ImGui::IsWindowFocused();
 					ImVec2 runtimeSize = ImGui::GetContentRegionAvail();
 					mRuntimeSize = { runtimeSize.x, runtimeSize.y };
-					uint64_t screenID = static_cast<uint64_t>(mRuntimeFrameBuffer->GetColorAttachmentRendererID());
+					//uint64_t screenID = static_cast<uint64_t>(mRuntimeFrameBuffer->GetColorAttachmentRendererID());
+					uint64_t screenID = static_cast<uint64_t>(SceneManager::GetActiveScene()->GetRunTimeFB()->GetColorAttachmentRendererID());
 					ImGui::Image((ImTextureID)screenID, ImVec2{ mRuntimeSize.x, mRuntimeSize.y }, ImVec2{ 0,1 }, ImVec2{ 1,0 });
 				}
 			}

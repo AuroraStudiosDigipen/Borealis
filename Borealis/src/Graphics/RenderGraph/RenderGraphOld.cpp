@@ -12,7 +12,7 @@
 // */
 // /******************************************************************************/
 //
-//#include <BorealisPCH.hpp>
+#include <BorealisPCH.hpp>
 //
 //#include <Graphics/RenderGraph/RenderGraphOld.hpp>
 //

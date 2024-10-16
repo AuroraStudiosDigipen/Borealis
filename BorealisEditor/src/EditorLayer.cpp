@@ -79,25 +79,6 @@ namespace Borealis {
 
 		mEditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
 
-		//PREFAB TESTING AREA
-		auto entity = mEditorScene->CreateEntity("testEntity");
-		auto& src = entity.AddComponent<SpriteRendererComponent>();
-		src.Colour.r = 0.5f;
-		//auto& transform = entity.AddComponent<TransformComponent>();
-		//transform.Scale.x = 100;
-
-		Prefab prefab(entity);
-		prefab.AddChild(MakeRef<Entity>(entity));
-		prefab.GetComponent<SpriteRendererComponent>().Colour.g = 0.5f;
-		prefab.GetComponent<TransformComponent>().Scale.x = 50;
-		prefab.UpdateAllInstances();
-		prefab.PrintComponentList();
-
-		//Entity makePrefab(prefab.GetPrefabID(), PrefabManager::GetScenePtr());
-
-		//Serialiser::SerialisePrefab("assets/Prefab/test.prefab", makePrefab);
-
-
 		ScriptingSystem::InitCoreAssembly();
 		ResourceManager::Init();
 
@@ -108,15 +89,6 @@ namespace Borealis {
 			font.SetTexture(std::filesystem::path("engineResources/fonts/OpenSans_Condensed-Bold.dds"));
 			Font::SetDefaultFont(MakeRef<Font>(font));
 		}
-
-		for (auto name : ComponentRegistry::GetComponentNames())
-		{
-			for (auto variable : ComponentRegistry::GetPropertyNames(name))
-			{
-				BOREALIS_CORE_TRACE(name + "::" + variable);
-			}
-		}
-
 	}
 
 	void EditorLayer::Free()

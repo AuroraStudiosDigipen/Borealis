@@ -201,7 +201,7 @@ namespace Borealis
 
 					auto [transform, text] = group.get<TransformComponent, TextComponent>(entity);
 					// multiply text scale into transform
-					Renderer2D::DrawString(text.text, text.font, transform, (int)entity);
+					Renderer2D::DrawString(text, transform, (int)entity);
 				}
 			}
 				Renderer2D::End();
@@ -288,7 +288,7 @@ namespace Borealis
 			for (auto& entity : group)
 			{
 				auto [transform, text] = group.get<TransformComponent, TextComponent>(entity);
-				Renderer2D::DrawString(text.text, text.font, transform, (int)entity);
+				Renderer2D::DrawString(text, transform, (int)entity);
 			}
 		}
 
@@ -599,7 +599,7 @@ namespace Borealis
 	template<>
 	void Scene::OnComponentAdded<TextComponent>(Entity entity, TextComponent& component)
 	{
-		
+		component.font = Font::GetDefaultFont();
 	}
 
 	template<>

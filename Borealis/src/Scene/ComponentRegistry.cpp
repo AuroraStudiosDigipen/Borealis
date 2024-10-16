@@ -165,7 +165,9 @@ namespace Borealis
             .constructor<>()
             .property("Text", &TextComponent::text)
             .property("Font", &TextComponent::font)
-            .property("Font Size", &TextComponent::fontSize);
+            .property("Font Size", &TextComponent::fontSize)
+            .property("Colour", &TextComponent::colour)
+            (metadata("Colour", true));
 
         registration::class_<TagComponent>("Tag Component")
             (metadata("Component", true))

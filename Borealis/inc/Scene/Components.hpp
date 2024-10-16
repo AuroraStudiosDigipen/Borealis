@@ -281,6 +281,7 @@ namespace Borealis
 	{
 		std::string text{};
 		uint32_t fontSize = 16;
+		glm::vec4 colour{ 1.f,1.f,1.f,1.f };
 		Ref<Font> font;
 
 		TextComponent() = default;

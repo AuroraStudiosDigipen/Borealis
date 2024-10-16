@@ -425,7 +425,7 @@ namespace Borealis
 			ImGui::Button(propName.c_str());
 			if (ImGui::BeginDragDropTarget())
 			{
-				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropTextureItem"))
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropImageItem"))
 				{
 					AssetHandle data = *(const uint64_t*)payload->Data;
 					rttr::variant value(AssetManager::GetAsset<Texture2D>(data));

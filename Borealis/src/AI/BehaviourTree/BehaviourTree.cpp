@@ -92,14 +92,10 @@ namespace Borealis
     void BehaviourTree::SetBehaviourTreeName(std::string&& name)
     {
         mTreeName = name;
-        BOREALIS_CORE_TRACE("Name of tree set to {}",mTreeName);
-
     }
     void BehaviourTree::SetBehaviourTreeName(std::string& name)
     {
         mTreeName = name;
-        BOREALIS_CORE_TRACE("Name of tree set to {}", mTreeName);
-
     }
     std::string BehaviourTree::GetBehaviourTreeName() const
     {

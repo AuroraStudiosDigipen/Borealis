@@ -50,7 +50,7 @@ namespace Borealis
         @brief Sets the depth of the node.
         @param depth The depth to be set.
     */
-    void BehaviourNode::SetDepth(int depth) 
+    void BehaviourNode::SetDepth(unsigned int depth) 
     {
         mDepth = depth;
     }
@@ -71,7 +71,6 @@ namespace Borealis
     void BehaviourNode::SetName(const std::string& setName)
     {
         mName = setName;
-        BOREALIS_CORE_TRACE("Name of node set to {}", mName);
     }
 
     /*

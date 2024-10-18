@@ -118,12 +118,10 @@ namespace Borealis
 
 		// Create the node using NodeFactory based on its name
 		Ref<BehaviourNode> currentNode = Borealis::NodeFactory::CreateNodeByName(nodeName);
-		currentNode->SetDepth(depth); // Assuming setDepth is implemented in BehaviourNode
+		currentNode->SetDepth(depth);
 
 		// Add the current node to the tree
 		tree.AddNode(parentNode, currentNode, depth);
-
-		BOREALIS_CORE_TRACE("Deserialising node: {} at depth {}", nodeName, depth);
 
 		// Process children if they exist
 		if (node["children"])

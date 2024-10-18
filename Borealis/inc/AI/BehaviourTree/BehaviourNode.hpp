@@ -67,7 +67,7 @@ namespace Borealis
            \param[in] depth
                The depth to set.
        *************************************************************************/
-        void SetDepth(int depth);
+        void SetDepth(unsigned int depth);
 
         /*!***********************************************************************
             \brief
@@ -263,7 +263,7 @@ namespace Borealis
         WeakRef<BehaviourNode> mParent;  // Parent node reference
         std::vector<Ref<BehaviourNode>> mChildren;  // Child nodes
     private:
-        int mDepth;  // Depth of the node in the behavior tree
+        unsigned int mDepth;  // Depth of the node in the behavior tree
 
         // Node type, status, and result
         NodeType mNodeType;

@@ -108,6 +108,10 @@ namespace Borealis
 					GraphicsUtils::AttachColorTexture(mColorAttachments[i], mProps.Samples, GL_RGBA8, GL_RGBA, mProps.Width, mProps.Height, i);
 					break;
 
+				case FramebufferTextureFormat::RGBA16F:
+					GraphicsUtils::AttachColorTexture(mColorAttachments[i], mProps.Samples, GL_RGBA16F, GL_RGBA, mProps.Width, mProps.Height, i);
+					break;
+
 				case FramebufferTextureFormat::RedInteger:
 					GraphicsUtils::AttachColorTexture(mColorAttachments[i], mProps.Samples, GL_R32I, GL_RED_INTEGER, mProps.Width, mProps.Height, i);
 					break;

@@ -16,8 +16,9 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #define RenderGraph_HPP
 
 #include <Core/Core.hpp>
-#include <Graphics/Framebuffer.hpp>
 #include <Graphics/EditorCamera.hpp>
+#include <Graphics/Framebuffer.hpp>
+#include <Graphics/Shader.hpp>
 
 #include <string>
 #include <vector>
@@ -43,10 +44,10 @@ namespace Borealis
 		virtual void Unbind() {};
 	};
 
-	class BufferSource : public RenderSource
+	class RenderTargetSource : public RenderSource
 	{
 	public:
-		BufferSource(std::string name, Ref<FrameBuffer> framebuffer);
+		RenderTargetSource(std::string name, Ref<FrameBuffer> framebuffer);
 		void Bind() override;
 		void Unbind() override;
 		Ref<FrameBuffer> buffer;
@@ -64,6 +65,18 @@ namespace Borealis
 		void Bind() override {};
 		glm::mat4 GetViewProj();
 	};
+
+	//class TextureSource : public RenderSource
+	//{
+	//public:
+	//	TextureSource(std::string name);
+	//	void AddTexture(AssetHandle textureHandle);
+
+	//	void Bind() override;
+	//	
+	//	std::vector<AssetHandle> textureAssetHandles;
+	//	std::vector<Ref<Texture2D>> textureList;
+	//};
 
 	class RenderSink
 	{
@@ -89,12 +102,13 @@ namespace Borealis
 
 		std::vector<Ref<RenderSink>> sinkList;
 		std::vector<Ref<RenderSource>> sourceList;
+		Ref<Shader> shader;
 	};
 
 	class EntityPass : public RenderPass
 	{
 	public:
-		EntityPass(std::string name) : RenderPass(name) {};
+		EntityPass(std::string name) : RenderPass(name), registryPtr(nullptr) {};
 		void SetEntityRegistry(entt::registry& registry);
 		void Execute() override {};
 
@@ -112,6 +126,22 @@ namespace Borealis
 	{
 	public:
 		Render2D(std::string name) : EntityPass(name) {};
+		void Execute() override;
+	};
+
+	class GeometryPass : public EntityPass
+	{
+	public:
+		GeometryPass(std::string name);
+
+		void Execute() override;
+	};
+
+	class LightingPass : public RenderPass
+	{
+	public:
+		LightingPass(std::string name);
+
 		void Execute() override;
 	};
 

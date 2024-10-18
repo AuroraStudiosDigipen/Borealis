@@ -40,6 +40,9 @@
     <Filter Include="inc\Graphics\OpenGL">
       <UniqueIdentifier>{93879F21-FFE8-7C2F-8856-C3E1F4B6B3EE}</UniqueIdentifier>
     </Filter>
+    <Filter Include="inc\Graphics\RenderGraph">
+      <UniqueIdentifier>{00E8FDE0-EC0C-4D61-1558-32F101DC4B7F}</UniqueIdentifier>
+    </Filter>
     <Filter Include="inc\ImGui">
       <UniqueIdentifier>{89503E75-F5BA-F2EB-3EF9-A391AAA2D040}</UniqueIdentifier>
     </Filter>
@@ -154,6 +157,9 @@
     <Filter Include="src\Graphics\OpenGL">
       <UniqueIdentifier>{A10E80C2-0D70-5DD0-96DD-A382023E948F}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Graphics\RenderGraph">
+      <UniqueIdentifier>{CE07F316-BA2C-4297-E377-2727CFFB40B5}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\ImGui">
       <UniqueIdentifier>{170E22B3-8378-D629-CCB6-87CF3860B47E}</UniqueIdentifier>
     </Filter>
@@ -165,12 +171,6 @@
     </Filter>
     <Filter Include="src\Scripting">
       <UniqueIdentifier>{6FBC2D98-DB7C-A9CE-A4B7-F24B1037EEAA}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="inc\Graphics\RenderGraph">
-      <UniqueIdentifier>{3b39ef69-d47b-4a4b-917b-ca1989691ac0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Graphics\RenderGraph">
-      <UniqueIdentifier>{b16b8731-b5ec-4932-83dc-d7165a4ce5a2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -342,6 +342,12 @@
     </ClInclude>
     <ClInclude Include="inc\Graphics\RenderCommand.hpp">
       <Filter>inc\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Graphics\RenderGraph\RenderGraph.hpp">
+      <Filter>inc\Graphics\RenderGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Graphics\RenderGraph\RenderGraphOld.hpp">
+      <Filter>inc\Graphics\RenderGraph</Filter>
     </ClInclude>
     <ClInclude Include="inc\Graphics\Renderer.hpp">
       <Filter>inc\Graphics</Filter>
@@ -1972,12 +1978,6 @@
     <ClInclude Include="lib\xproperty\include\xproperty\xproperty_config.hpp">
       <Filter>lib\xproperty\include\xproperty</Filter>
     </ClInclude>
-    <ClInclude Include="inc\Graphics\RenderGraph\RenderGraphOld.hpp">
-      <Filter>inc\Graphics\RenderGraph</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\Graphics\RenderGraph\RenderGraph.hpp">
-      <Filter>inc\Graphics\RenderGraph</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lib\imGuizmo\imGuizmo.cpp">
@@ -2115,6 +2115,12 @@
     <ClCompile Include="src\Graphics\RenderCommand.cpp">
       <Filter>src\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\RenderGraph\RenderGraph.cpp">
+      <Filter>src\Graphics\RenderGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\RenderGraph\RenderGraphOld.cpp">
+      <Filter>src\Graphics\RenderGraph</Filter>
+    </ClCompile>
     <ClCompile Include="src\Graphics\Renderer.cpp">
       <Filter>src\Graphics</Filter>
     </ClCompile>
@@ -2192,12 +2198,6 @@
     </ClCompile>
     <ClCompile Include="src\Scripting\ScriptingUtils.cpp">
       <Filter>src\Scripting</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\RenderGraph\RenderGraphOld.cpp">
-      <Filter>src\Graphics\RenderGraph</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\RenderGraph\RenderGraph.cpp">
-      <Filter>src\Graphics\RenderGraph</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

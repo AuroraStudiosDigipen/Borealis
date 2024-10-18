@@ -23,6 +23,7 @@ namespace Borealis
 
 		//Color
 		RGBA8,
+		RGBA16F,
 		RedInteger,
 
 		//Stencil

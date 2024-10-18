@@ -213,6 +213,7 @@ namespace Borealis
 
 		Ref<FrameBuffer> mViewportFrameBuffer;
 		Ref<FrameBuffer> mRuntimeFrameBuffer;
+		Ref<FrameBuffer> mGFrameBuffer;
 		RenderGraph mRenderGraph;
 	};
 }

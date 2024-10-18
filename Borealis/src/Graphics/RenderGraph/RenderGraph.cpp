@@ -14,6 +14,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include <BorealisPCH.hpp>
 
+#include <Assets/AssetManager.hpp>
 #include <Graphics/RenderGraph/RenderGraph.hpp>
 #include <Graphics/Renderer3D.hpp>
 #include <Graphics/Renderer2D.hpp>
@@ -24,7 +25,7 @@ namespace Borealis
 	//========================================================================
 	//BUFFER SOURCE
 	//========================================================================
-	BufferSource::BufferSource(std::string name, Ref<FrameBuffer> framebuffer)
+	RenderTargetSource::RenderTargetSource(std::string name, Ref<FrameBuffer> framebuffer)
 	{
 		sourceName = name;
 		sourceType = RenderSourceType::RenderTargetColor;
@@ -32,13 +33,13 @@ namespace Borealis
 		buffer = framebuffer;
 	}
 
-	void BufferSource::Bind()
+	void RenderTargetSource::Bind()
 	{
 		if (buffer)
 			buffer->Bind();
 	}
 
-	void BufferSource::Unbind()
+	void RenderTargetSource::Unbind()
 	{
 		if (buffer)
 			buffer->Unbind();
@@ -67,6 +68,26 @@ namespace Borealis
 		return viewProj;
 	}
 
+	//TextureSource::TextureSource(std::string name)
+	//{
+	//	sourceName = name;
+	//	sourceType = RenderSourceType::Texture2D;
+	//}
+
+	//void TextureSource::AddTexture(AssetHandle textureHandle)
+	//{
+	//	textureAssetHandles.push_back(textureHandle);
+	//	textureList.push_back(AssetManager::GetAsset<Texture2D>(textureHandle));
+	//}
+
+	//void TextureSource::Bind()
+	//{
+	//	for (int i{}; i < textureList.size(); i++)
+	//	{
+	//		textureList[i]->Bind(i);
+	//	}
+	//}
+
 	//========================================================================
 	//RENDERPASS
 	//========================================================================
@@ -87,6 +108,7 @@ namespace Borealis
 
 	void RenderPass::Bind()
 	{
+		if (shader) shader->Bind();
 		for (auto sink : sinkList)
 		{
 			if (sink->source)
@@ -107,6 +129,7 @@ namespace Borealis
 				source->Unbind();
 			}
 		}
+		if (shader) shader->Unbind();
 	}
 
 	//========================================================================
@@ -122,11 +145,11 @@ namespace Borealis
 	//========================================================================
 	void Render3D::Execute()
 	{
-		for (auto source : sourceList)
+		for (auto sink : sinkList)
 		{
-			if (source->sourceType == RenderSourceType::Camera)
+			if (sink->source->sourceType == RenderSourceType::Camera)
 			{
-				Renderer3D::Begin(std::dynamic_pointer_cast<CameraSource>(source)->GetViewProj());
+				Renderer3D::Begin(std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj());
 				break;
 			}
 		}
@@ -189,6 +212,34 @@ namespace Borealis
 		}
 		Renderer2D::End();
 	}
+
+	GeometryPass::GeometryPass(std::string name) : EntityPass(name)
+	{
+		shader = Shader::Create("engineResources/Shaders/Renderer3D_DeferredLighting.glsl");
+	}
+
+	void GeometryPass::Execute()
+	{
+		shader->Set("lightPass", false);
+
+		{
+			auto group = registryPtr->group<>(entt::get<TransformComponent, MeshFilterComponent, MeshRendererComponent>);
+			for (auto& entity : group)
+			{
+				auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
+
+				Renderer3D::DrawMesh(transform, meshFilter, meshRenderer, (int)entity);
+			}
+		}
+		Renderer3D::End();
+	}
+
+	LightingPass::LightingPass(std::string name) : RenderPass(name)
+	{
+		//duplicate shader, move to assets manager
+		shader = Shader::Create("engineResources/Shaders/Renderer3D_DeferredLighting.glsl");
+	}
+
 	//========================================================================
 	//RENDER GRAPH
 	//========================================================================	

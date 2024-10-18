@@ -38,6 +38,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <AI/BehaviourTree/RegisterNodes.hpp>
 #include <AI/BehaviourTree/BehaviourTree.hpp>
 
+#include <RenderGraphEditor/RenderGraphNodeEditor.hpp>
+
 namespace Borealis {
 	EditorLayer::SceneState EditorLayer::mSceneState = EditorLayer::SceneState::Edit;
 #ifndef _DIST
@@ -525,6 +527,9 @@ namespace Borealis {
 				}
 			}
 			ImGui::End(); // Of Runtime
+
+			//RenderGraphNodeEditor::Render();
+
 			ImGui::PopStyleVar();
 			UIToolbar();
 		ImGui::End(); // Of Dockspace

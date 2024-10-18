@@ -38,6 +38,14 @@ namespace Borealis
 		FrameBufferProperties propsRuntime{ 1280, 720, false };
 		propsRuntime.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RedInteger,FramebufferTextureFormat::Depth };
 		mRuntimeFrameBuffer = FrameBuffer::Create(propsRuntime);
+
+		FrameBufferProperties propsGBuffer{ 1280, 720, false };
+		propsGBuffer.Attachments = {	FramebufferTextureFormat::RGBA16F, 
+										FramebufferTextureFormat::RedInteger, 
+										FramebufferTextureFormat::RGBA16F,
+										FramebufferTextureFormat::RGBA16F,
+										FramebufferTextureFormat::Depth };
+		mGFrameBuffer = FrameBuffer::Create(propsGBuffer);
 	}
 
 	Scene::~Scene()
@@ -252,12 +260,28 @@ namespace Borealis
 
 			{
 				mRenderGraph.Init();
-				BufferSource runtimeBuffer("RunTimeBuffer", mRuntimeFrameBuffer);
-				mRenderGraph.SetGlobalSource(MakeRef<BufferSource>(runtimeBuffer));
+				RenderTargetSource runtimeBuffer("RunTimeBuffer", mRuntimeFrameBuffer);
+				mRenderGraph.SetGlobalSource(MakeRef<RenderTargetSource>(runtimeBuffer));
 
 				//CameraSource editorCameraSource("EditorCamera", editorCamera);
 				CameraSource runTimeCameraSource("RunTimeCamera", *mainCamera, mainCameratransform);
 				mRenderGraph.SetGlobalSource(MakeRef<CameraSource>(runTimeCameraSource));
+
+				//pseudo code for defer
+				{
+					Render3D geometricPass("geometricPass");
+					geometricPass.SetSinkLinkage("gBuffer", "gBuffer");//create a global gBuffer
+					geometricPass.SetSinkLinkage("camera", "RunTimeCamera");
+					geometricPass.SetEntityRegistry(mRegistry);
+					//mRenderGraph.AddPass(MakeRef<Render3D>(geometricPass));
+
+					Render3D lightPass("lightPass");
+					geometricPass.SetSinkLinkage("gBuffer", "geometricPass.gBuffer"); //get gBuffer from geometricPass
+					geometricPass.SetSinkLinkage("renderTarget", "RunTimeBuffer"); //get gBuffer from geometricPass
+					geometricPass.SetSinkLinkage("camera", "RunTimeCamera");
+					geometricPass.SetEntityRegistry(mRegistry);
+					//mRenderGraph.AddPass(MakeRef<Render3D>(geometricPass));
+				}
 
 				Render3D render3DPass("Render3D");
 				render3DPass.SetSinkLinkage("renderTarget", "RunTimeBuffer");

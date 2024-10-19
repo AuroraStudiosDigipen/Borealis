@@ -25,13 +25,14 @@ namespace Borealis
 		Ref<Shader> mModelShader;
 	};
 
-	static std::unique_ptr<Renderer3DData> sData;
+	static std::unique_ptr<Renderer3DData> s3dData;
 	LightEngine Renderer3D::mLightEngine;
 
 	void Renderer3D::Init()
 	{
-		sData =  std::make_unique<Renderer3DData>();
-		sData->mModelShader = Shader::Create("engineResources/Shaders/Renderer3D_Material.glsl");
+		s3dData =  std::make_unique<Renderer3DData>();
+		s3dData->mModelShader = Shader::Create("engineResources/Shaders/Renderer3D_Material.glsl");
+		//s3dData->mModelShader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_DeferredLighting.glsl");
 	}
 
 
@@ -50,8 +51,8 @@ namespace Borealis
 
 	void Renderer3D::Begin(glm::mat4 viewProj)
 	{
-		sData->mModelShader->Bind();
-		sData->mModelShader->Set("u_ViewProjection", viewProj);
+		s3dData->mModelShader->Bind();
+		s3dData->mModelShader->Set("u_ViewProjection", viewProj);
 
 		mLightEngine.Begin();
 	}
@@ -73,15 +74,32 @@ namespace Borealis
 
 	void Renderer3D::DrawMesh(const glm::mat4& transform, const MeshFilterComponent& meshFilter, const MeshRendererComponent& meshRenderer, int entityID)
 	{
-		SetLights(sData->mModelShader);
+		SetLights(s3dData->mModelShader);
 		if (meshFilter.Model) {
 			if (meshRenderer.Material)
 			{
-				meshRenderer.Material->SetUniforms(sData->mModelShader);
+				meshRenderer.Material->SetUniforms(s3dData->mModelShader);
 			}
 			
-			meshFilter.Model->Draw(transform, sData->mModelShader, entityID);
+			meshFilter.Model->Draw(transform, s3dData->mModelShader, entityID);
 		}
+	}
+
+	void Renderer3D::DrawMesh(const glm::mat4& transform, const MeshFilterComponent& meshFilter, const MeshRendererComponent& meshRenderer, Ref<Shader> shader, int entityID)
+	{
+		if (meshFilter.Model) {
+			if (meshRenderer.Material)
+			{
+				meshRenderer.Material->SetUniforms(shader);
+			}
+
+			meshFilter.Model->Draw(transform, shader, entityID);
+		}
+	}
+
+	void Renderer3D::DrawQuad()
+	{
+		Mesh::DrawQuad();
 	}
 
 }

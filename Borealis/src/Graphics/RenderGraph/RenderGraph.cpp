@@ -18,6 +18,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/RenderGraph/RenderGraph.hpp>
 #include <Graphics/Renderer3D.hpp>
 #include <Graphics/Renderer2D.hpp>
+#include <Graphics/RenderCommand.hpp>
 #include <Scene/Components.hpp>
 
 namespace Borealis
@@ -43,6 +44,31 @@ namespace Borealis
 	{
 		if (buffer)
 			buffer->Unbind();
+	}
+
+	GBufferSource::GBufferSource(std::string name, Ref<FrameBuffer> framebuffer)
+	{
+		sourceName = name;
+		sourceType = RenderSourceType::GBuffer;
+
+		buffer = framebuffer;
+	}
+
+	void GBufferSource::Bind()
+	{
+		if (buffer)
+			buffer->Bind();
+	}
+
+	void GBufferSource::Unbind()
+	{
+		if (buffer)
+			buffer->Unbind();
+	}
+
+	void GBufferSource::BindTexture(TextureType type, int index)
+	{
+		buffer->BindTexture(type, index);
 	}
 
 	CameraSource::CameraSource(std::string name, EditorCamera const& camera)
@@ -145,6 +171,16 @@ namespace Borealis
 	//========================================================================
 	void Render3D::Execute()
 	{
+		if (shader) shader->Bind();
+		for (auto sink : sinkList)
+		{
+			if (sink->source)
+			{
+				auto source = sink->source;
+				source->Bind();
+			}
+		}
+
 		for (auto sink : sinkList)
 		{
 			if (sink->source->sourceType == RenderSourceType::Camera)
@@ -173,15 +209,27 @@ namespace Borealis
 			}
 		}
 		Renderer3D::End();
+
+		if (shader) shader->Unbind();
 	}
 
 	void Render2D::Execute()
 	{
-		for (auto source : sourceList)
+		if (shader) shader->Bind();
+		for (auto sink : sinkList)
 		{
-			if (source->sourceType == RenderSourceType::Camera)
+			if (sink->source)
 			{
-				Renderer2D::Begin(std::dynamic_pointer_cast<CameraSource>(source)->GetViewProj());
+				auto source = sink->source;
+				source->Bind();
+			}
+		}
+
+		for (auto sink : sinkList)
+		{
+			if (sink->source->sourceType == RenderSourceType::Camera)
+			{
+				Renderer2D::Begin(std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj());
 				break;
 			}
 		}
@@ -211,16 +259,43 @@ namespace Borealis
 			}
 		}
 		Renderer2D::End();
+
+		if (shader) shader->Unbind();
 	}
 
 	GeometryPass::GeometryPass(std::string name) : EntityPass(name)
 	{
-		shader = Shader::Create("engineResources/Shaders/Renderer3D_DeferredLighting.glsl");
+		shader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_DeferredLighting.glsl");
 	}
 
 	void GeometryPass::Execute()
 	{
-		shader->Set("lightPass", false);
+		if (shader) shader->Bind();
+		shader->Set("u_lightPass", false);
+		Ref<FrameBuffer> gBuffer = nullptr;
+		for (auto sink : sinkList)
+		{
+			if (sink->source)
+			{
+				if (sink->source->sourceType == RenderSourceType::GBuffer)
+				{
+					gBuffer = std::dynamic_pointer_cast<GBufferSource>(sink->source)->buffer;
+					gBuffer->Bind();
+					RenderCommand::Clear();
+					RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
+					for (int i{1}; i < 6; i++)
+					{
+						gBuffer->ClearAttachment(i, 0);
+					}
+				}
+
+				if (sink->source->sourceType == RenderSourceType::Camera)
+				{
+					glm::mat4 viewProj = std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj();
+					shader->Set("u_ViewProjection", viewProj);
+				}
+			}
+		}
 
 		{
 			auto group = registryPtr->group<>(entt::get<TransformComponent, MeshFilterComponent, MeshRendererComponent>);
@@ -228,16 +303,82 @@ namespace Borealis
 			{
 				auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
 
-				Renderer3D::DrawMesh(transform, meshFilter, meshRenderer, (int)entity);
+				Renderer3D::DrawMesh(transform, meshFilter, meshRenderer, shader,(int)entity);
 			}
 		}
-		Renderer3D::End();
+
+		if (gBuffer) gBuffer->Unbind();
+		if (shader) shader->Unbind();
 	}
 
-	LightingPass::LightingPass(std::string name) : RenderPass(name)
+	LightingPass::LightingPass(std::string name) : EntityPass(name)
 	{
 		//duplicate shader, move to assets manager
-		shader = Shader::Create("engineResources/Shaders/Renderer3D_DeferredLighting.glsl");
+		shader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_DeferredLighting.glsl");
+	}
+
+	void LightingPass::Execute()
+	{
+		if (shader) shader->Bind();
+		shader->Set("u_lightPass", true);
+
+		Ref<GBufferSource> gBuffer = nullptr;
+		Ref<FrameBuffer> renderTarget = nullptr;
+		for (auto sink : sinkList)
+		{
+			if (sink->source)
+			{
+				if (sink->source->sourceType == RenderSourceType::GBuffer)
+				{
+					gBuffer = std::dynamic_pointer_cast<GBufferSource>(sink->source);
+				}
+
+				if (sink->source->sourceType == RenderSourceType::RenderTargetColor)
+				{
+					renderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source)->buffer;
+					//renderTarget->Bind();
+
+					//RenderCommand::Clear();
+					//RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
+				}
+			}
+		}
+
+		gBuffer->Bind();
+
+		gBuffer->BindTexture(GBufferSource::Albedo,		0);
+		gBuffer->BindTexture(GBufferSource::Normal,		1);
+		gBuffer->BindTexture(GBufferSource::Specular,	2);
+		gBuffer->BindTexture(GBufferSource::Position,	3);
+		gBuffer->BindTexture(GBufferSource::Metallic,	4);
+		gBuffer->BindTexture(GBufferSource::Roughness,	5);
+
+		gBuffer->Unbind();
+		
+		shader->Set("lAlbedo",		0);
+		shader->Set("lNormal",		1);
+		shader->Set("lSpecular",	2);
+		shader->Set("lPosition",	3);
+		shader->Set("lMetallic",	4);
+		shader->Set("lRoughness",	5);
+
+		{
+			entt::basic_group group = registryPtr->group<>(entt::get<TransformComponent, LightComponent>);
+			for (auto& entity : group)
+			{
+				auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
+				lightComponent.offset = transform.Translate;
+				Renderer3D::AddLight(lightComponent);
+			}
+			Renderer3D::SetLights(shader);
+		}
+
+		renderTarget->Bind();
+		Renderer3D::DrawQuad();
+
+		renderTarget->Unbind();
+
+		shader->Unbind();
 	}
 
 	//========================================================================
@@ -267,9 +408,7 @@ namespace Borealis
 				}
 			}
 
-			pass->Bind();
 			pass->Execute();
-			pass->Unbind();
 		}
 	}
 

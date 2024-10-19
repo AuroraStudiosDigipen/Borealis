@@ -52,6 +52,13 @@ namespace Borealis
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
+
+	void OpenGLFrameBuffer::BindTexture(uint32_t attachmentIndex, uint32_t textureUnit)
+	{
+		glActiveTexture(GL_TEXTURE0 + textureUnit);
+		glBindTexture(GL_TEXTURE_2D, mColorAttachments[attachmentIndex]);
+	}
+
 	void OpenGLFrameBuffer::Resize(uint32_t width, uint32_t height)
 	{
 		if (width == 0 || height == 0 || width > s_MaxFramebufferSize || height > s_MaxFramebufferSize)
@@ -104,16 +111,24 @@ namespace Borealis
 				GraphicsUtils::BindTexture(multisample, mColorAttachments[i]);
 				switch (mColorAttachmentProps[i].mTextureFormat)
 				{
+				case FramebufferTextureFormat::RGB16F:
+					GraphicsUtils::AttachColorTexture(mColorAttachments[i], mProps.Samples, GL_RGB16F, GL_RGB, GL_FLOAT,mProps.Width, mProps.Height, i);
+					break;
+
 				case FramebufferTextureFormat::RGBA8:
-					GraphicsUtils::AttachColorTexture(mColorAttachments[i], mProps.Samples, GL_RGBA8, GL_RGBA, mProps.Width, mProps.Height, i);
+					GraphicsUtils::AttachColorTexture(mColorAttachments[i], mProps.Samples, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, mProps.Width, mProps.Height, i);
 					break;
 
 				case FramebufferTextureFormat::RGBA16F:
-					GraphicsUtils::AttachColorTexture(mColorAttachments[i], mProps.Samples, GL_RGBA16F, GL_RGBA, mProps.Width, mProps.Height, i);
+					GraphicsUtils::AttachColorTexture(mColorAttachments[i], mProps.Samples, GL_RGBA16F, GL_RGBA, GL_FLOAT, mProps.Width, mProps.Height, i);
 					break;
 
 				case FramebufferTextureFormat::RedInteger:
-					GraphicsUtils::AttachColorTexture(mColorAttachments[i], mProps.Samples, GL_R32I, GL_RED_INTEGER, mProps.Width, mProps.Height, i);
+					GraphicsUtils::AttachColorTexture(mColorAttachments[i], mProps.Samples, GL_R32I, GL_RED_INTEGER, GL_UNSIGNED_BYTE, mProps.Width, mProps.Height, i);
+					break;
+
+				case FramebufferTextureFormat::R16F:
+					GraphicsUtils::AttachColorTexture(mColorAttachments[i], mProps.Samples, GL_R16F, GL_RED, GL_FLOAT, mProps.Width, mProps.Height, i);
 					break;
 				}
 			}
@@ -133,8 +148,8 @@ namespace Borealis
 
 		if (mColorAttachments.size() > 1)
 		{
-			BOREALIS_CORE_ASSERT(mColorAttachments.size() <= 4,"Too many color attachments!");
-			GLenum buffers[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
+			BOREALIS_CORE_ASSERT(mColorAttachments.size() <= 6,"Too many color attachments!");
+			GLenum buffers[6] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5};
 			glDrawBuffers((GLsizei)mColorAttachments.size(), buffers);
 
 		}

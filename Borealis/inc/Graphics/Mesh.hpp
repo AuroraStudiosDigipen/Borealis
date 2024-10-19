@@ -90,6 +90,8 @@ namespace Borealis
 		*************************************************************************/
 		void Draw(const glm::mat4& transform, Ref<Shader> shader, int entityID);
 
+		static void DrawQuad();
+
 		/*!***********************************************************************
 			\brief
 				Getters and setters
@@ -118,6 +120,8 @@ namespace Borealis
 
 
 		void ComputeTangents();
+
+		static unsigned int QuadVAO, QuadVBO;
 
 	}; // class Mesh
 } // namespace Borealis

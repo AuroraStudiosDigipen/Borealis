@@ -20,6 +20,9 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace Borealis
 {
+	unsigned int Mesh::QuadVAO = 0;
+	unsigned int Mesh::QuadVBO = 0;
+
 	Mesh::Mesh()// : mVertices(nullptr), mIndices(nullptr), mNormals(nullptr), mTexCoords(nullptr), mVerticesCount(0), mIndicesCount(0), mNormalsCount(0), mTexCoordsCount(0)
 	{
 	}
@@ -148,9 +151,53 @@ namespace Borealis
 		shader->Set("u_ModelTransform", transform);
 		shader->Set("u_EntityID", entityID);
 
+		glDisable(GL_BLEND);
+		glEnable(GL_DEPTH_TEST);
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, (int)mIndices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
+	}
+
+	void Mesh::DrawQuad()
+	{
+		if (QuadVAO == 0)
+		{
+			// Define the vertex positions and texture coordinates for a fullscreen quad
+			float quadVertices[] = {
+				// Positions    // TexCoords
+				-1.0f,  1.0f,   0.0f, 1.0f,
+				-1.0f, -1.0f,   0.0f, 0.0f,
+				 1.0f, -1.0f,   1.0f, 0.0f,
+
+				-1.0f,  1.0f,   0.0f, 1.0f,
+				 1.0f, -1.0f,   1.0f, 0.0f,
+				 1.0f,  1.0f,   1.0f, 1.0f
+			};
+
+			// Generate and bind a VAO for the quad
+			glGenVertexArrays(1, &QuadVAO);
+			glGenBuffers(1, &QuadVBO);
+
+			glBindVertexArray(QuadVAO);
+			glBindBuffer(GL_ARRAY_BUFFER, QuadVBO);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+
+			// Position attribute
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+
+			// Texture coordinates attribute
+			glEnableVertexAttribArray(1);
+			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+		}
+
+		glDisable(GL_DEPTH_TEST);
+		glBindVertexArray(QuadVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, QuadVBO);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glEnable(GL_DEPTH_TEST);
 	}
 
 	std::vector<unsigned int> const& Mesh::GetIndices() const

@@ -30,6 +30,7 @@ namespace Borealis
 	enum class RenderSourceType
 	{
 		RenderTargetColor,
+		GBuffer,
 		Texture2D,
 		UniformBuffers,
 		Camera
@@ -50,6 +51,29 @@ namespace Borealis
 		RenderTargetSource(std::string name, Ref<FrameBuffer> framebuffer);
 		void Bind() override;
 		void Unbind() override;
+		Ref<FrameBuffer> buffer;
+	};
+
+	class GBufferSource : public RenderSource
+	{
+	public:
+		enum TextureType : uint32_t
+		{
+			Albedo = 0,
+			Normal,
+			Specular,
+			Position,
+			Metallic,
+			Roughness
+		};
+		GBufferSource(std::string name, Ref<FrameBuffer> framebuffer);
+
+		void Bind() override;
+
+		void Unbind() override;
+
+		void BindTexture(TextureType type, int index);
+
 		Ref<FrameBuffer> buffer;
 	};
 
@@ -137,7 +161,7 @@ namespace Borealis
 		void Execute() override;
 	};
 
-	class LightingPass : public RenderPass
+	class LightingPass : public EntityPass
 	{
 	public:
 		LightingPass(std::string name);

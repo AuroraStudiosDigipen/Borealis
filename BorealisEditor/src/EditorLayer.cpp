@@ -183,9 +183,9 @@ namespace Borealis {
 			}
 			mViewportFrameBuffer->Unbind();
 
-			mRuntimeFrameBuffer->Bind();
+			//mRuntimeFrameBuffer->Bind();
 			SceneManager::GetActiveScene()->UpdateRuntime(dt);
-			mRuntimeFrameBuffer->Unbind();
+			//mRuntimeFrameBuffer->Unbind();
 		}
 	}
 

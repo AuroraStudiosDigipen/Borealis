@@ -189,7 +189,7 @@ namespace Borealis
 		*************************************************************************/
 		Entity GetPrimaryCameraEntity();
 
-		Ref<FrameBuffer> GetRunTimeFB() { return mRuntimeFrameBuffer; }
+		Ref<FrameBuffer> GetRunTimeFB();
 	private:
 
 		/*!***********************************************************************

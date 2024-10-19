@@ -70,6 +70,6 @@ namespace Borealis
 		str = lightPrefix + ".type";
 		shader->Set(str.c_str(), static_cast<int>(lightComponent.type));
 
-		shader->Unbind();
+		//shader->Unbind();
 	}
 }

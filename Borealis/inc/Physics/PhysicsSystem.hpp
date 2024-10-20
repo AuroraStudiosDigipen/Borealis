@@ -70,6 +70,14 @@ namespace Borealis
 	*/
 		static void addSphereBody(float radius, glm::vec3 position, RigidBodyComponent& rigidbody);
 
+    /**
+    * \brief Adds a capsule body to the physics system.
+    * \param radius The radius of the capsule body.
+    * \param halfHeight The half height of the capsule body.
+    * \param position The position of the capsule body.
+    * \param rigidbody The rigid body component of the capsule body.
+    */
+        static void addCapsuleBody(float radius, float halfHeight, glm::vec3 position, RigidBodyComponent& rigidbody);
 
 		/**
    * \brief Updates the sphere values of the specified rigid body.

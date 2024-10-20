@@ -33,6 +33,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Jolt/Physics/PhysicsSystem.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
+#include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Body/BodyActivationListener.h>
 
@@ -428,6 +429,31 @@ void PhysicsSystem::Init()
 		rigidbody.bodyID = sphere->GetID().GetIndexAndSequenceNumber();
 	}
 
+	void PhysicsSystem::addCapsuleBody(float radius, float halfHeight, glm::vec3 position, RigidBodyComponent& rigidbody)
+	{
+		// Create the settings for the collision volume (the shape).
+		CapsuleShapeSettings capsule_shape_settings(radius, halfHeight); // Use radius as half extents
+
+		// Mark it as embedded (prevent it from being freed when reference count goes to 0)
+		capsule_shape_settings.SetEmbedded();
+
+		// Create the shape
+		ShapeSettings::ShapeResult capsule_shape_result = capsule_shape_settings.Create();
+		ShapeRefC capsule_shape = capsule_shape_result.Get(); // Check for errors in a real-world scenario
+
+		// Create the settings for the body itself. Note that here you can also set other properties like restitution/friction.
+		BodyCreationSettings capsule_settings(capsule_shape, RVec3(position.x, position.y, position.z), Quat::sIdentity(), EMotionType::Dynamic, Layers::MOVING);
+
+		// Create the actual rigid body
+		Body* capsule = sData.body_interface->CreateBody(capsule_settings); // Make sure to handle potential nullptr errors
+
+		// Add it to the world
+		sData.body_interface->AddBody(capsule->GetID(), EActivation::Activate);
+
+		// Store the BodyID in the RigidBodyComponent
+		rigidbody.bodyID = capsule->GetID().GetIndexAndSequenceNumber();
+	}
+
 	void PhysicsSystem::UpdateSphereValues(RigidBodyComponent& rigidbody)
 	{
 		// Create the settings for the collision volume (the shape).
@@ -455,6 +481,7 @@ void PhysicsSystem::Init()
 		// Create the settings for the body itself. Note that here you can also set other properties like the restitution / friction.
 		sData.body_interface->SetShape(JPH::BodyID(rigidbody.bodyID), box_shape, true, EActivation::Activate);
 	}
+
 	void PhysicsSystem::FreeRigidBody(RigidBodyComponent& rigidbody)
 	{
 		sData.body_interface->RemoveBody(JPH::BodyID(rigidbody.bodyID));

@@ -208,15 +208,15 @@ namespace Borealis
 	enum class RigidBodyType : int
 	{
 		Box,
-		Circle
+		Circle,
+		Capsule
 	};
+
 	struct RigidBodyComponent
 	{
 
 		RigidBodyType isBox = RigidBodyType::Box;
 		float radius = 1.5f; //radius for circle, side for cube
-
-		
 
 		// not serialised
 		unsigned int bodyID = 0;

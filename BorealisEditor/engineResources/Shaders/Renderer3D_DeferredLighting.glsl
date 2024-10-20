@@ -211,8 +211,8 @@ void LightPass()
         // Add PointLight, SpotLight calculations similarly
     }
 
-    gAlbedo = vec4(finalColor, albedo.a);
-	//gAlbedo = vec4(vec3(v_TexCoord,0.f), 1.f);
+    //gAlbedo = vec4(finalColor, albedo.a);
+	gAlbedo = vec4(normal, albedo.a);
 }
 
 void main()

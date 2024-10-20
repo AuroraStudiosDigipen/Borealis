@@ -204,7 +204,7 @@ void LightPass()
 
 	for (int i = 0; i < u_LightsCount; ++i)
     {
-        if (u_Lights[i].type == 0) // Directional Light
+        if (u_Lights[i].type == 1) // Directional Light
         {
             finalColor += ComputeDirectionalLight(u_Lights[i], fragPos, normal, viewDir, albedo.rgb, metallic, specular);
         }
@@ -212,7 +212,7 @@ void LightPass()
     }
 
     gAlbedo = vec4(finalColor, albedo.a);
-	//gAlbedo = vec4(normal, 1.f);
+	//gAlbedo = vec4(normal, albedo.a);
 }
 
 void main()

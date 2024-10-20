@@ -85,6 +85,7 @@ namespace Borealis
 		sourceName = name;
 		sourceType = RenderSourceType::Camera;
 
+		auto proj = camera.GetProjectionMatrix();
 		viewProj = camera.GetProjectionMatrix() * glm::inverse(transform);
 		editor = false;
 	}

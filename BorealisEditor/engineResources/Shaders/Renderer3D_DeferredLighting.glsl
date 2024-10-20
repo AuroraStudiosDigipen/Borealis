@@ -62,11 +62,12 @@ void main()
 
 // Geometry Pass Fragment Shader (GBuffer Writing)
 layout(location = 0) out vec4 gAlbedo;       // Albedo + Alpha
-layout(location = 1) out vec3 gNormal;       // Normal (in world space or view space)
-layout(location = 2) out vec3 gSpecular;     // Specular color (can also store shininess here)
-layout(location = 3) out vec3 gPosition;     // World-space position (optional if reconstructing from depth)
-layout(location = 4) out float gMetallic;    // Metallic factor
-layout(location = 5) out float gRoughness;   // Roughness factor (optional)
+layout(location = 1) out int entityIDs;
+layout(location = 2) out vec3 gNormal;       // Normal (in world space or view space)
+layout(location = 3) out vec3 gSpecular;     // Specular color (can also store shininess here)
+layout(location = 4) out vec4 gPosition;     // World-space position (optional if reconstructing from depth) + roughness
+layout(location = 5) out float gMetallic;    // Metallic factor
+//layout(location = 6) out float gRoughness;   // Roughness factor (optional)
 
 in vec2 v_TexCoord;
 in vec3 v_FragPos;
@@ -121,11 +122,12 @@ struct Light {
 uniform Material u_Material;
 
 uniform sampler2D lAlbedo;
+uniform sampler2D lEntityID;
 uniform sampler2D lNormal;
 uniform sampler2D lSpecular;
 uniform sampler2D lPosition;  // Optional if using world-space positions
 uniform sampler2D lMetallic;
-uniform sampler2D lRoughness;
+//uniform sampler2D lRoughness;
 
 uniform vec3 u_ViewPos;
 const int MAX_LIGHTS = 20;
@@ -185,9 +187,10 @@ void GeometryPass()
 	float metallic = u_Material.hasMetallicMap ? texture(u_Material.metallicMap, GetTexCoord()).r : u_Material.metallic;
     gMetallic = metallic;
 
-	gRoughness = u_Material.smoothness;
+	entityIDs = v_EntityID;
+	//gRoughness = u_Material.smoothness;
 
-	gPosition = v_FragPos;
+	gPosition = vec4(v_FragPos, u_Material.smoothness);
 }
 
 void LightPass()
@@ -197,22 +200,22 @@ void LightPass()
     vec3 specular = texture(lSpecular, v_TexCoord).rgb;
     vec3 fragPos = texture(lPosition, v_TexCoord).rgb;  // If storing world-space positions
     float metallic = texture(lMetallic, v_TexCoord).r;
-    float roughness = texture(lRoughness, v_TexCoord).r;
+    float roughness = texture(lPosition, v_TexCoord).a;
 
 	vec3 viewDir = normalize(u_ViewPos - fragPos);
     vec3 finalColor = vec3(0.0);
 
 	for (int i = 0; i < u_LightsCount; ++i)
     {
-        if (u_Lights[i].type == 0) // Directional Light
+        if (u_Lights[i].type == 1) // Directional Light
         {
             finalColor += ComputeDirectionalLight(u_Lights[i], fragPos, normal, viewDir, albedo.rgb, metallic, specular);
         }
         // Add PointLight, SpotLight calculations similarly
     }
 
-    //gAlbedo = vec4(finalColor, albedo.a);
-	gAlbedo = vec4(normal, albedo.a);
+    gAlbedo = vec4(finalColor, albedo.a);
+	entityIDs = int(texture(lEntityID, v_TexCoord).r);
 }
 
 void main()

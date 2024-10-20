@@ -190,6 +190,11 @@ namespace Borealis
 		Entity GetPrimaryCameraEntity();
 
 		Ref<FrameBuffer> GetRunTimeFB();
+		Ref<FrameBuffer> GetEditorFB();
+
+		void SetRenderGraphConfig(RenderGraphConfig renderGraphConfig);
+
+		void AddRenderGraphGlobalSource(Ref<RenderSource> globalSource);
 	private:
 
 		/*!***********************************************************************

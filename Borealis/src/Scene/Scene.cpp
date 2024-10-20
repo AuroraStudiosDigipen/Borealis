@@ -36,28 +36,19 @@ namespace Borealis
 		mViewportFrameBuffer = FrameBuffer::Create(props);
 
 		FrameBufferProperties propsRuntime{ 1280, 720, false };
-		propsRuntime.Attachments = 
-		//{
-		//FramebufferTextureFormat::RGBA16F,  // Albedo + Alpha
-		//FramebufferTextureFormat::RGB16F,   // Normal
-		//FramebufferTextureFormat::RGB16F,   // Specular
-		//FramebufferTextureFormat::RGB16F,   // Position
-		//FramebufferTextureFormat::R16F,     // Metallic
-		//FramebufferTextureFormat::R16F,     // Roughness
-		//FramebufferTextureFormat::Depth     // Depth buffer
-		//};
-		{ FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RedInteger,FramebufferTextureFormat::Depth };
+		propsRuntime.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RedInteger,FramebufferTextureFormat::Depth };
 		mRuntimeFrameBuffer = FrameBuffer::Create(propsRuntime);
 
 		FrameBufferProperties propsGBuffer{ 1280, 720, false };
 		propsGBuffer.Attachments = 
 		{
 			FramebufferTextureFormat::RGBA16F,  // Albedo + Alpha
+			FramebufferTextureFormat::RedInteger,  // entity id
 			FramebufferTextureFormat::RGB16F,   // Normal
 			FramebufferTextureFormat::RGB16F,   // Specular
-			FramebufferTextureFormat::RGB16F,   // Position
-			FramebufferTextureFormat::RGB16F,     // Metallic
-			FramebufferTextureFormat::R16F,     // Roughness
+			FramebufferTextureFormat::RGBA16F,   // Position + roughness
+			FramebufferTextureFormat::R16F,     // Metallic
+			//FramebufferTextureFormat::R16F,     // Roughness
 			FramebufferTextureFormat::Depth     // Depth buffer
 		};
 		mGFrameBuffer = FrameBuffer::Create(propsGBuffer);
@@ -276,8 +267,12 @@ namespace Borealis
 			{
 				mRenderGraph.Init();
 
+				//global will be determined by us, not available to designers for now
 				RenderTargetSource runtimeBuffer("RunTimeBuffer", mRuntimeFrameBuffer);
 				mRenderGraph.SetGlobalSource(MakeRef<RenderTargetSource>(runtimeBuffer));
+
+				RenderTargetSource editorBuffer("EditorBuffer", mViewportFrameBuffer);
+				mRenderGraph.SetGlobalSource(MakeRef<RenderTargetSource>(editorBuffer));
 
 				GBufferSource gBufferSource("gBuffer", mGFrameBuffer);
 				mRenderGraph.SetGlobalSource(MakeRef<GBufferSource>(gBufferSource));
@@ -286,32 +281,49 @@ namespace Borealis
 				CameraSource runTimeCameraSource("RunTimeCamera", *mainCamera, mainCameratransform);
 				mRenderGraph.SetGlobalSource(MakeRef<CameraSource>(runTimeCameraSource));
 
-				//pseudo code for defer
-				{
-					GeometryPass geometricPass("geometricPass");
-					geometricPass.SetSinkLinkage("gBuffer", "gBuffer");//create a global gBuffer
-					geometricPass.SetSinkLinkage("camera", "RunTimeCamera");
-					geometricPass.SetEntityRegistry(mRegistry);
-					mRenderGraph.AddPass(MakeRef<GeometryPass>(geometricPass));
+				mRenderGraph.SetEntityRegistry(mRegistry);
 
-					LightingPass lightPass("lightPass");
-					lightPass.SetSinkLinkage("gBuffer", "geometricPass.gBuffer"); //get gBuffer from geometricPass
-					lightPass.SetSinkLinkage("renderTarget", "RunTimeBuffer"); //get gBuffer from geometricPass
-					lightPass.SetEntityRegistry(mRegistry);
-					mRenderGraph.AddPass(MakeRef<LightingPass>(lightPass));
-				}
+				//RenderGraphConfig config;
 
-				Render3D render3DPass("Render3D");
-				render3DPass.SetSinkLinkage("renderTarget", "RunTimeBuffer");
-				render3DPass.SetSinkLinkage("camera", "RunTimeCamera");
-				render3DPass.SetEntityRegistry(mRegistry);
-				//mRenderGraph.AddPass(MakeRef<Render3D>(render3DPass));
+				//RenderPassConfig geometryPass(RenderPassType::Geometry, "geometricPass");
+				//geometryPass.AddSinkLinkage("gBuffer", "gBuffer");
+				//geometryPass.AddSinkLinkage("camera", "RunTimeCamera");
+				//config.AddPass(geometryPass);
 
-				Render2D render2DPass("Render2D");
-				render2DPass.SetSinkLinkage("renderTarget", "Render3D.renderTarget");
-				render2DPass.SetSinkLinkage("camera", "RunTimeCamera");
-				render2DPass.SetEntityRegistry(mRegistry);
-				//mRenderGraph.AddPass(MakeRef<Render2D>(render2DPass));
+				//RenderPassConfig lightingPass(RenderPassType::Lighting, "lightPass");
+				//lightingPass.AddSinkLinkage("gBuffer", "geometricPass.gBuffer");
+				//lightingPass.AddSinkLinkage("renderTarget", "RunTimeBuffer");
+				//config.AddPass(lightingPass);
+
+				//mRenderGraph.SetConfig(config);
+				mRenderGraph.Finalize();
+
+				////pseudo code for defer
+				//{
+				//	GeometryPass geometricPass("geometricPass");
+				//	geometricPass.SetSinkLinkage("gBuffer", "gBuffer");//create a global gBuffer
+				//	geometricPass.SetSinkLinkage("camera", "RunTimeCamera");
+				//	geometricPass.SetEntityRegistry(mRegistry);
+				//	//mRenderGraph.AddPass(MakeRef<GeometryPass>(geometricPass));
+
+				//	LightingPass lightPass("lightPass");
+				//	lightPass.SetSinkLinkage("gBuffer", "geometricPass.gBuffer"); //get gBuffer from geometricPass
+				//	lightPass.SetSinkLinkage("renderTarget", "RunTimeBuffer"); //get gBuffer from geometricPass
+				//	lightPass.SetEntityRegistry(mRegistry);
+				//	//mRenderGraph.AddPass(MakeRef<LightingPass>(lightPass));
+				//}
+
+				//Render3D render3DPass("Render3D");
+				//render3DPass.SetSinkLinkage("renderTarget", "RunTimeBuffer");
+				//render3DPass.SetSinkLinkage("camera", "RunTimeCamera");
+				//render3DPass.SetEntityRegistry(mRegistry);
+				////mRenderGraph.AddPass(MakeRef<Render3D>(render3DPass));
+
+				//Render2D render2DPass("Render2D");
+				//render2DPass.SetSinkLinkage("renderTarget", "Render3D.renderTarget");
+				//render2DPass.SetSinkLinkage("camera", "RunTimeCamera");
+				//render2DPass.SetEntityRegistry(mRegistry);
+				////mRenderGraph.AddPass(MakeRef<Render2D>(render2DPass));
 
 				mRenderGraph.SetFinalSink("BackBuffer", "Render2D.renderTarget"); //do i need it for immediate mode?
 				mRenderGraph.Execute();
@@ -325,6 +337,20 @@ namespace Borealis
 		return mRuntimeFrameBuffer;
 	}
 
+	Ref<FrameBuffer> Scene::GetEditorFB()
+	{
+		return mViewportFrameBuffer;
+	}
+
+	void Scene::SetRenderGraphConfig(RenderGraphConfig renderGraphConfig)
+	{
+		mRenderGraph.SetConfig(renderGraphConfig);
+	}
+
+	void Scene::AddRenderGraphGlobalSource(Ref<RenderSource> globalSource)
+	{
+		mRenderGraph.SetGlobalSource(globalSource);
+	}
 
 	void Scene::UpdateEditor(float dt, EditorCamera& camera)
 	{

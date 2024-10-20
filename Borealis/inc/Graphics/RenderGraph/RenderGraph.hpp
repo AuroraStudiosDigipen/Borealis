@@ -60,6 +60,7 @@ namespace Borealis
 		enum TextureType : uint32_t
 		{
 			Albedo = 0,
+			EntityID,
 			Normal,
 			Specular,
 			Position,
@@ -90,18 +91,6 @@ namespace Borealis
 		glm::mat4 GetViewProj();
 	};
 
-	//class TextureSource : public RenderSource
-	//{
-	//public:
-	//	TextureSource(std::string name);
-	//	void AddTexture(AssetHandle textureHandle);
-
-	//	void Bind() override;
-	//	
-	//	std::vector<AssetHandle> textureAssetHandles;
-	//	std::vector<Ref<Texture2D>> textureList;
-	//};
-
 	class RenderSink
 	{
 	public:
@@ -110,6 +99,14 @@ namespace Borealis
 
 		std::string sourceName{};
 		Ref<RenderSource> source = nullptr;
+	};
+
+	enum class RenderPassType
+	{
+		Render3D,
+		Render2D,
+		Geometry,
+		Lighting
 	};
 
 	class RenderPass 
@@ -169,6 +166,33 @@ namespace Borealis
 		void Execute() override;
 	};
 
+	struct RenderPassConfig
+	{
+		RenderPassType mType;
+		std::string mPassName;
+
+		struct SinkLinkageInfo
+		{
+			std::string sinkName;
+			std::string sourceName;
+		};
+
+		std::vector<SinkLinkageInfo> mSinkLinkageList;
+
+		RenderPassConfig(RenderPassType type, std::string passName);
+		void AddSinkLinkage(std::string sinkName, std::string sourceName);
+	};
+
+	class RenderGraphConfig
+	{
+	public:
+		void AddPass(RenderPassConfig renderPassConfig);
+		void AddGlobalSource(Ref<RenderSource> globalSource);
+
+		std::vector<Ref<RenderSource>> globalRenderSourceList;
+		std::vector<RenderPassConfig> passesConfigList;
+	};
+
 	class RenderGraph
 	{
 	public:
@@ -176,13 +200,25 @@ namespace Borealis
 		void AddPass(Ref<RenderPass> pass);
 		void Execute();
 
+		void SetConfig(RenderGraphConfig renderGraphConfig);
+
+		void Finalize();
+
 		Ref<RenderSource> FindSource(std::string sourceName);
 
+		void AddEntityPassConfig(RenderPassConfig const& renderPassConfig);
+
 		void SetGlobalSource(Ref<RenderSource> source);
+
+		void SetEntityRegistry(entt::registry& registry);
 		void SetFinalSink(std::string sinkName, std::string sourceName);//set render output
 
 		std::vector<Ref<RenderPass>> renderPassList;
 		std::vector<Ref<RenderSource>> globalSource;
+
+		RenderGraphConfig mRenderGraphConfig;
+
+		entt::registry* registryPtr;
 	};
 }
 

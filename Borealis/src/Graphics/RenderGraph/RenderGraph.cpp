@@ -337,6 +337,8 @@ namespace Borealis
 				if (sink->source->sourceType == RenderSourceType::RenderTargetColor)
 				{
 					renderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source)->buffer;
+
+					renderTarget->ClearAttachment(1, -1);
 					//renderTarget->Bind();
 
 					//RenderCommand::Clear();
@@ -348,22 +350,25 @@ namespace Borealis
 		gBuffer->Bind();
 
 		gBuffer->BindTexture(GBufferSource::Albedo,		0);
-		gBuffer->BindTexture(GBufferSource::Normal,		1);
-		gBuffer->BindTexture(GBufferSource::Specular,	2);
-		gBuffer->BindTexture(GBufferSource::Position,	3);
-		gBuffer->BindTexture(GBufferSource::Metallic,	4);
-		gBuffer->BindTexture(GBufferSource::Roughness,	5);
+		gBuffer->BindTexture(GBufferSource::EntityID,	1);
+		gBuffer->BindTexture(GBufferSource::Normal,		2);
+		gBuffer->BindTexture(GBufferSource::Specular,	3);
+		gBuffer->BindTexture(GBufferSource::Position,	4);
+		gBuffer->BindTexture(GBufferSource::Metallic,	5);
+		//gBuffer->BindTexture(GBufferSource::Roughness,	6);
 
 		gBuffer->Unbind();
 		
 		shader->Set("lAlbedo",		0);
-		shader->Set("lNormal",		1);
-		shader->Set("lSpecular",	2);
-		shader->Set("lPosition",	3);
-		shader->Set("lMetallic",	4);
-		shader->Set("lRoughness",	5);
+		shader->Set("lEntityID",	1);
+		shader->Set("lNormal",		2);
+		shader->Set("lSpecular",	3);
+		shader->Set("lPosition",	4);
+		shader->Set("lMetallic",	5);
+		//shader->Set("lRoughness",	6);
 
 		{
+			Renderer3D::End();//clear lights, move ltr on
 			entt::basic_group group = registryPtr->group<>(entt::get<TransformComponent, LightComponent>);
 			for (auto& entity : group)
 			{
@@ -380,6 +385,33 @@ namespace Borealis
 		renderTarget->Unbind();
 
 		shader->Unbind();
+	}
+
+
+	//========================================================================
+	//RENDER GRAPH Config
+	//========================================================================	
+
+	RenderPassConfig::RenderPassConfig(RenderPassType type, std::string passName)
+	{
+		mType = type;
+		mPassName = passName;
+	}
+
+	void RenderPassConfig::AddSinkLinkage(std::string sinkName, std::string sourceName)
+	{
+		SinkLinkageInfo sinkLinkageInfo{ sinkName, sourceName };
+		mSinkLinkageList.push_back(sinkLinkageInfo);
+	}
+
+	void RenderGraphConfig::AddPass(RenderPassConfig renderPassConfig)
+	{
+		passesConfigList.push_back(renderPassConfig);
+	}
+
+	void RenderGraphConfig::AddGlobalSource(Ref<RenderSource> globalSource)
+	{
+		globalRenderSourceList.push_back(globalSource);
 	}
 
 	//========================================================================
@@ -413,6 +445,33 @@ namespace Borealis
 		}
 	}
 
+	void RenderGraph::SetConfig(RenderGraphConfig renderGraphConfig)
+	{
+		mRenderGraphConfig = renderGraphConfig;
+	}
+
+	void RenderGraph::Finalize()
+	{
+		for (auto const& globalSource : mRenderGraphConfig.globalRenderSourceList)
+		{
+			SetGlobalSource(globalSource);
+		}
+
+		for (auto const& passesConfig : mRenderGraphConfig.passesConfigList)
+		{
+			switch (passesConfig.mType)
+			{
+			case RenderPassType::Render3D:
+			case RenderPassType::Render2D:
+			case RenderPassType::Geometry:
+			case RenderPassType::Lighting:
+				AddEntityPassConfig(passesConfig);
+			default:
+				break;
+			}
+		}
+	}
+
 	Ref<RenderSource> RenderGraph::FindSource(std::string sourceName)
 	{
 		for (auto global : globalSource) 
@@ -435,9 +494,44 @@ namespace Borealis
 		}
 	}
 
+	void RenderGraph::AddEntityPassConfig(RenderPassConfig const& renderPassConfig)
+	{
+		Ref<RenderPass> renderPass = nullptr;
+		switch (renderPassConfig.mType)
+		{
+		case RenderPassType::Render3D:
+			renderPass = MakeRef<Render3D>(renderPassConfig.mPassName);
+			break;
+		case RenderPassType::Render2D:
+			renderPass = MakeRef<Render2D>(renderPassConfig.mPassName);
+			break;
+		case RenderPassType::Geometry:
+			renderPass = MakeRef<GeometryPass>(renderPassConfig.mPassName);
+			break;
+		case RenderPassType::Lighting:
+			renderPass = MakeRef<LightingPass>(renderPassConfig.mPassName);
+			break;
+		}
+
+		Ref<EntityPass> entityPass = std::dynamic_pointer_cast<EntityPass>(renderPass);
+		entityPass->SetEntityRegistry(*registryPtr);
+
+		for (auto const& sinkLinkage : renderPassConfig.mSinkLinkageList)
+		{
+			renderPass->SetSinkLinkage(sinkLinkage.sinkName, sinkLinkage.sourceName);
+		}
+
+		AddPass(renderPass);
+	}
+
 	void RenderGraph::SetGlobalSource(Ref<RenderSource> source)
 	{
 		globalSource.push_back(source);
+	}
+
+	void RenderGraph::SetEntityRegistry(entt::registry& registry)
+	{
+		registryPtr = &registry;
 	}
 
 	void RenderGraph::SetFinalSink(std::string sinkName, std::string sourceName)

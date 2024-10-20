@@ -65,10 +65,6 @@ namespace Borealis {
 		FrameBufferProperties props{ 1280, 720, false };
 		props.Attachments = { FramebufferTextureFormat::RGBA8,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
 		mViewportFrameBuffer = FrameBuffer::Create(props);
-		
-		FrameBufferProperties propsRuntime{ 1280, 720, false };
-		propsRuntime.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RedInteger,FramebufferTextureFormat::Depth };
-		mRuntimeFrameBuffer = FrameBuffer::Create(propsRuntime);
 
 		mEditorScene = MakeRef<Scene>();
 		SceneManager::AddScene(mEditorScene->GetName(), mEditorScene->GetScenePath());
@@ -99,26 +95,25 @@ namespace Borealis {
 	void EditorLayer::UpdateFn(float dt)
 	{
 		PROFILE_FUNCTION();
-		if (Borealis::FrameBufferProperties spec = mViewportFrameBuffer->GetProperties();
+		if (Borealis::FrameBufferProperties spec = SceneManager::GetActiveScene()->GetEditorFB()->GetProperties();
 			mViewportSize.x > 0.0f && mViewportSize.y > 0.0f && // zero sized framebuffer is invalid
 			(spec.Width != mViewportSize.x || spec.Height != mViewportSize.y))
 		{
-			mViewportFrameBuffer->Resize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
+			SceneManager::GetActiveScene()->GetEditorFB()->Resize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
 			mEditorCamera.SetViewportSize(mViewportSize.x, mViewportSize.y);
 			SceneManager::GetActiveScene()->ResizeViewport((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
 		}
 
-		if (Borealis::FrameBufferProperties spec = mRuntimeFrameBuffer->GetProperties();
+		if (Borealis::FrameBufferProperties spec = SceneManager::GetActiveScene()->GetRunTimeFB()->GetProperties();
 			mRuntimeSize.x > 0.0f && mRuntimeSize.y > 0.0f && // zero sized framebuffer is invalid
 			(spec.Width != mRuntimeSize.x || spec.Height != mRuntimeSize.y))
 		{
-			mRuntimeFrameBuffer->Resize((uint32_t)mRuntimeSize.x, (uint32_t)mRuntimeSize.y);
+			SceneManager::GetActiveScene()->GetRunTimeFB()->Resize((uint32_t)mRuntimeSize.x, (uint32_t)mRuntimeSize.y);
 			if (hasRuntimeCamera)
 			{
 				mRuntimeCamera.GetComponent<CameraComponent>().Camera.SetViewportSize(static_cast<uint32_t>(mRuntimeSize.x), static_cast<uint32_t>(mRuntimeSize.y));
 			}
 		}
-
 
 		if (mViewportHovered)
 		{
@@ -126,67 +121,78 @@ namespace Borealis {
 			mEditorCamera.UpdateFn(dt);
 		}
 
-		//RenderPass::Create(EditorPass, mViewportFrameBuffer, mEditorCamera)
-		//RenderPass::Create(RuntimePass, mRuntimeFrameBuffer);
-
-		//RenderGraph::Begin();
-		//RenderGraph::AddPass(EditorPass);
-		//RenderGraph::AddPass(RuntimePass);
-		//RenderGraph::Execute();
-
 		Renderer2D::ResetStats();
 		{
 			PROFILE_SCOPE("Renderer::Prep");
-			mViewportFrameBuffer->Bind();
-			RenderCommand::Clear();
-			RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
-			mViewportFrameBuffer->Unbind();
 
-			mRuntimeFrameBuffer->Bind();
-			RenderCommand::Clear();
-			RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
-			mRuntimeFrameBuffer->Unbind();
-
+			//move to scene or render graph
 			SceneManager::GetActiveScene()->GetRunTimeFB()->Bind();
 			RenderCommand::Clear();
 			RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
 			SceneManager::GetActiveScene()->GetRunTimeFB()->Unbind();
+
+			SceneManager::GetActiveScene()->GetEditorFB()->Bind();
+			RenderCommand::Clear();
+			RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
+			SceneManager::GetActiveScene()->GetEditorFB()->Unbind();
 		}
-		mViewportFrameBuffer->ClearAttachment(1, -1);
+
+		//setting up rendergraph
 		{
 			PROFILE_SCOPE("Renderer::Draw");
-			mViewportFrameBuffer->Bind();
-			SceneManager::GetActiveScene()->UpdateEditor(dt,mEditorCamera);
+			RenderGraphConfig config;
 
-			auto[mx,my] = ImGui::GetMousePos();
-			mx -= mViewportBounds[0].x;
-			my -= mViewportBounds[0].y;
-			glm::vec2 viewportSize { mViewportBounds[1].x - mViewportBounds[0].x, mViewportBounds[1].y - mViewportBounds[0].y };
-			my = viewportSize.y - my;
+			RenderPassConfig geometryPass(RenderPassType::Geometry, "geometricPass");
+			geometryPass.AddSinkLinkage("gBuffer", "gBuffer");
+			geometryPass.AddSinkLinkage("camera", "RunTimeCamera");
+			config.AddPass(geometryPass);
 
-			int mouseX = (int)mx;
-			int mouseY = (int)my;
+			RenderPassConfig lightingPass(RenderPassType::Lighting, "lightPass");
+			lightingPass.AddSinkLinkage("gBuffer", "geometricPass.gBuffer");
+			lightingPass.AddSinkLinkage("renderTarget", "RunTimeBuffer");
+			config.AddPass(lightingPass);
 
-			if (mViewportHovered)
-			{
-				if (mViewportFrameBuffer->ReadPixel(1, mouseX, mouseY) != -1)
-				{
-					//int id_ent = mViewportFrameBuffer->ReadPixel(1, mouseX, mouseY);
-					mHoveredEntity = { (entt::entity)mViewportFrameBuffer->ReadPixel(1, mouseX, mouseY), SceneManager::GetActiveScene().get()};
-					//BOREALIS_CORE_INFO("picking id {}", id_ent);
-					//BOREALIS_CORE_INFO("Name : {}", mHoveredEntity.GetName());
-				}
-				else
-				{
-					mHoveredEntity = {};
-				}
-			}
-			mViewportFrameBuffer->Unbind();
+			CameraSource editorCameraSource("EditorCamera", mEditorCamera);
+			config.AddGlobalSource(MakeRef<CameraSource>(editorCameraSource));
 
-			//mRuntimeFrameBuffer->Bind();
+			RenderPassConfig editorGeometricPass(RenderPassType::Geometry, "editorGeometricPass");
+			editorGeometricPass.AddSinkLinkage("gBuffer", "gBuffer");
+			editorGeometricPass.AddSinkLinkage("camera", "EditorCamera");
+			config.AddPass(editorGeometricPass);
+
+			RenderPassConfig editorLightPass(RenderPassType::Lighting, "editorLightPass");
+			editorLightPass.AddSinkLinkage("gBuffer", "editorGeometricPass.gBuffer");
+			editorLightPass.AddSinkLinkage("renderTarget", "EditorBuffer");
+			config.AddPass(editorLightPass);
+
+			SceneManager::GetActiveScene()->SetRenderGraphConfig(config);
+
 			SceneManager::GetActiveScene()->UpdateRuntime(dt);
-			//mRuntimeFrameBuffer->Unbind();
 		}
+
+		auto[mx,my] = ImGui::GetMousePos();
+		mx -= mViewportBounds[0].x;
+		my -= mViewportBounds[0].y;
+		glm::vec2 viewportSize { mViewportBounds[1].x - mViewportBounds[0].x, mViewportBounds[1].y - mViewportBounds[0].y };
+		my = viewportSize.y - my;
+
+		int mouseX = (int)mx;
+		int mouseY = (int)my;
+
+		//if (mViewportHovered)
+		//{
+		//	if (mViewportFrameBuffer->ReadPixel(1, mouseX, mouseY) != -1)
+		//	{
+		//		//int id_ent = mViewportFrameBuffer->ReadPixel(1, mouseX, mouseY);
+		//		mHoveredEntity = { (entt::entity)mViewportFrameBuffer->ReadPixel(1, mouseX, mouseY), SceneManager::GetActiveScene().get()};
+		//		//BOREALIS_CORE_INFO("picking id {}", id_ent);
+		//		//BOREALIS_CORE_INFO("Name : {}", mHoveredEntity.GetName());
+		//	}
+		//	else
+		//	{
+		//		mHoveredEntity = {};
+		//	}
+		//}
 	}
 
 	void EditorLayer::EventFn(Event& e)
@@ -425,7 +431,8 @@ namespace Borealis {
 					ApplicationManager::Get().GetImGuiLayer()->SetBlockEvents(true);
 				ImVec2 viewportSize = ImGui::GetContentRegionAvail();
 				mViewportSize = { viewportSize.x, viewportSize.y };
-				uint64_t screenID = static_cast<uint64_t>(mViewportFrameBuffer->GetColorAttachmentRendererID());
+				//uint64_t screenID = static_cast<uint64_t>(mViewportFrameBuffer->GetColorAttachmentRendererID());
+				uint64_t screenID = static_cast<uint64_t>(SceneManager::GetActiveScene()->GetEditorFB()->GetColorAttachmentRendererID());
 				ImGui::Image((ImTextureID)screenID, ImVec2{ viewportSize.x, viewportSize.y }, ImVec2{ 0,1 }, ImVec2{ 1,0 });
 				// Test code for drag and drop
 				if (ImGui::BeginDragDropTarget())

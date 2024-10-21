@@ -23,6 +23,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace Borealis
 {
+	Ref<Shader> s_shader = nullptr;
 	//========================================================================
 	//BUFFER SOURCE
 	//========================================================================
@@ -289,7 +290,8 @@ namespace Borealis
 
 	GeometryPass::GeometryPass(std::string name) : EntityPass(name)
 	{
-		shader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_DeferredLighting.glsl");
+		shader = s_shader;
+		//shader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_DeferredLighting.glsl");
 	}
 
 	void GeometryPass::Execute()
@@ -307,10 +309,10 @@ namespace Borealis
 					gBuffer->Bind();
 					RenderCommand::Clear();
 					RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
-					for (int i{1}; i < 6; i++)
-					{
-						gBuffer->ClearAttachment(i, 0);
-					}
+					//for (int i{1}; i < 6; i++)
+					//{
+					//	gBuffer->ClearAttachment(i, 0);
+					//}
 					gBuffer->ClearAttachment(1, -1);
 				}
 
@@ -339,7 +341,8 @@ namespace Borealis
 	LightingPass::LightingPass(std::string name) : EntityPass(name)
 	{
 		//duplicate shader, move to assets manager
-		shader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_DeferredLighting.glsl");
+		//shader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_DeferredLighting.glsl");
+		shader = s_shader;
 	}
 
 	void LightingPass::Execute()
@@ -378,7 +381,7 @@ namespace Borealis
 		gBuffer->BindTexture(GBufferSource::Normal,		2);
 		gBuffer->BindTexture(GBufferSource::Specular,	3);
 		gBuffer->BindTexture(GBufferSource::Position,	4);
-		gBuffer->BindTexture(GBufferSource::Metallic,	5);
+		//gBuffer->BindTexture(GBufferSource::Metallic,	5);
 		//gBuffer->BindTexture(GBufferSource::Roughness,	6);
 
 		gBuffer->Unbind();
@@ -388,7 +391,7 @@ namespace Borealis
 		shader->Set("lNormal",		2);
 		shader->Set("lSpecular",	3);
 		shader->Set("lPosition",	4);
-		shader->Set("lMetallic",	5);
+		//shader->Set("lMetallic",	5);
 		//shader->Set("lRoughness",	6);
 
 		{
@@ -420,6 +423,9 @@ namespace Borealis
 	{
 		mType = type;
 		mPassName = passName;
+
+		if(!s_shader)
+			s_shader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_DeferredLighting.glsl");
 	}
 
 	void RenderPassConfig::AddSinkLinkage(std::string sinkName, std::string sourceName)

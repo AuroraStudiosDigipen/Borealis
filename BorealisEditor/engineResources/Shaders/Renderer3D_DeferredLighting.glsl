@@ -63,11 +63,10 @@ void main()
 // Geometry Pass Fragment Shader (GBuffer Writing)
 layout(location = 0) out vec4 gAlbedo;       // Albedo + Alpha
 layout(location = 1) out int entityIDs;
-layout(location = 2) out vec3 gNormal;       // Normal (in world space or view space)
-layout(location = 3) out vec3 gSpecular;     // Specular color (can also store shininess here)
-layout(location = 4) out vec4 gPosition;     // World-space position (optional if reconstructing from depth) + roughness
-layout(location = 5) out float gMetallic;    // Metallic factor
-//layout(location = 6) out float gRoughness;   // Roughness factor (optional)
+layout(location = 2) out vec4 gNormal;       // Normal (in world space or view space) + smoothness
+layout(location = 3) out vec4 gSpecular;     // Specular color (can also store shininess here) + metallic
+layout(location = 4) out vec3 gPosition;     // World-space position (optional if reconstructing from depth)
+//layout(location = 5) out float gMetallic;    // Metallic factor
 
 in vec2 v_TexCoord;
 in vec3 v_FragPos;
@@ -126,7 +125,7 @@ uniform isampler2D lEntityID;
 uniform sampler2D lNormal;
 uniform sampler2D lSpecular;
 uniform sampler2D lPosition;  // Optional if using world-space positions
-uniform sampler2D lMetallic;
+//uniform sampler2D lMetallic;
 //uniform sampler2D lRoughness;
 
 uniform vec3 u_ViewPos;
@@ -142,24 +141,86 @@ vec2 GetTexCoord()
     return v_TexCoord * u_Material.tiling + u_Material.offset;
 }
 
-vec3 ComputeDirectionalLight(Light light, vec3 fragPos, vec3 normal, vec3 viewDir, vec3 albedo, float metallic, vec3 specular) 
+vec3 ComputeSpotLight(Light light, vec3 fragPos, vec3 normal, vec3 viewDir, vec3 albedo, float metallic, float smoothness, vec3 specular)
+{
+	vec3 lightDir = normalize(light.position - fragPos);
+
+	float distance = length(light.position - fragPos);
+    float attenuation = 1.0 / (1.0 + light.linear * distance + light.quadratic * distance * distance);
+
+	vec3 ambient = light.ambient * albedo;
+	vec3 color = ambient;
+
+	vec3 halfwayDir = normalize(lightDir + viewDir);
+
+    float diff = max(dot(normal, lightDir), 0.0);
+
+	if (diff > 0.0)
+    {
+        float spec = pow(max(dot(normal, halfwayDir), 0.0), /* "u_Material.shininess *" */ smoothness);
+
+        float theta = dot(lightDir, normalize(-light.direction)); 
+        float epsilon = light.innerOuterAngle.x - light.innerOuterAngle.y;
+        float intensity = clamp((theta - light.innerOuterAngle.y) / epsilon, 0.0, 1.0); 
+
+        vec3 diffuse = light.diffuse * diff * (1.0 - metallic);
+        vec3 specVec = light.specular * spec * specular * metallic;
+
+		ambient *= intensity * attenuation;
+		diffuse *= intensity * attenuation;
+		specVec *= intensity * attenuation;
+        color = ambient + diffuse + specVec + emission;
+    }
+
+	return color;
+}
+
+vec3 ComputeDirectionalLight(Light light, vec3 fragPos, vec3 normal, vec3 viewDir, vec3 albedo, float metallic, float smoothness, vec3 specular) 
 {
     vec3 lightDir = normalize(-light.direction);
     vec3 ambient = light.ambient * albedo;
+
     float diff = max(dot(normal, lightDir), 0.0);
 
-    vec3 result = ambient;
+    vec3 color = ambient;
     if (diff > 0.0) 
     {
         vec3 halfwayDir = normalize(lightDir + viewDir);
-        float spec = pow(max(dot(normal, halfwayDir), 0.0), u_Material.shininess);
+        float spec = pow(max(dot(normal, halfwayDir), 0.0), /*"shininess *" */smoothness); //add shininess
 
         vec3 diffuse = light.diffuse * diff * (1.0 - metallic);
         vec3 specularComponent = light.specular * spec * specular * metallic;
 
-        result += diffuse + specularComponent;
+        color += diffuse + specularComponent; /*+ emission*/
     }
-    return result;
+    return color;
+}
+
+vec3 ComputePointLight(Light light, vec3 fragPos, vec3 normal, vec3 viewDir, vec3 albedo,float metallic, float smoothness, vec3 specular)
+{
+	vec3 lightDir = normalize(light.position - fragPos);
+
+	float distance = length(light.position - fragPos);
+    float attenuation = 1.0 / (1.0 + light.linear * distance + light.quadratic * distance * distance);
+
+	vec3 ambient = light.ambient * albedo;
+	vec3 color = ambient;
+
+	float diff = max(dot(normal, lightDir), 0.0);
+
+	if (diff > 0.0) 
+	{
+        vec3 halfwayDir = normalize(lightDir + viewDir);
+
+        float spec = pow(max(dot(normal, halfwayDir), 0.0), /* "u_Material.shininess *" */ smoothness);
+
+        vec3 diffuse = light.diffuse * diff * attenuation * (1.0 - metallic);
+        vec3 specular = light.specular * spec * specular * attenuation * metallic;
+
+        color += diffuse + specular; /*+ emission*/
+    }
+
+	return color;
 }
 
 void GeometryPass()
@@ -179,18 +240,14 @@ void GeometryPass()
     {
         normal = normalize(v_Normal);
     }
-    gNormal = normal;
+    gNormal = vec4(normal,u_Material.smoothness);
 
 	vec3 specular = u_Material.hasSpecularMap ? texture(u_Material.specularMap, GetTexCoord()).rgb : u_Material.specularColor.rgb;
-    gSpecular = specular;
 
 	float metallic = u_Material.hasMetallicMap ? texture(u_Material.metallicMap, GetTexCoord()).r : u_Material.metallic;
-    gMetallic = metallic;
-
+    gSpecular = vec4(specular, metallic);
+	gPosition = v_FragPos;
 	entityIDs = v_EntityID;
-	//gRoughness = u_Material.smoothness;
-
-	gPosition = vec4(v_FragPos, u_Material.smoothness);
 }
 
 void LightPass()
@@ -199,23 +256,29 @@ void LightPass()
     vec3 normal = normalize(texture(lNormal, v_TexCoord).rgb);
     vec3 specular = texture(lSpecular, v_TexCoord).rgb;
     vec3 fragPos = texture(lPosition, v_TexCoord).rgb;  // If storing world-space positions
-    float metallic = texture(lMetallic, v_TexCoord).r;
-    float roughness = texture(lPosition, v_TexCoord).a;
+    float metallic = texture(lSpecular, v_TexCoord).a;
+    float smoothness = texture(lNormal, v_TexCoord).a;
 
 	vec3 viewDir = normalize(u_ViewPos - fragPos);
     vec3 finalColor = vec3(0.0);
 
 	for (int i = 0; i < u_LightsCount; ++i)
     {
-        if (u_Lights[i].type == 1) // Directional Light
+		if(u_Lights[i].type == 0) // Spot light
+		{
+			finalColor += ComputeSpotLight(u_Lights[i], fragPos, normal, viewDir, albedo.rgb, metallic, smoothness, specular);
+		}
+        else if (u_Lights[i].type == 1) // Directional Light
         {
-            finalColor += ComputeDirectionalLight(u_Lights[i], fragPos, normal, viewDir, albedo.rgb, metallic, specular);
+            finalColor += ComputeDirectionalLight(u_Lights[i], fragPos, normal, viewDir, albedo.rgb, metallic, smoothness, specular);
         }
-        // Add PointLight, SpotLight calculations similarly
+		else if (u_Lights[i].type == 2) // Point Light
+        {
+            finalColor += ComputePointLight(u_Lights[i], fragPos, normal, viewDir, albedo.rgb, metallic, smoothness, specular);
+        }
     }
 
     gAlbedo = vec4(finalColor, albedo.a);
-	//gAlbedo = vec4(texture(lEntityID, v_TexCoord).rgb,1.f);
 	entityIDs = texture(lEntityID, v_TexCoord).r;
 }
 
@@ -231,5 +294,5 @@ void main()
 	}
 
 	//temp
-	if(u_Material.hasEmissionMap) {u_Material.emissionColor;}
+	if(u_Material.hasEmissionMap) {u_Material.emissionColor; u_Material.shininess;}
 }

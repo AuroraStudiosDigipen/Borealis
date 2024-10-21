@@ -139,13 +139,13 @@ vec3 GetEmission()
 vec3 ComputeDirectionalLight(Light light, vec3 normal, vec3 viewDir) 
 {
 	vec3 lightDir = normalize(-light.direction);
-
     vec3 ambient = light.ambient * GetAlbedoColor().rgb;
+
+	float diff = max(dot(normal, lightDir), 0.0);
+
 	vec3 color = ambient;
 	float metallic = GetMetallic();
 	vec3 emission = GetEmission();
-
-	float diff = max(dot(normal, lightDir), 0.0);
 
     if (diff > 0.0) 
 	{

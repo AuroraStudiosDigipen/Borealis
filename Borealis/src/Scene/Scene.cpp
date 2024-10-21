@@ -44,11 +44,9 @@ namespace Borealis
 		{
 			FramebufferTextureFormat::RGBA16F,  // Albedo + Alpha
 			FramebufferTextureFormat::RedInteger,  // entity id
-			FramebufferTextureFormat::RGB16F,   // Normal
-			FramebufferTextureFormat::RGB16F,   // Specular
-			FramebufferTextureFormat::RGBA16F,   // Position + roughness
-			FramebufferTextureFormat::R16F,     // Metallic
-			//FramebufferTextureFormat::R16F,     // Roughness
+			FramebufferTextureFormat::RGBA16F,   // Normal + roughness
+			FramebufferTextureFormat::RGBA16F,   // Specular + metallic
+			FramebufferTextureFormat::RGB16F,   // Position
 			FramebufferTextureFormat::Depth     // Depth buffer
 		};
 		mGFrameBuffer = FrameBuffer::Create(propsGBuffer);

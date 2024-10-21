@@ -122,7 +122,7 @@ struct Light {
 uniform Material u_Material;
 
 uniform sampler2D lAlbedo;
-uniform sampler2D lEntityID;
+uniform isampler2D lEntityID;
 uniform sampler2D lNormal;
 uniform sampler2D lSpecular;
 uniform sampler2D lPosition;  // Optional if using world-space positions
@@ -215,7 +215,8 @@ void LightPass()
     }
 
     gAlbedo = vec4(finalColor, albedo.a);
-	entityIDs = int(texture(lEntityID, v_TexCoord).r);
+	//gAlbedo = vec4(texture(lEntityID, v_TexCoord).rgb,1.f);
+	entityIDs = texture(lEntityID, v_TexCoord).r;
 }
 
 void main()

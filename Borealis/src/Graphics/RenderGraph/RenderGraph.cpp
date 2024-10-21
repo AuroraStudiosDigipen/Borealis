@@ -187,7 +187,12 @@ namespace Borealis
 			if (sink->source->sourceType == RenderSourceType::Camera)
 			{
 				Renderer3D::Begin(std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj());
-				break;
+				//break;
+			}
+
+			if (sink->source->sourceType == RenderSourceType::RenderTargetColor)
+			{
+				std::dynamic_pointer_cast<RenderTargetSource>(sink->source)->buffer->ClearAttachment(1, -1);
 			}
 		}
 
@@ -210,6 +215,15 @@ namespace Borealis
 			}
 		}
 		Renderer3D::End();
+
+		for (auto sink : sinkList)
+		{
+			if (sink->source)
+			{
+				auto source = sink->source;
+				source->Unbind();
+			}
+		}
 
 		if (shader) shader->Unbind();
 	}
@@ -261,6 +275,15 @@ namespace Borealis
 		}
 		Renderer2D::End();
 
+		for (auto sink : sinkList)
+		{
+			if (sink->source)
+			{
+				auto source = sink->source;
+				source->Unbind();
+			}
+		}
+
 		if (shader) shader->Unbind();
 	}
 
@@ -288,6 +311,7 @@ namespace Borealis
 					{
 						gBuffer->ClearAttachment(i, 0);
 					}
+					gBuffer->ClearAttachment(1, -1);
 				}
 
 				if (sink->source->sourceType == RenderSourceType::Camera)

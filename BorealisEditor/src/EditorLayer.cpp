@@ -142,28 +142,60 @@ namespace Borealis {
 			PROFILE_SCOPE("Renderer::Draw");
 			RenderGraphConfig config;
 
-			RenderPassConfig geometryPass(RenderPassType::Geometry, "geometricPass");
-			geometryPass.AddSinkLinkage("gBuffer", "gBuffer");
-			geometryPass.AddSinkLinkage("camera", "RunTimeCamera");
-			config.AddPass(geometryPass);
+			////deferred rendering
+			//{
+			//	RenderPassConfig geometryPass(RenderPassType::Geometry, "geometricPass");
+			//	geometryPass.AddSinkLinkage("gBuffer", "gBuffer");
+			//	geometryPass.AddSinkLinkage("camera", "RunTimeCamera");
+			//	config.AddPass(geometryPass);
 
-			RenderPassConfig lightingPass(RenderPassType::Lighting, "lightPass");
-			lightingPass.AddSinkLinkage("gBuffer", "geometricPass.gBuffer");
-			lightingPass.AddSinkLinkage("renderTarget", "RunTimeBuffer");
-			config.AddPass(lightingPass);
+			//	RenderPassConfig lightingPass(RenderPassType::Lighting, "lightPass");
+			//	lightingPass.AddSinkLinkage("gBuffer", "geometricPass.gBuffer");
+			//	lightingPass.AddSinkLinkage("renderTarget", "RunTimeBuffer");
+			//	config.AddPass(lightingPass);
+			//}
+
+			//forward rendering
+			{
+				RenderPassConfig Render3D(RenderPassType::Render3D, "Render3D");
+				Render3D.AddSinkLinkage("renderTarget", "RunTimeBuffer");
+				Render3D.AddSinkLinkage("camera", "RunTimeCamera");
+				config.AddPass(Render3D);
+
+				RenderPassConfig Render2D(RenderPassType::Render2D, "Render2D");
+				Render2D.AddSinkLinkage("renderTarget", "Render3D.renderTarget");
+				Render2D.AddSinkLinkage("camera", "RunTimeCamera");
+				config.AddPass(Render2D);
+			}
 
 			CameraSource editorCameraSource("EditorCamera", mEditorCamera);
 			config.AddGlobalSource(MakeRef<CameraSource>(editorCameraSource));
 
-			RenderPassConfig editorGeometricPass(RenderPassType::Geometry, "editorGeometricPass");
-			editorGeometricPass.AddSinkLinkage("gBuffer", "gBuffer");
-			editorGeometricPass.AddSinkLinkage("camera", "EditorCamera");
-			config.AddPass(editorGeometricPass);
+			////deferred rendering
+			//{
+			//	RenderPassConfig editorGeometricPass(RenderPassType::Geometry, "editorGeometricPass");
+			//	editorGeometricPass.AddSinkLinkage("gBuffer", "gBuffer");
+			//	editorGeometricPass.AddSinkLinkage("camera", "EditorCamera");
+			//	config.AddPass(editorGeometricPass);
 
-			RenderPassConfig editorLightPass(RenderPassType::Lighting, "editorLightPass");
-			editorLightPass.AddSinkLinkage("gBuffer", "editorGeometricPass.gBuffer");
-			editorLightPass.AddSinkLinkage("renderTarget", "EditorBuffer");
-			config.AddPass(editorLightPass);
+			//	RenderPassConfig editorLightPass(RenderPassType::Lighting, "editorLightPass");
+			//	editorLightPass.AddSinkLinkage("gBuffer", "editorGeometricPass.gBuffer");
+			//	editorLightPass.AddSinkLinkage("renderTarget", "EditorBuffer");
+			//	config.AddPass(editorLightPass);
+			//}
+
+			//forward rendering
+			{
+				RenderPassConfig editorRender3D(RenderPassType::Render3D, "editorRender3D");
+				editorRender3D.AddSinkLinkage("renderTarget", "EditorBuffer");
+				editorRender3D.AddSinkLinkage("camera", "EditorCamera");
+				config.AddPass(editorRender3D);
+
+				RenderPassConfig editorRender2D(RenderPassType::Render2D, "editorRender2D");
+				editorRender2D.AddSinkLinkage("renderTarget", "editorRender3D.renderTarget");
+				editorRender2D.AddSinkLinkage("camera", "EditorCamera");
+				config.AddPass(editorRender2D);
+			}
 
 			SceneManager::GetActiveScene()->SetRenderGraphConfig(config);
 
@@ -179,20 +211,22 @@ namespace Borealis {
 		int mouseX = (int)mx;
 		int mouseY = (int)my;
 
-		//if (mViewportHovered)
-		//{
-		//	if (mViewportFrameBuffer->ReadPixel(1, mouseX, mouseY) != -1)
-		//	{
-		//		//int id_ent = mViewportFrameBuffer->ReadPixel(1, mouseX, mouseY);
-		//		mHoveredEntity = { (entt::entity)mViewportFrameBuffer->ReadPixel(1, mouseX, mouseY), SceneManager::GetActiveScene().get()};
-		//		//BOREALIS_CORE_INFO("picking id {}", id_ent);
-		//		//BOREALIS_CORE_INFO("Name : {}", mHoveredEntity.GetName());
-		//	}
-		//	else
-		//	{
-		//		mHoveredEntity = {};
-		//	}
-		//}
+		SceneManager::GetActiveScene()->GetEditorFB()->Bind();
+		if (mViewportHovered)
+		{
+			if (SceneManager::GetActiveScene()->GetEditorFB()->ReadPixel(1, mouseX, mouseY) != -1)
+			{
+				//int id_ent = mViewportFrameBuffer->ReadPixel(1, mouseX, mouseY);
+				mHoveredEntity = { (entt::entity)SceneManager::GetActiveScene()->GetEditorFB()->ReadPixel(1, mouseX, mouseY), SceneManager::GetActiveScene().get()};
+				//BOREALIS_CORE_INFO("picking id {}", id_ent);
+				//BOREALIS_CORE_INFO("Name : {}", mHoveredEntity.GetName());
+			}
+			else
+			{
+				mHoveredEntity = {};
+			}
+		}
+		SceneManager::GetActiveScene()->GetEditorFB()->Unbind();
 	}
 
 	void EditorLayer::EventFn(Event& e)

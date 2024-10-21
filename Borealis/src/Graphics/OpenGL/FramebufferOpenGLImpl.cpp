@@ -73,9 +73,9 @@ namespace Borealis
 	int OpenGLFrameBuffer::ReadPixel(uint32_t attachmentIndex, int x, int y)
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, mRendererID);
-		//glReadBuffer(GL_COLOR_ATTACHMENT0 + attachmentIndex);
+		glReadBuffer(GL_COLOR_ATTACHMENT0 + attachmentIndex);
 		int pixelData = -1;
-		//glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &pixelData);
+		glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &pixelData);
 		return pixelData;
 	}
 

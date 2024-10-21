@@ -317,13 +317,13 @@ namespace Borealis
 				//render3DPass.SetSinkLinkage("renderTarget", "RunTimeBuffer");
 				//render3DPass.SetSinkLinkage("camera", "RunTimeCamera");
 				//render3DPass.SetEntityRegistry(mRegistry);
-				////mRenderGraph.AddPass(MakeRef<Render3D>(render3DPass));
+				//mRenderGraph.AddPass(MakeRef<Render3D>(render3DPass));
 
 				//Render2D render2DPass("Render2D");
 				//render2DPass.SetSinkLinkage("renderTarget", "Render3D.renderTarget");
 				//render2DPass.SetSinkLinkage("camera", "RunTimeCamera");
 				//render2DPass.SetEntityRegistry(mRegistry);
-				////mRenderGraph.AddPass(MakeRef<Render2D>(render2DPass));
+				//mRenderGraph.AddPass(MakeRef<Render2D>(render2DPass));
 
 				mRenderGraph.SetFinalSink("BackBuffer", "Render2D.renderTarget"); //do i need it for immediate mode?
 				mRenderGraph.Execute();

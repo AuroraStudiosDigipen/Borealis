@@ -169,7 +169,7 @@ vec3 ComputeSpotLight(Light light, vec3 fragPos, vec3 normal, vec3 viewDir, vec3
 		ambient *= intensity * attenuation;
 		diffuse *= intensity * attenuation;
 		specVec *= intensity * attenuation;
-        color = ambient + diffuse + specVec + emission;
+        color = ambient + diffuse + specVec;// + emission;
     }
 
 	return color;

@@ -148,9 +148,20 @@ namespace Borealis
 
 		if (mColorAttachments.size() > 1)
 		{
-			BOREALIS_CORE_ASSERT(mColorAttachments.size() <= 6,"Too many color attachments!");
-			GLenum buffers[6] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5};
-			glDrawBuffers((GLsizei)mColorAttachments.size(), buffers);
+			size_t maxAttachments = 8;
+			BOREALIS_CORE_ASSERT(mColorAttachments.size() <= maxAttachments, "Too many color attachments!");
+
+			std::vector<GLenum> buffers(mColorAttachments.size());
+			for (size_t i = 0; i < mColorAttachments.size(); ++i)
+			{
+				buffers[i] = GL_COLOR_ATTACHMENT0 + i;
+			}
+
+			glDrawBuffers((GLsizei)mColorAttachments.size(), buffers.data());
+
+			//BOREALIS_CORE_ASSERT(mColorAttachments.size() <= 6,"Too many color attachments!");
+			//GLenum buffers[6] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5};
+			//glDrawBuffers((GLsizei)mColorAttachments.size(), buffers);
 
 		}
 		else if (mColorAttachments.empty())

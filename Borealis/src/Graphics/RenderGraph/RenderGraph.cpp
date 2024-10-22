@@ -72,12 +72,18 @@ namespace Borealis
 		buffer->BindTexture(type, index);
 	}
 
+	void GBufferSource::BindDepthBuffer(int index)
+	{
+		buffer->BindDepthBuffer(index);
+	}
+
 	CameraSource::CameraSource(std::string name, EditorCamera const& camera)
 	{
 		sourceName = name;
 		sourceType = RenderSourceType::Camera;
 
 		viewProj = camera.GetViewProjectionMatrix();
+		viewPortSize = camera.GetViewPortSize();
 		editor = true;
 	}
 
@@ -88,12 +94,19 @@ namespace Borealis
 
 		auto proj = camera.GetProjectionMatrix();
 		viewProj = camera.GetProjectionMatrix() * glm::inverse(transform);
+		viewPortSize = camera.GetViewPortSize();
+		
 		editor = false;
 	}
 
 	glm::mat4 CameraSource::GetViewProj()
 	{
 		return viewProj;
+	}
+
+	glm::vec2 CameraSource::GetViewPortSize()
+	{
+		return viewPortSize;
 	}
 
 	//TextureSource::TextureSource(std::string name)
@@ -303,22 +316,24 @@ namespace Borealis
 		{
 			if (sink->source)
 			{
-				if (sink->source->sourceType == RenderSourceType::GBuffer)
+				auto sourcePtr = sink->source;
+
+				if (sourcePtr->sourceType == RenderSourceType::GBuffer)
 				{
-					gBuffer = std::dynamic_pointer_cast<GBufferSource>(sink->source)->buffer;
+					gBuffer = std::dynamic_pointer_cast<GBufferSource>(sourcePtr)->buffer;
 					gBuffer->Bind();
 					RenderCommand::Clear();
 					RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
-					//for (int i{1}; i < 6; i++)
+					//for (int i{1}; i < 4; i++)
 					//{
 					//	gBuffer->ClearAttachment(i, 0);
 					//}
 					gBuffer->ClearAttachment(1, -1);
 				}
 
-				if (sink->source->sourceType == RenderSourceType::Camera)
+				if (sourcePtr->sourceType == RenderSourceType::Camera)
 				{
-					glm::mat4 viewProj = std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj();
+					glm::mat4 viewProj = std::dynamic_pointer_cast<CameraSource>(sourcePtr)->GetViewProj();
 					shader->Set("u_ViewProjection", viewProj);
 				}
 			}
@@ -340,8 +355,6 @@ namespace Borealis
 
 	LightingPass::LightingPass(std::string name) : EntityPass(name)
 	{
-		//duplicate shader, move to assets manager
-		//shader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_DeferredLighting.glsl");
 		shader = s_shader;
 	}
 
@@ -356,20 +369,23 @@ namespace Borealis
 		{
 			if (sink->source)
 			{
-				if (sink->source->sourceType == RenderSourceType::GBuffer)
+				auto sourcePtr = sink->source;
+				if (sourcePtr->sourceType == RenderSourceType::GBuffer)
 				{
-					gBuffer = std::dynamic_pointer_cast<GBufferSource>(sink->source);
+					gBuffer = std::dynamic_pointer_cast<GBufferSource>(sourcePtr);
 				}
 
-				if (sink->source->sourceType == RenderSourceType::RenderTargetColor)
+				if (sourcePtr->sourceType == RenderSourceType::RenderTargetColor)
 				{
-					renderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source)->buffer;
+					renderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sourcePtr)->buffer;
 
 					renderTarget->ClearAttachment(1, -1);
-					//renderTarget->Bind();
+				}
 
-					//RenderCommand::Clear();
-					//RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
+				if (sourcePtr->sourceType == RenderSourceType::Camera)
+				{
+					glm::mat4 invViewProj = glm::inverse(std::dynamic_pointer_cast<CameraSource>(sourcePtr)->GetViewProj());
+					shader->Set("u_invViewProj", invViewProj);
 				}
 			}
 		}
@@ -380,9 +396,7 @@ namespace Borealis
 		gBuffer->BindTexture(GBufferSource::EntityID,	1);
 		gBuffer->BindTexture(GBufferSource::Normal,		2);
 		gBuffer->BindTexture(GBufferSource::Specular,	3);
-		gBuffer->BindTexture(GBufferSource::Position,	4);
-		//gBuffer->BindTexture(GBufferSource::Metallic,	5);
-		//gBuffer->BindTexture(GBufferSource::Roughness,	6);
+		gBuffer->BindDepthBuffer(4);
 
 		gBuffer->Unbind();
 		
@@ -390,9 +404,7 @@ namespace Borealis
 		shader->Set("lEntityID",	1);
 		shader->Set("lNormal",		2);
 		shader->Set("lSpecular",	3);
-		shader->Set("lPosition",	4);
-		//shader->Set("lMetallic",	5);
-		//shader->Set("lRoughness",	6);
+		shader->Set("lDepthBuffer",	4);
 
 		{
 			Renderer3D::End();//clear lights, move ltr on

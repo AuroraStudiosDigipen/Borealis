@@ -75,6 +75,8 @@ namespace Borealis
 
 		void BindTexture(TextureType type, int index);
 
+		void BindDepthBuffer(int index);
+
 		Ref<FrameBuffer> buffer;
 	};
 
@@ -86,9 +88,11 @@ namespace Borealis
 
 		bool editor;
 		glm::mat4 viewProj;
+		glm::vec2 viewPortSize;
 		
 		void Bind() override {};
 		glm::mat4 GetViewProj();
+		glm::vec2 GetViewPortSize();
 	};
 
 	class RenderSink

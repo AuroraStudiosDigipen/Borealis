@@ -41,8 +41,14 @@ namespace Borealis
 	}
 	void SceneCamera::SetViewportSize(uint32_t width, uint32_t height)
 	{
+		mWidth = (float)width;
+		mHeight = (float)height;
 		mAspectRatio = (float)width / (float)height;
 		RecalculateProjection();
+	}
+	glm::vec2 SceneCamera::GetViewPortSize() const
+	{
+		return glm::vec2(mWidth, mHeight);
 	}
 	void SceneCamera::RecalculateProjection()
 	{

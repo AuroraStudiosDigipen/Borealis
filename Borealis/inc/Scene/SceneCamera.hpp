@@ -184,6 +184,8 @@ namespace Borealis
 		*************************************************************************/
 		void SetCameraType(CameraType type) { mCameraType = type; RecalculateProjection(); }
 
+		glm::vec2 GetViewPortSize() const override;
+
 	private:
 		/*!***********************************************************************
 			\brief
@@ -201,6 +203,9 @@ namespace Borealis
 		float mPerspFar = 1000.0f;
 
 		float mAspectRatio = 1.78f;
+
+		float mWidth{};
+		float mHeight{};
 	};
 }
 

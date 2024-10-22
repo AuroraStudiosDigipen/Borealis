@@ -65,7 +65,7 @@ layout(location = 0) out vec4 gAlbedo;       // Albedo + Alpha
 layout(location = 1) out int entityIDs;
 layout(location = 2) out vec4 gNormal;       // Normal (in world space or view space) + smoothness
 layout(location = 3) out vec4 gSpecular;     // Specular color (can also store shininess here) + metallic
-layout(location = 4) out vec3 gPosition;     // World-space position (optional if reconstructing from depth)
+//layout(location = 4) out vec3 gPosition;     // World-space position (optional if reconstructing from depth)
 //layout(location = 5) out float gMetallic;    // Metallic factor
 
 in vec2 v_TexCoord;
@@ -124,11 +124,16 @@ uniform sampler2D lAlbedo;
 uniform isampler2D lEntityID;
 uniform sampler2D lNormal;
 uniform sampler2D lSpecular;
-uniform sampler2D lPosition;  // Optional if using world-space positions
+//uniform sampler2D lPosition;  // Optional if using world-space positions
 //uniform sampler2D lMetallic;
 //uniform sampler2D lRoughness;
 
 uniform vec3 u_ViewPos;
+
+uniform sampler2D lDepthBuffer;
+uniform mat4 u_invViewProj;
+uniform vec2 u_viewPortSize;
+
 const int MAX_LIGHTS = 20;
 uniform Light u_Lights[MAX_LIGHTS];
 uniform int u_LightsCount;
@@ -139,6 +144,14 @@ uniform bool u_lightPass;
 vec2 GetTexCoord() 
 {
     return v_TexCoord * u_Material.tiling + u_Material.offset;
+}
+
+vec3 GetWorldPosition(vec2 texCoord, float depth)
+{
+    vec4 ndcPos = vec4(texCoord * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);  // NDC coordinates
+    vec4 worldPos = u_invViewProj * ndcPos;  // Transform to world space
+    worldPos /= worldPos.w;  // Perspective divide
+    return worldPos.xyz;     // Return the world-space position
 }
 
 vec3 ComputeSpotLight(Light light, vec3 fragPos, vec3 normal, vec3 viewDir, vec3 albedo, float metallic, float smoothness, vec3 specular)
@@ -246,7 +259,7 @@ void GeometryPass()
 
 	float metallic = u_Material.hasMetallicMap ? texture(u_Material.metallicMap, GetTexCoord()).r : u_Material.metallic;
     gSpecular = vec4(specular, metallic);
-	gPosition = v_FragPos;
+	//gPosition = v_FragPos;
 	entityIDs = v_EntityID;
 }
 
@@ -255,9 +268,12 @@ void LightPass()
 	vec4 albedo = texture(lAlbedo, v_TexCoord);
     vec3 normal = normalize(texture(lNormal, v_TexCoord).rgb);
     vec3 specular = texture(lSpecular, v_TexCoord).rgb;
-    vec3 fragPos = texture(lPosition, v_TexCoord).rgb;  // If storing world-space positions
+    //vec3 fragPos2 = texture(lPosition, v_TexCoord).rgb;  // If storing world-space positions
     float metallic = texture(lSpecular, v_TexCoord).a;
     float smoothness = texture(lNormal, v_TexCoord).a;
+
+	float depth = texture(lDepthBuffer, v_TexCoord).r;
+	vec3 fragPos = GetWorldPosition(v_TexCoord, depth);
 
 	vec3 viewDir = normalize(u_ViewPos - fragPos);
     vec3 finalColor = vec3(0.0);

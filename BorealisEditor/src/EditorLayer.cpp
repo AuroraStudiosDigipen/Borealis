@@ -153,6 +153,7 @@ namespace Borealis {
 				RenderPassConfig lightingPass(RenderPassType::Lighting, "lightPass");
 				lightingPass.AddSinkLinkage("gBuffer", "geometricPass.gBuffer");
 				lightingPass.AddSinkLinkage("renderTarget", "RunTimeBuffer");
+				lightingPass.AddSinkLinkage("viewProj", "geometricPass.camera");
 				dconfig.AddPass(lightingPass);
 			}
 
@@ -185,6 +186,7 @@ namespace Borealis {
 				RenderPassConfig editorLightPass(RenderPassType::Lighting, "editorLightPass");
 				editorLightPass.AddSinkLinkage("gBuffer", "editorGeometricPass.gBuffer");
 				editorLightPass.AddSinkLinkage("renderTarget", "EditorBuffer");
+				editorLightPass.AddSinkLinkage("viewProj", "editorGeometricPass.camera");
 				dconfig.AddPass(editorLightPass);
 			}
 
@@ -201,7 +203,7 @@ namespace Borealis {
 				fconfig.AddPass(editorRender2D);
 			}
 
-			SceneManager::GetActiveScene()->SetRenderGraphConfig(dconfig);
+			SceneManager::GetActiveScene()->SetRenderGraphConfig(fconfig);
 
 			SceneManager::GetActiveScene()->UpdateRuntime(dt);
 		}

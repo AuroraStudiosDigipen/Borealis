@@ -96,6 +96,8 @@ namespace Borealis
 
 		virtual void BindTexture(uint32_t attachmentIndex, uint32_t textureUnit) = 0;
 
+		virtual void BindDepthBuffer(uint32_t textureUnit) = 0;
+
 		/*!***********************************************************************
 			\brief
 				Resize the Frame Buffer

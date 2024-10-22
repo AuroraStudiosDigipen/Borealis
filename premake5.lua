@@ -36,6 +36,7 @@ workspace "Borealis"
 
 	IncludeDir["STBI_Compiler"] = "BorealisAssetCompiler/lib/stb_image"
   	IncludeDir["ISPC"] = "BorealisAssetCompiler/lib/ispc"
+  	IncludeDir["compressonator"] = "BorealisAssetCompiler/lib/compressonator"
 
 	LibraryDir = {}
 	LibraryDir["FMOD"] = "lib/FMOD/lib"
@@ -505,7 +506,8 @@ workspace "Borealis"
 			"%{IncludeDir.assimp}",
 			"%{IncludeDir.MSDF}",
 			"%{IncludeDir.STBI_Compiler}",
-			"%{IncludeDir.ISPC}"
+			"%{IncludeDir.ISPC}",
+			"%{IncludeDir.compressonator}"
 		}
 
 		defines
@@ -514,17 +516,17 @@ workspace "Borealis"
 			"YAML_CPP_STATIC_DEFINE"
 		}
 
-
-
 		libdirs
 		{
-			"BorealisAssetCompiler/lib/ispc/build"
+			"BorealisAssetCompiler/lib/ispc/build",
+			"BorealisAssetCompiler/lib/compressonator/build"
 		}
 
 		links
 		{
 			"Assimp",
-			"ispc_texcomp"
+			"ispc_texcomp",
+			"Compressonator_MTd"
 		}
 
 		postbuildcommands {

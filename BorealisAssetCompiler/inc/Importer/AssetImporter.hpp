@@ -22,6 +22,7 @@ namespace BorealisAssetCompiler
 	class AssetImporter
 	{
 	public:
+
 		static AssetMetaData ImportAsset(AssetMetaData metaData);
 	};
 }

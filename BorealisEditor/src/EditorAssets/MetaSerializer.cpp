@@ -115,6 +115,32 @@ namespace Borealis
 		return metaData;
 	}
 
+	AssetMetaData MetaFileSerializer::CreateAssetMetaFile(std::filesystem::path const& path, AssetHandle handle)
+	{
+		AssetMetaData metaData = GetAssetMetaData(path);
+
+		metaData.Handle = handle;
+
+		std::filesystem::path metaFilePath;
+
+		if (std::filesystem::is_directory(path))
+		{
+			metaFilePath = path.string() + ".meta";
+		}
+		else
+		{
+			metaFilePath = path;
+			metaFilePath.replace_extension(".meta");
+		}
+
+		YAML::Emitter out;
+		SerializeMetaFile(out, metaData, PathToAssetFolder);
+
+		SaveAsFile(metaFilePath, out.c_str());
+
+		return metaData;
+	}
+
 	void MetaFileSerializer::SerialzeRegistry(std::filesystem::path assetRegistryPath, std::unordered_map<AssetHandle, AssetMetaData> const& assetRegistry)
 	{
 		YAML::Emitter out;

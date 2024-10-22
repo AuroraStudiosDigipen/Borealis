@@ -29,24 +29,78 @@ namespace Borealis
 	class Serialiser
 	{
 	public:
+		/*!***********************************************************************
+			\brief
+				Constructor of the serialiser
+			\param[in] scene
+				Reference to the scene to be serialised
+		*************************************************************************/
 		Serialiser(const Ref<Scene>& scene);
 		
-		/*
-		    @brief Recursively parses the YAML node to construct the behavior tree.
-		    @param node The current YAML node to parse.
-		    @param parentNode The parent node in the behavior tree to which the parsed node will be added.
-		    @param tree The behaviour tree object to which nodes are being added.
-		    @param parentDepth The depth of the parent node in the behavior tree.
-		*/
+		/*!***********************************************************************
+			\brief
+				Serialises the scene to a YAML file
+			\param[in] filepath
+				The path to the file to be serialised
+			\return
+				True if the serialisation was successful, false otherwise
+		*************************************************************************/
+		bool SerialiseScene(const std::string& filepath);
+
+		/*!***********************************************************************
+			\brief
+				Deserialises the scene from a YAML file
+			\param[in] filepath
+				The path to the file to be deserialised
+			\return
+				True if the deserialisation was successful, false otherwise
+		*************************************************************************/
+		bool DeserialiseScene(const std::string& filepath);
+		static void SerialisePrefab(const std::string& filepath, Entity entity);
+
+		/*!***********************************************************************
+			\brief
+				Serialises the editor style data
+			\return
+				True if the serialisation was successful, false otherwise
+		*************************************************************************/
+		static bool SerialiseEditorStyle();
+
+		/*!***********************************************************************
+			\brief
+				Deserialises the editor style data
+			\return
+				True if the deserialisation was successful, false otherwise
+		*************************************************************************/
+		static bool DeserialiseEditorStyle();
+
+		/*!***********************************************************************
+			\brief
+				Serialises the behaviour tree to a YAML file
+			\param[in] filepath
+				The path to the file to be serialised
+			\param[in] tree
+				The behaviour tree to be serialised
+			\return
+				True if the serialisation was successful, false otherwise
+		*************************************************************************/
+		static bool SerializeBehaviourNode(YAML::Emitter& out, const Ref<BehaviourNode> node);
+		
+	private:
+		/*!***********************************************************************
+			\brief
+				Recursively parses the YAML node to construct the behavior tree.
+			\param[in] node
+				The current YAML node to parse.
+			\param[in] parentNode
+				The parent node in the behavior tree to which the parsed node will be added.
+			\param[in] tree
+				The behaviour tree object to which nodes are being added.
+			\param[in] parentDepth
+				The depth of the parent node in the behavior tree.
+		*************************************************************************/
 		void ParseTree(YAML::Node& node, Ref<BehaviourNode> parentNode, BehaviourTree& tree, int parentDepth);
 
-		bool SerialiseScene(const std::string& filepath);
-		bool DeserialiseScene(const std::string& filepath);
-
-		static bool SerialiseEditorStyle();
-		static bool DeserialiseEditorStyle();
-		static bool SerializeBehaviourNode(YAML::Emitter& out, const Ref<BehaviourNode> node);
-	private:
 		Ref<Scene> mScene;
 
 	};

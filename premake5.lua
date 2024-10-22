@@ -125,7 +125,11 @@ workspace "Borealis"
 		defines
 		{
 			"_CRT_SECURE_NO_WARNINGS",
-			"YAML_CPP_STATIC_DEFINE"
+			"YAML_CPP_STATIC_DEFINE",
+			"JPH_FLOATING_POINT_EXCEPTIONS_ENABLED",
+			"JPH_CROSS_PLATFORM_DETERMINISTIC",
+			"JPH_ENABLE_ASSERTS",
+			"TRACY_ENABLE"
 		}
 
 		includedirs
@@ -161,17 +165,17 @@ workspace "Borealis"
 		{
 			"BOREALIS_BUILD_DLL",
 			"_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS",
-			"GLFW_INCLUDE_NONE"
+			"GLFW_INCLUDE_NONE",
 		}
-
+		
 		pchheader "BorealisPCH.hpp"
 		pchsource "Borealis/src/BorealisPCH.cpp"
+
+		buildoptions { "/bigobj" }
 
 		filter "files:Borealis/lib/ImGuizmo/**.cpp"
 		flags {"NoPCH"}
 		
-		
-
 		filter "configurations:Debug"
 			defines "_DEB"
 			symbols "On"
@@ -260,12 +264,16 @@ workspace "Borealis"
 			"%{IncludeDir.ImGuiNodeEditor}",
 			"%{IncludeDir.assimp}",
 			"%{IncludeDir.MSDF}",
+			"%{IncludeDir.RTTR}"
 		}
 
 		defines
 		{
 			"_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS",
-			"YAML_CPP_STATIC_DEFINE"
+			"YAML_CPP_STATIC_DEFINE",
+			"JPH_FLOATING_POINT_EXCEPTIONS_ENABLED",
+			"JPH_CROSS_PLATFORM_DETERMINISTIC",
+			"JPH_ENABLE_ASSERTS"
 		}
 
 		links
@@ -289,6 +297,8 @@ workspace "Borealis"
 				"{COPY} \"resources\" \"$(TargetDir)resources\"",
 				"{COPY} \"mono\" \"$(TargetDir)mono\"",
 				"{COPY} \"settings\" \"$(TargetDir)settings\"",
+				"{COPYFILE} \"BorealisAssetCompiler.exe\" \"$(TargetDir)BorealisAssetCompiler.exe\"",
+				"{COPYFILE} \"BorealisRuntime.exe\" \"$(TargetDir)BorealisRuntime.exe\"",
 				"{COPYFILE} \"imgui.ini\" \"$(TargetDir)imgui.ini\"",
 				"{MKDIR} \"$(TargetDir)assets\""
 			 }
@@ -302,7 +312,8 @@ workspace "Borealis"
 				"%{Library.MSDF_Debug_LibBZ2}",
 				"%{Library.MSDF_Debug_LibBrotli}",
 				"%{Library.MSDF_Debug_LibBrotliCommon}",
-				"Borealis/%{Library.YAML_Debug}"
+				"Borealis/%{Library.YAML_Debug}",
+				"Borealis/%{Library.Jolt_Debug}"
 			}
 
 		filter "configurations:Release"
@@ -316,6 +327,8 @@ workspace "Borealis"
 				"{COPY} \"resources\" \"$(TargetDir)resources\"",
 				"{COPY} \"mono\" \"$(TargetDir)mono\"",
 				"{COPY} \"settings\" \"$(TargetDir)settings\"",
+				"{COPYFILE} \"BorealisAssetCompiler.exe\" \"$(TargetDir)BorealisAssetCompiler.exe\"",
+				"{COPYFILE} \"BorealisRuntime.exe\" \"$(TargetDir)BorealisRuntime.exe\"",
 				"{COPYFILE} \"imgui.ini\" \"$(TargetDir)imgui.ini\"",
 				"{MKDIR} \"$(TargetDir)assets\""
 			 }
@@ -329,7 +342,8 @@ workspace "Borealis"
 				"%{Library.MSDF_Release_LibBZ2}",
 				"%{Library.MSDF_Release_LibBrotli}",
 				"%{Library.MSDF_Release_LibBrotliCommon}",
-				"Borealis/%{Library.YAML_Release}"
+				"Borealis/%{Library.YAML_Release}",
+				"Borealis/%{Library.Jolt_Release}"
 			}
 
 		filter "configurations:Distribution"
@@ -343,6 +357,8 @@ workspace "Borealis"
 				"{COPY} \"resources\" \"$(TargetDir)resources\"",
 				"{COPY} \"mono\" \"$(TargetDir)mono\"",
 				"{COPY} \"settings\" \"$(TargetDir)settings\"",
+				"{COPYFILE} \"BorealisAssetCompiler.exe\" \"$(TargetDir)BorealisAssetCompiler.exe\"",
+				"{COPYFILE} \"BorealisRuntime.exe\" \"$(TargetDir)BorealisRuntime.exe\"",
 				"{COPYFILE} \"imgui.ini\" \"$(TargetDir)imgui.ini\"",
 				"{MKDIR} \"$(TargetDir)assets\""
 			 }
@@ -356,61 +372,9 @@ workspace "Borealis"
 				"%{Library.MSDF_Release_LibBZ2}",
 				"%{Library.MSDF_Release_LibBrotli}",
 				"%{Library.MSDF_Release_LibBrotliCommon}",
-				"Borealis/%{Library.YAML_Release}"
+				"Borealis/%{Library.YAML_Release}",
+				"Borealis/%{Library.Jolt_Release}"
 			}
-
-			project "Sandbox"
-			location "Sandbox"
-			kind "ConsoleApp"
-			language "C++"
-			cppdialect "C++20"
-			staticruntime "on"
-			systemversion "latest"
-	
-			targetdir ("build/" .. outputdir .. "/%{prj.name}")
-			objdir ("build-int/" .. outputdir .. "/%{prj.name}")
-	
-			files
-			{
-				"%{prj.name}/inc/**.hpp",
-				"%{prj.name}/src/**.cpp"
-			}
-	
-			includedirs
-			{
-				"Borealis",
-				"Borealis/inc",
-				"Borealis/lib/spdlog/include",
-				"%{IncludeDir.GLM}",
-				"%{IncludeDir.ImGui}",
-				"%{prj.name}/inc",
-				"%{IncludeDir.ENTT}"
-			}
-	
-			defines
-			{
-				"_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS",
-			}
-	
-			links
-			{
-				"Borealis"
-			}
-			
-			filter "configurations:Debug"
-				defines "_DEB"
-				symbols "On"
-				runtime "Debug"
-	
-			filter "configurations:Release"
-				defines "_REL"
-				optimize "On"
-				runtime "Release"
-	
-			filter "configurations:Distribution"
-				defines "_DIST"
-				optimize "On"
-				runtime "Release"
 
 	project "BorealisScriptCore"
 		location "BorealisScriptCore"
@@ -433,7 +397,7 @@ workspace "Borealis"
 			"packages/Microsoft.CodeAnalysis.CSharp.4.11.0/lib/netstandard2.0/Microsoft.CodeAnalysis.CSharp",
 			"packages/Microsoft.CodeAnalysis.Analyzers.3.3.4/analyzers/dotnet/cs/Microsoft.CodeAnalysis.Analyzers",
 			"packages/Microsoft.CodeAnalysis.Analyzers.3.3.4/analyzers/dotnet/cs/Microsoft.CodeAnalysis.CSharp.Analyzers",
-			"packages/System.Buffers.4.5.1/lib/netstandard2.0/Systems.Buffer",
+			"packages/System.Buffers.4.5.1/lib/netstandard2.0/System.Buffers",
 			"packages/System.Collections.Immutable.8.0.0/lib/netstandard2.0/System.Collections.Immutable",
 			"packages/System.Memory.4.5.5/lib/netstandard2.0/System.Memory",
 			"packages/System.Reflection.Metadata.8.0.0/lib/netstandard2.0/System.Reflection.Metadata",
@@ -477,12 +441,17 @@ workspace "Borealis"
 			"%{IncludeDir.GLM}",
 			"%{IncludeDir.ImGui}",
 			"%{prj.name}/inc",
-			"%{IncludeDir.ENTT}"
+			"%{IncludeDir.ENTT}",
+			"%{IncludeDir.RTTR}"
 		}
 
 		defines
 		{
 			"_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS",
+			"JPH_FLOATING_POINT_EXCEPTIONS_ENABLED",
+			"JPH_CROSS_PLATFORM_DETERMINISTIC",
+			"JPH_ENABLE_ASSERTS"
+				
 		}
 
 		links
@@ -495,10 +464,18 @@ workspace "Borealis"
 			symbols "On"
 			runtime "Debug"
 
+		links
+		{
+			"Borealis/%{Library.Jolt_Debug}",
+		}
 		filter "configurations:Release"
 			defines "_REL"
 			optimize "On"
 			runtime "Release"
+		links
+		{
+			"Borealis/%{Library.Jolt_Release}",
+		}
 
 		filter "configurations:Distribution"
 			defines "_DIST"
@@ -513,7 +490,7 @@ workspace "Borealis"
 		staticruntime "on"
 		systemversion "latest"
 
-		targetdir ("build/" .. outputdir .. "/%{prj.name}")
+		targetdir ("BorealisEditor")
 		objdir ("build-int/" .. outputdir .. "/%{prj.name}")
 
 		files

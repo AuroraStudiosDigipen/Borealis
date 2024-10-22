@@ -18,7 +18,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <chrono>
 #include <ctime>
 #include <filesystem>
-
+#include <string>
 #include <Assets/Asset.hpp>
 
 namespace Borealis

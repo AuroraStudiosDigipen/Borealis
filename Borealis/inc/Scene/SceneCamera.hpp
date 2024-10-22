@@ -25,45 +25,182 @@ namespace Borealis
 			Perspective = 0,
 			Orthographic = 1
 		};
+
+		/*!***********************************************************************
+			\brief
+				Default constructor for SceneCamera
+		*************************************************************************/
 		SceneCamera();
+
+		/*!***********************************************************************
+			\brief
+				Destructor for SceneCamera
+		*************************************************************************/
 		~SceneCamera() = default;
 
+		/*!***********************************************************************
+			\brief
+				Sets the orthographic projection of the camera
+			\param[in] size
+				The size of the orthographic projection
+			\param[in] nearClip
+				The near clipping plane of the orthographic projection
+			\param[in] farClip
+				The far clipping plane of the orthographic projection
+		*************************************************************************/
 		void SetOrtho(float size, float nearClip, float farClip);
+
+		/*!***********************************************************************
+			\brief
+				Sets the perspective projection of the camera
+			\param[in] fov
+				The field of view of the perspective projection
+			\param[in] nearClip
+				The near clipping plane of the perspective projection
+			\param[in] farClip
+				The far clipping plane of the perspective projection
+		*************************************************************************/
 		void SetPers(float fov, float nearClip, float farClip);
+
+		/*!***********************************************************************
+			\brief
+				Sets the aspect ratio of the camera
+			\param[in] width
+				The width of the viewport
+			\param[in] height
+				The height of the viewport
+		*************************************************************************/
 		void SetViewportSize(uint32_t width, uint32_t height);
 
+		/*!***********************************************************************
+			\brief
+				Gets the orthographic size of the camera
+			return
+				The orthographic size of the camera
+		*************************************************************************/
 		float GetOrthoSize() const { return mOrthoSize; }
+
+		/*!***********************************************************************
+			\brief
+				Sets the orthographic size of the camera
+			\param[in] size
+				The orthographic size of the camera
+		*************************************************************************/
 		void SetOrthoSize(float size) { mOrthoSize = size; RecalculateProjection(); }
+
+		/*!***********************************************************************
+			\brief
+				Gets the orthographic near clipping plane of the camera
+			return
+				The orthographic near clipping plane of the camera
+		*************************************************************************/
 		float GetOrthoNear() const { return mOrthoNear; }
+
+		/*!***********************************************************************
+			\brief
+				Sets the orthographic near clipping plane of the camera
+			\param[in] nearClip
+				The orthographic near clipping plane of the camera
+		*************************************************************************/
 		void SetOrthoNear(float nearClip) { mOrthoNear = nearClip; RecalculateProjection(); }
+
+		/*!***********************************************************************
+			\brief
+				Gets the orthographic far clipping plane of the camera
+			return
+				The orthographic far clipping plane of the camera
+		*************************************************************************/
 		float GetOrthoFar() const { return mOrthoFar; }
+
+		/*!***********************************************************************
+			\brief
+				Sets the orthographic far clipping plane of the camera
+			\param[in] farClip
+				The orthographic far clipping plane of the camera
+		*************************************************************************/
 		void SetOrthoFar(float farClip) { mOrthoFar = farClip; RecalculateProjection(); }
 
-
+		/*!***********************************************************************
+			\brief
+				Gets the perspective field of view of the camera
+			return
+				The perspective field of view of the camera
+		*************************************************************************/
 		float GetPerspFOV() const { return mPerspFOV; }
+
+		/*!***********************************************************************
+			\brief
+				Sets the perspective field of view of the camera
+			\param[in] fov
+				The perspective field of view of the camera
+		*************************************************************************/
 		void SetPerspFOV(float fov) { mPerspFOV = fov; RecalculateProjection(); }
+
+		/*!***********************************************************************
+			\brief
+				Gets the perspective near clipping plane of the camera
+			return
+				The perspective near clipping plane of the camera
+		*************************************************************************/
 		float GetPerspNear() const { return mPerspNear; }
+
+		/*!***********************************************************************
+			\brief
+				Sets the perspective near clipping plane of the camera
+			\param[in] nearClip
+				The perspective near clipping plane of the camera
+		*************************************************************************/
 		void SetPerspNear(float nearClip) { mPerspNear = nearClip; RecalculateProjection(); }
+
+		/*!***********************************************************************
+			\brief
+				Gets the perspective far clipping plane of the camera
+			return
+				The perspective far clipping plane of the camera
+		*************************************************************************/
 		float GetPerspFar() const { return mPerspFar; }
+
+		/*!***********************************************************************
+			\brief
+				Sets the perspective far clipping plane of the camera
+			\param[in] farClip
+				The perspective far clipping plane of the camera
+		*************************************************************************/
 		void SetPerspFar(float farClip) { mPerspFar = farClip; RecalculateProjection(); }
 
-
+		/*!***********************************************************************
+			\brief
+				Gets the camera type
+			\return
+				The camera type
+		*************************************************************************/
 		CameraType GetCameraType() const { return mCameraType; }
+
+		/*!***********************************************************************
+			\brief
+				Sets the camera type
+			\param[in] type
+				The camera type
+		*************************************************************************/
 		void SetCameraType(CameraType type) { mCameraType = type; RecalculateProjection(); }
 
 	private:
+		/*!***********************************************************************
+			\brief
+				Recalculates the projection matrix of the camera
+		*************************************************************************/
 		void RecalculateProjection();
 
 		CameraType mCameraType = CameraType::Orthographic;
-		float mOrthoSize = 10.0f;
+		float mOrthoSize = 350.0f;
 		float mOrthoNear = -1.0f;
-		float mOrthoFar = 1.0f;
+		float mOrthoFar = 1000.0f;
 
 		float mPerspFOV = glm::radians(45.0f);
-		float mPerspNear = 0.01f;
+		float mPerspNear = 20.f;
 		float mPerspFar = 1000.0f;
 
-		float mAspectRatio = 0.0f;
+		float mAspectRatio = 1.78f;
 	};
 }
 

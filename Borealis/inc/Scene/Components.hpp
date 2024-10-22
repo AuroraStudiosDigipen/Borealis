@@ -14,6 +14,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #ifndef COMPONENTS_HPP
 #define COMPONENTS_HPP
+#include <any>
 #include <unordered_set>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -30,12 +31,6 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace Borealis
 {
-	class ComponentRegistry
-	{
-	public:
-		static std::vector<std::string> getPropertyNames(std::string componentName);
-		static std::vector<std::string> getComponentNames();
-	};
 
 	struct IDComponent
 	{
@@ -209,18 +204,33 @@ namespace Borealis
 		CapsuleColliderComponent(const CapsuleColliderComponent&) = default;
 	};
 
+
+	enum class RigidBodyType : int
+	{
+		Box,
+		Circle
+	};
 	struct RigidBodyComponent
 	{
-		float mass = 1.f;
-		float drag = 0.f;
-		float angularDrag = 0.0f;
-		glm::vec3 centerOfMass = { 0,0,0 };
-		glm::vec3 inertiaTensor = { 1,1,1 };
-		glm::vec3 inertiaTensorRotation = { 0,0,0 };
-		bool AutomaticCenterOfMass = true;
-		bool AutomaticTensor = true;
-		bool useGravity = true;
-		bool isKinematic = false;
+
+		RigidBodyType isBox = RigidBodyType::Box;
+		float radius = 1.5f; //radius for circle, side for cube
+
+		
+
+		// not serialised
+		unsigned int bodyID = 0;
+		//glm::vec3 velocity = { 0,0,0 };
+		//float mass = 1.f;
+		//float drag = 0.f;
+		//float angularDrag = 0.0f;
+		//glm::vec3 centerOfMass = { 0,0,0 };
+		//glm::vec3 inertiaTensor = { 1,1,1 };
+		//glm::vec3 inertiaTensorRotation = { 0,0,0 };
+		//bool AutomaticCenterOfMass = true;
+		//bool AutomaticTensor = true;
+		//bool useGravity = true;
+		//bool isKinematic = false;
 
 		RigidBodyComponent() = default;
 		RigidBodyComponent(const RigidBodyComponent&) = default;
@@ -249,13 +259,14 @@ namespace Borealis
 		};
 
 		
+		glm::vec3 offset;
 		//glm::vec4 Colour = { 1,1,1,1 };
 		glm::vec2 InnerOuterSpot = { 100, 120 };
 		//float Temperature = 6500;
 		//float Intensity = 1;
 		//float IndirectMultiplier = 1;
 		//float Range = 10;
-		Type type = Type::Point;
+		Type type = Type::Directional;
 		glm::vec3 direction = {0.0, -1.0, 0.0};
 		glm::vec3 ambient = {0.4, 0.4, 0.4};
 		glm::vec3 diffuse = {1.f, 1.f, 1.f};
@@ -270,6 +281,7 @@ namespace Borealis
 	{
 		std::string text{};
 		uint32_t fontSize = 16;
+		glm::vec4 colour{ 1.f,1.f,1.f,1.f };
 		Ref<Font> font;
 
 		TextComponent() = default;
@@ -305,6 +317,7 @@ namespace Borealis
 		float Volume = 1.0f;
 		int channelID = 0;
 
+	
 		Ref<Audio> audio;
 
 		AudioSourceComponent() = default;

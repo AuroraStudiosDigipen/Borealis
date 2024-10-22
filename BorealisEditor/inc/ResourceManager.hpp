@@ -68,12 +68,47 @@ namespace Borealis
 	{
 		
 	public:
+		/*!***********************************************************************
+			\brief
+				Initializes the resource manager
+		*************************************************************************/
 		static void Init();
+
+		/*!***********************************************************************
+			\brief
+				Gets a file icon texture
+			\param[in] icon
+				The file icon to get
+			\return
+				The texture of the file icon
+		*************************************************************************/
 		static Ref<Texture2D> GetFileIcon(FileIcon icon);
+
+		/*!***********************************************************************
+			\brief
+				Unloads a file icon texture
+			\param[in] icon
+				The file icon to unload
+		*************************************************************************/
 		static void UnloadResource(FileIcon icon);
+
+		/*!***********************************************************************
+			\brief
+				Frees all the resources in resource manager
+		*************************************************************************/
 		static void Free();
 	private:
+
+		/*!***********************************************************************
+			\brief
+				Loads all resources
+		*************************************************************************/
 		static void LoadResources();
+
+		/*!***********************************************************************
+			\brief
+				Unloads all resources
+		*************************************************************************/
 		static void UnloadResources();
 		static std::unordered_map<FileIcon, Ref<Texture2D>> mFileIcons;
 		//static Ref<Texture2D> GetFileIcon(FileIcon icon);

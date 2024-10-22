@@ -13,19 +13,88 @@ prior written consent of DigiPen Institute of Technology is prohibited.
  /******************************************************************************/
 
 #include <BorealisPCH.hpp>
-
+#include <yaml-cpp/yaml.h>
+#include <Core/Core.hpp>
 #include <Core/LoggerSystem.hpp>
 #include <Assets/EditorAssetManager.hpp>
-
+#include <Audio/Audio.hpp>
 #include <Audio/AudioEngine.hpp>
-
+#include <Graphics/Material.hpp>
 #include <Graphics/Texture.hpp>
 #include <Graphics/Model.hpp>
 
-#include <yaml-cpp/yaml.h>
 
 namespace Borealis
 {
+	//TEMP
+	//=====================================
+	AssetMetaData DeserializeMetaFile(YAML::Node& node)
+	{
+		AssetMetaData metaData;
+
+		metaData.name = node["Name"].as<std::string>();
+		metaData.Handle = node["AssetHandle"].as<uint64_t>();
+		metaData.Type = Asset::StringToAssetType(node["AssetType"].as<std::string>());
+		std::string str = node["SourcePath"].as<std::string>();
+
+		const std::string pattern = "..\\";
+		size_t pos = str.find(pattern);
+
+		// If the pattern is found, erase it
+		if (pos != std::string::npos) {
+			str.erase(pos, pattern.length());
+		}
+
+		//metaData.SourcePath = PathToAssetFolder.parent_path() / str;
+		metaData.SourcePath = str;
+
+		str = node["CachePath"].as<std::string>();
+
+		pos = str.find(pattern);
+
+		// If the pattern is found, erase it
+		if (pos != std::string::npos) {
+			str.erase(pos, pattern.length());
+		}
+
+		//metaData.CachePath = PathToAssetFolder.parent_path() / str;
+		metaData.CachePath = str;
+		metaData.importDate = node["LastModifiedDate"].as<uint64_t>();
+
+		return metaData;
+	}
+
+	void EditorAssetManager::LoadAssetRegistryRunTime(std::string path)
+	{
+		if (!std::filesystem::exists(path)) {
+			BOREALIS_CORE_INFO("Registry file not found. Creating a new one");
+
+			return;
+		}
+
+		std::ifstream registryFile(path);
+		std::stringstream registryStream;
+		registryStream << registryFile.rdbuf();
+		registryFile.close();
+
+		YAML::Node registryRoot = YAML::Load(registryStream.str());
+
+		YAML::Node assetMetaInfo = registryRoot["Assets"];
+
+		if (assetMetaInfo)
+		{
+			for (YAML::Node metaInfo : assetMetaInfo)
+			{
+				AssetMetaData metaData = DeserializeMetaFile(metaInfo);
+
+				mAssetRegistry.insert({ metaData.Handle, metaData });
+			}
+		}
+
+		int x = 0;
+	}
+	//=====================================
+
 	Ref<Asset> EditorAssetManager::GetAsset(AssetHandle assetHandle)
 	{
 		if (!mAssetRegistry.contains(assetHandle))
@@ -44,6 +113,7 @@ namespace Borealis
 			asset = LoadAsset(assetHandle);
 			mLoadedAssets.insert({ assetHandle, asset });
 		}
+		BOREALIS_CORE_INFO("Get asset : {}", assetHandle);
 		return asset;
 	}
 
@@ -102,6 +172,8 @@ namespace Borealis
 
 	void EditorAssetManager::Clear()
 	{
+		mAssetRegistry.clear();
+		mAssetRegistryPath.clear();
 	}
 
 	Ref<Asset> EditorAssetManager::LoadAsset(AssetHandle assetHandle)
@@ -117,6 +189,9 @@ namespace Borealis
 			break;
 		case AssetType::Texture2D:
 			asset = Texture2D::Create(metaData.CachePath.string());
+			break;
+		case AssetType::Material:
+			asset = MakeRef<Material>(Material(metaData.SourcePath.string()));
 			break;
 		case AssetType::Mesh:
 			model.LoadModel(metaData.CachePath.string());

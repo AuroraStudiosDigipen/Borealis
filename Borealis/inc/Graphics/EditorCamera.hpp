@@ -156,6 +156,8 @@ namespace Borealis
 		*************************************************************************/
 		float GetYaw() const { return mYaw; }
 
+		void SetFocalPoint(glm::vec3 point);
+
 	private:
 
 		/*!***********************************************************************

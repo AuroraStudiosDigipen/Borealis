@@ -14,9 +14,9 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #ifndef ENTRYPOINT_HPP
 #define ENTRYPOINT_HPP
-
 #include <Core/ApplicationManager.hpp>
 #include <Core/LoggerSystem.hpp>
+#include <Debugging/Profiler.hpp>
 
 	int main(int argc, char** argv)
 	{
@@ -24,15 +24,15 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 		BOREALIS_CORE_INFO("Logger System Initialized");
 		BOREALIS_CORE_TRACE("Welcome to the Borealis");
 
-		PROFILE_START("Borealis Startup", "Profile-Startup.json");
+		PROFILE_START("Borealis Startup");
 		auto app = Borealis::CreateApplication();
 		PROFILE_END();
 
-		PROFILE_START("Borealis Runtime", "Profile-Runtime.json");
+		PROFILE_START("Borealis Runtime");
 		app->Run();
 		PROFILE_END();
 
-		PROFILE_START("Borealis Shutdown", "Profile-Shutdown.json");
+		PROFILE_START("Borealis Shutdown");
 		delete app;
 		PROFILE_END();
 	}

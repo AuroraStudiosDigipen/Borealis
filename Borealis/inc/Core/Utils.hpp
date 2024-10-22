@@ -16,6 +16,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #define UTILS_HPP
 #include <string>
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <Graphics/Framebuffer.hpp>
 namespace Borealis
 {
@@ -41,13 +42,89 @@ namespace Borealis
 
 	struct GraphicsUtils
 	{
-
+		/*!***********************************************************************
+			\brief
+				Checks if the format is a depth format
+			\return
+				True if the format is a depth format, false otherwise
+		*************************************************************************/
 		static bool IsDepthFormat(FramebufferTextureFormat format);
+
+		/*!***********************************************************************
+			\brief
+				Switch between texture targets
+			\param[in] multiSampled
+				Whether the texture is multi-sampled
+			\return
+				The texture target
+		*************************************************************************/
 		static unsigned TextureTarget(bool multiSampled);
+
+		/*!***********************************************************************
+			\brief
+				Creates textures using oipengl
+			\param[in] multiSampled
+				Whether the texture is multi-sampled
+			\param[in] colorAttachmentData
+				The data for the color attachment
+			\param[in] colorAttachmentSize
+				The size of the color attachment data
+		*************************************************************************/
 		static void CreateTextures(bool multiSampled, uint32_t* colorAttachmentData, size_t colorAttachmentSize);
+
+		/*!***********************************************************************
+			\brief
+				Binds a texture
+			\param[in] multiSampled
+				Whether the texture is multi-sampled
+			\param[in] id
+				The id of the texture
+		*************************************************************************/
 		static void BindTexture(bool multiSampled, uint32_t id);
+
+		/*!***********************************************************************
+			\brief
+				Attaches a color texture to the framebuffer
+			\param[in] id
+				The id of the texture
+			\param[in] samples
+				The number of samples
+			\param[in] internalformat
+				The internal format of the texture
+			\param[in] format
+				The format of the texture
+			\param[in] width
+				The width of the texture
+			\param[in] height
+				The height of the texture
+			\param[in] index
+				The index of the texture
+		*************************************************************************/
 		static void AttachColorTexture(uint32_t id, int samples, unsigned internalformat, unsigned format, uint32_t width, uint32_t height, int index);
+		
+		/*!***********************************************************************
+			\brief
+				Attaches a depth texture to the framebuffer
+			\param[in] id
+				The id of the texture
+			\param[in] samples
+				The number of samples
+			\param[in] format
+				The format of the texture
+			\param[in] attachmentType
+				The attachment type of the texture
+			\param[in] width
+				The width of the texture
+			\param[in] height
+				The height of the texture
+		*************************************************************************/
 		static void AttachDepthTexture(uint32_t id, int samples, unsigned format, unsigned attachmentType, uint32_t width, uint32_t height);
+	};
+
+	struct Math
+	{
+		static glm::vec3 QuatToEuler(glm::quat quat, bool radians = false);
+		static glm::quat EulerToQuat(glm::vec3 euler, bool radians = false);
 	};
 }
 

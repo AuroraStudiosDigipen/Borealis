@@ -27,6 +27,7 @@ namespace BorealisRuntime
 		void Free() override;
 	private:
 		Borealis::Ref<Borealis::FrameBuffer> mRuntimeFrameBuffer;
+		Borealis::EditorAssetManager mEditorAssetManager;
 	};
 }
 

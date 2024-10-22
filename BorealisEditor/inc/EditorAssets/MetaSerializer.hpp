@@ -22,14 +22,40 @@ namespace Borealis
 	class MetaFileSerializer
 	{
 	public:
+		/*!***********************************************************************
+			\brief
+				Set assets folder path
+		*************************************************************************/
 		static void SetAssetFolderPath(std::filesystem::path const& path);
 
+		/*!***********************************************************************
+			\brief
+				get meta data from file path
+		*************************************************************************/
 		static AssetMetaData GetAssetMetaDataFile(std::filesystem::path const& path);
 
+		/*!***********************************************************************
+			\brief
+				create meta data at file path
+		*************************************************************************/
 		static AssetMetaData CreateAssetMetaFile(std::filesystem::path const& path);
 
+		/*!***********************************************************************
+			\brief
+				create meta data at file path with given asset handle
+		*************************************************************************/
+		static AssetMetaData CreateAssetMetaFile(std::filesystem::path const& path, AssetHandle handle);
+
+		/*!***********************************************************************
+			\brief
+				serialize registry
+		*************************************************************************/
 		static void SerialzeRegistry(std::filesystem::path assetRegistryPath, std::unordered_map<AssetHandle, AssetMetaData> const& assetRegistry);
 
+		/*!***********************************************************************
+			\brief
+				deserialize registry
+		*************************************************************************/
 		static void DeserializeRegistry(std::string const& registryFileString, std::unordered_map<AssetHandle, AssetMetaData>& AssetRegistry);
 
 	private:

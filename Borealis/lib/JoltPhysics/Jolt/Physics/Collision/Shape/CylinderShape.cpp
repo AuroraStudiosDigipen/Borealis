@@ -32,16 +32,17 @@ JPH_IMPLEMENT_SERIALIZABLE_VIRTUAL(CylinderShapeSettings)
 }
 
 // Approximation of top face with 8 vertices
-static const Vec3 cCylinderTopFace[] =
+static const float cSin45 = 0.70710678118654752440084436210485f;
+static const Vec3 cTopFace[] =
 {
-	Vec3(0.0f,			1.0f,	1.0f),
-	Vec3(0.707106769f,	1.0f,	0.707106769f),
-	Vec3(1.0f,			1.0f,	0.0f),
-	Vec3(0.707106769f,	1.0f,	-0.707106769f),
-	Vec3(-0.0f,			1.0f,	-1.0f),
-	Vec3(-0.707106769f,	1.0f,	-0.707106769f),
-	Vec3(-1.0f,			1.0f,	0.0f),
-	Vec3(-0.707106769f,	1.0f,	0.707106769f)
+	Vec3(0.0f,		1.0f,	1.0f),
+	Vec3(cSin45,	1.0f,	cSin45),
+	Vec3(1.0f,		1.0f,	0.0f),
+	Vec3(cSin45,	1.0f,	-cSin45),
+	Vec3(-0.0f,		1.0f,	-1.0f),
+	Vec3(-cSin45,	1.0f,	-cSin45),
+	Vec3(-1.0f,		1.0f,	0.0f),
+	Vec3(-cSin45,	1.0f,	cSin45)
 };
 
 static const StaticArray<Vec3, 96> sUnitCylinderTriangles = []() {
@@ -49,13 +50,13 @@ static const StaticArray<Vec3, 96> sUnitCylinderTriangles = []() {
 
 	const Vec3 bottom_offset(0.0f, -2.0f, 0.0f);
 
-	int num_verts = sizeof(cCylinderTopFace) / sizeof(Vec3);
+	int num_verts = sizeof(cTopFace) / sizeof(Vec3);
 	for (int i = 0; i < num_verts; ++i)
 	{
-		Vec3 t1 = cCylinderTopFace[i];
-		Vec3 t2 = cCylinderTopFace[(i + 1) % num_verts];
-		Vec3 b1 = cCylinderTopFace[i] + bottom_offset;
-		Vec3 b2 = cCylinderTopFace[(i + 1) % num_verts] + bottom_offset;
+		Vec3 t1 = cTopFace[i];
+		Vec3 t2 = cTopFace[(i + 1) % num_verts];
+		Vec3 b1 = cTopFace[i] + bottom_offset;
+		Vec3 b2 = cTopFace[(i + 1) % num_verts] + bottom_offset;
 
 		// Top
 		verts.emplace_back(0.0f, 1.0f, 0.0f);
@@ -217,7 +218,7 @@ void CylinderShape::GetSupportingFace(const SubShapeID &inSubShapeID, Vec3Arg in
 		// Hitting top or bottom
 		Vec3 multiplier = y < 0.0f? Vec3(scaled_radius, scaled_half_height, scaled_radius) : Vec3(-scaled_radius, -scaled_half_height, scaled_radius);
 		Mat44 transform = inCenterOfMassTransform.PreScaled(multiplier);
-		for (const Vec3 &v : cCylinderTopFace)
+		for (const Vec3 &v : cTopFace)
 			outVertices.push_back(transform * v);
 	}
 }
@@ -390,14 +391,18 @@ void CylinderShape::RestoreBinaryState(StreamIn &inStream)
 
 bool CylinderShape::IsValidScale(Vec3Arg inScale) const
 {
-	return ConvexShape::IsValidScale(inScale) && ScaleHelpers::IsUniformScaleXZ(inScale.Abs());
+	// X and Z need same scale
+	Vec3 abs_scale = inScale.Abs();
+	return ConvexShape::IsValidScale(inScale) && abs_scale.Swizzle<SWIZZLE_Z, SWIZZLE_Y, SWIZZLE_X>().IsClose(abs_scale, ScaleHelpers::cScaleToleranceSq);
 }
 
 Vec3 CylinderShape::MakeScaleValid(Vec3Arg inScale) const
 {
 	Vec3 scale = ScaleHelpers::MakeNonZeroScale(inScale);
 
-	return scale.GetSign() * ScaleHelpers::MakeUniformScaleXZ(scale.Abs());
+	// Average X and Z
+	Vec3 abs_scale = scale.Abs();
+	return 0.5f * scale.GetSign() * (abs_scale + abs_scale.Swizzle<SWIZZLE_Z, SWIZZLE_Y, SWIZZLE_X>());
 }
 
 void CylinderShape::sRegister()

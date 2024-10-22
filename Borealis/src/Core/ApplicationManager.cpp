@@ -23,6 +23,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/Renderer.hpp>
 #include <Scripting/ScriptingSystem.hpp>
 #include <AI/BehaviourTree/RegisterNodes.hpp>
+#include <Physics/PhysicsSystem.hpp>
 
 namespace Borealis
 {
@@ -51,6 +52,7 @@ namespace Borealis
 		AudioEngine::Init();
 		NodeFactory::Init();
 		InputSystem::Init();
+		PhysicsSystem::Init();
 	}
 
 	/*!***********************************************************************
@@ -66,6 +68,7 @@ namespace Borealis
 		mLayerSystem.Clear();
 		ScriptingSystem::Free();
 
+		PhysicsSystem::Free();
 		delete mWindowManager;
 		glfwTerminate(); // Terminate after system shuts down
 
@@ -103,7 +106,7 @@ namespace Borealis
 				{
 					PROFILE_SCOPE("LayerStack ImGuiRender");
 					for (Layer* layer : mLayerSystem)
-						layer->ImGuiRender();
+						layer->ImGuiRender(g_dt);
 				}
 				mImGuiLayer->EndFrame();
 			}

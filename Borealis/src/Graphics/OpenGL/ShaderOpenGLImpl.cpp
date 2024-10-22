@@ -229,7 +229,7 @@ namespace Borealis
 		{
 			size_t endOfLine = source.find("\r\n", pos);
 			if (endOfLine == std::string::npos)
-				endOfLine = source.find("\n");
+				endOfLine = source.find("\n", pos);
 			BOREALIS_CORE_ASSERT(endOfLine != std::string::npos, "Syntax Error when Preprocessing shader");
 			
 			size_t begin = pos + typeStrLen + 1;

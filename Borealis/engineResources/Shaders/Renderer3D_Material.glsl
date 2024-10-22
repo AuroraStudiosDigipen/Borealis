@@ -100,7 +100,9 @@ in vec3 v_Bitangent;
 uniform mat4 u_ViewProjection;
 uniform vec3 u_ViewPos;
 uniform Material u_Material;
-uniform Light u_Light;
+const int MAX_LIGHTS = 20;
+uniform Light u_Lights[20];
+uniform int u_LightsCount;
 			
 uniform sampler2D u_Texture;
 
@@ -134,11 +136,11 @@ vec3 GetEmission()
 	return u_Material.hasEmissionMap ? texture(u_Material.emissionMap, GetTexCoord()).rgb : u_Material.emissionColor.rgb;
 }
 
-vec3 ComputeDirectionalLight(vec3 normal, vec3 viewDir) 
+vec3 ComputeDirectionalLight(Light light, vec3 normal, vec3 viewDir) 
 {
-	vec3 lightDir = normalize(-u_Light.direction);
+	vec3 lightDir = normalize(-light.direction);
 
-    vec3 ambient = u_Light.ambient * GetAlbedoColor().rgb;
+    vec3 ambient = light.ambient * GetAlbedoColor().rgb;
 	vec3 color = ambient;
 	float metallic = GetMetallic();
 	vec3 emission = GetEmission();
@@ -151,23 +153,23 @@ vec3 ComputeDirectionalLight(vec3 normal, vec3 viewDir)
 
         float spec = pow(max(dot(normal, halfwayDir), 0.0), u_Material.shininess * u_Material.smoothness);
 
-        vec3 diffuse = u_Light.diffuse * diff * (1.0 - metallic);
-        vec3 specular = u_Light.specular * spec * GetSpecular() * metallic; 
+        vec3 diffuse = light.diffuse * diff * (1.0 - metallic);
+        vec3 specular = light.specular * spec * GetSpecular() * metallic; 
 
         color = ambient + diffuse + specular + emission;
     }
 	return color;
 }
 
-vec3 ComputePointLight(vec3 normal, vec3 viewDir)
+vec3 ComputePointLight(Light light, vec3 normal, vec3 viewDir)
 {
-	vec3 lightDir = normalize(u_Light.position - v_FragPos);
+	vec3 lightDir = normalize(light.position - v_FragPos);
 
-	float distance = length(u_Light.position - v_FragPos);
-    float attenuation = 1.0 / (1.0 + u_Light.linear * distance + u_Light.quadratic * distance * distance); 
+	float distance = length(light.position - v_FragPos);
+    float attenuation = 1.0 / (1.0 + light.linear * distance + light.quadratic * distance * distance); 
 
 	// ambient
-	vec3 ambient = u_Light.ambient * GetAlbedoColor().rgb;
+	vec3 ambient = light.ambient * GetAlbedoColor().rgb;
 	vec3 color = ambient;
 	float metallic = GetMetallic();
 	vec3 emission = GetEmission();
@@ -180,8 +182,8 @@ vec3 ComputePointLight(vec3 normal, vec3 viewDir)
 
         float spec = pow(max(dot(normal, halfwayDir), 0.0), u_Material.shininess * u_Material.smoothness);
 
-        vec3 diffuse = u_Light.diffuse * diff * attenuation * (1.0 - metallic);
-        vec3 specular = u_Light.specular * spec * GetSpecular() * attenuation * metallic;
+        vec3 diffuse = light.diffuse * diff * attenuation * (1.0 - metallic);
+        vec3 specular = light.specular * spec * GetSpecular() * attenuation * metallic;
 
         color = ambient + diffuse + specular + emission;
     }
@@ -189,15 +191,15 @@ vec3 ComputePointLight(vec3 normal, vec3 viewDir)
 	return color;
 }
 
-vec3 ComputeSpotLight(vec3 normal, vec3 viewDir)
+vec3 ComputeSpotLight(Light light, vec3 normal, vec3 viewDir)
 {
-	vec3 lightDir = normalize(u_Light.position - v_FragPos);
+	vec3 lightDir = normalize(light.position - v_FragPos);
 
-	float distance = length(u_Light.position - v_FragPos);
-    float attenuation = 1.0 / (1.0 + u_Light.linear * distance + u_Light.quadratic * distance * distance); 
+	float distance = length(light.position - v_FragPos);
+    float attenuation = 1.0 / (1.0 + light.linear * distance + light.quadratic * distance * distance); 
 
 	// ambient
-	vec3 ambient = u_Light.ambient * GetAlbedoColor().rgb;
+	vec3 ambient = light.ambient * GetAlbedoColor().rgb;
 	vec3 color = ambient;
 	float metallic = GetMetallic();
 	vec3 emission = GetEmission();
@@ -210,12 +212,12 @@ vec3 ComputeSpotLight(vec3 normal, vec3 viewDir)
     {
         float spec = pow(max(dot(normal, halfwayDir), 0.0), u_Material.shininess * u_Material.smoothness);
 
-        float theta = dot(lightDir, normalize(-u_Light.direction)); 
-        float epsilon = u_Light.innerOuterAngle.x - u_Light.innerOuterAngle.y;
-        float intensity = clamp((theta - u_Light.innerOuterAngle.y) / epsilon, 0.0, 1.0); 
+        float theta = dot(lightDir, normalize(-light.direction)); 
+        float epsilon = light.innerOuterAngle.x - light.innerOuterAngle.y;
+        float intensity = clamp((theta - light.innerOuterAngle.y) / epsilon, 0.0, 1.0); 
 
-        vec3 diffuse = u_Light.diffuse * diff * (1.0 - metallic);
-        vec3 specular = u_Light.specular * spec * GetSpecular() * metallic;
+        vec3 diffuse = light.diffuse * diff * (1.0 - metallic);
+        vec3 specular = light.specular * spec * GetSpecular() * metallic;
 
 		ambient *= intensity * attenuation;
 		diffuse *= intensity * attenuation;
@@ -244,19 +246,40 @@ void main() {
         normal = normalize(v_Normal);
     }
 
-	vec4 color;
-	if (u_Light.type == 0) 
+	// vec4 color;
+	// if (u_Light.type == 0) 
+	// {
+	// 	color = vec4(ComputeSpotLight(u_Light, normal, viewDir), GetAlbedoColor().a);
+	// }
+	// else if (u_Light.type == 1)
+	// {
+	// 	color = vec4(ComputeDirectionalLight(u_Light, normal, viewDir), GetAlbedoColor().a);
+	// }
+	// else if (u_Light.type == 2)
+	// {
+	// 	color = vec4(ComputePointLight(u_Light, normal, viewDir), GetAlbedoColor().a);
+	// }
+
+	vec4 color = vec4(0.0);  // Initialize the final color to zero
+
+	for (int i = 0; i < u_LightsCount; ++i)
 	{
-		color = vec4(ComputeSpotLight(normal, viewDir), GetAlbedoColor().a);
+		if (u_Lights[i].type == 0)  // Spot Light
+		{
+			color.rgb += ComputeSpotLight(u_Lights[i], normal, viewDir);
+		}
+		else if (u_Lights[i].type == 1)  // Directional Light
+		{
+			color.rgb += ComputeDirectionalLight(u_Lights[i], normal, viewDir);
+		}
+		else if (u_Lights[i].type == 2)  // Point Light
+		{
+			color.rgb += ComputePointLight(u_Lights[i], normal, viewDir);
+		}
 	}
-	else if (u_Light.type == 1)
-	{
-		color = vec4(ComputeDirectionalLight(normal, viewDir), GetAlbedoColor().a);
-	}
-	else if (u_Light.type == 2)
-	{
-		color = vec4(ComputePointLight(normal, viewDir), GetAlbedoColor().a);
-	}
+
+	// Apply the alpha channel from the albedo color
+	color.a = GetAlbedoColor().a;
 
 	fragColor = color;
 	

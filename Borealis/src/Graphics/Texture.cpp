@@ -68,7 +68,7 @@ namespace Borealis
 	{
 		if (!mDefault)
 		{
-			mDefault = Create("../Borealis/Resources/textures/missing_texture.DDS");
+			mDefault = Create("Resources/textures/missing_texture.DDS");
 		}
 		return mDefault;
 	}

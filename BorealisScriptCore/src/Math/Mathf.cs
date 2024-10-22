@@ -169,7 +169,7 @@ namespace Borealis
             if (exponent == 0xFF)
             {
                 // Inf or NaN
-                return (ushort)((sign << 15) | 0x7C00 | (mantissa != 0 ? 0x0200 : 0x0000));
+                return (ushort)((((ushort)sign) << 15) | 0x7C00 | (mantissa != 0 ? 0x0200 : 0x0000));
             }
 
             // Handle zero and denormalized numbers
@@ -194,7 +194,7 @@ namespace Borealis
             // Round the mantissa to fit 10 bits
             uint halfMantissa = mantissa >> 13;
 
-            return (ushort)((sign << 15) | (halfExponent << 10) | halfMantissa);
+            return (ushort)((((ushort)sign) << 15) | (((ushort)halfExponent) << 10) | ((ushort)halfMantissa));
         }
 
         public static float Floor(float f)

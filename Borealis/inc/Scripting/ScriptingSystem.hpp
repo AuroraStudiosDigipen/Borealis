@@ -36,13 +36,35 @@ namespace Borealis
 		*************************************************************************/
 		static void Free();
 
+		/*!***********************************************************************
+			\brief
+				Update function for the Scripting System
+			\param[in] deltaTime
+				The time between frames
+		*************************************************************************/
 		static void Update(float deltaTime);
 
+		/*!***********************************************************************
+			\brief
+				Register a C# class to the scripting system
+			\param[in] klass
+				The class to register
+		*************************************************************************/
 		static void RegisterCSharpClass(ScriptClass klass);
 
 		// Temp
+		/*!***********************************************************************
+			\brief
+				Iniitalise the core assembly
+		*************************************************************************/
 		static void InitCoreAssembly();
 
+		/*!***********************************************************************
+			\brief
+				Get the script class from the library
+			\param[in] className
+				The name of the class to get
+		*************************************************************************/
 		static Ref<ScriptClass> GetScriptClass(const std::string& className) { return mScriptClasses[className]; }
 
 		static std::unordered_map<std::string, Ref<ScriptClass>> mScriptClasses; // Library of available scripts

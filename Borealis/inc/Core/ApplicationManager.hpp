@@ -22,6 +22,9 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Events/EventWindow.hpp>
 #include <ImGui/ImGuiLayer.hpp>
 
+//TO REMOVE ONCE RUNTIME ASSETS MANAGER IS UP
+#include <Assets/EditorAssetManager.hpp>
+
 namespace Borealis {
 
 	/*!***********************************************************************
@@ -131,7 +134,6 @@ namespace Borealis {
 		ImGuiLayer* mImGuiLayer; //<! Pointer to the ImGui layer
 		bool mIsRunning; //<! Flag to check if the application is running
 		bool mIsMinimized; //<! Flag to check if the application is minimized
-		
 
 		static ApplicationManager* sInstance; //<! Pointer to the instance of the application manager
 	}; // End of class ApplicationManager

@@ -32,10 +32,11 @@ namespace Borealis
 	};
 	struct ScriptField
 	{
-		ScriptFieldType mType;
-		std::string mName;
-		MonoClassField* mMonoFieldType;
+		ScriptFieldType mType; // The type of the field
+		std::string mName; // The name of the field
+		MonoClassField* mMonoFieldType; // The mono field type
 
+		// Properties of Fields
 		bool isPublic() const;
 		bool isPrivate() const;
 		bool hasHideInInspector() const;

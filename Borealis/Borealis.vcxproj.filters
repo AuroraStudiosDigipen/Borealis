@@ -43,6 +43,9 @@
     <Filter Include="inc\ImGui">
       <UniqueIdentifier>{89503E75-F5BA-F2EB-3EF9-A391AAA2D040}</UniqueIdentifier>
     </Filter>
+    <Filter Include="inc\Physics">
+      <UniqueIdentifier>{9132CAD0-FDE7-42C6-86DC-3C9DF29039CA}</UniqueIdentifier>
+    </Filter>
     <Filter Include="inc\Scene">
       <UniqueIdentifier>{7C48EE75-E8B2-A2EC-31F1-53929D9A8041}</UniqueIdentifier>
     </Filter>
@@ -136,6 +139,9 @@
     <Filter Include="src\Core">
       <UniqueIdentifier>{A5D31CCF-91A0-77DA-BAB9-6582A6E5AC68}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Debugging">
+      <UniqueIdentifier>{28E516E9-94A5-921F-5DE0-DB9CC95FD7FB}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\Events">
       <UniqueIdentifier>{7162C20E-5D1A-045C-C621-DDB7B2F89E4C}</UniqueIdentifier>
     </Filter>
@@ -150,6 +156,9 @@
     </Filter>
     <Filter Include="src\ImGui">
       <UniqueIdentifier>{170E22B3-8378-D629-CCB6-87CF3860B47E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Physics">
+      <UniqueIdentifier>{9F8B9316-0B41-0C0C-9435-06E300EA0210}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Scene">
       <UniqueIdentifier>{0A06D2B3-7670-862A-BFAE-37D02B58647F}</UniqueIdentifier>
@@ -289,6 +298,9 @@
     <ClInclude Include="inc\Graphics\Light.hpp">
       <Filter>inc\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Graphics\LightEngine.hpp">
+      <Filter>inc\Graphics</Filter>
+    </ClInclude>
     <ClInclude Include="inc\Graphics\Material.hpp">
       <Filter>inc\Graphics</Filter>
     </ClInclude>
@@ -358,6 +370,12 @@
     <ClInclude Include="inc\ImGui\ImGuiLayer.hpp">
       <Filter>inc\ImGui</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Physics\PhysicsSystem.hpp">
+      <Filter>inc\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Scene\ComponentRegistry.hpp">
+      <Filter>inc\Scene</Filter>
+    </ClInclude>
     <ClInclude Include="inc\Scene\Components.hpp">
       <Filter>inc\Scene</Filter>
     </ClInclude>
@@ -365,6 +383,9 @@
       <Filter>inc\Scene</Filter>
     </ClInclude>
     <ClInclude Include="inc\Scene\OrthographicCameraController.hpp">
+      <Filter>inc\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Scene\ReflectionInstance.hpp">
       <Filter>inc\Scene</Filter>
     </ClInclude>
     <ClInclude Include="inc\Scene\Scene.hpp">
@@ -2022,6 +2043,9 @@
     <ClCompile Include="src\Core\WindowManager.cpp">
       <Filter>src\Core</Filter>
     </ClCompile>
+    <ClCompile Include="src\Debugging\Profiler.cpp">
+      <Filter>src\Debugging</Filter>
+    </ClCompile>
     <ClCompile Include="src\Events\EventInput.cpp">
       <Filter>src\Events</Filter>
     </ClCompile>
@@ -2044,6 +2068,9 @@
       <Filter>src\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\Light.cpp">
+      <Filter>src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\LightEngine.cpp">
       <Filter>src\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\Material.cpp">
@@ -2118,7 +2145,10 @@
     <ClCompile Include="src\ImGui\ImGuiLayer.cpp">
       <Filter>src\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="src\Scene\Components.cpp">
+    <ClCompile Include="src\Physics\PhysicsSystem.cpp">
+      <Filter>src\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scene\ComponentRegistry.cpp">
       <Filter>src\Scene</Filter>
     </ClCompile>
     <ClCompile Include="src\Scene\Entity.cpp">

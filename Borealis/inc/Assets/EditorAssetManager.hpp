@@ -28,25 +28,43 @@ namespace Borealis
 	class EditorAssetManager : public IAssetManager
 	{
 	public:
+
+		//TEMP
+		//===================================
+		void LoadAssetRegistryRunTime(std::string path);
+		//===================================
+
+		/*!***********************************************************************
+			\brief
+				Get asset by handle
+		*************************************************************************/
 		Ref<Asset> GetAsset(AssetHandle assetHandle) override;
+
+		/*!***********************************************************************
+			\brief
+				Get meta data by handel
+		*************************************************************************/
 		AssetMetaData const& GetMetaData(AssetHandle assetHandle);
+
+		/*!***********************************************************************
+			\brief
+				Get asset registry
+		*************************************************************************/
 		AssetRegistry& GetAssetRegistry();
 
-		//Load all available assets into Registry
-		//void LoadRegistry(ProjectInfo projectInfo);
-
-		//clear Registry and loaded assets
+		/*!***********************************************************************
+			\brief
+				Clear the asset manager
+		*************************************************************************/
 		void Clear();
 
 	private:
+
+		/*!***********************************************************************
+			\brief
+				Load asset by handle
+		*************************************************************************/
 		Ref<Asset> LoadAsset(AssetHandle assetHandle);
-		//void SerializeRegistry();
-		//void DeserializeRegistry(std::string const& registryFileString);
-
-		//void RegisterAsset(std::filesystem::path path);
-		//void RegisterAllAssets(std::filesystem::path path);
-
-		//bool VerifyMetaFile(std::filesystem::path path);
 
 	private:
 		std::filesystem::path mAssetRegistryPath;

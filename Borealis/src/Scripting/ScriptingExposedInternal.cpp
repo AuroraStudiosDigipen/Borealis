@@ -178,14 +178,6 @@ namespace Borealis
 	{
 		return { 0.f, InputSystem::GetScroll() , 0.f};
 	}
-	bool Input_AnyKey()
-	{
-		return false;
-	}
-	bool Input_AnyKeyDown()
-	{
-		return false;
-	}
 	bool Input_GetKey(int key)
 	{
 		return InputSystem::IsKeyPressed(key);

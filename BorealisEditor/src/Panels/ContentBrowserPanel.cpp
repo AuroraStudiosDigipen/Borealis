@@ -12,16 +12,43 @@ prior written consent of DigiPen Institute of Technology is prohibited.
  *
  /******************************************************************************/
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <Panels/ContentBrowserPanel.hpp>
 #include <Core/LoggerSystem.hpp>
 #include <Scene/SceneManager.hpp>
+#include <Scene/Serialiser.hpp>
+#include <Scene/Scene.hpp>
+#include <Prefab.hpp>
 #include <Assets/AssetMetaData.hpp>
+#include <Assets/AssetManager.hpp>
 #include <EditorAssets/MetaSerializer.hpp>
 #include <ResourceManager.hpp>
 
 #include "EditorAssets/MaterialEditor.hpp"
 #include <EditorAssets/AssetImporter.hpp>
 
+namespace ImGui
+{
+	static bool BeginDrapDropTargetWindow(const char* payload_type)
+	{
+		using namespace ImGui;
+		ImRect inner_rect = GetCurrentWindow()->InnerRect;
+		if (BeginDragDropTargetCustom(inner_rect, GetID("##WindowBgArea")))
+			if (const ImGuiPayload* payload = AcceptDragDropPayload(payload_type, ImGuiDragDropFlags_AcceptBeforeDelivery | ImGuiDragDropFlags_AcceptNoDrawDefaultRect))
+			{
+				if (payload->IsPreview())
+				{
+					ImDrawList* draw_list = GetForegroundDrawList();
+					draw_list->AddRectFilled(inner_rect.Min, inner_rect.Max, GetColorU32(ImGuiCol_DragDropTarget, 0.05f));
+					draw_list->AddRect(inner_rect.Min, inner_rect.Max, GetColorU32(ImGuiCol_DragDropTarget), 0.0f, 0, 2.0f);
+				}
+				if (payload->IsDelivery())
+					return true;
+				EndDragDropTarget();
+			}
+		return false;
+	}
+}
 namespace Borealis
 {
 	UUID ContentBrowserPanel::sSelectedAsset = 0;
@@ -32,13 +59,27 @@ namespace Borealis
 		mAssetsDir = "assets";
 	}
 
+
 	void ContentBrowserPanel::ImGuiRender() 
 	{
 		ImGui::Begin("Content Browser");
 
+
+
 		ImVec2 windowSize = ImGui::GetWindowSize();
 		float scrollableHeight = windowSize.y - 100; // Adjust for the fixed bottom row
 		ImGui::BeginChild("ScrollableRegion", ImVec2(windowSize.x, scrollableHeight), true);
+		
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropEntity"))
+			{
+				const char* data = (const char*)payload->Data;
+				
+			}
+
+			ImGui::EndDragDropTarget();
+		}
 
 		// Begin the upper scrollable section
 
@@ -52,6 +93,7 @@ namespace Borealis
 		}
 
 		// Right click
+		if (Project::GetProjectPath() != "")
 		{
 			ImGuiPopupFlags popupFlagsItem = ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems | ImGuiPopupFlags_NoOpenOverExistingPopup;
 			if (ImGui::BeginPopupContextWindow(0, popupFlagsItem))
@@ -68,8 +110,19 @@ namespace Borealis
 				}
 				if (ImGui::MenuItem("Create New Material"))
 				{
-					MaterialEditor::SetRender(true);
+					isCreatingMaterial = true;
+					latestMousePos = ImGui::GetMousePos();
+
+					//std::filesystem::path materialPath = mCurrDir;
+					//materialPath /= "NewMaterial.mat";
+					//Ref<Material> material = Material::CreateNewMaterial(materialPath);
+					////TEMP
+					//AssetMetaData data = MetaFileSerializer::CreateAssetMetaFile(materialPath);
+					//AssetManager::InsertMetaData(data);
+					//AssetImporter::InsertAssetHandle(materialPath, data.Handle);
+					//MaterialEditor::SetMaterial(data.Handle);
 				}
+
 				ImGui::EndPopup();
 			}
 		}
@@ -92,6 +145,30 @@ namespace Borealis
 			ImGui::End();
 		}
 
+		if (isCreatingMaterial)
+		{
+			ImGui::SetNextWindowPos(latestMousePos);
+			ImGui::Begin("Create File ##material", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize);
+			ImGui::InputText("##MaterialFilename", textBuffer, sizeof(textBuffer));
+
+			if (ImGui::IsKeyPressed(ImGuiKey_Enter)) {
+				isCreatingMaterial = false;
+
+				std::filesystem::path materialPath = mCurrDir;
+				materialPath /= std::string(textBuffer) + ".mat";
+				Ref<Material> material = Material::CreateNewMaterial(materialPath);
+				AssetMetaData data = MetaFileSerializer::CreateAssetMetaFile(materialPath);
+				AssetManager::InsertMetaData(data);
+				AssetImporter::InsertAssetHandle(materialPath, data.Handle);
+				MaterialEditor::SetMaterial(data.Handle);
+			}
+
+			if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+				isCreatingMaterial = false; 
+			}
+			ImGui::End();
+		}
+
 
 		float panelWidth = ImGui::GetContentRegionAvail().x;
 		int cellSize = mThumbnailSize + mPadding;
@@ -105,9 +182,10 @@ namespace Borealis
 			ImGui::Columns(columnCount);
 			ImGui::PushStyleColor(ImGuiCol_Button, { 0,0,0,0 });
 		}
-
+		if (Project::GetProjectPath() != "")
 		for (auto& entry : std::filesystem::directory_iterator(mCurrDir))
 		{
+
 			const std::filesystem::path& path = entry.path();
 			std::string filenameStr = path.filename().string();
 			std::string extension = path.extension().string();
@@ -160,6 +238,10 @@ namespace Borealis
 				{
 					screenID = static_cast<uint64_t>(ResourceManager::GetFileIcon(FileIcon::Material)->GetRendererID());
 				}
+				//else if (extension == ".mp3" || extension == ".wav")
+				//{
+				//	screenID = static_cast<uint64_t>(ResourceManager::GetFileIcon(FileIcon::Audio)->GetRendererID());
+				//}
 				else
 				{
 					screenID = static_cast<uint64_t>(ResourceManager::GetFileIcon(FileIcon::Unknown)->GetRendererID());
@@ -230,9 +312,18 @@ namespace Borealis
 					{
 						payloadName = "DragDropMeshItem";
 					}
+					else if (extension == ".prefab")
+					{
+						// Correct the assignment of payloadName
+						payloadName = "DragPrefab";
+					}
 					else if (extension == ".mp3" || extension == ".wav")
 					{
 						payloadName = "DragDropAudioItem";
+					}
+					else if (extension == ".mat")
+					{
+						payloadName = "DragDropMaterialItem";
 					}
 				}
 
@@ -269,6 +360,35 @@ namespace Borealis
 		{
 			ImGui::PopStyleColor();
 			ImGui::Columns(1);
+		}
+
+		//WORK IN PROGRESS
+//Dragged Prefab
+// Content Browser panel drop target for creating prefabs
+		if (ImGui::BeginDrapDropTargetWindow("DragCreatePrefab"))
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragCreatePrefab"))
+			{
+				UUID droppedEntityID = *(const UUID*)payload->Data; // Retrieve the dragged entity ID
+
+				// Retrieve the entity using the dropped entity ID
+				Entity droppedEntity = SceneManager::GetActiveScene()->GetEntityByUUID(droppedEntityID); // Assuming you have a function to get an entity by UUID
+
+				Ref<Prefab> prefab = MakeRef<Prefab>(droppedEntity);
+				prefab->AddChild(MakeRef<Entity>(droppedEntity));
+
+				Entity makePrefab(prefab->GetPrefabID(), PrefabManager::GetScenePtr());
+				std::string dir = mCurrDir.string();
+				dir += +"\\" + droppedEntity.GetName() + ".prefab";
+				Serialiser::SerialisePrefab(dir.c_str(), makePrefab);
+				PrefabManager::Register(prefab);
+
+				AssetManager::InsertMetaData(MetaFileSerializer::CreateAssetMetaFile(dir, prefab->GetUUID()));
+
+				// You might want to add some feedback or a log message here to indicate success
+				std::cout << "Prefab created at: " << mCurrDir.string() << std::endl;
+			}
+			ImGui::EndDragDropTarget();
 		}
 
 		// End the upper scrollable section

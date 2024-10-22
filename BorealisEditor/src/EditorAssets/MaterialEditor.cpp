@@ -9,7 +9,8 @@
 
 namespace Borealis
 {
-	bool MaterialEditor::mRender = false;
+    AssetHandle MaterialEditor::mMaterialHandle{};
+	Ref<Material> MaterialEditor::mMaterial = nullptr;
 
     void DrawVec4Control(std::string const& label, glm::vec4& values, float min = 0.0f, float max = 1.0f)
     {
@@ -72,22 +73,23 @@ namespace Borealis
 
 	void MaterialEditor::RenderEditor()
 	{
-        if (!mRender) return;
+        if (!mMaterial) return;
 
         static char materialName[128] = "New Material";
         ImGui::InputText("Material Name", materialName, IM_ARRAYSIZE(materialName));
 
-        static Ref<Material> material = MakeRef<Material>(Shader::Create("assets/shaders/Renderer3D_Material.glsl"));
+        //static Ref<Material> material = MakeRef<Material>(Shader::Create("assets/shaders/Renderer3D_Material.glsl"));
 
     	ImGui::Separator();
 
-    	RenderProperties(material);
+    	RenderProperties(mMaterial);
 
         ImGui::Separator();
 
 		if (ImGui::Button("Save Material"))
 		{
-			// todo
+            std::filesystem::path path = AssetManager::GetMetaData(mMaterial->mAssetHandle).SourcePath;
+            mMaterial->SerializeMaterial(path);
 		}
 	}
 
@@ -346,5 +348,19 @@ namespace Borealis
         }
 
         ImGui::Separator();
+    }
+    void MaterialEditor::SetMaterial(AssetHandle materialHandle)
+    {
+        if (materialHandle != mMaterialHandle)
+        {
+            if (materialHandle == 0)
+            {
+                mMaterial = nullptr;
+                mMaterialHandle = 0;
+                return;
+            }
+            mMaterial = AssetManager::GetAsset<Material>(materialHandle);
+            mMaterialHandle = materialHandle;
+        }
     }
 }

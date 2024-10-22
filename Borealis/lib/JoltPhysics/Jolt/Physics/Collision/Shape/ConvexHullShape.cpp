@@ -1033,7 +1033,7 @@ void ConvexHullShape::CastRay(const RayCast &inRay, const RayCastSettings &inRay
 		}
 
 		// Check back side hit
-		if (inRayCastSettings.mBackFaceModeConvex == EBackFaceMode::CollideWithBackFaces
+		if (inRayCastSettings.mBackFaceMode == EBackFaceMode::CollideWithBackFaces
 			&& max_fraction < ioCollector.GetEarlyOutFraction())
 		{
 			hit.mFraction = max_fraction;

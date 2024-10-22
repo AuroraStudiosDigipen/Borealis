@@ -76,8 +76,8 @@ namespace BorealisAssetCompiler
 				indices.push_back(face.mIndices[j]);
 		}
 
-		retMesh.mIndicesCount = retMesh.mIndices.size();
-		retMesh.mVerticesCount = retMesh.mVertices.size();
+		retMesh.mIndicesCount = (uint32_t)retMesh.mIndices.size();
+		retMesh.mVerticesCount = (uint32_t)retMesh.mVertices.size();
 
 		return retMesh;
 	}

@@ -67,7 +67,7 @@ namespace Borealis
 			\brief
 				Renders the ImGui elements.
 		*************************************************************************/
-		void ImGuiRender() override;
+		void ImGuiRender(float dt) override;
 
 		/*!***********************************************************************
 			\brief

@@ -32,6 +32,15 @@ namespace Borealis
 		UpdateView();
 	}
 
+	void EditorCamera::SetFocalPoint(glm::vec3 point)
+	{
+		mFocalPoint = point;
+
+		// Calculate bounding box to set distance in the future
+		mDistance = 10; 
+		mPosition = point - GetForwardDirection() * mDistance;
+	}
+
 	void EditorCamera::UpdateProjection()
 	{
 		mAspectRatio = mViewportWidth / mViewportHeight;

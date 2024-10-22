@@ -16,12 +16,15 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #define MATERIAL_HPP
 #include <unordered_map>
 #include <glm/glm.hpp>
+
+#include <Assets/Asset.hpp>
 #include <Graphics/Texture.hpp>
 #include <Graphics/Shader.hpp>
 #include <Core/Core.hpp>
+
 namespace Borealis
 {
-	class Material
+	class Material : public Asset
 	{
 	public:
 		enum TextureMaps : uint8_t
@@ -33,7 +36,8 @@ namespace Borealis
 			HeightMap,
 			Occlusion,
 			DetailMask,
-			Emission
+			Emission,
+			UnknownTextureMap
 		};
 
 		enum Props : uint8_t
@@ -47,6 +51,7 @@ namespace Borealis
 			HasNormalMap,
 			HasOcclusion,
 			HasDetailMask,
+			UnknownProperty
 		};
 
 		/*!***********************************************************************
@@ -59,9 +64,33 @@ namespace Borealis
 
 		/*!***********************************************************************
 			\brief
+				Constructor for a Material from a path
+			\param[in] path
+				Path of the material
+		*************************************************************************/
+		Material(std::filesystem::path path);
+
+		/*!***********************************************************************
+			\brief
 				Destructor for Material
 		*************************************************************************/
 		~Material() {}
+
+		/*!***********************************************************************
+			\brief
+				Create a new material
+			\param[in] path
+				Path to store the material file
+		*************************************************************************/
+		static Ref<Material> CreateNewMaterial(std::filesystem::path const& path);
+
+		/*!***********************************************************************
+			\brief
+				Serialize the material
+			\param[in] path
+				Path to store the material file
+		*************************************************************************/
+		void SerializeMaterial(std::filesystem::path const& path);
 
 		// Setter for texture maps
 		/*!***********************************************************************
@@ -188,11 +217,27 @@ namespace Borealis
 
 		/*!***********************************************************************
 			\brief
+				Returns the Property enums in enum
+			\return
+				Property enums
+		*************************************************************************/
+		static TextureMaps StringToTextureMaps(const std::string& str);
+
+		/*!***********************************************************************
+			\brief
 				Returns the Property enums in strings
 			\return
 				Property enums
 		*************************************************************************/
 		static std::string PropsToString(Props prop);
+
+		/*!***********************************************************************
+			\brief
+				Returns the Property enums in enum
+			\return
+				Property enums
+		*************************************************************************/
+		static Props StringToProps(const std::string& str);
 
 	private:
 		/*!***********************************************************************
@@ -208,6 +253,8 @@ namespace Borealis
 		std::unordered_map<Props, glm::vec2> mPropertiesVec2; //Properties
 		Ref<Shader> mShader; //Shader
 		std::string mName;
+
+		RTTR_ENABLE(Asset)
 	}; //class Material
 } //namespace Borealis
 #endif

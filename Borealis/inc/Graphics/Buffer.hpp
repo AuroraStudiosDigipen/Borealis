@@ -14,6 +14,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #ifndef BUFFER_HPP
 #define BUFFER_HPP
+#include <vector>
+#include <string>
 #include <Core/LoggerSystem.hpp>
 #include <Core/Core.hpp>
 namespace Borealis

@@ -23,8 +23,9 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/Renderer3D.hpp>
 #include <Core/LoggerSystem.hpp>
 #include "Audio/AudioEngine.hpp"
-
+#include <Scene/SceneCamera.hpp>
 #include "Graphics/Light.hpp"
+#include <Physics/PhysicsSystem.hpp>
 
 namespace Borealis
 {
@@ -35,7 +36,7 @@ namespace Borealis
 
 	Scene::~Scene()
 	{
-
+		auto view = mRegistry.view<RigidBodyComponent>();
 	}
 	void Scene::UpdateRuntime(float dt)
 	{
@@ -65,6 +66,10 @@ namespace Borealis
 					script->Update();
 				}
 			}
+			static float accumDt = 0;
+			accumDt += dt;
+			int timeStep = std::max(1, (int)(accumDt / 1.66667f));
+			accumDt -= timeStep * 1.66667f;
 
 			auto BTview = mRegistry.view<BehaviourTreeComponent>();
 			for (auto entity : BTview)
@@ -74,7 +79,7 @@ namespace Borealis
 
 
 
-			int timeStep = dt / 1.66667f;
+			//timeStep = dt / 1.66667f;
 			for (auto entity : view)
 			{
 				auto& scriptComponent = view.get<ScriptComponent>(entity);
@@ -88,14 +93,31 @@ namespace Borealis
 			//------------------------
 			// Physics Simulation here
 			//------------------------
-
-
-			for (auto entity : view)
+			
+			// Set Jolt values to entity transform.
 			{
-				auto& scriptComponent = view.get<ScriptComponent>(entity);
-				for (auto& [name, script] : scriptComponent.mScripts)
+				auto physicsGroup = mRegistry.group<>(entt::get<TransformComponent, RigidBodyComponent>);
+				for (auto entity : physicsGroup)
 				{
-					script->LateUpdate();
+					auto [transform, rigidbody] = physicsGroup.get<TransformComponent, RigidBodyComponent>(entity);
+					PhysicsSystem::PushTransform(rigidbody.bodyID, transform);
+				}
+
+				PhysicsSystem::Update(dt);
+
+				// Set entity values to Jolt transform.
+				for (auto entity : physicsGroup)
+				{
+					auto [transform, rigidbody] = physicsGroup.get<TransformComponent, RigidBodyComponent>(entity);
+					PhysicsSystem::PullTransform(rigidbody.bodyID, transform);
+				}
+				for (auto entity : view)
+				{
+					auto& scriptComponent = view.get<ScriptComponent>(entity);
+					for (auto& [name, script] : scriptComponent.mScripts)
+					{
+						script->LateUpdate();
+					}
 				}
 			}
 		}
@@ -111,6 +133,7 @@ namespace Borealis
 
 				if (camera.Primary)
 				{
+					//camera.Camera.SetCameraType(SceneCamera::CameraType::Perspective);
 					mainCamera = &camera.Camera;
 					mainCameratransform = transform;
 					break;
@@ -123,65 +146,61 @@ namespace Borealis
 		{
 			Renderer3D::Begin(*mainCamera, mainCameratransform);
 			{
-				auto group = mRegistry.group<>(entt::get<TransformComponent, MeshFilterComponent>);
-				for (auto& entity : group)
 				{
-					auto [transform, meshFilter] = group.get<TransformComponent, MeshFilterComponent>(entity);
-					auto groupLight = mRegistry.group<>(entt::get<TransformComponent, LightComponent>);
-					MeshRendererComponent meshRenderer{};
-					if (!groupLight.empty())
+					auto group = mRegistry.group<>(entt::get<TransformComponent, LightComponent>);
+					for (auto& entity : group)
 					{
-						auto [lighttransform, light] = groupLight.get<TransformComponent, LightComponent>(groupLight.front());
-						Ref<Light> lightS = MakeRef<Light>(lighttransform, light);
-						Renderer3D::DrawMesh(transform, meshFilter, meshRenderer, lightS, (int)entity);
-					}
-					else
-					{
-						Renderer3D::DrawMesh(transform, meshFilter, meshRenderer, nullptr, (int)entity);
+						auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
+						lightComponent.offset = transform.Translate;
+						Renderer3D::AddLight(lightComponent);
 					}
 				}
-			}
-			{
+
 				auto group = mRegistry.group<>(entt::get<TransformComponent, MeshFilterComponent, MeshRendererComponent>);
 				for (auto& entity : group)
 				{
 					auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
 					auto groupLight = mRegistry.group<>(entt::get<TransformComponent, LightComponent>);
 
-					if (!groupLight.empty())
-					{
-						auto [lighttransform, light] = groupLight.get<TransformComponent, LightComponent>(groupLight.front());
-						Ref<Light> lightS = MakeRef<Light>(lighttransform, light);
-						Renderer3D::DrawMesh(transform, meshFilter, meshRenderer, lightS, (int)entity);
-					}
-					else
-					{
-						Renderer3D::DrawMesh(transform, meshFilter, meshRenderer, nullptr, (int)entity);
-					}
+					Renderer3D::DrawMesh(transform, meshFilter, meshRenderer, (int)entity);
 				}
 			}
+			Renderer3D::End();
 
+			Renderer2D::Begin(*mainCamera, mainCameratransform);
 			{
-				Renderer2D::Begin(*mainCamera, mainCameratransform);
 				auto group = mRegistry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);
 				for (auto& entity : group)
 				{
 					auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-					Renderer2D::DrawQuad(transform, sprite.Colour);
+					Renderer2D::DrawSprite(transform, sprite, (int)entity);
 				}
-				Renderer2D::End();
+				//Renderer2D::End();
 			}
 
 			{
-				Renderer2D::Begin(*mainCamera, mainCameratransform);
+				//Renderer2D::Begin(*mainCamera, mainCameratransform);
 				auto group = mRegistry.group<>(entt::get<TransformComponent, CircleRendererComponent>);
 				for (auto& entity : group)
 				{
 					auto [transform, circle] = group.get<TransformComponent, CircleRendererComponent>(entity);
 					Renderer2D::DrawCircle(transform, circle.Colour, circle.thickness, circle.fade);
 				}
-				Renderer2D::End();
+				//Renderer2D::End();
 			}
+
+			{
+				//Renderer2D::Begin(*mainCamera, mainCameratransform);
+				auto group = mRegistry.group<>(entt::get<TransformComponent, TextComponent>);
+				for (auto& entity : group)
+				{
+
+					auto [transform, text] = group.get<TransformComponent, TextComponent>(entity);
+					// multiply text scale into transform
+					Renderer2D::DrawString(text, transform, (int)entity);
+				}
+			}
+				Renderer2D::End();
 			
 		}
 
@@ -212,32 +231,24 @@ namespace Borealis
 					{
 						AudioEngine::StopChannel(audio.channelID);
 						audio.isPlaying = false;
-						audio.channelID = Borealis::AudioEngine::PlayAudio(audio, {}, 5.0, audio.isMute, audio.isLoop);
+						audio.channelID = Borealis::AudioEngine::PlayAudio(audio, {}, audio.Volume, audio.isMute, audio.isLoop);
+						//audio.channelID = Borealis::AudioEngine::PlayAudio(audio.audio->AudioPath, {}, audio.Volume, audio.isMute, audio.isLoop);
 					}
 				}
 			}
 		}
 	}
+
 	void Scene::UpdateEditor(float dt, EditorCamera& camera)
 	{
 		Renderer3D::Begin(camera);
 		{
-			auto group = mRegistry.group<>(entt::get<TransformComponent, MeshFilterComponent>);
+			auto group = mRegistry.group<>(entt::get<TransformComponent, LightComponent>);
 			for (auto& entity : group)
 			{
-				auto [transform, meshFilter] = group.get<TransformComponent, MeshFilterComponent>(entity);
-				auto groupLight = mRegistry.group<>(entt::get<TransformComponent, LightComponent>);
-				MeshRendererComponent meshRenderer{};
-				if (!groupLight.empty())
-				{
-					auto [lighttransform, light] = groupLight.get<TransformComponent, LightComponent>(groupLight.front());
-					Ref<Light> lightS = MakeRef<Light>(lighttransform, light);
-					Renderer3D::DrawMesh(transform, meshFilter, meshRenderer, lightS, (int)entity);
-				}
-				else
-				{
-					Renderer3D::DrawMesh(transform, meshFilter, meshRenderer, nullptr, (int)entity);
-				}
+				auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
+				lightComponent.offset = transform.Translate;
+				Renderer3D::AddLight(lightComponent);
 			}
 		}
 		{
@@ -246,17 +257,8 @@ namespace Borealis
 			{
 				auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
 				auto groupLight = mRegistry.group<>(entt::get<TransformComponent, LightComponent>);
-				
-				if (!groupLight.empty())
-				{
-					auto [lighttransform, light] = groupLight.get<TransformComponent, LightComponent>(groupLight.front());
-					Ref<Light> lightS = MakeRef<Light>(lighttransform, light);
-					Renderer3D::DrawMesh(transform, meshFilter, meshRenderer, lightS, (int)entity);
-				}
-				else
-				{
-					Renderer3D::DrawMesh(transform, meshFilter, meshRenderer, nullptr, (int)entity);
-				}
+
+				Renderer3D::DrawMesh(transform, meshFilter, meshRenderer, (int)entity);
 			}
 		}
 
@@ -282,7 +284,7 @@ namespace Borealis
 			for (auto& entity : group)
 			{
 				auto [transform, text] = group.get<TransformComponent, TextComponent>(entity);
-				Renderer2D::DrawString(text.text, text.font, transform, (int)entity);
+				Renderer2D::DrawString(text, transform, (int)entity);
 			}
 		}
 
@@ -291,12 +293,14 @@ namespace Borealis
 	}
 	Entity Scene::CreateEntity(const std::string& name)
 	{
+
+		UUID id;
 		static unsigned unnamedID = 1;
 		auto entity = Entity(mRegistry.create(), this);
-		entity.AddComponent<IDComponent>();
+		entity.AddComponent<IDComponent>(id);
 		name == "" ? entity.AddComponent<TagComponent>("unnamedEntity" + std::to_string(unnamedID++)) : entity.AddComponent<TagComponent>(name);
 		entity.AddComponent<TransformComponent>();
-		mEntityMap[entity.GetUUID()] = entity;
+		mEntityMap[id] = entity;
 		return entity;
 	}
 	Entity Scene::CreateEntityWithUUID(const std::string& name, uint64_t UUID)
@@ -319,6 +323,10 @@ namespace Borealis
 	void Scene::DestroyEntity(Entity entity)
 	{		
 		mEntityMap.erase(entity.GetUUID());
+		if (hasRuntimeStarted && entity.HasComponent<RigidBodyComponent>())
+		{
+			PhysicsSystem::FreeRigidBody(entity.GetComponent<RigidBodyComponent>());
+		}
 		mRegistry.destroy(entity);
 	}
 
@@ -327,6 +335,22 @@ namespace Borealis
 	{
 		if (src.HasComponent<Component>())
 			dst.AddOrReplaceComponent<Component>(src.GetComponent<Component>());
+	}
+
+	template<>
+	static void CopyComponent<RigidBodyComponent>(Entity dst, Entity src)
+	{
+		if (src.HasComponent<RigidBodyComponent>())
+			dst.AddOrReplaceComponent<RigidBodyComponent>(src.GetComponent<RigidBodyComponent>());
+
+		if ((bool)dst.GetComponent<RigidBodyComponent>().isBox)
+		{
+			PhysicsSystem::UpdateBoxValues(dst.GetComponent<RigidBodyComponent>());
+		}
+		else
+		{
+			PhysicsSystem::UpdateSphereValues(dst.GetComponent<RigidBodyComponent>());
+		}
 	}
 
 	void Scene::DuplicateEntity(Entity entity)
@@ -405,6 +429,23 @@ namespace Borealis
 		}
 	}
 
+	template <>
+	static void CopyComponent <RigidBodyComponent>(entt::registry& dst, entt::registry& src, const std::unordered_map<UUID, entt::entity>& entitymap)
+	{
+		auto view = src.view<RigidBodyComponent>();
+		for (auto srcEntity : view)
+		{
+			UUID uuid = src.get<IDComponent>(srcEntity).ID;
+			auto dstEntity = entitymap.at(uuid);
+
+			auto rbComponent = view.get<RigidBodyComponent>(srcEntity);
+
+			auto& newRbComponent = dst.emplace<RigidBodyComponent>(dstEntity);
+
+			newRbComponent = rbComponent;
+		}
+	}
+
 	Ref<Scene> Scene::Copy(const Ref<Scene>& other)
 	{
 		Ref<Scene> newScene = MakeRef<Scene>();
@@ -449,11 +490,30 @@ namespace Borealis
 	void Scene::RuntimeStart()
 	{
 		hasRuntimeStarted = true;
+
+		auto physicsGroup = mRegistry.group<>(entt::get<TransformComponent, RigidBodyComponent>);
+		for (auto entity : physicsGroup)
+		{
+			auto [transform, rigidbody] = physicsGroup.get<TransformComponent, RigidBodyComponent>(entity);
+			if (rigidbody.isBox == RigidBodyType::Box)
+			{
+				PhysicsSystem::addSquareBody(rigidbody.radius, transform.Translate, rigidbody);
+			}
+			else
+			{
+				PhysicsSystem::addSphereBody(rigidbody.radius, transform.Translate, rigidbody);
+			}
+		}
 	}
 
 	void Scene::RuntimeEnd()
 	{
 		hasRuntimeStarted = false;
+		auto view = mRegistry.view<RigidBodyComponent>();
+		for (auto entity : view)
+		{
+			PhysicsSystem::FreeRigidBody(view.get<RigidBodyComponent>(entity));
+		}
 	}
 
 	Entity Scene::GetPrimaryCameraEntity()
@@ -528,7 +588,6 @@ namespace Borealis
 	template<>
 	void Scene::OnComponentAdded<RigidBodyComponent>(Entity entity, RigidBodyComponent& component)
 	{
-
 	}
 	template<>
 	void Scene::OnComponentAdded<LightComponent>(Entity entity, LightComponent& component)
@@ -545,7 +604,7 @@ namespace Borealis
 	template<>
 	void Scene::OnComponentAdded<TextComponent>(Entity entity, TextComponent& component)
 	{
-		
+		component.font = Font::GetDefaultFont();
 	}
 
 	template<>

@@ -17,6 +17,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scripting/ScriptInstance.hpp>
 #include <Scripting/ScriptingUtils.hpp>
 #include <mono/metadata/object.h>
+#include <mono/jit/jit.h>
 
 namespace Borealis
 {
@@ -68,6 +69,22 @@ namespace Borealis
 		mono_field_set_value(mInstance, field.mMonoFieldType, value);
 		return true;
 	}
+	bool ScriptInstance::SetFieldValueInternal(const std::string& name, std::string value)
+	{
+		const auto& fields = mScriptClass->mFields;
+		auto it = fields.find(name);
+		if (it == fields.end())
+		{
+			BOREALIS_CORE_ERROR("Field {0} not found in class {1}", name, mScriptClass->GetKlassName());
+			return false;
+		}
+
+		const ScriptField& field = it->second;
+		MonoString* str = mono_string_new(mono_domain_get(), value.c_str());
+		mono_field_set_value(mInstance, field.mMonoFieldType, str);
+		return true;
+
+	}
 	bool ScriptInstance::GetFieldValueInternal(const std::string& name, const void* value)
 	{
 		const auto& fields = mScriptClass->mFields;
@@ -81,6 +98,29 @@ namespace Borealis
 		const ScriptField& field = it->second;
 		mono_field_get_value(mInstance, field.mMonoFieldType, s_fieldValueBuffer);
 		return true;
+	}
+
+	bool ScriptInstance::GetFieldValueString(const std::string& name, std::string& output)
+	{
+		MonoString* monoString;
+		const auto& fields = mScriptClass->mFields;
+		auto it = fields.find(name);
+		if (it == fields.end())
+		{
+			BOREALIS_CORE_ERROR("Field {0} not found in class {1}", name, mScriptClass->GetKlassName());
+			return false;
+		}
+
+		const ScriptField& field = it->second;
+		mono_field_get_value(mInstance, field.mMonoFieldType, &monoString);
+		if (monoString)
+		{
+			char* str = mono_string_to_utf8(monoString);
+			output = str;
+			mono_free((void*)str);
+			return true;
+		}
+		return false;
 	}
 
 #ifdef _DEB

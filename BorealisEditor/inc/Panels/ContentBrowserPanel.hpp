@@ -26,8 +26,22 @@ namespace Borealis
 	class ContentBrowserPanel
 	{
 	public:
+		/*!***********************************************************************
+			\brief
+				Construct the Content Browser Panel
+		*************************************************************************/
 		ContentBrowserPanel();
+
+		/*!***********************************************************************
+			\brief
+				Render the Content Browser Panel
+		*************************************************************************/
 		void ImGuiRender();
+
+		/*!***********************************************************************
+			\brief
+				Set the directory of the Content Browser Panel
+		*************************************************************************/
 		void SetCurrDir(std::string path);
 		static UUID sSelectedAsset;
 
@@ -39,6 +53,7 @@ namespace Borealis
 		 int mPadding = 2;
 		 const int mMinThumbnailSize = 62;
 		 bool isCreatingScene = false;
+		 bool isCreatingMaterial = false;
 
 	};
 }

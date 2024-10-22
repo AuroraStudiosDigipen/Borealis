@@ -78,8 +78,8 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;YAML_CPP_STATIC_DEFINE;_DEB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Borealis;..\Borealis\inc;..\Borealis\lib\spdlog\include;..\Borealis\lib\yaml-cpp\include;..\Borealis\lib\glm;..\Borealis\lib\imgui;inc;..\Borealis\lib\ENTT\include;..\Borealis\lib\ImGuizmo;lib\imgui-node-editor;lib\assimp\include;lib\MSDF\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;YAML_CPP_STATIC_DEFINE;JPH_FLOATING_POINT_EXCEPTIONS_ENABLED;JPH_CROSS_PLATFORM_DETERMINISTIC;JPH_ENABLE_ASSERTS;_DEB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\Borealis;..\Borealis\inc;..\Borealis\lib\spdlog\include;..\Borealis\lib\yaml-cpp\include;..\Borealis\lib\glm;..\Borealis\lib\imgui;inc;..\Borealis\lib\ENTT\include;..\Borealis\lib\ImGuizmo;lib\imgui-node-editor;lib\assimp\include;lib\MSDF\Include;..\Borealis\lib\RTTR\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -89,7 +89,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>lib\MSDF\Build\Debug\msdf-atlas-gen.lib;lib\MSDF\Build\Debug\msdfgen-core.lib;lib\MSDF\Build\Debug\msdfgen-ext.lib;lib\MSDF\Build\Debug\freetyped.lib;lib\MSDF\Build\Debug\libpng16d.lib;lib\MSDF\Build\Debug\bz2d.lib;lib\MSDF\Build\Debug\brotlidec.lib;lib\MSDF\Build\Debug\brotlicommon.lib;..\Borealis\lib\yaml-cpp\lib\Deb\yaml-cpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lib\MSDF\Build\Debug\msdf-atlas-gen.lib;lib\MSDF\Build\Debug\msdfgen-core.lib;lib\MSDF\Build\Debug\msdfgen-ext.lib;lib\MSDF\Build\Debug\freetyped.lib;lib\MSDF\Build\Debug\libpng16d.lib;lib\MSDF\Build\Debug\bz2d.lib;lib\MSDF\Build\Debug\brotlidec.lib;lib\MSDF\Build\Debug\brotlicommon.lib;..\Borealis\lib\yaml-cpp\lib\Deb\yaml-cpp.lib;..\Borealis\lib\JoltPhysics\lib\Deb\JoltPhysics.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy /B /Y "..\Borealis\lib\FMOD\dll\fmodL.dll" "$(TargetDir)"
@@ -98,6 +98,8 @@ IF EXIST "engineResources"\ (xcopy /Q /E /Y /I "engineResources" "$(TargetDir)en
 IF EXIST "resources"\ (xcopy /Q /E /Y /I "resources" "$(TargetDir)resources" &gt; nul) ELSE (xcopy /Q /Y /I "resources" "$(TargetDir)resources" &gt; nul)
 IF EXIST "mono"\ (xcopy /Q /E /Y /I "mono" "$(TargetDir)mono" &gt; nul) ELSE (xcopy /Q /Y /I "mono" "$(TargetDir)mono" &gt; nul)
 IF EXIST "settings"\ (xcopy /Q /E /Y /I "settings" "$(TargetDir)settings" &gt; nul) ELSE (xcopy /Q /Y /I "settings" "$(TargetDir)settings" &gt; nul)
+copy /B /Y "BorealisAssetCompiler.exe" "$(TargetDir)BorealisAssetCompiler.exe"
+copy /B /Y "BorealisRuntime.exe" "$(TargetDir)BorealisRuntime.exe"
 copy /B /Y "imgui.ini" "$(TargetDir)imgui.ini"
 IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
     </PostBuildEvent>
@@ -106,8 +108,8 @@ IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;YAML_CPP_STATIC_DEFINE;_REL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Borealis;..\Borealis\inc;..\Borealis\lib\spdlog\include;..\Borealis\lib\yaml-cpp\include;..\Borealis\lib\glm;..\Borealis\lib\imgui;inc;..\Borealis\lib\ENTT\include;..\Borealis\lib\ImGuizmo;lib\imgui-node-editor;lib\assimp\include;lib\MSDF\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;YAML_CPP_STATIC_DEFINE;JPH_FLOATING_POINT_EXCEPTIONS_ENABLED;JPH_CROSS_PLATFORM_DETERMINISTIC;JPH_ENABLE_ASSERTS;_REL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\Borealis;..\Borealis\inc;..\Borealis\lib\spdlog\include;..\Borealis\lib\yaml-cpp\include;..\Borealis\lib\glm;..\Borealis\lib\imgui;inc;..\Borealis\lib\ENTT\include;..\Borealis\lib\ImGuizmo;lib\imgui-node-editor;lib\assimp\include;lib\MSDF\Include;..\Borealis\lib\RTTR\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -121,7 +123,7 @@ IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>lib\MSDF\Build\Release\msdf-atlas-gen.lib;lib\MSDF\Build\Release\msdfgen-core.lib;lib\MSDF\Build\Release\msdfgen-ext.lib;lib\MSDF\Build\Release\freetype.lib;lib\MSDF\Build\Release\libpng16.lib;lib\MSDF\Build\Release\bz2.lib;lib\MSDF\Build\Release\brotlidec.lib;lib\MSDF\Build\Release\brotlicommon.lib;..\Borealis\lib\yaml-cpp\lib\Rel\yaml-cpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lib\MSDF\Build\Release\msdf-atlas-gen.lib;lib\MSDF\Build\Release\msdfgen-core.lib;lib\MSDF\Build\Release\msdfgen-ext.lib;lib\MSDF\Build\Release\freetype.lib;lib\MSDF\Build\Release\libpng16.lib;lib\MSDF\Build\Release\bz2.lib;lib\MSDF\Build\Release\brotlidec.lib;lib\MSDF\Build\Release\brotlicommon.lib;..\Borealis\lib\yaml-cpp\lib\Rel\yaml-cpp.lib;..\Borealis\lib\JoltPhysics\lib\Rel\JoltPhysics.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy /B /Y "..\Borealis\lib\FMOD\dll\fmod.dll" "$(TargetDir)"
@@ -130,6 +132,8 @@ IF EXIST "engineResources"\ (xcopy /Q /E /Y /I "engineResources" "$(TargetDir)en
 IF EXIST "resources"\ (xcopy /Q /E /Y /I "resources" "$(TargetDir)resources" &gt; nul) ELSE (xcopy /Q /Y /I "resources" "$(TargetDir)resources" &gt; nul)
 IF EXIST "mono"\ (xcopy /Q /E /Y /I "mono" "$(TargetDir)mono" &gt; nul) ELSE (xcopy /Q /Y /I "mono" "$(TargetDir)mono" &gt; nul)
 IF EXIST "settings"\ (xcopy /Q /E /Y /I "settings" "$(TargetDir)settings" &gt; nul) ELSE (xcopy /Q /Y /I "settings" "$(TargetDir)settings" &gt; nul)
+copy /B /Y "BorealisAssetCompiler.exe" "$(TargetDir)BorealisAssetCompiler.exe"
+copy /B /Y "BorealisRuntime.exe" "$(TargetDir)BorealisRuntime.exe"
 copy /B /Y "imgui.ini" "$(TargetDir)imgui.ini"
 IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
     </PostBuildEvent>
@@ -138,8 +142,8 @@ IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;YAML_CPP_STATIC_DEFINE;_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Borealis;..\Borealis\inc;..\Borealis\lib\spdlog\include;..\Borealis\lib\yaml-cpp\include;..\Borealis\lib\glm;..\Borealis\lib\imgui;inc;..\Borealis\lib\ENTT\include;..\Borealis\lib\ImGuizmo;lib\imgui-node-editor;lib\assimp\include;lib\MSDF\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;YAML_CPP_STATIC_DEFINE;JPH_FLOATING_POINT_EXCEPTIONS_ENABLED;JPH_CROSS_PLATFORM_DETERMINISTIC;JPH_ENABLE_ASSERTS;_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\Borealis;..\Borealis\inc;..\Borealis\lib\spdlog\include;..\Borealis\lib\yaml-cpp\include;..\Borealis\lib\glm;..\Borealis\lib\imgui;inc;..\Borealis\lib\ENTT\include;..\Borealis\lib\ImGuizmo;lib\imgui-node-editor;lib\assimp\include;lib\MSDF\Include;..\Borealis\lib\RTTR\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -153,7 +157,7 @@ IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>lib\MSDF\Build\Release\msdf-atlas-gen.lib;lib\MSDF\Build\Release\msdfgen-core.lib;lib\MSDF\Build\Release\msdfgen-ext.lib;lib\MSDF\Build\Release\freetype.lib;lib\MSDF\Build\Release\libpng16.lib;lib\MSDF\Build\Release\bz2.lib;lib\MSDF\Build\Release\brotlidec.lib;lib\MSDF\Build\Release\brotlicommon.lib;..\Borealis\lib\yaml-cpp\lib\Rel\yaml-cpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lib\MSDF\Build\Release\msdf-atlas-gen.lib;lib\MSDF\Build\Release\msdfgen-core.lib;lib\MSDF\Build\Release\msdfgen-ext.lib;lib\MSDF\Build\Release\freetype.lib;lib\MSDF\Build\Release\libpng16.lib;lib\MSDF\Build\Release\bz2.lib;lib\MSDF\Build\Release\brotlidec.lib;lib\MSDF\Build\Release\brotlicommon.lib;..\Borealis\lib\yaml-cpp\lib\Rel\yaml-cpp.lib;..\Borealis\lib\JoltPhysics\lib\Rel\JoltPhysics.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy /B /Y "..\Borealis\lib\FMOD\dll\fmod.dll" "$(TargetDir)"
@@ -162,6 +166,8 @@ IF EXIST "engineResources"\ (xcopy /Q /E /Y /I "engineResources" "$(TargetDir)en
 IF EXIST "resources"\ (xcopy /Q /E /Y /I "resources" "$(TargetDir)resources" &gt; nul) ELSE (xcopy /Q /Y /I "resources" "$(TargetDir)resources" &gt; nul)
 IF EXIST "mono"\ (xcopy /Q /E /Y /I "mono" "$(TargetDir)mono" &gt; nul) ELSE (xcopy /Q /Y /I "mono" "$(TargetDir)mono" &gt; nul)
 IF EXIST "settings"\ (xcopy /Q /E /Y /I "settings" "$(TargetDir)settings" &gt; nul) ELSE (xcopy /Q /Y /I "settings" "$(TargetDir)settings" &gt; nul)
+copy /B /Y "BorealisAssetCompiler.exe" "$(TargetDir)BorealisAssetCompiler.exe"
+copy /B /Y "BorealisRuntime.exe" "$(TargetDir)BorealisRuntime.exe"
 copy /B /Y "imgui.ini" "$(TargetDir)imgui.ini"
 IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
     </PostBuildEvent>
@@ -176,6 +182,9 @@ IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
     <ClInclude Include="inc\EditorLayer.hpp" />
     <ClInclude Include="inc\Panels\ContentBrowserPanel.hpp" />
     <ClInclude Include="inc\Panels\SceneHierarchyPanel.hpp" />
+    <ClInclude Include="inc\Prefab.hpp" />
+    <ClInclude Include="inc\PrefabComponent.hpp" />
+    <ClInclude Include="inc\PrefabManager.hpp" />
     <ClInclude Include="inc\ResourceManager.hpp" />
   </ItemGroup>
   <ItemGroup>
@@ -189,6 +198,8 @@ IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
     <ClCompile Include="src\EditorLayer.cpp" />
     <ClCompile Include="src\Panels\ContentBrowserPanel.cpp" />
     <ClCompile Include="src\Panels\SceneHierarchyPanel.cpp" />
+    <ClCompile Include="src\Prefab.cpp" />
+    <ClCompile Include="src\PrefabManager.cpp" />
     <ClCompile Include="src\ResourceManager.cpp" />
   </ItemGroup>
   <ItemGroup>

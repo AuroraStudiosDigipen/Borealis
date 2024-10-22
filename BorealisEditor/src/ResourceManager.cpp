@@ -29,7 +29,7 @@ namespace Borealis
 		mFileIcons[FileIcon::Material] = Texture2D::Create("resources/icons/file-mat.dds");
 		mFileIcons[FileIcon::Mesh] = Texture2D::Create("resources/icons/file-mesh.dds");
 		mFileIcons[FileIcon::Texture] = Texture2D::Create("resources/icons/file-png.dds");
-		mFileIcons[FileIcon::Unknown] = Texture2D::Create("resources/icons/file-png.dds");
+		mFileIcons[FileIcon::Unknown] = Texture2D::Create("resources/icons/file-unknown-notext.dds");
 	}
 	void ResourceManager::Init()
 	{

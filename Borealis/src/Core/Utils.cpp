@@ -131,4 +131,49 @@ namespace Borealis
 		glFramebufferTexture2D(GL_FRAMEBUFFER, attachmentType, TextureTarget(multisampled), id, 0);
 	}
 
+	glm::vec3 Math::QuatToEuler(glm::quat q, bool radians)
+	{
+		float yaw = atan2(2.0f * (q.y * q.z + q.w * q.x), q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z);
+		float pitch = asin(-2.0f * (q.x * q.z - q.w * q.y));
+		float roll = atan2(2.0f * (q.x * q.y + q.w * q.z), q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z);
+
+		if (!radians)
+		{
+			yaw = glm::degrees(yaw);
+			pitch = glm::degrees(pitch);
+			roll = glm::degrees(roll);
+		}
+		return glm::vec3(yaw, pitch, roll);
+	}
+
+	glm::quat Math::EulerToQuat(glm::vec3 euler, bool radians)
+	{
+		if (!radians)
+		{
+			euler.x = glm::radians(euler.x);
+			euler.y = glm::radians(euler.y);
+			euler.z = glm::radians(euler.z);
+		}
+
+		float pitch = euler.x;
+		float yaw = euler.y;
+		float roll = euler.z;
+
+		float cy = cos(yaw * 0.5f);
+		float sy = sin(yaw * 0.5f);
+		float cp = cos(pitch * 0.5f);
+		float sp = sin(pitch * 0.5f);
+		float cr = cos(roll * 0.5f);
+		float sr = sin(roll * 0.5f);
+
+		glm::quat q;
+		q.w = cr * cp * cy + sr * sp * sy;
+		q.x = sr * cp * cy - cr * sp * sy;
+		q.y = cr * sp * cy + sr * cp * sy;
+		q.z = cr * cp * sy - sr * sp * cy;
+
+		return glm::normalize(q);
+		
+	}
+
 }

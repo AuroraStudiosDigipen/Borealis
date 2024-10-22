@@ -126,6 +126,12 @@ namespace Borealis
 	*************************************************************************/
 	ScriptFieldType MonoType2ScriptFieldType(MonoType* type);
 
+	/*!***********************************************************************
+		\brief
+			Gets a script class based on the name via the scripting system
+		\param[in] className
+			Name of the class
+	*************************************************************************/
 	Ref<ScriptClass> GetScriptClassUtils(const std::string& className);
 
 }

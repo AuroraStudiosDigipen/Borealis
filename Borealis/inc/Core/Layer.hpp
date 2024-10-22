@@ -85,7 +85,7 @@ namespace Borealis
 			\brief
 				ImGui Rendering function of the layer
 		*************************************************************************/
-		virtual void ImGuiRender() {};
+		virtual void ImGuiRender(float dt) {};
 
 #ifndef _DIST
 
@@ -99,8 +99,9 @@ namespace Borealis
 
 	protected:
 		std::string* mName; //!< Name of the layer
-	}; // End of Layer Class
 #endif
+	}; // End of Layer Class
+
 
 } // End of namespace Borealis
 

@@ -23,13 +23,13 @@ namespace Borealis {
 		*************************************************************************/
 		static void RenderProperties(Ref<Material> const& material);
 
-		/*!***********************************************************************
-			\brief
-				Getter for the render boolean
-			\return
-				render boolean
-		*************************************************************************/
-		static bool GetRender() { return mRender; }
+		///*!***********************************************************************
+		//	\brief
+		//		Getter for the render boolean
+		//	\return
+		//		render boolean
+		//*************************************************************************/
+		//static bool GetRender() { return mRender; }
 
 		/*!***********************************************************************
 			\brief
@@ -37,10 +37,11 @@ namespace Borealis {
 			\param[in] render
 				Render editor if true
 		*************************************************************************/
-		static void SetRender(bool render) { mRender = render; }
+		static void SetMaterial(AssetHandle materialHandle);
 		
 	private:
-		static bool mRender;
+		static AssetHandle mMaterialHandle;
+		static Ref<Material> mMaterial;
 	};
 }
 

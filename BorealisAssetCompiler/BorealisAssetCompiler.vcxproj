@@ -55,21 +55,21 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>..\build\Debug-x86_64\BorealisAssetCompiler\</OutDir>
+    <OutDir>..\BorealisEditor\</OutDir>
     <IntDir>..\build-int\Debug-x86_64\BorealisAssetCompiler\</IntDir>
     <TargetName>BorealisAssetCompiler</TargetName>
     <TargetExt>.exe</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>..\build\Release-x86_64\BorealisAssetCompiler\</OutDir>
+    <OutDir>..\BorealisEditor\</OutDir>
     <IntDir>..\build-int\Release-x86_64\BorealisAssetCompiler\</IntDir>
     <TargetName>BorealisAssetCompiler</TargetName>
     <TargetExt>.exe</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Distribution|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>..\build\Distribution-x86_64\BorealisAssetCompiler\</OutDir>
+    <OutDir>..\BorealisEditor\</OutDir>
     <IntDir>..\build-int\Distribution-x86_64\BorealisAssetCompiler\</IntDir>
     <TargetName>BorealisAssetCompiler</TargetName>
     <TargetExt>.exe</TargetExt>

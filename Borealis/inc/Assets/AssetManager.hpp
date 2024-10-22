@@ -17,23 +17,61 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include <Core/Core.hpp>
 #include <Core/Project.hpp>
+#include <Core/ApplicationManager.hpp>
 
 namespace Borealis
 {
 	class AssetManager
 	{
 	public:
+		/*!***********************************************************************
+			\brief
+				Get Asset by handle
+		*************************************************************************/
 		template<typename T>
 		static Ref<T> GetAsset(AssetHandle handle)
 		{
+			if(mRunTime)
+			{
+				Ref<Asset> asset = mAssetManager.GetAsset(handle);
+				return std::static_pointer_cast<T>(asset);
+			}
 			Ref<Asset> asset = Project::GetEditorAssetsManager()->GetAsset(handle);
 			return std::static_pointer_cast<T>(asset);
 		}
 
+		/*!***********************************************************************
+			\brief
+				Get meta data by handle
+		*************************************************************************/
 		static AssetMetaData const& GetMetaData(AssetHandle handle)
 		{
+			if (mRunTime)
+			{
+				return mAssetManager.GetMetaData(handle);
+			}
 			return Project::GetEditorAssetsManager()->GetMetaData(handle);
 		}
+
+		//TEMP
+		//===============================================================
+		static void InsertMetaData(AssetMetaData data)
+		{
+			if (!mRunTime)
+			{
+				Project::GetEditorAssetsManager()->GetAssetRegistry().insert({ data.Handle, data });
+			}
+		}
+
+		static void SetRunTime()
+		{
+			mRunTime = true;
+			mAssetManager.LoadAssetRegistryRunTime("AssetRegistry.brdb");
+		}
+
+	private:
+		inline static bool mRunTime = false;
+		inline static EditorAssetManager mAssetManager;
 	};
 }
 

@@ -412,3 +412,4 @@ FodyWeavers.xsd
 !BorealisAssetCompiler/lib/MSDF/Build/Release/
 !BorealisAssetCompiler/lib/ispc/build/
 !BorealisAssetCompiler/lib/ispc/dll/
+!BorealisAssetCompiler/lib/compressonator/build/

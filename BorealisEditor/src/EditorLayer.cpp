@@ -181,13 +181,13 @@ namespace Borealis {
 				RenderPassConfig editorGeometricPass(RenderPassType::Geometry, "editorGeometricPass");
 				editorGeometricPass.AddSinkLinkage("gBuffer", "gBuffer");
 				editorGeometricPass.AddSinkLinkage("camera", "EditorCamera");
-				//dconfig.AddPass(editorGeometricPass);
+				dconfig.AddPass(editorGeometricPass);
 
 				RenderPassConfig editorLightPass(RenderPassType::Lighting, "editorLightPass");
 				editorLightPass.AddSinkLinkage("gBuffer", "editorGeometricPass.gBuffer");
 				editorLightPass.AddSinkLinkage("renderTarget", "EditorBuffer");
 				editorLightPass.AddSinkLinkage("viewProj", "editorGeometricPass.camera");
-				//dconfig.AddPass(editorLightPass);
+				dconfig.AddPass(editorLightPass);
 			}
 
 			//forward rendering
@@ -195,18 +195,20 @@ namespace Borealis {
 				RenderPassConfig editorRender3D(RenderPassType::Render3D, "editorRender3D");
 				editorRender3D.AddSinkLinkage("renderTarget", "EditorBuffer");
 				editorRender3D.AddSinkLinkage("camera", "EditorCamera");
-				dconfig.AddPass(editorRender3D);
+				fconfig.AddPass(editorRender3D);
 
 				RenderPassConfig editorRender2D(RenderPassType::Render2D, "editorRender2D");
 				editorRender2D.AddSinkLinkage("renderTarget", "editorRender3D.renderTarget");
 				editorRender2D.AddSinkLinkage("camera", "EditorCamera");
-				dconfig.AddPass(editorRender2D);
+				fconfig.AddPass(editorRender2D);
 			}
 
 			SceneManager::GetActiveScene()->SetRenderGraphConfig(dconfig);
 
 			SceneManager::GetActiveScene()->UpdateRuntime(dt);
 		}
+
+		SceneManager::GetActiveScene()->UpdateRenderer();
 
 		auto[mx,my] = ImGui::GetMousePos();
 		mx -= mViewportBounds[0].x;

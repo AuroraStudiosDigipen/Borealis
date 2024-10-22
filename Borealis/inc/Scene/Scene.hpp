@@ -77,6 +77,8 @@ namespace Borealis
 		*************************************************************************/
 		void UpdateEditor(float dt, EditorCamera& camera);
 
+		void UpdateRenderer();
+
 		/*!***********************************************************************
 			\brief
 				Creates an entity in the scene

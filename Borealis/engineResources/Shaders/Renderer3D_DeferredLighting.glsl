@@ -69,7 +69,6 @@ layout(location = 3) out vec4 gSpecular;     // Specular color (can also store s
 //layout(location = 5) out float gMetallic;    // Metallic factor
 
 in vec2 v_TexCoord;
-in vec3 v_FragPos;
 in vec3 v_Normal;
 in vec3 v_Tangent;
 in vec3 v_Bitangent;
@@ -268,7 +267,6 @@ void LightPass()
 	vec4 albedo = texture(lAlbedo, v_TexCoord);
     vec3 normal = normalize(texture(lNormal, v_TexCoord).rgb);
     vec3 specular = texture(lSpecular, v_TexCoord).rgb;
-    //vec3 fragPos2 = texture(lPosition, v_TexCoord).rgb;  // If storing world-space positions
     float metallic = texture(lSpecular, v_TexCoord).a;
     float smoothness = texture(lNormal, v_TexCoord).a;
 

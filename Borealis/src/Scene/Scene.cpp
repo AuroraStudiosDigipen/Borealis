@@ -198,24 +198,24 @@ namespace Borealis
 			}
 		}
 
-		Camera* mainCamera = nullptr;
-		glm::mat4 mainCameratransform(1.f);
+		//Camera* mainCamera = nullptr;
+		//glm::mat4 mainCameratransform(1.f);
 	
-		{
-			auto group = mRegistry.group<>(entt::get<TransformComponent, CameraComponent>);
-			for (auto entity : group)
-			{
-				auto [transform, camera] = group.get<TransformComponent, CameraComponent>(entity);
+		//{
+		//	auto group = mRegistry.group<>(entt::get<TransformComponent, CameraComponent>);
+		//	for (auto entity : group)
+		//	{
+		//		auto [transform, camera] = group.get<TransformComponent, CameraComponent>(entity);
 
-				if (camera.Primary)
-				{
-					//camera.Camera.SetCameraType(SceneCamera::CameraType::Perspective);
-					mainCamera = &camera.Camera;
-					mainCameratransform = transform;
-					break;
-				}
-			}
-		}
+		//		if (camera.Primary)
+		//		{
+		//			//camera.Camera.SetCameraType(SceneCamera::CameraType::Perspective);
+		//			mainCamera = &camera.Camera;
+		//			mainCameratransform = transform;
+		//			break;
+		//		}
+		//	}
+		//}
 
 		//Audio
 		{
@@ -251,9 +251,9 @@ namespace Borealis
 			}
 		}
 
-		// Pre-Render
-		if (mainCamera)
-		{
+		//// Pre-Render
+		//if (mainCamera)
+		//{
 			//Renderer3D::Begin(*mainCamera, mainCameratransform);
 			//Render3DPass();
 			//Renderer3D::End();
@@ -262,71 +262,30 @@ namespace Borealis
 			//Render2DPass();
 			//Renderer2D::End();
 
-			{
-				mRenderGraph.Init();
+			//{
+				//mRenderGraph.Init();
 
-				//global will be determined by us, not available to designers for now
-				RenderTargetSource runtimeBuffer("RunTimeBuffer", mRuntimeFrameBuffer);
-				mRenderGraph.SetGlobalSource(MakeRef<RenderTargetSource>(runtimeBuffer));
+				////global will be determined by us, not available to designers for now
+				//RenderTargetSource runtimeBuffer("RunTimeBuffer", mRuntimeFrameBuffer);
+				//mRenderGraph.SetGlobalSource(MakeRef<RenderTargetSource>(runtimeBuffer));
 
-				RenderTargetSource editorBuffer("EditorBuffer", mViewportFrameBuffer);
-				mRenderGraph.SetGlobalSource(MakeRef<RenderTargetSource>(editorBuffer));
+				//RenderTargetSource editorBuffer("EditorBuffer", mViewportFrameBuffer);
+				//mRenderGraph.SetGlobalSource(MakeRef<RenderTargetSource>(editorBuffer));
 
-				GBufferSource gBufferSource("gBuffer", mGFrameBuffer);
-				mRenderGraph.SetGlobalSource(MakeRef<GBufferSource>(gBufferSource));
+				//GBufferSource gBufferSource("gBuffer", mGFrameBuffer);
+				//mRenderGraph.SetGlobalSource(MakeRef<GBufferSource>(gBufferSource));
 
-				//CameraSource editorCameraSource("EditorCamera", editorCamera);
-				CameraSource runTimeCameraSource("RunTimeCamera", *mainCamera, mainCameratransform);
-				mRenderGraph.SetGlobalSource(MakeRef<CameraSource>(runTimeCameraSource));
+				//CameraSource runTimeCameraSource("RunTimeCamera", *mainCamera, mainCameratransform);
+				//mRenderGraph.SetGlobalSource(MakeRef<CameraSource>(runTimeCameraSource));
 
-				mRenderGraph.SetEntityRegistry(mRegistry);
+				//mRenderGraph.SetEntityRegistry(mRegistry);
 
-				//RenderGraphConfig config;
+				//mRenderGraph.Finalize();
 
-				//RenderPassConfig geometryPass(RenderPassType::Geometry, "geometricPass");
-				//geometryPass.AddSinkLinkage("gBuffer", "gBuffer");
-				//geometryPass.AddSinkLinkage("camera", "RunTimeCamera");
-				//config.AddPass(geometryPass);
-
-				//RenderPassConfig lightingPass(RenderPassType::Lighting, "lightPass");
-				//lightingPass.AddSinkLinkage("gBuffer", "geometricPass.gBuffer");
-				//lightingPass.AddSinkLinkage("renderTarget", "RunTimeBuffer");
-				//config.AddPass(lightingPass);
-
-				//mRenderGraph.SetConfig(config);
-				mRenderGraph.Finalize();
-
-				////pseudo code for defer
-				//{
-				//	GeometryPass geometricPass("geometricPass");
-				//	geometricPass.SetSinkLinkage("gBuffer", "gBuffer");//create a global gBuffer
-				//	geometricPass.SetSinkLinkage("camera", "RunTimeCamera");
-				//	geometricPass.SetEntityRegistry(mRegistry);
-				//	//mRenderGraph.AddPass(MakeRef<GeometryPass>(geometricPass));
-
-				//	LightingPass lightPass("lightPass");
-				//	lightPass.SetSinkLinkage("gBuffer", "geometricPass.gBuffer"); //get gBuffer from geometricPass
-				//	lightPass.SetSinkLinkage("renderTarget", "RunTimeBuffer"); //get gBuffer from geometricPass
-				//	lightPass.SetEntityRegistry(mRegistry);
-				//	//mRenderGraph.AddPass(MakeRef<LightingPass>(lightPass));
-				//}
-
-				//Render3D render3DPass("Render3D");
-				//render3DPass.SetSinkLinkage("renderTarget", "RunTimeBuffer");
-				//render3DPass.SetSinkLinkage("camera", "RunTimeCamera");
-				//render3DPass.SetEntityRegistry(mRegistry);
-				//mRenderGraph.AddPass(MakeRef<Render3D>(render3DPass));
-
-				//Render2D render2DPass("Render2D");
-				//render2DPass.SetSinkLinkage("renderTarget", "Render3D.renderTarget");
-				//render2DPass.SetSinkLinkage("camera", "RunTimeCamera");
-				//render2DPass.SetEntityRegistry(mRegistry);
-				//mRenderGraph.AddPass(MakeRef<Render2D>(render2DPass));
-
-				mRenderGraph.SetFinalSink("BackBuffer", "Render2D.renderTarget"); //do i need it for immediate mode?
-				mRenderGraph.Execute();
-			}
-		}
+				//mRenderGraph.SetFinalSink("BackBuffer", "Render2D.renderTarget"); //do i need it for immediate mode?
+				//mRenderGraph.Execute();
+		//	}
+		//}
 	}
 
 	//move down ltr
@@ -359,6 +318,52 @@ namespace Borealis
 		Renderer2D::Begin(camera);
 		Render2DPass();
 		Renderer2D::End();
+	}
+
+	void Scene::UpdateRenderer()
+	{
+		Camera* mainCamera = nullptr;
+		glm::mat4 mainCameratransform(1.f);
+
+		{
+			auto group = mRegistry.group<>(entt::get<TransformComponent, CameraComponent>);
+			for (auto entity : group)
+			{
+				auto [transform, camera] = group.get<TransformComponent, CameraComponent>(entity);
+
+				if (camera.Primary)
+				{
+					//camera.Camera.SetCameraType(SceneCamera::CameraType::Perspective);
+					mainCamera = &camera.Camera;
+					mainCameratransform = transform;
+					break;
+				}
+			}
+		}
+
+		mRenderGraph.Init();
+
+		RenderTargetSource editorBuffer("EditorBuffer", mViewportFrameBuffer);
+		mRenderGraph.SetGlobalSource(MakeRef<RenderTargetSource>(editorBuffer));
+
+		GBufferSource gBufferSource("gBuffer", mGFrameBuffer);
+		mRenderGraph.SetGlobalSource(MakeRef<GBufferSource>(gBufferSource));
+
+		if (mainCamera)
+		{
+			RenderTargetSource runtimeBuffer("RunTimeBuffer", mRuntimeFrameBuffer);
+			mRenderGraph.SetGlobalSource(MakeRef<RenderTargetSource>(runtimeBuffer));
+
+			CameraSource runTimeCameraSource("RunTimeCamera", *mainCamera, mainCameratransform);
+			mRenderGraph.SetGlobalSource(MakeRef<CameraSource>(runTimeCameraSource));
+		}
+
+		mRenderGraph.SetEntityRegistry(mRegistry);
+
+		mRenderGraph.Finalize();
+
+		mRenderGraph.SetFinalSink("BackBuffer", "Render2D.renderTarget"); //do i need it for immediate mode?
+		mRenderGraph.Execute();
 	}
 
 	Entity Scene::CreateEntity(const std::string& name)

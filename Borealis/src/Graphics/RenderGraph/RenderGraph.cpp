@@ -475,14 +475,21 @@ namespace Borealis
 	{
 		for (auto pass : renderPassList) 
 		{
+			bool skipPass = false;
 			for (auto sink : pass->sinkList) 
 			{
 				if (!sink->source) 
 				{
+					//skiping pass rn, not good, do more error checks
 					sink->source = FindSource(sink->sourceName);
+					if (!sink->source)
+					{
+						skipPass = true;
+						break;
+					}
 				}
 			}
-
+			if (skipPass) continue;
 			pass->Execute();
 		}
 	}
@@ -534,6 +541,8 @@ namespace Borealis
 				}
 			}
 		}
+
+		return nullptr;
 	}
 
 	void RenderGraph::AddEntityPassConfig(RenderPassConfig const& renderPassConfig)

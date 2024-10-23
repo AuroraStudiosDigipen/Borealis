@@ -185,6 +185,17 @@ namespace Borealis
 		BoxColliderComponent(const BoxColliderComponent&) = default;
 	};
 
+	struct SphereColliderComponent
+	{
+		bool isTrigger = false;
+		bool providesContact = false;
+		Ref<PhysicMaterial> Material;
+		glm::vec3 Center{ 0,0,0 };
+		float Radius = 0.5f;
+		SphereColliderComponent() = default;
+		SphereColliderComponent(const SphereColliderComponent&) = default;
+	};
+
 	struct CapsuleColliderComponent
 	{
 		enum class Direction : uint8_t
@@ -208,7 +219,7 @@ namespace Borealis
 	enum class RigidBodyType : int
 	{
 		Box,
-		Circle,
+		Sphere,
 		Capsule
 	};
 

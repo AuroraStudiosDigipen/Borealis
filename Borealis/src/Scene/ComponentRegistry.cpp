@@ -141,7 +141,7 @@ namespace Borealis
         registration::enumeration<RigidBodyType>("Rigidbody Collider Type")
             (
                 value("Box", RigidBodyType::Box),
-				value("Sphere", RigidBodyType::Circle),
+				value("Sphere", RigidBodyType::Sphere),
 				value("Capsule", RigidBodyType::Capsule)
                 );
 

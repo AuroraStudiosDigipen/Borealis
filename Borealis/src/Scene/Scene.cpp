@@ -491,6 +491,52 @@ namespace Borealis
 	{
 		hasRuntimeStarted = true;
 
+		auto boxPhysicsGroup = mRegistry.group<>(entt::get<TransformComponent, BoxColliderComponent>);
+		auto spherePhysicsGroup = mRegistry.group<>(entt::get<TransformComponent, SphereColliderComponent>);
+		auto capsulePhysicsGroup = mRegistry.group<>(entt::get<TransformComponent, CapsuleColliderComponent>);
+
+		for (auto entity : boxPhysicsGroup)
+		{
+			auto [transform, boxCollider] = boxPhysicsGroup.get<TransformComponent, BoxColliderComponent>(entity);
+			if (mRegistry.all_of<RigidBodyComponent>(entity))
+			{
+				auto rigidbody = mRegistry.get<RigidBodyComponent>(entity);
+				//Create Box Collider with rigidbody (Dynamic)
+			}
+			else
+			{
+				//Create Box Collider without rigidbody (Static)
+			}
+		}
+
+		for (auto entity : spherePhysicsGroup)
+		{
+			auto [transform, sphereCollider] = spherePhysicsGroup.get<TransformComponent, SphereColliderComponent>(entity);
+			if (mRegistry.all_of<RigidBodyComponent>(entity))
+			{
+				auto rigidbody = mRegistry.get<RigidBodyComponent>(entity);
+				//Create Sphere Collider with rigidbody (Dynamic)
+			}
+			else
+			{
+				//Create Sphere Collider without rigidbody (Static)
+			}
+		}
+
+		for (auto entity : capsulePhysicsGroup)
+		{
+			auto [transform, capsuleCollider] = capsulePhysicsGroup.get<TransformComponent, CapsuleColliderComponent>(entity);
+			if (mRegistry.all_of<RigidBodyComponent>(entity))
+			{
+				auto rigidbody = mRegistry.get<RigidBodyComponent>(entity);
+				//Create Capsule Collider with rigidbody (Dynamic)
+			}
+			else
+			{
+				//Create Capsule Collider without rigidbody (Static)
+			}
+		}
+
 		auto physicsGroup = mRegistry.group<>(entt::get<TransformComponent, RigidBodyComponent>);
 		for (auto entity : physicsGroup)
 		{
@@ -499,9 +545,13 @@ namespace Borealis
 			{
 				PhysicsSystem::addSquareBody(rigidbody.radius, transform.Translate, rigidbody);
 			}
-			else
+			else if (rigidbody.isBox == RigidBodyType::Sphere)
 			{
 				PhysicsSystem::addSphereBody(rigidbody.radius, transform.Translate, rigidbody);
+			}
+			else if (rigidbody.isBox == RigidBodyType::Capsule)
+			{
+				PhysicsSystem::addCapsuleBody(rigidbody.radius, rigidbody.capHalfExtent, transform.Translate, rigidbody);
 			}
 		}
 	}

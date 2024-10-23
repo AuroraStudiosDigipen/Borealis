@@ -198,25 +198,6 @@ namespace Borealis
 			}
 		}
 
-		//Camera* mainCamera = nullptr;
-		//glm::mat4 mainCameratransform(1.f);
-	
-		//{
-		//	auto group = mRegistry.group<>(entt::get<TransformComponent, CameraComponent>);
-		//	for (auto entity : group)
-		//	{
-		//		auto [transform, camera] = group.get<TransformComponent, CameraComponent>(entity);
-
-		//		if (camera.Primary)
-		//		{
-		//			//camera.Camera.SetCameraType(SceneCamera::CameraType::Perspective);
-		//			mainCamera = &camera.Camera;
-		//			mainCameratransform = transform;
-		//			break;
-		//		}
-		//	}
-		//}
-
 		//Audio
 		{
 			auto group = mRegistry.group<>(entt::get<TransformComponent, AudioListenerComponent>);
@@ -250,42 +231,6 @@ namespace Borealis
 				}
 			}
 		}
-
-		//// Pre-Render
-		//if (mainCamera)
-		//{
-			//Renderer3D::Begin(*mainCamera, mainCameratransform);
-			//Render3DPass();
-			//Renderer3D::End();
-
-			//Renderer2D::Begin(*mainCamera, mainCameratransform);
-			//Render2DPass();
-			//Renderer2D::End();
-
-			//{
-				//mRenderGraph.Init();
-
-				////global will be determined by us, not available to designers for now
-				//RenderTargetSource runtimeBuffer("RunTimeBuffer", mRuntimeFrameBuffer);
-				//mRenderGraph.SetGlobalSource(MakeRef<RenderTargetSource>(runtimeBuffer));
-
-				//RenderTargetSource editorBuffer("EditorBuffer", mViewportFrameBuffer);
-				//mRenderGraph.SetGlobalSource(MakeRef<RenderTargetSource>(editorBuffer));
-
-				//GBufferSource gBufferSource("gBuffer", mGFrameBuffer);
-				//mRenderGraph.SetGlobalSource(MakeRef<GBufferSource>(gBufferSource));
-
-				//CameraSource runTimeCameraSource("RunTimeCamera", *mainCamera, mainCameratransform);
-				//mRenderGraph.SetGlobalSource(MakeRef<CameraSource>(runTimeCameraSource));
-
-				//mRenderGraph.SetEntityRegistry(mRegistry);
-
-				//mRenderGraph.Finalize();
-
-				//mRenderGraph.SetFinalSink("BackBuffer", "Render2D.renderTarget"); //do i need it for immediate mode?
-				//mRenderGraph.Execute();
-		//	}
-		//}
 	}
 
 	//move down ltr

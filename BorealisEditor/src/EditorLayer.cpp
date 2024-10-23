@@ -155,6 +155,8 @@ namespace Borealis {
 				lightingPass.AddSinkLinkage("renderTarget", "RunTimeBuffer");
 				lightingPass.AddSinkLinkage("viewProj", "geometricPass.camera");
 				dconfig.AddPass(lightingPass);
+
+				//add render2d
 			}
 
 			//forward rendering
@@ -188,6 +190,8 @@ namespace Borealis {
 				editorLightPass.AddSinkLinkage("renderTarget", "EditorBuffer");
 				editorLightPass.AddSinkLinkage("viewProj", "editorGeometricPass.camera");
 				dconfig.AddPass(editorLightPass);
+
+				//add render2d
 			}
 
 			//forward rendering

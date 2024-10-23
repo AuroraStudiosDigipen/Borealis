@@ -75,6 +75,7 @@ namespace Borealis
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropEntity"))
 			{
 				const char* data = (const char*)payload->Data;
+
 				
 			}
 
@@ -314,8 +315,11 @@ namespace Borealis
 					}
 					else if (extension == ".prefab")
 					{
-						// Correct the assignment of payloadName
 						payloadName = "DragPrefab";
+						std::string prefabData = itemPath;
+
+						ImGui::SetDragDropPayload("DragPrefab", prefabData.c_str(), prefabData.size() + 1);
+						ImGui::Text("Dragging Prefab: %s", prefabData.c_str());
 					}
 					else if (extension == ".mp3" || extension == ".wav")
 					{
@@ -363,8 +367,8 @@ namespace Borealis
 		}
 
 		//WORK IN PROGRESS
-//Dragged Prefab
-// Content Browser panel drop target for creating prefabs
+		//Dragged Prefab
+		// Content Browser panel drop target for creating prefabs
 		if (ImGui::BeginDrapDropTargetWindow("DragCreatePrefab"))
 		{
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragCreatePrefab"))

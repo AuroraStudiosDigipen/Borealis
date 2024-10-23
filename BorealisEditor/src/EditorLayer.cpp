@@ -26,6 +26,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scripting/ScriptInstance.hpp>
 #include <EditorLayer.hpp>
 #include <Prefab.hpp>
+#include <PrefabManager.hpp>
 //	#include <Project/Project.hpp>
 #include "Audio/AudioEngine.hpp"
 #include <ResourceManager.hpp>
@@ -39,6 +40,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 //#include <Assets/FontImporter.hpp>
 #include <AI/BehaviourTree/RegisterNodes.hpp>
 #include <AI/BehaviourTree/BehaviourTree.hpp>
+#include <PrefabComponent.hpp>
 
 namespace Borealis {
 	EditorLayer::SceneState EditorLayer::mSceneState = EditorLayer::SceneState::Edit;
@@ -406,6 +408,8 @@ namespace Borealis {
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0,0 });
 			ImGui::Begin("Viewport");
 
+				PrefabManager::ShowAllPrefabs();
+
 				mViewportFocused = ImGui::IsWindowFocused();
 				mViewportHovered = ImGui::IsWindowHovered();
 				// True when viewport not focused or not hovered
@@ -443,6 +447,23 @@ namespace Borealis {
 					ImGui::EndDragDropTarget();
 				}
 
+				//Dropping Prefab into Viewport
+				if (ImGui::BeginDragDropTarget())
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragPrefab"))
+					{
+						std::cout << "DROPPED PREFAB" << std::endl;
+						const char* prefabPath = (const char*)payload->Data;
+						UUID prefabID = PrefabManager::ExtractUUIDFromFile(prefabPath);
+						PrefabManager::GetPrefab(prefabID)->InstantiatePrefabInstance(SceneManager::GetActiveScene());
+						//UUID prefabInstanceID = SceneManager::GetActiveScene()->CreateEntityReturnUUID("clone");
+						//SceneManager::GetActiveScene()->DuplicateEntity(PrefabManager::GetPrefab(prefabID);
+						//SceneManager::GetEntity(prefabInstanceID).AddComponent<PrefabComponent>();
+						//SceneManager::GetEntity(prefabInstanceID).AddOrReplaceComponent<SpriteRendererComponent>();
+					}
+
+					ImGui::EndDragDropTarget();
+				}
 
 				auto windowSize = ImGui::GetWindowSize();
 				ImVec2 minBound = ImGui::GetWindowPos();

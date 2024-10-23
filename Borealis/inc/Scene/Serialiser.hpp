@@ -49,7 +49,8 @@ namespace Borealis
 
 		/*!***********************************************************************
 			\brief
-				Deserialises the scene from a YAML file
+				
+				s the scene from a YAML file
 			\param[in] filepath
 				The path to the file to be deserialised
 			\return

@@ -45,6 +45,7 @@ namespace Borealis
 		//void AddComponent(const T& component) {
 		//	mComponents[typeid(T)] = std::make_any<T>(component);
 		//}
+		Entity InstantiatePrefabInstance(Ref<Scene> scene);
 
 		// Retrieve a component from the prefab
 		template <typename T>

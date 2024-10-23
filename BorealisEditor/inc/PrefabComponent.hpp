@@ -24,6 +24,7 @@ namespace Borealis
 	struct PrefabComponent
 	{
 		entt::entity mPrefabID;
+		UUID mParentID;
 		std::unordered_set<std::string> mEditedComponentList;
 
 	};

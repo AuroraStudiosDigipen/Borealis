@@ -75,6 +75,31 @@ namespace Borealis {
 
 	}
 
+    Entity Prefab::InstantiatePrefabInstance(Ref<Scene> scene) {
+        // Create a new entity in the scene
+        Entity newEntity = scene->CreateEntity("InstantiatedPrefab");
+
+		newEntity.AddOrReplaceComponent<PrefabComponent>().mParentID = GetUUID();
+
+        // Copy all components from the prefab to the new entity
+        if (HasComponent<SpriteRendererComponent>()) {
+            newEntity.AddOrReplaceComponent<SpriteRendererComponent>(GetComponent<SpriteRendererComponent>());
+        }
+
+        // Copy all components from the prefab to the new entity
+        if (HasComponent<TransformComponent>()) {
+            newEntity.AddOrReplaceComponent<TransformComponent>(GetComponent<TransformComponent>());
+        }
+
+
+        // Add other components that are part of the prefab as needed
+
+        // Return the newly created entity
+        return newEntity;
+    }
+
+
+
 	void Prefab::AddChild(Ref<Entity> entity)
 	{
 		//if the entity is valid and the it is not in list
@@ -278,7 +303,7 @@ void Prefab::PrintComponentList()
 	
 	struct PrefabInstanceComponent
 	{
+        UUID ParentID;
 		std::unordered_set<std::type_info> mEditedComponents;
-		//HasComponentEdited
 	};
 }

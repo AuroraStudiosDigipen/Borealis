@@ -259,6 +259,7 @@ namespace Borealis
 		}
 
 		mPrefabs[uuid] = MakeRef<Prefab>(loadedEntity);
+
 	}
 
 }

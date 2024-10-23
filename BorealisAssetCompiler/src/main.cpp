@@ -27,6 +27,7 @@ int main(int argc, char** argv)
     }
 
     std::filesystem::path filePath = argv[1];
+    //std::filesystem::path filePath = "C:\\Users\\Owner\\Documents\\Digipen\\GAM300\\Test\\Assets\\test4\\dragon.fbx";
     filePath.replace_extension(".meta");
 
     BorealisAssetCompiler::AssetMetaData data = BorealisAssetCompiler::MetaSerializer::GetAssetMetaDataFile(filePath);

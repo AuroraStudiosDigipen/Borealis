@@ -20,30 +20,10 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include <glm/glm.hpp>
 
+#include "Importer/AssetStructs.hpp"
+
 namespace BorealisAssetCompiler
 {
-	struct Vertex 
-	{
-		glm::vec3 Position;
-		glm::vec3 Normal;
-		glm::vec2 TexCoords;
-	};
-
-	struct Mesh
-	{
-		std::vector<unsigned int> mIndices;
-		std::vector<Vertex> mVertices;
-
-		uint32_t mVerticesCount;
-		uint32_t mIndicesCount; 
-	};
-
-	struct Model
-	{
-	public:
-		std::vector<Mesh> mMeshes;
-	};
-
 	class MeshImporter
 	{
 	public:

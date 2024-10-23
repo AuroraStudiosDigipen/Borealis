@@ -19,6 +19,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <assimp/postprocess.h>
 
 #include "Importer/MeshImporter.hpp"
+#include "Importer/MeshOptimizer.hpp"
 
 namespace BorealisAssetCompiler
 {
@@ -27,6 +28,8 @@ namespace BorealisAssetCompiler
 		Model model;
 
 		LoadFBXModel(model, sourcePath.string());
+
+		OptimizeModel(model);
 
 		cachePath.replace_extension(".mesh");
 		SaveModel(model, cachePath);

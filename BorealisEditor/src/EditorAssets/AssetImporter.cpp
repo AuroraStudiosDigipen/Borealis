@@ -22,6 +22,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <EditorAssets/MetaSerializer.hpp>
 
 #include <thread>
+
+#include <winnt.h>
 namespace Borealis
 {
 	void AssetImporter::LoadRegistry(Borealis::ProjectInfo projectInfo)

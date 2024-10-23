@@ -30,6 +30,12 @@
     <ClInclude Include="inc\MetaSerializer.hpp">
       <Filter>inc</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Importer\AssetStructs.hpp">
+      <Filter>inc\Importer</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Importer\MeshOptimizer.hpp">
+      <Filter>inc\Importer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Importer\AssetImporter.cpp">
@@ -39,6 +45,9 @@
       <Filter>src\Importer</Filter>
     </ClCompile>
     <ClCompile Include="src\Importer\MeshImporter.cpp">
+      <Filter>src\Importer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Importer\MeshOptimizer.cpp">
       <Filter>src\Importer</Filter>
     </ClCompile>
     <ClCompile Include="src\Importer\TextureImporter.cpp">

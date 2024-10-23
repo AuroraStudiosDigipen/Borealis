@@ -141,7 +141,8 @@ namespace Borealis
         registration::enumeration<RigidBodyType>("Rigidbody Collider Type")
             (
                 value("Box", RigidBodyType::Box),
-                value("Sphere", RigidBodyType::Circle)
+				value("Sphere", RigidBodyType::Circle),
+				value("Capsule", RigidBodyType::Capsule)
                 );
 
         registration::class_<RigidBodyComponent>("Rigid Body Component")
@@ -151,7 +152,13 @@ namespace Borealis
             .property("Radius", &RigidBodyComponent::radius)
             (metadata("Dependency", "Is Box"), metadata("Visible for", "Sphere"))
             .property("HalfExtent", &RigidBodyComponent::radius)
-            (metadata("Dependency", "Is Box"), metadata("Visible for", "Box"));
+            (metadata("Dependency", "Is Box"), metadata("Visible for", "Box"))
+            .property("HalfHeight", &RigidBodyComponent::capHalfExtent)
+			(metadata("Dependency", "Is Box"), metadata("Visible for", "Capsule"))
+            .property("Radius ", &RigidBodyComponent::radius)
+            (metadata("Dependency", "Is Box"), metadata("Visible for", "Capsule"))
+            .property("Friction", &RigidBodyComponent::friction)
+            .property("Bounciness", &RigidBodyComponent::bounciness);
 
         registration::class_<SpriteRendererComponent>("Sprite Renderer Component")
             .constructor<>()

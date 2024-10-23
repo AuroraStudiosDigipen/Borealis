@@ -214,9 +214,11 @@ namespace Borealis
 
 	struct RigidBodyComponent
 	{
-
 		RigidBodyType isBox = RigidBodyType::Box;
 		float radius = 1.5f; //radius for circle, side for cube
+		float capHalfExtent = 1.f; //half extent for capsule
+		float friction = 0.5f; //friction 
+		float bounciness = 0.5f; //bounciness
 
 		// not serialised
 		unsigned int bodyID = 0;

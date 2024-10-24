@@ -36,6 +36,8 @@ namespace BorealisAssetCompiler
 
 		std::filesystem::path cachePath = cacheString;
 
+		std::cout << "In compiler, cache path : " << cachePath.string() << '\n';
+
 		//if(cachePathExist)
 		//{
 			std::filesystem::path directoryPath = cachePath.parent_path();

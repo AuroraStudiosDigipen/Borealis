@@ -261,7 +261,6 @@ namespace Borealis {
 					{
 						BuildProject();
 					}
-					
 
 					if (ImGui::MenuItem("Quit", "Ctrl+Q")) { ApplicationManager::Get().Close(); }
 					ImGui::EndMenu();
@@ -454,7 +453,7 @@ namespace Borealis {
 					{
 						std::cout << "DROPPED PREFAB" << std::endl;
 						const char* prefabPath = (const char*)payload->Data;
-						UUID prefabID = PrefabManager::ExtractUUIDFromFile(prefabPath);
+						UUID prefabID = AssetImporter::GetAssetHandle(prefabPath);
 						PrefabManager::GetPrefab(prefabID)->InstantiatePrefabInstance(SceneManager::GetActiveScene());
 						//UUID prefabInstanceID = SceneManager::GetActiveScene()->CreateEntityReturnUUID("clone");
 						//SceneManager::GetActiveScene()->DuplicateEntity(PrefabManager::GetPrefab(prefabID);

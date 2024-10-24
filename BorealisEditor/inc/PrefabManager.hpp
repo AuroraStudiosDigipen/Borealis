@@ -14,7 +14,7 @@ namespace Borealis
 	class PrefabManager
 	{
 	public:
-		static entt::registry& GetRegistry() { return mPrefabScene.GetRegistry(); }
+		static entt::registry& GetRegistry() { return mPrefabScene->GetRegistry(); }
 		static entt::entity CreateEntity();
 
 		static entt::entity InstantiatePrefabInstance(Ref<Prefab> prefab, const Scene& scene);
@@ -76,32 +76,32 @@ namespace Borealis
 		template <typename T, typename ...Args>
 		static T& AddComponent(entt::entity mPrefabID, Args&&... args)
 		{
-			T& Component = mPrefabScene.GetRegistry().emplace<T>(mPrefabID, std::forward<Args>(args)...);
+			T& Component = mPrefabScene->GetRegistry().emplace<T>(mPrefabID, std::forward<Args>(args)...);
 			return Component;
 		}
 
 		template<typename T>
 		static bool HasComponent(entt::entity mPrefabID)
 		{
-			return mPrefabScene.GetRegistry().storage<T>().contains(mPrefabID);
+			return mPrefabScene->GetRegistry().storage<T>().contains(mPrefabID);
 		}
 
 		template<typename T>
 		static T& GetComponent(entt::entity mPrefabID)
 		{
-			return mPrefabScene.GetRegistry().get<T>(mPrefabID);
+			return mPrefabScene->GetRegistry().get<T>(mPrefabID);
 		}
 
 		template<typename T>
 		static void RemoveComponent(entt::entity mPrefabID)
 		{
-			mPrefabScene.GetRegistry().remove<T>(mPrefabID);
+			mPrefabScene->GetRegistry().remove<T>(mPrefabID);
 		}
 
 		template <typename T, typename...Args>
 		static T& AddOrReplaceComponent(entt::entity mPrefabID, Args&& ... args)
 		{
-			T& Component = mPrefabScene.GetRegistry().emplace_or_replace<T>(mPrefabID, std::forward<Args>(args)...);
+			T& Component = mPrefabScene->GetRegistry().emplace_or_replace<T>(mPrefabID, std::forward<Args>(args)...);
 			return Component;
 		}
 
@@ -110,7 +110,7 @@ namespace Borealis
 
 		static void Register(Ref<Prefab>prefab);
 
-		static Scene* GetScenePtr() { return &mPrefabScene; }
+		static Scene* GetScenePtr() { return mPrefabScene.get(); }
 
 		static Ref<Prefab> GetPrefab(UUID mPrefabID) { return mPrefabs[mPrefabID]; }
 
@@ -118,6 +118,6 @@ namespace Borealis
 
 	private:
 		static std::unordered_map<UUID, Ref<Prefab>> mPrefabs;
-		static Scene mPrefabScene;
+		static Ref<Scene> mPrefabScene;
 	};
 }

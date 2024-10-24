@@ -131,9 +131,10 @@ namespace Borealis
 			return Component;
 		}
 
-		const uint64_t& GetUUID() 
+		const UUID& GetUUID()  
 		{
-			return GetComponent<IDComponent>().ID;
+			IDComponent& idComponent = GetComponent<IDComponent>();
+			return idComponent.ID;
 		}
 		
 		/*!***********************************************************************

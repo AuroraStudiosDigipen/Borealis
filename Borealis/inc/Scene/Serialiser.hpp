@@ -86,7 +86,8 @@ namespace Borealis
 				True if the serialisation was successful, false otherwise
 		*************************************************************************/
 		static bool SerializeBehaviourNode(YAML::Emitter& out, const Ref<BehaviourNode> node);
-		
+
+		entt::entity DeserialiseEntity(YAML::detail::iterator_value& node, entt::registry& registry, UUID& uuid);
 	private:
 		/*!***********************************************************************
 			\brief

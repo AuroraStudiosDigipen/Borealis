@@ -156,7 +156,16 @@ namespace Borealis
 	{
 		if (!VerifyMetaFile(path, assetRegistry))
 		{
-			AssetMetaData meta = MetaFileSerializer::CreateAssetMetaFile(path);
+			auto dupPath = path;
+			AssetMetaData meta;
+			if (!std::filesystem::exists(dupPath.replace_extension(".meta").string()))
+			{
+				meta = MetaFileSerializer::CreateAssetMetaFile(dupPath);
+			}
+			else
+			{
+				meta = MetaFileSerializer::GetAssetMetaDataFile(dupPath);
+			}
 
 			bool imported = false;
 			std::filesystem::path metaPath = {};

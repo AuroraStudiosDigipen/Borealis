@@ -388,6 +388,7 @@ namespace Borealis
 				PrefabManager::Register(prefab);
 
 				AssetManager::InsertMetaData(MetaFileSerializer::CreateAssetMetaFile(dir, prefab->GetUUID()));
+				AssetImporter::InsertAssetHandle(dir, prefab->GetUUID());
 
 				// You might want to add some feedback or a log message here to indicate success
 				std::cout << "Prefab created at: " << mCurrDir.string() << std::endl;

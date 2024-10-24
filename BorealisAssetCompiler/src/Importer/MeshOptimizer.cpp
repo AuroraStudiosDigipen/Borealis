@@ -57,10 +57,31 @@ namespace BorealisAssetCompiler
 
 			//simplification
 
+			//float threshold = 0.5f;
+			//size_t targetIndicesCount = size_t(indicesCount * threshold);
+			//float targetError = 0.2f;
+
+			//std::vector<unsigned int> lodIndices(indicesCount);
+			//float lodError = 0.f;
+			//size_t lodIndicesCount = meshopt_simplify(&lodIndices[0],
+			//													  optimizedIndices.data(),
+			//													  indicesCount,
+			//													  &optimizedVertices[0].Position.x,
+			//													  optimizedVerticesCount,
+			//													  sizeof(Vertex),
+			//													  targetIndicesCount,
+			//													  targetError,
+			//													  0,
+			//													  &lodError);
+			//lodIndices.resize(lodIndicesCount);
+
+
 			mesh.mIndices = optimizedIndices;
-			mesh.mIndicesCount = indicesCount;
+			mesh.mIndicesCount = (uint32_t)indicesCount;
+			//mesh.mIndices = lodIndices;
+			//mesh.mIndicesCount = lodIndicesCount;
 			mesh.mVertices = optimizedVertices;
-			mesh.mVerticesCount = optimizedVerticesCount;
+			mesh.mVerticesCount = (uint32_t)optimizedVerticesCount;
 		}
 
 		std::cout << "Optimized Model\n";

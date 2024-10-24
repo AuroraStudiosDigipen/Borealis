@@ -150,16 +150,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="inc\Importer\AssetImporter.hpp" />
-    <ClInclude Include="inc\Importer\AssetStructs.hpp">
-      <SubType>
-      </SubType>
-    </ClInclude>
+    <ClInclude Include="inc\Importer\AssetStructs.hpp" />
     <ClInclude Include="inc\Importer\FontImporter.hpp" />
     <ClInclude Include="inc\Importer\MeshImporter.hpp" />
-    <ClInclude Include="inc\Importer\MeshOptimizer.hpp">
-      <SubType>
-      </SubType>
-    </ClInclude>
+    <ClInclude Include="inc\Importer\MeshOptimizer.hpp" />
     <ClInclude Include="inc\Importer\TextureImporter.hpp" />
     <ClInclude Include="inc\MetaSerializer.hpp" />
   </ItemGroup>

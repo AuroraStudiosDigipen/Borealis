@@ -206,7 +206,7 @@ namespace BorealisAssetCompiler
 
         stbi_image_free(imageData);
 
-        compressonatorTest(sourcePath.string());
+        //compressonatorTest(sourcePath.string());
     }
 }
 

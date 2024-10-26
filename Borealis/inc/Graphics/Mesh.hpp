@@ -38,6 +38,16 @@ namespace Borealis
 		VertexBoneData BoneData;
 	};
 
+
+	struct BoundingSphere
+	{
+		glm::vec3 Center;
+		float Radius;
+
+		void Transform(glm::mat4 const& transform);
+	};
+
+
 	class Mesh
 	{
 	public:
@@ -90,7 +100,13 @@ namespace Borealis
 		*************************************************************************/
 		void Draw(const glm::mat4& transform, Ref<Shader> shader, int entityID);
 
+		void GenerateRitterBoundingSphere();
+
+		BoundingSphere GetBoundingSphere();
+
 		static void DrawQuad();
+
+
 
 		/*!***********************************************************************
 			\brief
@@ -116,8 +132,10 @@ namespace Borealis
 		uint32_t mVerticesCount; // Number of vertices
 		uint32_t mIndicesCount; // Number of indices
 
+
 		unsigned int VAO, VBO, EBO;
 
+		BoundingSphere mBoundingSphere;
 
 		void ComputeTangents();
 

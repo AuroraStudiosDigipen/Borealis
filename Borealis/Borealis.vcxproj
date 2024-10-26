@@ -194,6 +194,10 @@
     <ClInclude Include="inc\Graphics\EditorCamera.hpp" />
     <ClInclude Include="inc\Graphics\Font.hpp" />
     <ClInclude Include="inc\Graphics\Framebuffer.hpp" />
+    <ClInclude Include="inc\Graphics\Frustum.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="inc\Graphics\GraphicsContext.hpp" />
     <ClInclude Include="inc\Graphics\Light.hpp" />
     <ClInclude Include="inc\Graphics\LightEngine.hpp" />
@@ -791,6 +795,10 @@
     <ClCompile Include="src\Graphics\EditorCamera.cpp" />
     <ClCompile Include="src\Graphics\Font.cpp" />
     <ClCompile Include="src\Graphics\Framebuffer.cpp" />
+    <ClCompile Include="src\Graphics\Frustum.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="src\Graphics\Light.cpp" />
     <ClCompile Include="src\Graphics\LightEngine.cpp" />
     <ClCompile Include="src\Graphics\Material.cpp" />

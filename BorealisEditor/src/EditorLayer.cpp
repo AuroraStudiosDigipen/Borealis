@@ -72,7 +72,7 @@ namespace Borealis {
 
 		SCPanel.SetContext(SceneManager::GetActiveScene());
 
-		mEditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
+		mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1000.0f);
 		ScriptingSystem::InitCoreAssembly();
 		ResourceManager::Init();
 
@@ -207,7 +207,7 @@ namespace Borealis {
 				fconfig.AddPass(editorRender2D);
 			}
 
-			SceneManager::GetActiveScene()->SetRenderGraphConfig(dconfig);
+			SceneManager::GetActiveScene()->SetRenderGraphConfig(fconfig);
 
 			SceneManager::GetActiveScene()->UpdateRuntime(dt);
 		}

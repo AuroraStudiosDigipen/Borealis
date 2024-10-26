@@ -14,8 +14,10 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include <BorealisPCH.hpp>
 
-#include <Assets/AssetManager.hpp>
 #include <Graphics/RenderGraph/RenderGraph.hpp>
+
+#include <Assets/AssetManager.hpp>
+#include <Graphics/Frustum.hpp>
 #include <Graphics/Renderer3D.hpp>
 #include <Graphics/Renderer2D.hpp>
 #include <Graphics/RenderCommand.hpp>
@@ -82,6 +84,8 @@ namespace Borealis
 		sourceName = name;
 		sourceType = RenderSourceType::Camera;
 
+		projMtx = camera.GetProjectionMatrix();
+		viewMtx = camera.GetViewMatrix();
 		viewProj = camera.GetViewProjectionMatrix();
 		viewPortSize = camera.GetViewPortSize();
 		editor = true;
@@ -92,7 +96,8 @@ namespace Borealis
 		sourceName = name;
 		sourceType = RenderSourceType::Camera;
 
-		auto proj = camera.GetProjectionMatrix();
+		projMtx = camera.GetProjectionMatrix();
+		viewMtx = glm::inverse(transform);
 		viewProj = camera.GetProjectionMatrix() * glm::inverse(transform);
 		viewPortSize = camera.GetViewPortSize();
 		
@@ -187,6 +192,7 @@ namespace Borealis
 	void Render3D::Execute()
 	{
 		if (shader) shader->Bind();
+
 		for (auto sink : sinkList)
 		{
 			if (sink->source)
@@ -196,12 +202,18 @@ namespace Borealis
 			}
 		}
 
+		glm::mat4 projMatrix{};
+		glm::mat4 viewMatrix{};
+		bool editor{};
+
 		for (auto sink : sinkList)
 		{
 			if (sink->source->sourceType == RenderSourceType::Camera)
 			{
+				projMatrix = std::dynamic_pointer_cast<CameraSource>(sink->source)->projMtx;
+				viewMatrix = std::dynamic_pointer_cast<CameraSource>(sink->source)->viewMtx;
+				editor = std::dynamic_pointer_cast<CameraSource>(sink->source)->editor;
 				Renderer3D::Begin(std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj());
-				//break;
 			}
 
 			if (sink->source->sourceType == RenderSourceType::RenderTargetColor)
@@ -225,6 +237,27 @@ namespace Borealis
 			{
 				auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
 				
+				if (!meshFilter.Model) continue;
+
+				Frustum frustum = ComputeFrustum(projMatrix * viewMatrix);
+				BoundingSphere modelBoundingSphere = meshFilter.Model->mBoundingSphere;
+
+				//glm::vec3 transformedCenter = glm::vec3(glm::mat4(transform) * glm::vec4(modelBoundingSphere.Center, 1.0f));
+				//float scaleX = glm::length(glm::vec3(transform[0]));
+				//float scaleY = glm::length(glm::vec3(transform[1]));
+				//float scaleZ = glm::length(glm::vec3(transform[2]));
+				//float maxScale = std::max({ scaleX, scaleY, scaleZ });
+
+				//float transformedRadius = modelBoundingSphere.Radius * maxScale;
+
+				modelBoundingSphere.Transform(transform);
+
+				if (CullBoundingSphere(frustum, modelBoundingSphere))
+				{
+					BOREALIS_CORE_INFO("Culling entity {}", (int)entity);
+					continue;
+				}
+
 				Renderer3D::DrawMesh(transform, meshFilter, meshRenderer, (int)entity);
 			}
 		}

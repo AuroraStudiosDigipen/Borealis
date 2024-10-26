@@ -60,6 +60,8 @@
     <ClInclude Include="inc\ResourceManager.hpp">
       <Filter>inc</Filter>
     </ClInclude>
+    <ClInclude Include="inc\BTNodeEditor.hpp" />
+    <ClInclude Include="inc\Panels\BTNodeEditorPanel.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\EditorApp.cpp">
@@ -101,5 +103,7 @@
     <ClCompile Include="src\ResourceManager.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\BTNodeEditor.cpp" />
+    <ClCompile Include="src\Panels\BTNodeEditorPanel.cpp" />
   </ItemGroup>
 </Project>

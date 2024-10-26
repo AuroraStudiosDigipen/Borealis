@@ -27,6 +27,7 @@ namespace Borealis
         CONTROLFLOW,
         DECORATOR,
         LEAF,
+        ROOT,
         UNKNOWN
     };
 

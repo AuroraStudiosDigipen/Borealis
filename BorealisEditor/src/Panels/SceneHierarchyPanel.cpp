@@ -715,16 +715,20 @@ namespace Borealis
 		//Dragging of items for creation of prefab
 		if (ImGui::BeginDragDropSource())
 		{
-			ImGui::SetDragDropPayload("DragCreatePrefab", (const void*)&entity.GetUUID(), sizeof(UUID));
+			ImGui::SetDragDropPayload("DragDropEntityItem", (const void*)&entity.GetUUID(), sizeof(UUID));
 			
 			ImGui::Text("%s", tag.c_str()); // Display the entity tag as the payload text				
 			ImGui::EndDragDropSource();
 		}
 
-		if (ImGui::IsItemClicked())
+		if (!ImGui::IsMouseDragging(0) && ImGui::IsMouseReleased(0))
 		{
-			mSelectedEntity = entity;
+			if (ImGui::IsItemHovered())
+			{
+				mSelectedEntity = entity;
+			}
 		}
+		
 
 		bool entityDeleted = false;
 		if (ImGui::BeginPopupContextItem())
@@ -790,10 +794,69 @@ namespace Borealis
 
 	
 
-	static void DrawScriptField(Ref<ScriptInstance> component)
+	static void DrawScriptField(Ref<ScriptInstance> component, Ref<Scene> context)
 	{
 		for (const auto& [name, field] : component->GetScriptClass()->mFields) // name of script field, script field
 		{
+			if (field.isMonoBehaviour())
+			{
+				MonoObject* Data = component->GetFieldValue<MonoObject*>(name);
+
+				//List of entities
+				auto entityIDList = ScriptingSystem::mEntityScriptMap[field.mFieldClassName()];
+				//List of entity names
+				std::vector<std::string> entityNames;
+				for (auto entity : entityIDList)
+				{
+					entityNames.push_back(context->GetEntityByUUID(entity).GetName());
+				}
+
+				std::string currentEntityName = "";
+				if (Data)
+				{
+					auto currentEntityID = field.GetAttachedID(Data);
+					currentEntityName = SceneManager::GetActiveScene()->GetEntityByUUID(currentEntityID).GetName();
+				}
+
+				if (ImGui::BeginCombo(name.c_str(), currentEntityName.c_str()))
+				{
+					int i = 0;
+					for (auto ID : entityIDList)
+					{
+						bool isSelected = currentEntityName == entityNames[i];
+						if (ImGui::Selectable(entityNames[i].c_str(), isSelected))
+						{
+							currentEntityName = entityNames[i];
+							UUID entityID = ID;
+							Entity entity = SceneManager::GetActiveScene()->GetEntityByUUID(entityID);
+							auto& scriptComponent = entity.GetComponent<ScriptComponent>();
+							auto script = scriptComponent.mScripts.find(field.mFieldClassName());
+							component->SetFieldValue(name, script->second->GetInstance());
+						}
+						if (isSelected)
+						{
+							ImGui::SetItemDefaultFocus();
+						}
+						i++;
+					}
+					ImGui::EndCombo();
+				}
+
+				if (ImGui::BeginDragDropTarget())
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropEntityItem"))
+					{
+						UUID data = *(const uint64_t*)payload->Data;
+						Entity entity = SceneManager::GetActiveScene()->GetEntityByUUID(data);
+						auto& scriptComponent = entity.GetComponent<ScriptComponent>();
+						auto script = scriptComponent.mScripts.find(field.mFieldClassName());
+						component->SetFieldValue(name, script->second->GetInstance());
+					}
+					ImGui::EndDragDropTarget();
+				}
+
+				ImGui::Text(name.c_str());
+			}
 			if (field.mType == ScriptFieldType::Bool)
 			{
 				bool Data = component->GetFieldValue<bool>(name);
@@ -932,7 +995,7 @@ namespace Borealis
 			}
 		}
 	}
-	static void DrawScriptComponent(ScriptComponent& component, Entity& entity, bool allowDelete = true)
+	static void DrawScriptComponent(ScriptComponent& component, Entity& entity, Ref<Scene> context, bool allowDelete = true)
 	{
 		for (auto& [name, script] : component.mScripts)
 		{
@@ -973,11 +1036,12 @@ namespace Borealis
 			if (open)
 			{
 				ImGui::Spacing();
-				DrawScriptField(script);
+				DrawScriptField(script, context);
 			}
 
 			if (deleteComponent)
 			{
+				ScriptingSystem::mEntityScriptMap[name].erase(entity.GetUUID());
 				component.RemoveScript(name);
 				if (component.mScripts.empty())
 				{
@@ -1048,6 +1112,7 @@ namespace Borealis
 						auto scriptInstance = MakeRef<ScriptInstance>(klass);
 						mSelectedEntity.GetComponent<ScriptComponent>().AddScript(name, scriptInstance);
 						scriptInstance->Init(mSelectedEntity.GetUUID());
+						ScriptingSystem::mEntityScriptMap[name].insert(mSelectedEntity.GetUUID());
 						ImGui::CloseCurrentPopup();
 						memset(search_buffer, 0, sizeof(search_buffer));
 					}
@@ -1142,7 +1207,7 @@ namespace Borealis
 
 		if (mSelectedEntity.HasComponent<ScriptComponent>())
 		{
-			DrawScriptComponent(mSelectedEntity.GetComponent<ScriptComponent>(), mSelectedEntity);
+			DrawScriptComponent(mSelectedEntity.GetComponent<ScriptComponent>(), mSelectedEntity, mContext);
 		}
 
 

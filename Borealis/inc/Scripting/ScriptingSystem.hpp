@@ -15,6 +15,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #ifndef SCRIPTING_SYSTEM_HPP
 #define SCRIPTING_SYSTEM_HPP
 #include <unordered_map>
+#include <unordered_set>
 #include <functional>
 #include <Core/Core.hpp>
 #include <Scene/Entity.hpp>
@@ -68,6 +69,7 @@ namespace Borealis
 		static Ref<ScriptClass> GetScriptClass(const std::string& className) { return mScriptClasses[className]; }
 
 		static std::unordered_map<std::string, Ref<ScriptClass>> mScriptClasses; // Library of available scripts
+		static std::unordered_map<std::string, std::unordered_set<UUID>> mEntityScriptMap; // Scripts attached to entities
 
 
 	private:

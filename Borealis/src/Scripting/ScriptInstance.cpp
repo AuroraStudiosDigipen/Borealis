@@ -39,6 +39,8 @@ namespace Borealis
 		mono_runtime_invoke(Method, mInstance, params, nullptr);
 	}
 
+
+
 	Ref<ScriptClass> ScriptInstance::GetScriptClass()
 	{
 		return mScriptClass;

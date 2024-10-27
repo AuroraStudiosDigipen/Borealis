@@ -14,8 +14,10 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #ifndef SCRIPT_FIELD_HPP
 #define SCRIPT_FIELD_HPP
+#include <Core/UUID.hpp>
 extern "C" {
 	typedef struct _MonoClassField MonoClassField;
+	typedef struct _MonoObject MonoObject;
 }
 
 namespace Borealis
@@ -37,10 +39,13 @@ namespace Borealis
 		MonoClassField* mMonoFieldType; // The mono field type
 
 		// Properties of Fields
+		std::string mFieldClassName() const; // The name of the class of the field
+		UUID GetAttachedID(MonoObject* object) const; // The ID of the attached object
 		bool isPublic() const;
 		bool isPrivate() const;
 		bool hasHideInInspector() const;
 		bool hasSerializeField() const;
+		bool isMonoBehaviour() const;
 	};
 }
 

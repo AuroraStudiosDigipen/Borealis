@@ -32,6 +32,7 @@ namespace Borealis
 {
 
 	 std::unordered_map<std::string, Ref<ScriptClass>> ScriptingSystem::mScriptClasses;
+	 std::unordered_map<std::string, std::unordered_set<UUID>> ScriptingSystem::mEntityScriptMap; // Scripts attached to entities
 
 
 	struct ScriptingSystemData

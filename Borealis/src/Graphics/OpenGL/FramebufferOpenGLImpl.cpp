@@ -173,6 +173,7 @@ namespace Borealis
 		else if (mColorAttachments.empty())
 		{
 			glDrawBuffer(GL_NONE);
+			glReadBuffer(GL_NONE);
 		}
 
 		BOREALIS_CORE_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is incomplete!");

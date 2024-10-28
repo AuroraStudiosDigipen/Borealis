@@ -31,8 +31,8 @@ namespace Borealis
 	void Renderer3D::Init()
 	{
 		s3dData =  std::make_unique<Renderer3DData>();
-		s3dData->mModelShader = Shader::Create("engineResources/Shaders/Renderer3D_Material.glsl");
-		//s3dData->mModelShader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_DeferredLighting.glsl");
+		//s3dData->mModelShader = Shader::Create("engineResources/Shaders/Renderer3D_Material.glsl");
+		s3dData->mModelShader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_Material.glsl");
 	}
 
 
@@ -49,10 +49,18 @@ namespace Borealis
 		Renderer3D::Begin(viewProj);
 	}
 
-	void Renderer3D::Begin(glm::mat4 viewProj)
+	void Renderer3D::Begin(glm::mat4 viewProj, Ref<Shader> shader)
 	{
-		s3dData->mModelShader->Bind();
-		s3dData->mModelShader->Set("u_ViewProjection", viewProj);
+		if(!shader)
+		{
+			s3dData->mModelShader->Bind();
+			s3dData->mModelShader->Set("u_ViewProjection", viewProj);
+		}
+		else
+		{
+			shader->Bind();
+			shader->Set("u_ViewProjection", viewProj);
+		}
 
 		mLightEngine.Begin();
 	}

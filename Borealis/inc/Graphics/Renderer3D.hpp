@@ -52,7 +52,7 @@ namespace Borealis
 		*************************************************************************/
 		static void Begin(const Camera& camera, const glm::mat4& transform);
 
-		static void Begin(glm::mat4 viewProj);
+		static void Begin(glm::mat4 viewProj, Ref<Shader> shader = nullptr);
 
 		static void End();
 

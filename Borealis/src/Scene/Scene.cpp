@@ -259,6 +259,10 @@ namespace Borealis
 				FramebufferTextureFormat::Depth     // Depth buffer
 			};
 			mGFrameBuffer = FrameBuffer::Create(propsGBuffer);
+
+			FrameBufferProperties propsShadowMapBuffer{ 2024, 2024,false };
+			propsShadowMapBuffer.Attachments = { FramebufferTextureFormat::Depth };
+			mShadowMapBuffer = FrameBuffer::Create(propsShadowMapBuffer);
 		}
 		return mViewportFrameBuffer;
 	}
@@ -286,30 +290,6 @@ namespace Borealis
 
 	void Scene::UpdateRenderer()
 	{
-		//move to rendergraph
-		if(!mViewportFrameBuffer || !mRuntimeFrameBuffer || !mGFrameBuffer)
-		{
-			FrameBufferProperties props{ 1280, 720, false };
-			props.Attachments = { FramebufferTextureFormat::RGBA8,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
-			mViewportFrameBuffer = FrameBuffer::Create(props);
-
-			FrameBufferProperties propsRuntime{ 1280, 720, false };
-			propsRuntime.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RedInteger,FramebufferTextureFormat::Depth };
-			mRuntimeFrameBuffer = FrameBuffer::Create(propsRuntime);
-
-			FrameBufferProperties propsGBuffer{ 1280, 720, false };
-			propsGBuffer.Attachments =
-			{
-				FramebufferTextureFormat::RGBA16F,  // Albedo + Alpha
-				FramebufferTextureFormat::RedInteger,  // entity id
-				FramebufferTextureFormat::RGBA8,   // Normal + roughness
-				FramebufferTextureFormat::RGBA8,   // Specular + metallic
-				//FramebufferTextureFormat::RGB16F,   // Position
-				FramebufferTextureFormat::Depth     // Depth buffer
-			};
-			mGFrameBuffer = FrameBuffer::Create(propsGBuffer);
-		}
-
 		Camera* mainCamera = nullptr;
 		glm::mat4 mainCameratransform(1.f);
 
@@ -336,6 +316,9 @@ namespace Borealis
 
 		GBufferSource gBufferSource("gBuffer", mGFrameBuffer);
 		mRenderGraph.SetGlobalSource(MakeRef<GBufferSource>(gBufferSource));
+
+		RenderTargetSource shadowMapBuffer("ShadowMapBuffer", mShadowMapBuffer);
+		mRenderGraph.SetGlobalSource(MakeRef<RenderTargetSource>(shadowMapBuffer));
 
 		if (mainCamera)
 		{

@@ -26,6 +26,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 namespace Borealis
 {
 	Ref<Shader> s_shader = nullptr;
+	Ref<Shader> shadow_shader = nullptr;
 	//========================================================================
 	//BUFFER SOURCE
 	//========================================================================
@@ -47,6 +48,11 @@ namespace Borealis
 	{
 		if (buffer)
 			buffer->Unbind();
+	}
+
+	void RenderTargetSource::BindDepthBuffer(int index)
+	{
+		buffer->BindDepthBuffer(index);
 	}
 
 	GBufferSource::GBufferSource(std::string name, Ref<FrameBuffer> framebuffer)
@@ -189,22 +195,22 @@ namespace Borealis
 	//========================================================================
 	//RENDER3D RENDERPASS
 	//========================================================================
+
+	Render3D::Render3D(std::string name) : EntityPass(name)
+	{
+		shader = shadow_shader;
+	}
+	
 	void Render3D::Execute()
 	{
 		if (shader) shader->Bind();
-
-		for (auto sink : sinkList)
-		{
-			if (sink->source)
-			{
-				auto source = sink->source;
-				source->Bind();
-			}
-		}
-
+		
 		glm::mat4 projMatrix{};
 		glm::mat4 viewMatrix{};
 		bool editor{};
+
+		Ref<RenderTargetSource> renderTarget = nullptr;
+		Ref<RenderTargetSource> shadowMap = nullptr;
 
 		for (auto sink : sinkList)
 		{
@@ -218,10 +224,26 @@ namespace Borealis
 
 			if (sink->source->sourceType == RenderSourceType::RenderTargetColor)
 			{
-				std::dynamic_pointer_cast<RenderTargetSource>(sink->source)->buffer->ClearAttachment(1, -1);
+				if(sink->sinkName == "renderTarget")
+				{
+					renderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
+					renderTarget->buffer->ClearAttachment(1, -1);
+				}
+
+				if (sink->sinkName == "shadowMap")
+				{
+					shadowMap = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
+				}
 			}
 		}
 
+		if (shadowMap)
+		{
+			shadowMap->BindDepthBuffer(0);
+			shader->Set("u_ShadowMap", 0);
+		}
+
+		renderTarget->Bind();
 		{
 			entt::basic_group group = registryPtr->group<>(entt::get<TransformComponent, LightComponent>);
 			for (auto& entity : group)
@@ -229,6 +251,17 @@ namespace Borealis
 				auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
 				lightComponent.offset = transform.Translate;
 				Renderer3D::AddLight(lightComponent);
+
+
+				if (lightComponent.type == LightComponent::Type::Spot)
+				{
+					glm::vec3 upVector = { 0.f,1.f,0.f };
+					glm::mat4 lightView = glm::lookAt(lightComponent.offset, lightComponent.offset + lightComponent.spotLightDirection, upVector);
+					float fieldOfView = glm::radians(lightComponent.InnerOuterSpot.x * 2.f); // Spotlight cone angle
+					glm::mat4 lightProj = glm::perspective(fieldOfView, 1.f, 20.f, 1000.f);
+
+					shader->Set("u_LightViewProjection", lightProj * lightView);
+				}
 			}
 		}
 		{
@@ -258,19 +291,13 @@ namespace Borealis
 					continue;
 				}
 
+				//Renderer3D::SetLights(shader);
 				Renderer3D::DrawMesh(transform, meshFilter, meshRenderer, (int)entity);
 			}
 		}
 		Renderer3D::End();
 
-		for (auto sink : sinkList)
-		{
-			if (sink->source)
-			{
-				auto source = sink->source;
-				source->Unbind();
-			}
-		}
+		renderTarget->Unbind();
 
 		if (shader) shader->Unbind();
 	}
@@ -459,6 +486,67 @@ namespace Borealis
 		shader->Unbind();
 	}
 
+	ShadowPass::ShadowPass(std::string name) : EntityPass(name)
+	{
+		shader = shadow_shader;
+	}
+
+	void ShadowPass::Execute()
+	{
+		shader->Bind();
+		shader->Set("shadowPass", true);
+
+		Ref<FrameBuffer> shadowMap = nullptr;
+		for (auto sink : sinkList)
+		{
+			if (sink->source)
+			{
+				auto sourcePtr = sink->source;
+
+				if (sourcePtr->sourceType == RenderSourceType::RenderTargetColor)
+				{
+					shadowMap = std::dynamic_pointer_cast<RenderTargetSource>(sourcePtr)->buffer;
+					shadowMap->Bind();
+					RenderCommand::Clear();
+				}
+			}
+		}
+
+		{
+			entt::basic_group group = registryPtr->group<>(entt::get<TransformComponent, LightComponent>);
+			for (auto& entity : group)
+			{
+				auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
+				if (!lightComponent.castShadow) continue;
+
+				//temp
+				if (lightComponent.type != LightComponent::Type::Spot) continue;
+
+				if (lightComponent.type == LightComponent::Type::Spot)
+				{
+					glm::vec3 upVector = { 0.f,1.f,0.f };
+					glm::mat4 lightView = glm::lookAt(lightComponent.offset, lightComponent.offset + lightComponent.spotLightDirection, upVector);
+					float fieldOfView = glm::radians(lightComponent.InnerOuterSpot.x*2.f); // Spotlight cone angle
+					glm::mat4 lightProj = glm::perspective(fieldOfView, 1.f, 20.f, 1000.f);
+
+					shader->Set("u_LightViewProjection", lightProj * lightView);
+				}
+			}
+
+			{
+				auto group = registryPtr->group<>(entt::get<TransformComponent, MeshFilterComponent, MeshRendererComponent>);
+				for (auto& entity : group)
+				{
+					auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
+
+					Renderer3D::DrawMesh(transform, meshFilter, meshRenderer, shader, (int)entity);
+				}
+			}
+		}
+
+		if (shadowMap)
+			shadowMap->Unbind();
+	}
 
 	//========================================================================
 	//RENDER GRAPH Config
@@ -471,6 +559,9 @@ namespace Borealis
 
 		if(!s_shader)
 			s_shader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_DeferredLighting.glsl");
+
+		if (!shadow_shader)
+			shadow_shader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_Material.glsl");
 	}
 
 	void RenderPassConfig::AddSinkLinkage(std::string sinkName, std::string sourceName)
@@ -547,6 +638,7 @@ namespace Borealis
 			case RenderPassType::Render2D:
 			case RenderPassType::Geometry:
 			case RenderPassType::Lighting:
+			case RenderPassType::Shadow:
 				AddEntityPassConfig(passesConfig);
 			default:
 				break;
@@ -594,6 +686,9 @@ namespace Borealis
 			break;
 		case RenderPassType::Lighting:
 			renderPass = MakeRef<LightingPass>(renderPassConfig.mPassName);
+			break;
+		case RenderPassType::Shadow:
+			renderPass = MakeRef<ShadowPass>(renderPassConfig.mPassName);
 			break;
 		}
 

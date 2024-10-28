@@ -51,6 +51,9 @@ namespace Borealis
 		RenderTargetSource(std::string name, Ref<FrameBuffer> framebuffer);
 		void Bind() override;
 		void Unbind() override;
+
+		void BindDepthBuffer(int index);
+
 		Ref<FrameBuffer> buffer;
 	};
 
@@ -112,7 +115,8 @@ namespace Borealis
 		Render3D,
 		Render2D,
 		Geometry,
-		Lighting
+		Lighting,
+		Shadow
 	};
 
 	class RenderPass 
@@ -145,7 +149,7 @@ namespace Borealis
 	class Render3D : public EntityPass
 	{
 	public:
-		Render3D(std::string name) : EntityPass(name) {};
+		Render3D(std::string name);
 		void Execute() override;
 	};
 
@@ -168,6 +172,14 @@ namespace Borealis
 	{
 	public:
 		LightingPass(std::string name);
+
+		void Execute() override;
+	};
+
+	class ShadowPass : public EntityPass
+	{
+	public:
+		ShadowPass(std::string name);
 
 		void Execute() override;
 	};

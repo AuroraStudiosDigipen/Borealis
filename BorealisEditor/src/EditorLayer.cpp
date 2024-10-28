@@ -75,7 +75,7 @@ namespace Borealis {
 
 		SCPanel.SetContext(SceneManager::GetActiveScene());
 
-		mEditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1000.0f);
+		mEditorCamera = EditorCamera(45.0f, 1.778f, 20.f, 1000.0f);
 		ScriptingSystem::InitCoreAssembly();
 		ResourceManager::Init();
 
@@ -199,8 +199,13 @@ namespace Borealis {
 
 			//forward rendering
 			{
+				RenderPassConfig editorShadowPass(RenderPassType::Shadow, "editorShadowPass");
+				editorShadowPass.AddSinkLinkage("shadowMap", "ShadowMapBuffer");
+				fconfig.AddPass(editorShadowPass);
+
 				RenderPassConfig editorRender3D(RenderPassType::Render3D, "editorRender3D");
 				editorRender3D.AddSinkLinkage("renderTarget", "EditorBuffer");
+				editorRender3D.AddSinkLinkage("shadowMap", "editorShadowPass.shadowMap");
 				editorRender3D.AddSinkLinkage("camera", "EditorCamera");
 				fconfig.AddPass(editorRender3D);
 

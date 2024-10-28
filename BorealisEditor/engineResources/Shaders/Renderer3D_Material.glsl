@@ -11,14 +11,24 @@ uniform mat4 u_ModelTransform;
 uniform mat4 u_ViewProjection;
 uniform int u_EntityID;
 
+uniform bool shadowPass;
+uniform mat4 u_LightViewProjection;
+
 out vec2 v_TexCoord;
 out vec3 v_FragPos;
 out vec3 v_Tangent;
 out vec3 v_Bitangent;
 out vec3 v_Normal;
+out vec4 v_LightPos;
 flat out int v_EntityID;
 
-void main()
+void ShadowPass()
+{
+	mat4 MVP = u_LightViewProjection * u_ModelTransform;
+	gl_Position = MVP * vec4(a_Position, 1.0);
+}
+
+void Render3DPass()
 {
 	//v_TexCoord = a_TexCoord;
 	v_TexCoord = vec2(a_TexCoord.x, 1.0 - a_TexCoord.y);
@@ -37,7 +47,20 @@ void main()
     v_Bitangent = B;
 
 	gl_Position = u_ViewProjection * vec4(v_FragPos, 1.0);	
+	v_LightPos = u_LightViewProjection * vec4(v_FragPos, 1.0);	
 	v_EntityID = u_EntityID;
+}
+
+void main()
+{
+	if(shadowPass)
+	{
+		ShadowPass();
+	}
+	else
+	{
+		Render3DPass();
+	}
 }
 
 #type fragment
@@ -81,12 +104,15 @@ struct Light {
 	vec3 diffuse;
 	vec3 specular;
 	vec3 direction;
+	vec3 spotLightDirection;
 
 	//float range;
 	vec2 innerOuterAngle;
 
 	float linear;
 	float quadratic;
+
+	bool castShadow;
 };
 
 in vec2 v_TexCoord;
@@ -95,6 +121,7 @@ in vec3 v_Normal;
 flat in int v_EntityID;
 in vec3 v_Tangent;
 in vec3 v_Bitangent;
+in vec4 v_LightPos;
 //in vec3 v_Normal;
 
 uniform mat4 u_ViewProjection;
@@ -104,7 +131,9 @@ const int MAX_LIGHTS = 20;
 uniform Light u_Lights[20];
 uniform int u_LightsCount;
 			
-uniform sampler2D u_Texture;
+
+uniform sampler2D u_ShadowMap;
+uniform bool shadowPass = false;
 
 vec2 GetTexCoord() 
 {
@@ -212,7 +241,8 @@ vec3 ComputeSpotLight(Light light, vec3 normal, vec3 viewDir)
     {
         float spec = pow(max(dot(normal, halfwayDir), 0.0), u_Material.shininess * u_Material.smoothness);
 
-        float theta = dot(lightDir, normalize(-light.direction)); 
+        float theta = dot(lightDir, normalize(-light.spotLightDirection)); 
+
         float epsilon = light.innerOuterAngle.x - light.innerOuterAngle.y;
         float intensity = clamp((theta - light.innerOuterAngle.y) / epsilon, 0.0, 1.0); 
 
@@ -222,13 +252,40 @@ vec3 ComputeSpotLight(Light light, vec3 normal, vec3 viewDir)
 		ambient *= intensity * attenuation;
 		diffuse *= intensity * attenuation;
 		specular *= intensity * attenuation;
-        color = ambient + diffuse + specular + emission;
+
+		//temp
+		float shadowFactor = GetShadowFactorSpotLight();
+
+        color = ambient + shadowFactor * (diffuse + specular + emission);
     }
 
 	return color;
 }
 
-void main() {
+float GetShadowFactorSpotLight()
+{
+	vec3 projCoord = v_LightPos.xyz / v_LightPos.w;
+	vec2 UVCoord;
+	UVCoord.x = 0.5 * projCoord.x + 0.5;
+	UVCoord.y = 0.5 * projCoord.y + 0.5;
+	float z = 0.5 * projCoord.z + 0.5;
+
+	float depth = texture(u_ShadowMap, UVCoord).x;
+
+	float bias = 0.0025;
+
+	if(depth + bias < z)
+	{
+		return 0.5;
+	}
+	else
+	{
+		return 1.f;
+	}
+}
+
+void Render3DPass()
+{
 	vec3 viewDir = normalize(u_ViewPos - v_FragPos);
 
 	mat3 TBN = mat3(v_Tangent, v_Bitangent, v_Normal);
@@ -284,4 +341,12 @@ void main() {
 	fragColor = color;
 	
 	entityIDs = v_EntityID;
+}
+
+void main() 
+{
+	if(!shadowPass)
+	{
+		Render3DPass();
+	}
 }

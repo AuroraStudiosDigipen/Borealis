@@ -541,7 +541,7 @@ namespace Borealis
 		}
 	}
 
-	template<>
+	template<> //temp until idk
 	static void DrawComponentLayout<MeshRendererComponent>(const std::string& name, Entity entity, bool allowDelete)
 	{
 		if (entity.HasComponent<MeshRendererComponent>())
@@ -602,12 +602,6 @@ namespace Borealis
 				MaterialEditor::RenderProperties(component.Material);
 			}
 		}
-		/*
-		if (component.Material)
-		{
-			MaterialEditor::RenderProperties(component.Material);
-		}
-		*/
 	}
 
 

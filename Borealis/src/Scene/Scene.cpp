@@ -31,25 +31,25 @@ namespace Borealis
 {
 	Scene::Scene(std::string name, std::string path) : mName(name), mScenePath(path)
 	{
-		FrameBufferProperties props{ 1280, 720, false };
-		props.Attachments = { FramebufferTextureFormat::RGBA8,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
-		mViewportFrameBuffer = FrameBuffer::Create(props);
+		//FrameBufferProperties props{ 1280, 720, false };
+		//props.Attachments = { FramebufferTextureFormat::RGBA8,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
+		//mViewportFrameBuffer = FrameBuffer::Create(props);
 
-		FrameBufferProperties propsRuntime{ 1280, 720, false };
-		propsRuntime.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RedInteger,FramebufferTextureFormat::Depth };
-		mRuntimeFrameBuffer = FrameBuffer::Create(propsRuntime);
+		//FrameBufferProperties propsRuntime{ 1280, 720, false };
+		//propsRuntime.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RedInteger,FramebufferTextureFormat::Depth };
+		//mRuntimeFrameBuffer = FrameBuffer::Create(propsRuntime);
 
-		FrameBufferProperties propsGBuffer{ 1280, 720, false };
-		propsGBuffer.Attachments = 
-		{
-			FramebufferTextureFormat::RGBA16F,  // Albedo + Alpha
-			FramebufferTextureFormat::RedInteger,  // entity id
-			FramebufferTextureFormat::RGBA8,   // Normal + roughness
-			FramebufferTextureFormat::RGBA8,   // Specular + metallic
-			//FramebufferTextureFormat::RGB16F,   // Position
-			FramebufferTextureFormat::Depth     // Depth buffer
-		};
-		mGFrameBuffer = FrameBuffer::Create(propsGBuffer);
+		//FrameBufferProperties propsGBuffer{ 1280, 720, false };
+		//propsGBuffer.Attachments = 
+		//{
+		//	FramebufferTextureFormat::RGBA16F,  // Albedo + Alpha
+		//	FramebufferTextureFormat::RedInteger,  // entity id
+		//	FramebufferTextureFormat::RGBA8,   // Normal + roughness
+		//	FramebufferTextureFormat::RGBA8,   // Specular + metallic
+		//	//FramebufferTextureFormat::RGB16F,   // Position
+		//	FramebufferTextureFormat::Depth     // Depth buffer
+		//};
+		//mGFrameBuffer = FrameBuffer::Create(propsGBuffer);
 	}
 
 	Scene::~Scene()
@@ -237,6 +237,29 @@ namespace Borealis
 
 	Ref<FrameBuffer> Scene::GetEditorFB()
 	{
+		//move to rendergraph
+		if (!mViewportFrameBuffer || !mRuntimeFrameBuffer || !mGFrameBuffer)
+		{
+			FrameBufferProperties props{ 1280, 720, false };
+			props.Attachments = { FramebufferTextureFormat::RGBA8,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
+			mViewportFrameBuffer = FrameBuffer::Create(props);
+
+			FrameBufferProperties propsRuntime{ 1280, 720, false };
+			propsRuntime.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RedInteger,FramebufferTextureFormat::Depth };
+			mRuntimeFrameBuffer = FrameBuffer::Create(propsRuntime);
+
+			FrameBufferProperties propsGBuffer{ 1280, 720, false };
+			propsGBuffer.Attachments =
+			{
+				FramebufferTextureFormat::RGBA16F,  // Albedo + Alpha
+				FramebufferTextureFormat::RedInteger,  // entity id
+				FramebufferTextureFormat::RGBA8,   // Normal + roughness
+				FramebufferTextureFormat::RGBA8,   // Specular + metallic
+				//FramebufferTextureFormat::RGB16F,   // Position
+				FramebufferTextureFormat::Depth     // Depth buffer
+			};
+			mGFrameBuffer = FrameBuffer::Create(propsGBuffer);
+		}
 		return mViewportFrameBuffer;
 	}
 
@@ -263,6 +286,30 @@ namespace Borealis
 
 	void Scene::UpdateRenderer()
 	{
+		//move to rendergraph
+		if(!mViewportFrameBuffer || !mRuntimeFrameBuffer || !mGFrameBuffer)
+		{
+			FrameBufferProperties props{ 1280, 720, false };
+			props.Attachments = { FramebufferTextureFormat::RGBA8,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
+			mViewportFrameBuffer = FrameBuffer::Create(props);
+
+			FrameBufferProperties propsRuntime{ 1280, 720, false };
+			propsRuntime.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RedInteger,FramebufferTextureFormat::Depth };
+			mRuntimeFrameBuffer = FrameBuffer::Create(propsRuntime);
+
+			FrameBufferProperties propsGBuffer{ 1280, 720, false };
+			propsGBuffer.Attachments =
+			{
+				FramebufferTextureFormat::RGBA16F,  // Albedo + Alpha
+				FramebufferTextureFormat::RedInteger,  // entity id
+				FramebufferTextureFormat::RGBA8,   // Normal + roughness
+				FramebufferTextureFormat::RGBA8,   // Specular + metallic
+				//FramebufferTextureFormat::RGB16F,   // Position
+				FramebufferTextureFormat::Depth     // Depth buffer
+			};
+			mGFrameBuffer = FrameBuffer::Create(propsGBuffer);
+		}
+
 		Camera* mainCamera = nullptr;
 		glm::mat4 mainCameratransform(1.f);
 

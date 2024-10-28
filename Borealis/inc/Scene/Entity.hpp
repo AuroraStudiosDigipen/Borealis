@@ -131,13 +131,7 @@ namespace Borealis
 			return Component;
 		}
 
-		/*!***********************************************************************
-			\brief
-				Gets the UUID of the entity
-			\return
-				The UUID of the entity
-		*************************************************************************/
-		uint64_t GetUUID() 
+		const uint64_t& GetUUID() 
 		{
 			return GetComponent<IDComponent>().ID;
 		}
@@ -213,6 +207,7 @@ namespace Borealis
 				The entity as entt::entity
 		*************************************************************************/
 		operator entt::entity() const { return mID; }
+
 	private:
 		entt::entity mID; // The entity handle
 		Scene* mScene; // The scene pointer

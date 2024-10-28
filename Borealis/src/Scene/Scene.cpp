@@ -55,10 +55,6 @@ namespace Borealis
 	Scene::~Scene()
 	{
 		auto view = mRegistry.view<RigidBodyComponent>();
-		for (auto entity : view)
-		{
-			PhysicsSystem::FreeRigidBody(view.get<RigidBodyComponent>(entity));
-		}
 	}
 
 	void Scene::Render2DPass()
@@ -313,12 +309,14 @@ namespace Borealis
 
 	Entity Scene::CreateEntity(const std::string& name)
 	{
+
+		UUID id;
 		static unsigned unnamedID = 1;
 		auto entity = Entity(mRegistry.create(), this);
-		entity.AddComponent<IDComponent>();
+		entity.AddComponent<IDComponent>(id);
 		name == "" ? entity.AddComponent<TagComponent>("unnamedEntity" + std::to_string(unnamedID++)) : entity.AddComponent<TagComponent>(name);
 		entity.AddComponent<TransformComponent>();
-		mEntityMap[entity.GetUUID()] = entity;
+		mEntityMap[id] = entity;
 		return entity;
 	}
 	Entity Scene::CreateEntityWithUUID(const std::string& name, uint64_t UUID)
@@ -341,7 +339,7 @@ namespace Borealis
 	void Scene::DestroyEntity(Entity entity)
 	{		
 		mEntityMap.erase(entity.GetUUID());
-		if (entity.HasComponent<RigidBodyComponent>())
+		if (hasRuntimeStarted && entity.HasComponent<RigidBodyComponent>())
 		{
 			PhysicsSystem::FreeRigidBody(entity.GetComponent<RigidBodyComponent>());
 		}
@@ -361,7 +359,7 @@ namespace Borealis
 		if (src.HasComponent<RigidBodyComponent>())
 			dst.AddOrReplaceComponent<RigidBodyComponent>(src.GetComponent<RigidBodyComponent>());
 
-		if (dst.GetComponent<RigidBodyComponent>().isBox)
+		if ((bool)dst.GetComponent<RigidBodyComponent>().isBox)
 		{
 			PhysicsSystem::UpdateBoxValues(dst.GetComponent<RigidBodyComponent>());
 		}
@@ -461,14 +459,6 @@ namespace Borealis
 			auto& newRbComponent = dst.emplace<RigidBodyComponent>(dstEntity);
 
 			newRbComponent = rbComponent;
-			if (newRbComponent.isBox)
-			{
-				PhysicsSystem::addSquareBody(newRbComponent.radius, dst.get<TransformComponent>(dstEntity).Translate, newRbComponent);
-			}
-			else
-			{
-				PhysicsSystem::addSphereBody(newRbComponent.radius, dst.get<TransformComponent>(dstEntity).Translate, newRbComponent);
-			}
 		}
 	}
 
@@ -516,11 +506,30 @@ namespace Borealis
 	void Scene::RuntimeStart()
 	{
 		hasRuntimeStarted = true;
+
+		auto physicsGroup = mRegistry.group<>(entt::get<TransformComponent, RigidBodyComponent>);
+		for (auto entity : physicsGroup)
+		{
+			auto [transform, rigidbody] = physicsGroup.get<TransformComponent, RigidBodyComponent>(entity);
+			if (rigidbody.isBox == RigidBodyType::Box)
+			{
+				PhysicsSystem::addSquareBody(rigidbody.radius, transform.Translate, rigidbody);
+			}
+			else
+			{
+				PhysicsSystem::addSphereBody(rigidbody.radius, transform.Translate, rigidbody);
+			}
+		}
 	}
 
 	void Scene::RuntimeEnd()
 	{
 		hasRuntimeStarted = false;
+		auto view = mRegistry.view<RigidBodyComponent>();
+		for (auto entity : view)
+		{
+			PhysicsSystem::FreeRigidBody(view.get<RigidBodyComponent>(entity));
+		}
 	}
 
 	Entity Scene::GetPrimaryCameraEntity()
@@ -594,8 +603,6 @@ namespace Borealis
 	template<>
 	void Scene::OnComponentAdded<RigidBodyComponent>(Entity entity, RigidBodyComponent& component)
 	{
-		TransformComponent& transform = entity.GetComponent<TransformComponent>();
-		PhysicsSystem::addSphereBody(component.radius, transform.Translate, component);
 	}
 	template<>
 	void Scene::OnComponentAdded<LightComponent>(Entity entity, LightComponent& component)
@@ -612,7 +619,7 @@ namespace Borealis
 	template<>
 	void Scene::OnComponentAdded<TextComponent>(Entity entity, TextComponent& component)
 	{
-		
+		component.font = Font::GetDefaultFont();
 	}
 
 	template<>

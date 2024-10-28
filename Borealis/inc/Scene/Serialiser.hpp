@@ -56,6 +56,7 @@ namespace Borealis
 				True if the deserialisation was successful, false otherwise
 		*************************************************************************/
 		bool DeserialiseScene(const std::string& filepath);
+		static void SerialisePrefab(const std::string& filepath, Entity entity);
 
 		/*!***********************************************************************
 			\brief

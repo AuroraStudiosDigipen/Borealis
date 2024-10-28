@@ -253,6 +253,8 @@ namespace Borealis
 		std::unordered_map<Props, glm::vec2> mPropertiesVec2; //Properties
 		Ref<Shader> mShader; //Shader
 		std::string mName;
+
+		RTTR_ENABLE(Asset)
 	}; //class Material
 } //namespace Borealis
 #endif

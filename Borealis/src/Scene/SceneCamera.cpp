@@ -17,7 +17,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <glm/gtc/matrix_transform.hpp>
 namespace Borealis
 {
-	SceneCamera::SceneCamera()
+	SceneCamera::SceneCamera() : mAspectRatio(1.78f)
 	{
 		RecalculateProjection();
 	}

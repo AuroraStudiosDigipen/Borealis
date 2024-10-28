@@ -1,0 +1,9 @@
+EntityID: 651210419594981408
+TagComponent:
+  Tag: testEntity
+TransformComponent:
+  Translate: [0, 0, 0]
+  Rotation: [0, 0, 0]
+  Scale: [1, 1, 1]
+SpriteRendererComponent:
+  Colour: [0.5, 1, 1, 1]

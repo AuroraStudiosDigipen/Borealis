@@ -14,6 +14,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #ifndef COMPONENTS_HPP
 #define COMPONENTS_HPP
+#include <any>
 #include <unordered_set>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -30,12 +31,6 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace Borealis
 {
-	class ComponentRegistry
-	{
-	public:
-		static std::vector<std::string> getPropertyNames(std::string componentName);
-		static std::vector<std::string> getComponentNames();
-	};
 
 	struct IDComponent
 	{
@@ -209,10 +204,16 @@ namespace Borealis
 		CapsuleColliderComponent(const CapsuleColliderComponent&) = default;
 	};
 
+
+	enum class RigidBodyType : int
+	{
+		Box,
+		Circle
+	};
 	struct RigidBodyComponent
 	{
 
-		bool isBox = false;
+		RigidBodyType isBox = RigidBodyType::Box;
 		float radius = 1.5f; //radius for circle, side for cube
 
 		
@@ -280,6 +281,7 @@ namespace Borealis
 	{
 		std::string text{};
 		uint32_t fontSize = 16;
+		glm::vec4 colour{ 1.f,1.f,1.f,1.f };
 		Ref<Font> font;
 
 		TextComponent() = default;
@@ -315,6 +317,7 @@ namespace Borealis
 		float Volume = 1.0f;
 		int channelID = 0;
 
+	
 		Ref<Audio> audio;
 
 		AudioSourceComponent() = default;

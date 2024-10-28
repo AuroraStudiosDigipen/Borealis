@@ -385,6 +385,9 @@
     <ClInclude Include="inc\Physics\PhysicsSystem.hpp">
       <Filter>inc\Physics</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Scene\ComponentRegistry.hpp">
+      <Filter>inc\Scene</Filter>
+    </ClInclude>
     <ClInclude Include="inc\Scene\Components.hpp">
       <Filter>inc\Scene</Filter>
     </ClInclude>
@@ -392,6 +395,9 @@
       <Filter>inc\Scene</Filter>
     </ClInclude>
     <ClInclude Include="inc\Scene\OrthographicCameraController.hpp">
+      <Filter>inc\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Scene\ReflectionInstance.hpp">
       <Filter>inc\Scene</Filter>
     </ClInclude>
     <ClInclude Include="inc\Scene\Scene.hpp">
@@ -2163,7 +2169,7 @@
     <ClCompile Include="src\Physics\PhysicsSystem.cpp">
       <Filter>src\Physics</Filter>
     </ClCompile>
-    <ClCompile Include="src\Scene\Components.cpp">
+    <ClCompile Include="src\Scene\ComponentRegistry.cpp">
       <Filter>src\Scene</Filter>
     </ClCompile>
     <ClCompile Include="src\Scene\Entity.cpp">

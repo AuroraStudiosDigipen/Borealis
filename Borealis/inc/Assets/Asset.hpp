@@ -16,7 +16,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #define Asset_HPP
 
 #include <Core/UUID.hpp>
-
+#include <rttr/rttr_enable.h>
 #include <filesystem>
 
 namespace Borealis
@@ -34,6 +34,7 @@ namespace Borealis
 		Font,
 		Scene,
 		Material,
+		Prefab
 	};
 
 	class Asset
@@ -45,6 +46,8 @@ namespace Borealis
 		static AssetType GetAssetTypeFromExtention(std::filesystem::path path);
 		static std::string AssetTypeToString(AssetType type);
 		static AssetType StringToAssetType(std::string const& type);
+
+		RTTR_ENABLE()
 	};
 }
 

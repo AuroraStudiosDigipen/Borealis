@@ -15,6 +15,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <BorealisPCH.hpp>
 #include <yaml-cpp/yaml.h>
 #include <imgui.h>
+#include <Scene/ReflectionInstance.hpp>
 #include <Scene/Serialiser.hpp>
 #include <Scene/Entity.hpp>
 #include <Scene/Components.hpp>
@@ -222,186 +223,219 @@ namespace Borealis
 		return true;
 	}
 
+	static bool SerializeProperty(YAML::Emitter& out, rttr::property& prop, const rttr::instance& instance)
+	{
+		auto propType = prop.get_type();
+		auto propName = prop.get_name();
+		auto propValue = prop.get_value(instance);
+
+		if (propType.is_enumeration())
+		{
+			out << YAML::Key << propName.to_string() << YAML::Value << propType.get_enumeration().value_to_name(propValue).to_string();
+			return true;
+		}
+
+		if (propType == rttr::type::get<int>())
+		{
+			out << YAML::Key << propName.to_string() << YAML::Value << propValue.to_int();
+			return true;
+		}
+
+		if (propType == rttr::type::get<float>())
+		{
+			out << YAML::Key << propName.to_string() << YAML::Value << propValue.to_float();
+			return true;
+		}
+
+		if (propType == rttr::type::get<bool>())
+		{
+			out << YAML::Key << propName.to_string() << YAML::Value << propValue.to_bool();
+			return true;
+		}
+
+		if (propType == rttr::type::get<std::string>())
+		{
+			out << YAML::Key << propName.to_string() << YAML::Value << propValue.to_string();
+			return true;
+		}
+
+		if (propType == rttr::type::get<unsigned char>())
+		{
+			out << YAML::Key << propName.to_string() << YAML::Value << (unsigned)propValue.to_uint8();
+			return true;
+		}
+
+		if (propType == rttr::type::get<char>())
+		{
+			out << YAML::Key << propName.to_string() << YAML::Value << (int)propValue.to_int8();
+			return true;
+		}
+
+		if (propType == rttr::type::get<unsigned short>())
+		{
+			out << YAML::Key << propName.to_string() << YAML::Value << (unsigned)propValue.to_uint16();
+			return true;
+		}
+
+		if (propType == rttr::type::get<short>())
+		{
+			out << YAML::Key << propName.to_string() << YAML::Value << (int)propValue.to_int16();
+			return true;
+		}
+
+		if (propType == rttr::type::get<unsigned>())
+		{
+			out << YAML::Key << propName.to_string() << YAML::Value << propValue.to_uint32();
+			return true;
+		}
+
+		if (propType == rttr::type::get<long long>())
+		{
+			out << YAML::Key << propName.to_string() << YAML::Value << propValue.to_int64();
+			return true;
+		}
+
+		if (propType == rttr::type::get<unsigned long long>())
+		{
+			out << YAML::Key << propName.to_string() << YAML::Value  << propValue.to_uint64();
+			return true;
+		}
+
+		if (propType == rttr::type::get<double>())
+		{
+			out << YAML::Key << propName.to_string() << YAML::Value << propValue.to_double();
+			return true;
+		}
+
+		if (propType == rttr::type::get<glm::vec2>())
+		{
+			out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<glm::vec2>();
+			return true;
+		}
+
+		if (propType == rttr::type::get<glm::vec3>())
+		{
+			out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<glm::vec3>();
+			return true;
+		}
+
+		if (propType == rttr::type::get<glm::vec4>())
+		{
+			out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<glm::vec4>();
+			return true;
+		}
+
+		if (propType.get_wrapped_type().is_valid())
+		{
+			auto wrappedType = propType.get_wrapped_type();
+			if (wrappedType.is_derived_from<Asset>())
+			{
+				out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<Ref<Asset>>()->mAssetHandle;
+				return true;
+			}
+		}
+
+		if (propType.is_class() && propType.is_valid()) // all custom classes
+		{
+			out << YAML::Key << propName.to_string() << YAML::BeginMap;
+			auto properties = propType.get_properties();
+			for (auto nestedProperty : properties)
+			{
+				SerializeProperty(out, nestedProperty, prop.get_value(instance));
+			}
+			out << YAML::EndMap;
+			return true;
+		}
+
+		return false;
+	}
+
+	template <typename Component>
+	static void SerializeComponent(YAML::Emitter& out, Component& component)
+	{
+		ReflectionInstance rInstance(component);
+		out << YAML::Key << rInstance.get_type().get_name().to_string();
+		out << YAML::BeginMap;
+		auto properties = rInstance.get_type().get_properties();
+		for (auto prop : properties)
+		{
+			SerializeProperty(out, prop, rInstance);
+		}
+		out << YAML::EndMap;
+	}
+
 	static void SerializeEntity(YAML::Emitter& out, Entity& entity)
 	{
 		out << YAML::BeginMap;
 		out << YAML::Key << "EntityID" << YAML::Value << entity.GetUUID();
 		if (entity.HasComponent<TagComponent>())
 		{
-			out << YAML::Key << "TagComponent";
-			out << YAML::BeginMap;
-
-			auto& tagComponent = entity.GetComponent<TagComponent>();
-			out << YAML::Key << "Tag" << YAML::Value << tagComponent.Tag;
-
-			out << YAML::EndMap;
+			SerializeComponent(out, entity.GetComponent<TagComponent>());
 		}
 
 		if (entity.HasComponent<CameraComponent>())
 		{
-			out << YAML::Key << "CameraComponent";
-			out << YAML::BeginMap;
-
-			auto& cameraComponent = entity.GetComponent<CameraComponent>();
-			auto& camera = cameraComponent.Camera;
-
-			out << YAML::Key << "Camera" << YAML::Value;
-			out << YAML::BeginMap;
-			out << YAML::Key << "CameraType" << YAML::Value << (int)camera.GetCameraType();
-			out << YAML::Key << "OrthoSize" << YAML::Value << camera.GetOrthoSize();
-			out << YAML::Key << "OrthoNear" << YAML::Value << camera.GetOrthoNear();
-			out << YAML::Key << "OrthoFar" << YAML::Value << camera.GetOrthoFar();
-			out << YAML::Key << "PerspFOV" << YAML::Value << camera.GetPerspFOV();
-			out << YAML::Key << "PerspNear" << YAML::Value << camera.GetPerspNear();
-			out << YAML::Key << "PerspFar" << YAML::Value << camera.GetPerspFar();
-			out << YAML::EndMap;
-
-			out << YAML::Key << "Primary" << YAML::Value << cameraComponent.Primary;
-			out << YAML::Key << "FixedAspectRatio" << YAML::Value << cameraComponent.FixedAspectRatio;
-
-			out << YAML::EndMap;
+			SerializeComponent(out, entity.GetComponent<CameraComponent>());
 		}
 
 		if (entity.HasComponent<TransformComponent>())
 		{
-			out << YAML::Key << "TransformComponent";
-			out << YAML::BeginMap;
-
-			auto& transformComponent = entity.GetComponent<TransformComponent>();
-			out << YAML::Key << "Translate" << YAML::Value << transformComponent.Translate;
-			out << YAML::Key << "Rotation" << YAML::Value << transformComponent.Rotation;
-			out << YAML::Key << "Scale" << YAML::Value << transformComponent.Scale;
-
-			out << YAML::EndMap;
+			SerializeComponent(out, entity.GetComponent<TransformComponent>());
 		}
 
 		if (entity.HasComponent<SpriteRendererComponent>())
 		{
-			out << YAML::Key << "SpriteRendererComponent";
-			out << YAML::BeginMap;
-
-			auto& spriteRendererComponent = entity.GetComponent<SpriteRendererComponent>();
-			out << YAML::Key << "Colour" << YAML::Value << spriteRendererComponent.Colour;
-			SerializeTexture(out, spriteRendererComponent.Texture);
-
-			out << YAML::EndMap;
+			SerializeComponent(out, entity.GetComponent<SpriteRendererComponent>());
 		}
 
 		if (entity.HasComponent<CircleRendererComponent>())
 		{
-			out << YAML::Key << "CircleRendererComponent";
-			out << YAML::BeginMap;
-
-			auto& circleRendererComponent = entity.GetComponent<CircleRendererComponent>();
-			out << YAML::Key << "Colour" << YAML::Value << circleRendererComponent.Colour;
-			out << YAML::Key << "Thickness" << YAML::Value << circleRendererComponent.thickness;
-			out << YAML::Key << "Fade" << YAML::Value << circleRendererComponent.fade;
-
-			out << YAML::EndMap;
+			SerializeComponent(out, entity.GetComponent<CircleRendererComponent>());
 		}
 
 		if (entity.HasComponent<MeshFilterComponent>())
 		{
-			out << YAML::Key << "MeshFilterComponent";
-			out << YAML::BeginMap;
-
-			auto& meshFilterComponent = entity.GetComponent<MeshFilterComponent>();
-			out << YAML::Key << "Mesh" << YAML::Value << meshFilterComponent.Model->mAssetHandle; //UUID of Mesh
-			out << YAML::EndMap;
+			SerializeComponent(out, entity.GetComponent<MeshFilterComponent>());
 		}
 
 		if (entity.HasComponent<MeshRendererComponent>())
 		{
-			out << YAML::Key << "MeshRendererComponent";
-			out << YAML::BeginMap;
-
-			auto& meshRendererComponent = entity.GetComponent<MeshRendererComponent>();
-			out << YAML::Key << "Material" << YAML::Value << meshRendererComponent.Material->mAssetHandle;
-			out << YAML::Key << "CastShadow" << YAML::Value << meshRendererComponent.castShadow;
-			out << YAML::EndMap;
+			SerializeComponent(out, entity.GetComponent<MeshRendererComponent>());
 		}
 
 		if (entity.HasComponent<BoxColliderComponent>())
 		{
-			out << YAML::Key << "BoxColliderComponent";
-			out << YAML::BeginMap;
-
-			auto& boxColliderComponent = entity.GetComponent<BoxColliderComponent>();
-			out << YAML::Key << "isTrigger" << YAML::Value << boxColliderComponent.isTrigger; 
-			out << YAML::Key << "providesContact" << YAML::Value << boxColliderComponent.providesContact;
-			out << YAML::Key << "PhysicMaterial" << YAML::Value << 34256545; // UUID of material
-			out << YAML::Key << "Center" << YAML::Value << boxColliderComponent.Center;
-			out << YAML::Key << "Size" << YAML::Value << boxColliderComponent.Size;
-			out << YAML::EndMap;
+			SerializeComponent(out, entity.GetComponent<BoxColliderComponent>());
 		}
 
 		if (entity.HasComponent<CapsuleColliderComponent>())
 		{
-			out << YAML::Key << "CapsuleColliderComponent";
-			out << YAML::BeginMap;
-
-			auto& capsuleColliderComponent = entity.GetComponent<CapsuleColliderComponent>();
-			out << YAML::Key << "isTrigger" << YAML::Value << capsuleColliderComponent.isTrigger;
-			out << YAML::Key << "providesContact" << YAML::Value << capsuleColliderComponent.providesContact;
-			out << YAML::Key << "PhysicMaterial" << YAML::Value << 34256545; // UUID of material
-			out << YAML::Key << "Radius" << YAML::Value << capsuleColliderComponent.radius;
-			out << YAML::Key << "Height" << YAML::Value << capsuleColliderComponent.height;
-			out << YAML::Key << "Direction" << YAML::Value << (int)capsuleColliderComponent.direction;
-			out << YAML::EndMap;
+			SerializeComponent(out, entity.GetComponent<CapsuleColliderComponent>());
 		}
 
 		if (entity.HasComponent<RigidBodyComponent>())
 		{
-			out << YAML::Key << "RigidBodyComponent";
-			out << YAML::BeginMap;
-
-			auto& rigidBodyComponent = entity.GetComponent<RigidBodyComponent>();
-
-			out << YAML::Key << "isBox" << YAML::Value << rigidBodyComponent.isBox;
-			out << YAML::Key << "Radius" << YAML::Value << rigidBodyComponent.radius;
-			//out << YAML::Key << "mass" << YAML::Value << rigidBodyComponent.mass;
-			//out << YAML::Key << "drag" << YAML::Value << rigidBodyComponent.drag;
-			//out << YAML::Key << "angularDrag" << YAML::Value << rigidBodyComponent.angularDrag;
-			//out << YAML::Key << "centerOfMass" << YAML::Value << rigidBodyComponent.centerOfMass;
-			//out << YAML::Key << "inertiaTensor" << YAML::Value << rigidBodyComponent.inertiaTensor;
-			//out << YAML::Key << "inertiaTensorRotation" << YAML::Value << rigidBodyComponent.inertiaTensorRotation;
-			//out << YAML::Key << "AutomaticCenterOfMass" << YAML::Value << rigidBodyComponent.AutomaticCenterOfMass;
-			//out << YAML::Key << "AutomaticTensor" << YAML::Value << rigidBodyComponent.AutomaticTensor;
-			//out << YAML::Key << "useGravity" << YAML::Value << rigidBodyComponent.useGravity;
-			//out << YAML::Key << "isKinematic" << YAML::Value << rigidBodyComponent.isKinematic;
-
-			out << YAML::EndMap;
+			SerializeComponent(out, entity.GetComponent<RigidBodyComponent>());
 		}
-
 
 		if (entity.HasComponent<LightComponent>())
 		{
-			out << YAML::Key << "LightComponent";
-			out << YAML::BeginMap;
+			SerializeComponent(out, entity.GetComponent<LightComponent>());
+		}
 
-			auto& lightComponent = entity.GetComponent<LightComponent>();
-			out << YAML::Key << "Ambient" << YAML::Value << lightComponent.ambient;
-			out << YAML::Key << "Diffuse" << YAML::Value << lightComponent.diffuse;
-			out << YAML::Key << "Direction" << YAML::Value << lightComponent.direction;
-			out << YAML::Key << "Specular" << YAML::Value << lightComponent.specular;
-			out << YAML::Key << "InnerSpotX" << YAML::Value << lightComponent.InnerOuterSpot.x;
-			out << YAML::Key << "InnerSpotY" << YAML::Value << lightComponent.InnerOuterSpot.y;
-			out << YAML::Key << "Linear" << YAML::Value << lightComponent.linear;
-			out << YAML::Key << "Quadratic" << YAML::Value << lightComponent.quadratic;
-			out << YAML::Key << "Type" << YAML::Value << (int)lightComponent.type;
+		if (entity.HasComponent<TextComponent>())
+		{
+			SerializeComponent(out, entity.GetComponent<TextComponent>());
+		}
 
-			/*out << YAML::Key << "Colour" << YAML::Value << lightComponent.Colour;
-			out << YAML::Key << "InnerSpot" << YAML::Value << lightComponent.InnerOuterSpot.x;
-			out << YAML::Key << "OuterSpot" << YAML::Value << lightComponent.InnerOuterSpot.y;
-			out << YAML::Key << "Temperature" << YAML::Value << lightComponent.Temperature;
-			out << YAML::Key << "Intensity" << YAML::Value << lightComponent.Intensity;
-			out << YAML::Key << "IndirectMultiplier" << YAML::Value << lightComponent.IndirectMultiplier;
-			out << YAML::Key << "Range" << YAML::Value << lightComponent.Range;
-			out << YAML::Key << "Type" << YAML::Value << (int)lightComponent.type;
-			out << YAML::Key << "ShadowType" << YAML::Value << (int)lightComponent.shadowType;
-			out << YAML::Key << "LightAppearance" << YAML::Value << (int)lightComponent.lightAppearance;*/
+		if (entity.HasComponent<AudioListenerComponent>())
+		{
+			SerializeComponent(out, entity.GetComponent<AudioListenerComponent>());
+		}
 
-			out << YAML::EndMap;
+		if (entity.HasComponent<AudioSourceComponent>())
+		{
+			SerializeComponent(out, entity.GetComponent<AudioSourceComponent>());
 		}
 
 
@@ -602,6 +636,173 @@ namespace Borealis
 		return true;
 	}
 
+
+	static bool DeserialiseProperty(YAML::Node data, rttr::property& prop, rttr::instance& instance)
+	{
+		auto propName = prop.get_name();
+		auto propData = data[propName.to_string().c_str()]; // entity["TransformComponent"]["Translate"]
+		auto propType = prop.get_type();
+		if (propData)
+		{
+			if (propType.is_enumeration())
+			{
+				auto datastr = propData.as<std::string>();
+				prop.set_value(instance, propType.get_enumeration().name_to_value(propData.as<std::string>()));
+				return true;
+			}
+			if (propType == rttr::type::get<int>())
+			{
+				prop.set_value(instance, propData.as<int>());
+				return true;
+			}
+
+			if (propType == rttr::type::get<float>())
+			{
+				prop.set_value(instance, propData.as<float>());
+				return true;
+			}
+
+			if (propType == rttr::type::get<bool>())
+			{
+				prop.set_value(instance, propData.as<bool>());
+				return true;
+			}
+
+			if (propType == rttr::type::get<std::string>())
+			{
+				prop.set_value(instance, propData.as<std::string>());
+				return true;
+			}
+
+			if (propType == rttr::type::get<unsigned char>())
+			{
+				prop.set_value(instance, propData.as<unsigned char>());
+				return true;
+			}
+
+			if (propType == rttr::type::get<char>())
+			{
+				prop.set_value(instance, propData.as<char>());
+				return true;
+			}
+
+			if (propType == rttr::type::get<unsigned short>())
+			{
+				prop.set_value(instance, propData.as<unsigned short>());
+				return true;
+			}
+
+			if (propType == rttr::type::get<short>())
+			{
+				prop.set_value(instance, propData.as<short>());
+				return true;
+			}
+
+			if (propType == rttr::type::get<unsigned>())
+			{
+				prop.set_value(instance, propData.as<unsigned>());
+				return true;
+			}
+
+			if (propType == rttr::type::get<long long>())
+			{
+				prop.set_value(instance, propData.as<long long>());
+				return true;
+			}
+
+			if (propType == rttr::type::get<unsigned long long>())
+			{
+				prop.set_value(instance, propData.as<unsigned long long>());
+				return true;
+			}
+
+			if (propType == rttr::type::get<double>())
+			{
+				prop.set_value(instance, propData.as<double>());
+				return true;
+			}
+
+			if (propType == rttr::type::get<glm::vec2>())
+			{
+				prop.set_value(instance, propData.as<glm::vec2>());
+				return true;
+			}
+
+			if (propType == rttr::type::get<glm::vec3>())
+			{
+				prop.set_value(instance, propData.as<glm::vec3>());
+				return true;
+			}
+
+			if (propType == rttr::type::get<glm::vec4>())
+			{
+				prop.set_value(instance, propData.as<glm::vec4>());
+				return true;
+			}
+
+			if (propType == rttr::type::get<Ref<Model>>())
+			{
+				prop.set_value(instance, rttr::variant(AssetManager::GetAsset<Model>(propData.as<uint64_t>())));
+				return true;
+			}
+
+			if (propType == rttr::type::get<Ref<Material>>())
+			{
+				prop.set_value(instance, rttr::variant(AssetManager::GetAsset<Material>(propData.as<uint64_t>())));
+				return true;
+			}
+
+			if (propType.is_class() && propType.is_valid()) // all custom classes
+			{
+				auto properties = propType.get_properties();
+				rttr::variant oldVariant = prop.get_value(instance);
+				rttr::instance oldInstance(oldVariant);
+				if (oldInstance.is_valid())
+				{
+					for (auto nestedProperty : properties)
+					{
+						DeserialiseProperty(data[propName.to_string()], nestedProperty, oldInstance);
+					}
+
+					prop.set_value(instance, oldVariant);
+				}
+				return true;
+			}
+
+			// other types
+		}
+
+		return false;
+	}
+
+	template <typename Component>
+	static bool DeserialiseComponent(YAML::detail::iterator_value& data, Entity& entity)
+	{
+		auto type = rttr::type::get<Component>();
+		auto componentName = type.get_name().to_string();
+		auto componentData = data[componentName];  //entity["TransformComponent"]
+
+		if (componentData)
+		{
+			if (!entity.HasComponent<Component>())
+			{
+				entity.AddComponent<Component>();
+			}
+			auto& component = entity.GetComponent<Component>();
+			ReflectionInstance rInstance(component);
+
+			auto properties = rInstance.get_type().get_properties();
+			for (auto prop : properties)
+			{
+				DeserialiseProperty(componentData, prop, rInstance);
+			}
+		}
+
+		return true;
+	}
+
+
+
 	bool Serialiser::DeserialiseScene(const std::string& filepath)
 	{
 		std::ifstream inStream(filepath);
@@ -618,156 +819,27 @@ namespace Borealis
 
 		std::string sceneName = data["Scene"].as<std::string>();
 		BOREALIS_CORE_INFO("Deserialising scene: {}", sceneName);
-
+		// Deserialise scene info such as viewport sizes
+		mScene->ResizeViewport(1920, 1080);
 		auto entities = data["Entities"];
 		if (entities)
 		{
 			for (auto entity : entities)
 			{
 				uint64_t uuid = entity["EntityID"].as<uint64_t>(); // UUID
+				Entity loadedEntity = mScene->CreateEntityWithUUID("", uuid);
 
-				auto tagComponent = entity["TagComponent"];
-				std::string name;
-				if (tagComponent)
-				{
-					name = tagComponent["Tag"].as<std::string>();
-				}
-
-				Entity loadedEntity = mScene->CreateEntityWithUUID(name, uuid);
-
-				auto transformComponent = entity["TransformComponent"];
-				if (transformComponent)
-				{
-					auto& tc = loadedEntity.GetComponent<TransformComponent>();
-					tc.Translate = entity["TransformComponent"]["Translate"].as<glm::vec3>();
-					tc.Rotation = entity["TransformComponent"]["Rotation"].as<glm::vec3>();
-					tc.Scale = entity["TransformComponent"]["Scale"].as<glm::vec3>();
-				}
-
-				auto spriteRendererComponent = entity["SpriteRendererComponent"];
-				if (spriteRendererComponent)
-				{
-					auto& src = loadedEntity.AddComponent<SpriteRendererComponent>();
-					src.Colour = entity["SpriteRendererComponent"]["Colour"].as<glm::vec4>();
-					if (entity["SpriteRendererComponent"]["Texture"].IsDefined())
-					{
-						src.Texture = AssetManager::GetAsset<Texture2D>(entity["SpriteRendererComponent"]["Texture"].as<uint64_t>());
-					}
-				}
-
-				auto circleRendererComponent = entity["CircleRendererComponent"];
-				if (circleRendererComponent)
-				{
-					auto& src = loadedEntity.AddComponent<CircleRendererComponent>();
-					src.Colour = entity["CircleRendererComponent"]["Colour"].as<glm::vec4>();
-					src.thickness = entity["CircleRendererComponent"]["Thickness"].as<float>();
-					src.fade = entity["CircleRendererComponent"]["Fade"].as<float>();
-				}
-
-				auto cameraComponent = entity["CameraComponent"];
-				if (cameraComponent)
-				{
-					auto& cc = loadedEntity.AddComponent<CameraComponent>();
-					cc.Camera.SetViewportSize(1920, 1080);
-					cc.Camera.SetCameraType((SceneCamera::CameraType)cameraComponent["Camera"]["CameraType"].as<int>());
-					cc.Camera.SetOrthoSize(cameraComponent["Camera"]["OrthoSize"].as<float>());
-					cc.Camera.SetOrthoNear(cameraComponent["Camera"]["OrthoNear"].as<float>());
-					cc.Camera.SetOrthoFar(cameraComponent["Camera"]["OrthoFar"].as<float>());
-					cc.Camera.SetPerspFOV(cameraComponent["Camera"]["PerspFOV"].as<float>());
-					cc.Camera.SetPerspNear(cameraComponent["Camera"]["PerspNear"].as<float>());
-					cc.Camera.SetPerspFar(cameraComponent["Camera"]["PerspFar"].as<float>());
-					cc.Primary = cameraComponent["Primary"].as<bool>();
-					cc.FixedAspectRatio = cameraComponent["FixedAspectRatio"].as<bool>();
-
-				}
-
-				auto meshFilterComponent = entity["MeshFilterComponent"];
-				if (meshFilterComponent)
-				{
-					auto& mfc = loadedEntity.AddComponent<MeshFilterComponent>();
-					uint64_t uuid = entity["MeshFilterComponent"]["Mesh"].as<uint64_t>(); // UUID
-					mfc.Model = AssetManager::GetAsset<Model>(uuid); // TODO: Load Mesh via UUID
-					BOREALIS_CORE_INFO(mfc.Model->mAssetHandle);
-				}
-
-				auto meshRendererComponent = entity["MeshRendererComponent"];
-				if (meshRendererComponent)
-				{
-					auto& mrc = loadedEntity.AddComponent<MeshRendererComponent>();
-					uint64_t uuid = entity["MeshRendererComponent"]["Material"].as<uint64_t>();
-					mrc.Material = AssetManager::GetAsset<Material>(uuid);
-					mrc.castShadow = meshRendererComponent["CastShadow"].as<bool>();
-				}
-
-				auto boxColliderComponent = entity["BoxColliderComponent"];
-				if (boxColliderComponent)
-				{
-					auto& bcc = loadedEntity.AddComponent<BoxColliderComponent>();
-					bcc.isTrigger = boxColliderComponent["isTrigger"].as<bool>();
-					bcc.providesContact = boxColliderComponent["providesContact"].as<bool>();
-					bcc.Material = nullptr; // TODO: Load Material via UUID
-					bcc.Center = boxColliderComponent["Center"].as<glm::vec3>();
-					bcc.Size = boxColliderComponent["Size"].as<glm::vec3>();
-				}
-
-				auto capsuleColliderComponent = entity["CapsuleColliderComponent"];
-				if (capsuleColliderComponent)
-				{
-					auto& ccc = loadedEntity.AddComponent<CapsuleColliderComponent>();
-					ccc.isTrigger = capsuleColliderComponent["isTrigger"].as<bool>();
-					ccc.providesContact = capsuleColliderComponent["providesContact"].as<bool>();
-					ccc.Material = nullptr; // TODO: Load Material via UUID
-					ccc.radius = capsuleColliderComponent["Radius"].as<float>();
-					ccc.height = capsuleColliderComponent["Height"].as<float>();
-					ccc.direction = (CapsuleColliderComponent::Direction)capsuleColliderComponent["Direction"].as<int>();
-				}
-
-				auto rigidBodyComponent = entity["RigidBodyComponent"];
-				if (rigidBodyComponent)
-				{
-					auto& rbc = loadedEntity.AddComponent<RigidBodyComponent>();
-					rbc.isBox = rigidBodyComponent["isBox"].as<bool>();
-					rbc.radius = rigidBodyComponent["Radius"].as<float>();
-					// run the update of the shape here once
-
-
-					/*rbc.mass = rigidBodyComponent["mass"].as<float>();
-					rbc.drag = rigidBodyComponent["drag"].as<float>();
-					rbc.angularDrag = rigidBodyComponent["angularDrag"].as<float>();
-					rbc.centerOfMass = rigidBodyComponent["centerOfMass"].as<glm::vec3>();
-					rbc.inertiaTensor = rigidBodyComponent["inertiaTensor"].as<glm::vec3>();
-					rbc.inertiaTensorRotation = rigidBodyComponent["inertiaTensorRotation"].as<glm::vec3>();
-					rbc.AutomaticCenterOfMass = rigidBodyComponent["AutomaticCenterOfMass"].as<bool>();
-					rbc.AutomaticTensor = rigidBodyComponent["AutomaticTensor"].as<bool>();
-					rbc.useGravity = rigidBodyComponent["useGravity"].as<bool>();
-					rbc.isKinematic = rigidBodyComponent["isKinematic"].as<bool>();*/
-				}
-
-				auto lightComponent = entity["LightComponent"];
-				if (lightComponent)
-				{
-					auto& lc = loadedEntity.AddComponent<LightComponent>();
-
-					lc.ambient = lightComponent["Ambient"].as<glm::vec3>();
-					lc.diffuse = lightComponent["Diffuse"].as<glm::vec3>();
-					lc.direction = lightComponent["Direction"].as<glm::vec3>();
-					lc.specular = lightComponent["Specular"].as<glm::vec3>();
-					lc.linear = lightComponent["Linear"].as<float>();
-					lc.quadratic = lightComponent["Quadratic"].as<float>();
-					lc.type = (LightComponent::Type)lightComponent["Type"].as<int>();
-					lc.InnerOuterSpot.x = lightComponent["InnerSpotX"].as<float>();
-					lc.InnerOuterSpot.y = lightComponent["InnerSpotY"].as<float>();
-
-					/*lc.Colour = lightComponent["Colour"].as<glm::vec4>();
-					lc.InnerOuterSpot = glm::vec2(lightComponent["InnerSpot"].as<float>(), lightComponent["OuterSpot"].as<float>());
-					lc.Temperature = lightComponent["Temperature"].as<float>();
-					lc.Intensity = lightComponent["Intensity"].as<float>();
-					lc.IndirectMultiplier = lightComponent["IndirectMultiplier"].as<float>();
-					lc.Range = lightComponent["Range"].as<float>();
-					lc.type = (LightComponent::Type)lightComponent["Type"].as<int>();
-					lc.shadowType = (LightComponent::ShadowType)lightComponent["ShadowType"].as<int>();
-					lc.lightAppearance = (LightComponent::LightAppearance)lightComponent["LightAppearance"].as<int>();*/
-				}
+				DeserialiseComponent<TagComponent>(entity, loadedEntity);
+				DeserialiseComponent<TransformComponent>(entity, loadedEntity);
+				DeserialiseComponent<SpriteRendererComponent>(entity, loadedEntity);
+				DeserialiseComponent<CircleRendererComponent>(entity, loadedEntity);
+				DeserialiseComponent<CameraComponent>(entity, loadedEntity);
+				DeserialiseComponent<MeshFilterComponent>(entity, loadedEntity);
+				DeserialiseComponent<MeshRendererComponent>(entity, loadedEntity);
+				DeserialiseComponent<BoxColliderComponent>(entity, loadedEntity);
+				DeserialiseComponent<CapsuleColliderComponent>(entity, loadedEntity);
+				DeserialiseComponent<RigidBodyComponent>(entity, loadedEntity);
+				DeserialiseComponent<LightComponent>(entity, loadedEntity);
 				auto behaviourTreeComponent = entity["BehaviourTreeComponent"];
 				/*
 					extract the name of tree and root node, then iteritivly build the tree, then call the clone method by createfromname function
@@ -936,6 +1008,21 @@ namespace Borealis
 		}
 
 		return true;
+	}
+
+	void Serialiser::SerialisePrefab(const std::string& filepath, Entity entity)
+	{
+		YAML::Emitter out;
+	
+		SerializeEntity(out, entity);
+
+		// Create directory if doesnt exist
+		std::filesystem::path fileSystemPaths = filepath;
+		std::filesystem::create_directories(fileSystemPaths.parent_path());
+
+		std::ofstream outStream(filepath);
+		outStream << out.c_str();
+		outStream.close();
 	}
 
 	bool Serialiser::DeserialiseEditorStyle()

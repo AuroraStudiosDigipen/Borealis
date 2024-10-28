@@ -21,9 +21,11 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/Project.hpp>
 #include <Scene/SceneManager.hpp>
 #include <Scene/Serialiser.hpp>	
+#include <Scene/ComponentRegistry.hpp>
 #include <Scripting/ScriptingSystem.hpp>
 #include <Scripting/ScriptInstance.hpp>
 #include <EditorLayer.hpp>
+#include <Prefab.hpp>
 //	#include <Project/Project.hpp>
 #include "Audio/AudioEngine.hpp"
 #include <ResourceManager.hpp>
@@ -69,6 +71,7 @@ namespace Borealis {
 		mEditorScene = MakeRef<Scene>();
 		SceneManager::AddScene(mEditorScene->GetName(), mEditorScene->GetScenePath());
 		SceneManager::SetActiveScene(mEditorScene->GetName());
+		mEditorScene = SceneManager::GetActiveScene();
 
 		SCPanel.SetContext(SceneManager::GetActiveScene());
 
@@ -948,12 +951,20 @@ namespace Borealis {
 				mAssetImporter.LoadRegistry(Project::GetProjectInfo());
 				SceneManager::SetActiveScene(activeSceneName);
 
-				std::string assetsPath = Project::GetProjectPath() + "\\Assets";
-				CBPanel.SetCurrDir(assetsPath);
-				DeserialiseEditorScene();
+				for (auto [handle,meta] : Project::GetEditorAssetsManager()->GetAssetRegistry())
+				{
+					if (meta.Type == AssetType::Prefab)
+					{
+						PrefabManager::DeserialisePrefab(meta.SourcePath.string());
+					}
+				}
 			}
+		
 
 
+			std::string assetsPath = Project::GetProjectPath() + "\\Assets";
+			CBPanel.SetCurrDir(assetsPath);
+			DeserialiseEditorScene();
 			// Clear Scenes in Scene Manager
 			// Clear Assets in Assets Manager
 			// Load Scenes in Assets Manager

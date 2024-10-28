@@ -174,17 +174,16 @@ workspace "Borealis"
 			"BOREALIS_BUILD_DLL",
 			"_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS",
 			"GLFW_INCLUDE_NONE",
-			
 		}
-
+		
 		pchheader "BorealisPCH.hpp"
 		pchsource "Borealis/src/BorealisPCH.cpp"
+
+		buildoptions { "/bigobj" }
 
 		filter "files:Borealis/lib/ImGuizmo/**.cpp"
 		flags {"NoPCH"}
 		
-		
-
 		filter "configurations:Debug"
 			defines "_DEB"
 			symbols "On"
@@ -274,6 +273,7 @@ workspace "Borealis"
 			"%{IncludeDir.assimp}",
 			"%{IncludeDir.MSDF}",
 			"%{IncludeDir.filewatch}",
+			"%{IncludeDir.RTTR}"
 		}
 
 		defines
@@ -450,7 +450,8 @@ workspace "Borealis"
 			"%{IncludeDir.GLM}",
 			"%{IncludeDir.ImGui}",
 			"%{prj.name}/inc",
-			"%{IncludeDir.ENTT}"
+			"%{IncludeDir.ENTT}",
+			"%{IncludeDir.RTTR}"
 		}
 
 		defines
@@ -458,7 +459,8 @@ workspace "Borealis"
 			"_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS",
 			"JPH_FLOATING_POINT_EXCEPTIONS_ENABLED",
 			"JPH_CROSS_PLATFORM_DETERMINISTIC",
-			"JPH_ENABLE_ASSERTS"		
+			"JPH_ENABLE_ASSERTS"
+				
 		}
 
 		links

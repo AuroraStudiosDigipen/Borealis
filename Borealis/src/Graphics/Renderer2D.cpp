@@ -575,7 +575,7 @@ namespace Borealis
 		sData->mStats.QuadCount++;
 	}
 
-	void Renderer2D::DrawString(const std::string& string, Ref<Font> font, const glm::mat4& transform, int entityID)
+	void Renderer2D::DrawString(const std::string& string, Ref<Font> font, const glm::mat4& transform, int entityID, float size, glm::vec4 colour)
 	{
 		Ref<Texture2D> fontAtlas = font->GetAtlasTexture();
 
@@ -584,7 +584,7 @@ namespace Borealis
 		FontInfo const& fontInfo = font->GetFontInfo();
 
 		double x = 0.0;
-		double fsScale = 1.0 / (fontInfo.ascenderY - fontInfo.descenderY);
+		double fsScale = size / (fontInfo.ascenderY - fontInfo.descenderY);
 		double y = 0.0;
 
 		for (int i{}; i < string.size(); i++)
@@ -607,8 +607,6 @@ namespace Borealis
 			float texelHeight = 1.0f / fontAtlas->GetHeight();
 			texCoordMin *= glm::vec2(texelWidth, texelHeight);
 			texCoordMax *= glm::vec2(texelWidth, texelHeight);
-
-			glm::vec4 colour = { 1.f,1.f,0.f,1.f };
 
 			sData->FontBufferPtr->Position = transform * glm::vec4(quadMin, 0.0f, 1.0f);
 			sData->FontBufferPtr->Colour = colour;
@@ -647,6 +645,11 @@ namespace Borealis
 				x += fsScale * advance;// +textParams.Kerning;
 			}
 		}
+	}
+
+	void Renderer2D::DrawString(TextComponent& text, TransformComponent& trans, int entityID)
+	{
+		DrawString(text.text, text.font, trans.GetTransform(), entityID, text.fontSize, text.colour);
 	}
 
 	void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const glm::vec4& colour)

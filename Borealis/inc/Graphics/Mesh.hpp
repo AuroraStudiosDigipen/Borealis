@@ -26,7 +26,6 @@ namespace Borealis
 		glm::vec3 Position;
 		glm::vec3 Normal;
 		glm::vec2 TexCoords;
-		//VertexBoneData BoneData;
 
 	};
 
@@ -34,8 +33,6 @@ namespace Borealis
 	{
 		glm::vec3 Tangent;
 		glm::vec3 Bitangent;
-
-		VertexBoneData BoneData;
 	};
 
 	class Mesh
@@ -82,13 +79,13 @@ namespace Borealis
 			\brief
 				Set up mesh
 		*************************************************************************/
-		void SetupMesh();
+		virtual void SetupMesh();
 
 		/*!***********************************************************************
 			\brief
 				Draw mesh
 		*************************************************************************/
-		void Draw(const glm::mat4& transform, Ref<Shader> shader, int entityID);
+		virtual void Draw(const glm::mat4& transform, Ref<Shader> shader, int entityID);
 
 		/*!***********************************************************************
 			\brief

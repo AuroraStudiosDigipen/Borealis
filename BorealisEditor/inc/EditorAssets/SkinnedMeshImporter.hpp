@@ -14,12 +14,30 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #ifndef SKINNEDMESHIMPORTER_HPP
 #define SKINNEDMESHIMPORTER_HPP
 
-class SkinnedMeshImporter
+#include <string>
+
+#include <Core/core.hpp>
+#include <Scene/Components.hpp>
+
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+#include <Graphics/Model.hpp>
+#include <Graphics/Animation/Bone.hpp>
+#include <map>
+
+namespace Borealis
 {
-public:
+	class SkinnedMeshImporter
+	{
+	public:
+		static Ref<Model> LoadFBXModel(const std::string& path);
+	private:
+		static void ProcessNode(aiNode* node, const aiScene* scene, Model& model);
+		static Mesh ProcessMesh(aiMesh* mesh, const aiScene* scene, Model& model);
 
+		static void ExtractBoneWeight(std::vector<VertexBoneData>& vertices, aiMesh* mesh, const aiScene* scene, Model& model);
+	};
+}
 
-private:
-
-};
 #endif

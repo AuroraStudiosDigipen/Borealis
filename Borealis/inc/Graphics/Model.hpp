@@ -22,6 +22,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/Shader.hpp>
 #include <Graphics/Mesh.hpp>
 
+#include "Animation/Bone.hpp"
+
 namespace Borealis
 {
 	struct MeshVertex
@@ -52,6 +54,9 @@ namespace Borealis
 		void SaveModel();
 
 		std::vector<Mesh> mMeshes;
+		std::map<std::string, BoneData> mBoneDataMap;
+		int mBoneCounter;
+
 	private:
 
 		RTTR_ENABLE(Asset)

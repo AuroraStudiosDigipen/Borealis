@@ -94,6 +94,7 @@ namespace Borealis
 		viewMtx = camera.GetViewMatrix();
 		viewProj = camera.GetViewProjectionMatrix();
 		viewPortSize = camera.GetViewPortSize();
+		position = camera.GetPosition();
 		editor = true;
 	}
 
@@ -106,7 +107,8 @@ namespace Borealis
 		viewMtx = glm::inverse(transform);
 		viewProj = camera.GetProjectionMatrix() * glm::inverse(transform);
 		viewPortSize = camera.GetViewPortSize();
-		
+		position = transform[3];
+
 		editor = false;
 	}
 
@@ -259,6 +261,15 @@ namespace Borealis
 					glm::mat4 lightView = glm::lookAt(lightComponent.offset, lightComponent.offset + lightComponent.spotLightDirection, upVector);
 					float fieldOfView = glm::radians(lightComponent.InnerOuterSpot.x * 2.f); // Spotlight cone angle
 					glm::mat4 lightProj = glm::perspective(fieldOfView, 1.f, 20.f, 1000.f);
+
+					shader->Set("u_LightViewProjection", lightProj * lightView);
+				}
+				else if (lightComponent.type == LightComponent::Type::Directional)
+				{
+					glm::vec3 upVector = { 0.f,1.f,0.f };
+					glm::mat4 lightView = glm::lookAt(lightComponent.offset, lightComponent.direction, upVector);
+					float fieldOfView = glm::radians(lightComponent.InnerOuterSpot.x * 2.f); // Spotlight cone angle
+					glm::mat4 lightProj = glm::ortho(-100.f, 100.f, -100.f, 100.f, 0.f, 400.f);
 
 					shader->Set("u_LightViewProjection", lightProj * lightView);
 				}
@@ -497,6 +508,7 @@ namespace Borealis
 		shader->Set("shadowPass", true);
 
 		Ref<FrameBuffer> shadowMap = nullptr;
+		glm::vec3 cameraPosition{};
 		for (auto sink : sinkList)
 		{
 			if (sink->source)
@@ -509,6 +521,11 @@ namespace Borealis
 					shadowMap->Bind();
 					RenderCommand::Clear();
 				}
+
+				if (sourcePtr->sourceType == RenderSourceType::Camera)
+				{
+					cameraPosition = std::dynamic_pointer_cast<CameraSource>(sourcePtr)->position;
+				}
 			}
 		}
 
@@ -519,15 +536,21 @@ namespace Borealis
 				auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
 				if (!lightComponent.castShadow) continue;
 
-				//temp
-				if (lightComponent.type != LightComponent::Type::Spot) continue;
-
 				if (lightComponent.type == LightComponent::Type::Spot)
 				{
 					glm::vec3 upVector = { 0.f,1.f,0.f };
 					glm::mat4 lightView = glm::lookAt(lightComponent.offset, lightComponent.offset + lightComponent.spotLightDirection, upVector);
 					float fieldOfView = glm::radians(lightComponent.InnerOuterSpot.x*2.f); // Spotlight cone angle
 					glm::mat4 lightProj = glm::perspective(fieldOfView, 1.f, 20.f, 1000.f);
+
+					shader->Set("u_LightViewProjection", lightProj * lightView);
+				}
+				else if (lightComponent.type == LightComponent::Type::Directional)
+				{
+					glm::vec3 upVector = { 0.f,1.f,0.f };
+					glm::mat4 lightView = glm::lookAt(lightComponent.offset, lightComponent.direction, upVector);
+					float fieldOfView = glm::radians(lightComponent.InnerOuterSpot.x * 2.f); // Spotlight cone angle
+					glm::mat4 lightProj = glm::ortho(-100.f, 100.f, -100.f, 100.f, 0.f, 400.f);
 
 					shader->Set("u_LightViewProjection", lightProj * lightView);
 				}

@@ -90,6 +90,7 @@ namespace Borealis
 		CameraSource(std::string name, const Camera& camera, const glm::mat4& transform);
 
 		bool editor;
+		glm::vec3 position;
 		glm::mat4 projMtx;
 		glm::mat4 viewMtx;
 		glm::mat4 viewProj;

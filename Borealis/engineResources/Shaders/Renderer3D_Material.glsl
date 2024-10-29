@@ -165,6 +165,28 @@ vec3 GetEmission()
 	return u_Material.hasEmissionMap ? texture(u_Material.emissionMap, GetTexCoord()).rgb : u_Material.emissionColor.rgb;
 }
 
+float GetShadowFactor()
+{
+	vec3 projCoord = v_LightPos.xyz / v_LightPos.w;
+	vec2 UVCoord;
+	UVCoord.x = 0.5 * projCoord.x + 0.5;
+	UVCoord.y = 0.5 * projCoord.y + 0.5;
+	float z = 0.5 * projCoord.z + 0.5;
+
+	float depth = texture(u_ShadowMap, UVCoord).x;
+
+	float bias = 0.0025;
+
+	if(depth + bias < z)
+	{
+		return 0.5;
+	}
+	else
+	{
+		return 1.f;
+	}
+}
+
 vec3 ComputeDirectionalLight(Light light, vec3 normal, vec3 viewDir) 
 {
 	vec3 lightDir = normalize(-light.direction);
@@ -185,7 +207,10 @@ vec3 ComputeDirectionalLight(Light light, vec3 normal, vec3 viewDir)
         vec3 diffuse = light.diffuse * diff * (1.0 - metallic);
         vec3 specular = light.specular * spec * GetSpecular() * metallic; 
 
-        color = ambient + diffuse + specular + emission;
+		//temp
+		float shadowFactor = GetShadowFactor();
+
+        color = ambient + shadowFactor * (diffuse + specular + emission);
     }
 	return color;
 }
@@ -218,28 +243,6 @@ vec3 ComputePointLight(Light light, vec3 normal, vec3 viewDir)
     }
 
 	return color;
-}
-
-float GetShadowFactorSpotLight()
-{
-	vec3 projCoord = v_LightPos.xyz / v_LightPos.w;
-	vec2 UVCoord;
-	UVCoord.x = 0.5 * projCoord.x + 0.5;
-	UVCoord.y = 0.5 * projCoord.y + 0.5;
-	float z = 0.5 * projCoord.z + 0.5;
-
-	float depth = texture(u_ShadowMap, UVCoord).x;
-
-	float bias = 0.0025;
-
-	if(depth + bias < z)
-	{
-		return 0.5;
-	}
-	else
-	{
-		return 1.f;
-	}
 }
 
 vec3 ComputeSpotLight(Light light, vec3 normal, vec3 viewDir)
@@ -276,7 +279,7 @@ vec3 ComputeSpotLight(Light light, vec3 normal, vec3 viewDir)
 		specular *= intensity * attenuation;
 
 		//temp
-		float shadowFactor = GetShadowFactorSpotLight();
+		float shadowFactor = GetShadowFactor();
 
         color = ambient + shadowFactor * (diffuse + specular + emission);
     }

@@ -92,6 +92,8 @@ namespace Borealis
         *************************************************************************/
         static NodeType StringToNodeType(const std::string& typeStr);
 
+        static std::unordered_map<std::string, Ref<BehaviourNode>> GetNodePrototypes();
+
     private:
         /*!***********************************************************************
             \brief

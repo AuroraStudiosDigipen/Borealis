@@ -18,6 +18,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <AI/BehaviourTree/BehaviourTree.hpp>
 #include <imgui_node_editor.h>
 #include <imgui_internal.h>
+#include <yaml-cpp/yaml.h>
+
 namespace Borealis
 {
     static inline ImRect ImGui_GetItemRect()
@@ -64,14 +66,15 @@ namespace Borealis
     {
     public:
         ed::PinId ID;
+        Ref<Node> Node;
         std::string Name;
         PinType Type;
         PinKind Kind;
-        Node* ParentNode;
 
-        Pin(int id, const std::string& name, PinType type, PinKind kind, Node* parentNode)
-            : ID(id), Name(name), Type(type), Kind(kind), ParentNode(parentNode) {}
+        Pin(int id, const std::string& name, PinType type)
+            : ID(id), Node(nullptr), Name(name), Type(type), Kind(PinKind::Input) {}
     };
+
 
     // Definition of the Node class
     class Node
@@ -84,6 +87,7 @@ namespace Borealis
         std::vector<std::shared_ptr<Pin>> Outputs;
         ImColor Color;
         ImVec2 Size;
+        ImVec2 Position;
 
         Node(int id, const std::string& name, NodeType type, const ImColor& color)
             : ID(id), Name(name), Type(type), Color(color), Size(0, 0) {}
@@ -116,7 +120,20 @@ namespace Borealis
         void HidePanel() { m_ShowPanel = false; }
         Ref<Pin> FindPin(ed::PinId id);
         // Function to handle adding new nodes
-        void AddNewNode(NodeType type);
+        void AddNewNode(const std::string& nodeName);
+        void RenderNodeCreationButtons();
+        Ref<Node> FindRootNode();
+        bool IsPinLinked(ed::PinId pinId);
+        bool IsControlFlowNode(Ref<Node> node);
+        bool IsLeafNode(Ref<Node> node);
+        void SaveBehaviorTree(const std::string& filename);
+        void SerializeNode(YAML::Emitter& out, Ref<Node> node, int depth);
+        std::vector<Ref<Node>> GetChildNodes(Ref<Node> node);
+        void ValidateBehaviorTree();
+        std::vector<Ref<Node>> FindRootNodes();
+        std::vector<Ref<Node>> FindUnconnectedNodes();
+        std::vector<Ref<Node>> GetMaxDepthNodes(const std::vector<Ref<Node>>& rootNodes);
+        void GetMaxDepthNodesRecursive(Ref<Node> node, std::vector<Ref<Node>>& maxDepthNodes, std::unordered_set<Ref<Node>>& visited);
 
     private:
         // Helper functions
@@ -133,6 +150,11 @@ namespace Borealis
         std::vector<std::shared_ptr<Node>> m_Nodes;
         std::vector<std::shared_ptr<Link>> m_Links;
         int m_NextId;
+        std::vector<std::pair<Ref<Node>, ImVec2>> m_NewNodes;
+        std::string m_TreeName = "Untitled-No-Name-Entered";
+        bool m_IsEditingExistingTree = false; 
+        std::string m_ValidationMessage;
+
     };
 }
 

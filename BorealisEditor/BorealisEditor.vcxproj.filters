@@ -21,6 +21,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="inc\BTNodeEditor.hpp">
+      <Filter>inc</Filter>
+    </ClInclude>
     <ClInclude Include="inc\EditorAssets\AssetImporter.hpp">
       <Filter>inc\EditorAssets</Filter>
     </ClInclude>
@@ -42,6 +45,9 @@
     <ClInclude Include="inc\EditorLayer.hpp">
       <Filter>inc</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Panels\BTNodeEditorPanel.hpp">
+      <Filter>inc\Panels</Filter>
+    </ClInclude>
     <ClInclude Include="inc\Panels\ContentBrowserPanel.hpp">
       <Filter>inc\Panels</Filter>
     </ClInclude>
@@ -60,10 +66,11 @@
     <ClInclude Include="inc\ResourceManager.hpp">
       <Filter>inc</Filter>
     </ClInclude>
-    <ClInclude Include="inc\BTNodeEditor.hpp" />
-    <ClInclude Include="inc\Panels\BTNodeEditorPanel.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\BTNodeEditor.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="src\EditorApp.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -88,6 +95,9 @@
     <ClCompile Include="src\EditorLayer.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\Panels\BTNodeEditorPanel.cpp">
+      <Filter>src\Panels</Filter>
+    </ClCompile>
     <ClCompile Include="src\Panels\ContentBrowserPanel.cpp">
       <Filter>src\Panels</Filter>
     </ClCompile>
@@ -103,7 +113,5 @@
     <ClCompile Include="src\ResourceManager.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\BTNodeEditor.cpp" />
-    <ClCompile Include="src\Panels\BTNodeEditorPanel.cpp" />
   </ItemGroup>
 </Project>

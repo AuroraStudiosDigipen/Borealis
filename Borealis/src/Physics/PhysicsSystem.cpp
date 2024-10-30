@@ -392,6 +392,8 @@ void PhysicsSystem::Init()
 
 		// Create the settings for the body itself. Note that here you can also set other properties like restitution/friction.
 		BodyCreationSettings box_settings(box_shape, RVec3(position.x, position.y, position.z), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
+		box_settings.mFriction = rigidbody.friction;
+		box_settings.mRestitution = rigidbody.bounciness;
 		if(rigidbody.dynamicBody)
 		{
 			box_settings.mMotionType = EMotionType::Dynamic;
@@ -421,7 +423,14 @@ void PhysicsSystem::Init()
 		ShapeRefC sphere_shape = sphere_shape_result.Get(); // Check for errors in a real-world scenario
 
 		// Create the settings for the body itself. Note that here you can also set other properties like restitution/friction.
-		BodyCreationSettings sphere_settings(sphere_shape, RVec3(position.x, position.y, position.z), Quat::sIdentity(), EMotionType::Dynamic, Layers::MOVING);
+		BodyCreationSettings sphere_settings(sphere_shape, RVec3(position.x, position.y, position.z), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
+		sphere_settings.mFriction = rigidbody.friction;
+		sphere_settings.mRestitution = rigidbody.bounciness;
+		if (rigidbody.dynamicBody)
+		{
+			sphere_settings.mMotionType = EMotionType::Dynamic;
+			sphere_settings.mObjectLayer = Layers::MOVING;
+		}
 
 		// Create the actual rigid body
 		Body* sphere = sData.body_interface->CreateBody(sphere_settings); // Make sure to handle potential nullptr errors
@@ -446,8 +455,12 @@ void PhysicsSystem::Init()
 		ShapeRefC capsule_shape = capsule_shape_result.Get(); // Check for errors in a real-world scenario
 
 		// Create the settings for the body itself. Note that here you can also set other properties like restitution/friction.
-		BodyCreationSettings capsule_settings(capsule_shape, RVec3(position.x, position.y, position.z), Quat::sIdentity(), EMotionType::Dynamic, Layers::MOVING);
-
+		BodyCreationSettings capsule_settings(capsule_shape, RVec3(position.x, position.y, position.z), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
+		if (rigidbody.dynamicBody)
+		{
+			capsule_settings.mMotionType = EMotionType::Dynamic;
+			capsule_settings.mObjectLayer = Layers::MOVING;
+		}
 		// Create the actual rigid body
 		Body* capsule = sData.body_interface->CreateBody(capsule_settings); // Make sure to handle potential nullptr errors
 

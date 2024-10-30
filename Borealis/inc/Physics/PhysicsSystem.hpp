@@ -60,7 +60,7 @@ namespace Borealis
    * \param position The position of the square body.
    * \param rigidbody The rigid body component of the square body.
    */
-		static void addSquareBody(float halfextent, glm::vec3 position, RigidBodyComponent& rigidbody);
+		static void addSquareBody(glm::vec3 size, glm::vec3 position, RigidBodyComponent& rigidbody);
 
 			/**
 	* \brief Adds a sphere body to the physics system.

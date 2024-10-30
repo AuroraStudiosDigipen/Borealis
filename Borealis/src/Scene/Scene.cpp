@@ -497,11 +497,15 @@ namespace Borealis
 			auto [transform, rigidbody] = physicsGroup.get<TransformComponent, RigidBodyComponent>(entity);
 			if (rigidbody.shape == RigidBodyType::Box)
 			{
-				PhysicsSystem::addSquareBody(rigidbody.radius, transform.Translate, rigidbody);
+				PhysicsSystem::addSquareBody(rigidbody.size, transform.Translate, rigidbody);
 			}
-			else
+			else if (rigidbody.shape == RigidBodyType::Sphere)
 			{
 				PhysicsSystem::addSphereBody(rigidbody.radius, transform.Translate, rigidbody);
+			}
+			else if (rigidbody.shape == RigidBodyType::Capsule)
+			{
+				PhysicsSystem::addCapsuleBody(rigidbody.radius, rigidbody.halfHeight, transform.Translate, rigidbody);
 			}
 		}
 	}

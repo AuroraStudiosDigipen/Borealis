@@ -378,10 +378,10 @@ void PhysicsSystem::Init()
 		delete Factory::sInstance;
 	}
 
-	void PhysicsSystem::addSquareBody(float radius, glm::vec3 position, RigidBodyComponent& rigidbody) {
+	void PhysicsSystem::addSquareBody(glm::vec3 size, glm::vec3 position, RigidBodyComponent& rigidbody) {
 
 		// Create the settings for the collision volume (the shape).
-		BoxShapeSettings box_shape_settings(Vec3(radius, radius, radius)); // Use radius as half extents
+		BoxShapeSettings box_shape_settings(Vec3(size.x, size.y, size.z)); // Use radius as half extents
 
 		// Mark it as embedded (prevent it from being freed when reference count goes to 0)
 		box_shape_settings.SetEmbedded();
@@ -486,9 +486,9 @@ void PhysicsSystem::Init()
 	}
 
 	void PhysicsSystem::UpdateBoxValues(RigidBodyComponent& rigidbody)
-	{
+	{		
 		// Create the settings for the collision volume (the shape).
-		BoxShapeSettings box_shape_settings(Vec3(rigidbody.radius, rigidbody.radius, rigidbody.radius)); // Use radius as half extents
+		BoxShapeSettings box_shape_settings(Vec3(rigidbody.size.x, rigidbody.size.y, rigidbody.size.z)); // Use radius as half extents
 		box_shape_settings.SetEmbedded(); // A ref counted object on the stack (base class RefTarget) should be marked as such to prevent it from being freed when its reference count goes to 0.
 
 		// Create the shape

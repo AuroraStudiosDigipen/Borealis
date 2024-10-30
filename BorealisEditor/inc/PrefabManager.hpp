@@ -73,6 +73,41 @@ namespace Borealis
 			}
 		}
 
+		//Taking of UUID for creating prefabs base from registry
+		static UUID ExtractUUIDFromFile(const std::filesystem::path& filepath)
+		{
+			// Open the file
+			std::ifstream inStream(filepath);
+			if (!inStream.is_open())
+			{
+				std::cerr << "Failed to open file: " << filepath << std::endl;
+				return UUID(); // Return an empty or invalid UUID
+			}
+
+			// Read the file content into a stringstream
+			std::stringstream ss;
+			ss << inStream.rdbuf();
+			inStream.close(); // Close the file after reading
+
+			// Load the YAML content
+			YAML::Node data = YAML::Load(ss.str());
+
+			// Extract the EntityID (UUID)
+			if (data["EntityID"])
+			{
+				uint64_t uuid = data["EntityID"].as<uint64_t>();
+				std::cout << "Extracted EntityID (UUID): " << uuid << std::endl;
+
+				// Return the extracted UUID
+				return UUID(uuid);
+			}
+			else
+			{
+				std::cerr << "EntityID not found in file: " << filepath << std::endl;
+				return UUID(); // Return an empty or invalid UUID if not found
+			}
+		}
+
 		template <typename T, typename ...Args>
 		static T& AddComponent(entt::entity mPrefabID, Args&&... args)
 		{

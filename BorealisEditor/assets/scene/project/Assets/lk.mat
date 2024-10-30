@@ -1,0 +1,19 @@
+Name: ""
+TextureMaps:
+  {}
+TextureMapColors:
+  Albedo: [0, 0, 0, 1]
+  Specular: [0, 0, 0, 1]
+  Metallic: [0, 0, 0, 1]
+  Normal Map: [0, 0, 0, 1]
+  Height Map: [0, 0, 0, 1]
+  Occlusion: [0, 0, 0, 1]
+  Detail Mask: [0, 0, 0, 1]
+  Emission: [0, 0, 0, 1]
+TextureMapFloats:
+  {}
+PropertiesFloats:
+  Smoothness: 0.00999999978
+  Shininess: 1
+PropertiesVec2:
+  Tiling: [1, 1]

@@ -14,6 +14,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <ImGuizmo.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -538,6 +539,7 @@ namespace Borealis {
 			ImGui::End(); // Of Runtime
 			ImGui::PopStyleVar();
 			UIToolbar();
+
 		ImGui::End(); // Of Dockspace
 	}
 

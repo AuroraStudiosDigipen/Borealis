@@ -348,11 +348,6 @@ namespace Borealis
 				}
 			}
 
-			if (!ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-			{
-				sSelectedAsset = 0;
-			}
-
 			if (mThumbnailSize != mMinThumbnailSize)
 			{
 				ImGui::TextWrapped(filenameStr.c_str());

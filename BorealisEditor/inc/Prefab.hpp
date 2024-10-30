@@ -36,7 +36,7 @@ namespace Borealis
 	class Prefab
 	{
 	public:
-
+		Prefab() = default;
 		Prefab(UUID id);
 		Prefab(Entity entity);
 

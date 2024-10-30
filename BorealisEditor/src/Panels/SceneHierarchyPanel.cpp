@@ -26,6 +26,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <PrefabManager.hpp>
 #include <Prefab.hpp>
 #include <PrefabComponent.hpp>
+#include <Scene/Serialiser.hpp>
 
 #include <EditorAssets/MeshImporter.hpp>
 #include <EditorAssets/FontImporter.hpp>
@@ -156,7 +157,7 @@ namespace Borealis
 		return output;
 	}
 
-	static void DrawProperty(rttr::property& Property, ReflectionInstance& rInstance)
+	static bool DrawProperty(rttr::property& Property, ReflectionInstance& rInstance)
 	{
 
 		auto propType = Property.get_type();
@@ -170,7 +171,7 @@ namespace Borealis
 			auto dependencyProperty = rInstance.get_type().get_property(dependencyVariable);
 			if (dependencyProperty.get_enumeration().name_to_value(dependencyValue) != dependencyProperty.get_value(rInstance))
 			{
-				return;
+				return false;
 			}
 		}
 
@@ -195,6 +196,7 @@ namespace Borealis
 					if (ImGui::Selectable(enumName.to_string().c_str(), isSelected))
 					{
 						Property.set_value(rInstance, enumValue);
+						return true;
 					}
 					if (isSelected)
 					{
@@ -203,7 +205,7 @@ namespace Borealis
 				}
 				ImGui::EndCombo();
 			}
-			return;
+			return false;
 		}
 
 		if (propType == rttr::type::get<bool>())
@@ -212,8 +214,11 @@ namespace Borealis
 			if (ImGui::Checkbox((name + "##" + propName).c_str(), &Data))
 			{
 				Property.set_value(rInstance, Data);
+				// if is tracking
+				// PrefabComponent::TrackProperty(Property.get_name().to_string())
+				return true;
 			}
-			return;
+			return false;
 		}
 		if (propType == rttr::type::get<float>())
 		{
@@ -221,8 +226,9 @@ namespace Borealis
 			if (ImGui::DragFloat((name + "##" + propName).c_str(), &Data))
 			{
 				Property.set_value(rInstance, Data);
+				return true;
 			}
-			return;
+			return false;
 		}
 
 		if (propType == rttr::type::get<int>())
@@ -231,8 +237,9 @@ namespace Borealis
 			if (ImGui::DragInt((name + "##" + propName).c_str(), &Data))
 			{
 				Property.set_value(rInstance, Data);
+				return true;
 			}
-			return;
+			return false;
 		}
 
 		if (propType == rttr::type::get<std::string>())
@@ -245,8 +252,9 @@ namespace Borealis
 			{
 				Data = std::string(buffer);
 				Property.set_value(rInstance, Data);
+				return true;
 			}
-			return;
+			return false;
 		}
 
 		if (propType == rttr::type::get<glm::vec2>())
@@ -256,8 +264,9 @@ namespace Borealis
 			if (ImGui::DragFloat2((name + "##" + propName).c_str(), glm::value_ptr(Data)))
 			{
 				Property.set_value(rInstance, Data);
+				return true;
 			}
-			return;
+			return false;
 		}
 
 		if (propType == rttr::type::get<glm::vec3>())
@@ -277,14 +286,16 @@ namespace Borealis
 				if (ImGui::ColorEdit3((name + "##" + propName).c_str(), glm::value_ptr(Data)))
 				{
 					Property.set_value(rInstance, Data);
+					return true;
 				}
 			}
 
 			else if (DrawVec3Controller(name, Data, min))
 			{
 				Property.set_value(rInstance, Data);
+				return true;
 			}
-			return;
+			return false;
 		}
 
 		if (propType == rttr::type::get<glm::vec4>())
@@ -297,15 +308,17 @@ namespace Borealis
 				if (ImGui::ColorEdit4((name + "##" + propName).c_str(), glm::value_ptr(Data)))
 				{
 					Property.set_value(rInstance, Data);
+					return true;
 				}
 			}
 
 			else if (ImGui::DragFloat4((name + "##" + propName).c_str(), glm::value_ptr(Data)))
 			{
 				Property.set_value(rInstance, Data);
+				return true;
 			}
 
-			return;
+			return false;
 		}
 
 		if (propType == rttr::type::get<unsigned char>())
@@ -314,8 +327,9 @@ namespace Borealis
 			if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_U8, &Data))
 			{
 				Property.set_value(rInstance, Data);
+				return true;
 			}
-			return;
+			return false;
 		}
 
 		if (propType == rttr::type::get<char>())
@@ -324,8 +338,9 @@ namespace Borealis
 			if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_S8, &Data))
 			{
 				Property.set_value(rInstance, Data);
+				return true;
 			}
-			return;
+			return false;
 		}
 
 		if (propType == rttr::type::get<unsigned short>())
@@ -334,8 +349,9 @@ namespace Borealis
 			if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_U16, &Data))
 			{
 				Property.set_value(rInstance, Data);
+				return true;
 			}
-			return;
+			return false;
 		}
 
 		if (propType == rttr::type::get<short>())
@@ -344,8 +360,9 @@ namespace Borealis
 			if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_S16, &Data))
 			{
 				Property.set_value(rInstance, Data);
+				return true;
 			}
-			return;
+			return false;
 		}
 
 		if (propType == rttr::type::get<unsigned int>())
@@ -354,8 +371,9 @@ namespace Borealis
 			if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_U32, &Data))
 			{
 				Property.set_value(rInstance, Data);
+				return true;
 			}
-			return;
+			return false;
 		}
 
 		if (propType == rttr::type::get<long long>())
@@ -364,8 +382,9 @@ namespace Borealis
 			if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_S64, &Data))
 			{
 				Property.set_value(rInstance, Data);
+				return true;
 			}
-			return;
+			return false;
 		}
 
 		if (propType == rttr::type::get<unsigned long long>())
@@ -374,8 +393,9 @@ namespace Borealis
 			if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_U64, &Data))
 			{
 				Property.set_value(rInstance, Data);
+				return true;
 			}
-			return;
+			return false;
 		}
 
 		if (propType == rttr::type::get<double>())
@@ -384,8 +404,9 @@ namespace Borealis
 			if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_Double, &Data))
 			{
 				Property.set_value(rInstance, Data);
+				return true;
 			}
-			return;
+			return false;
 		}
 
 		if (propType == rttr::type::get<Ref<Model>>())
@@ -398,9 +419,12 @@ namespace Borealis
 					AssetHandle data = *(const uint64_t*)payload->Data;
 					rttr::variant value(AssetManager::GetAsset<Model>(data));
 					Property.set_value(rInstance, value);
+					return true;
 				}
 				ImGui::EndDragDropTarget();
 			}
+			return false;
+
 		}
 
 		if (propType == rttr::type::get<Ref<Material>>())
@@ -414,10 +438,11 @@ namespace Borealis
 					AssetHandle data = *(const uint64_t*)payload->Data;
 					rttr::variant value(AssetManager::GetAsset<Material>(data));
 					Property.set_value(rInstance, value);
+					return true;
 				}
 				ImGui::EndDragDropTarget();
 			}
-			return;
+			return false;
 		}
 
 		if (propType == rttr::type::get<Ref<Texture2D>>())
@@ -430,10 +455,11 @@ namespace Borealis
 					AssetHandle data = *(const uint64_t*)payload->Data;
 					rttr::variant value(AssetManager::GetAsset<Texture2D>(data));
 					Property.set_value(rInstance, value);
+					return true;
 				}
 				ImGui::EndDragDropTarget();
 			}
-			return;
+			return false;
 		}
 
 		if (propType == rttr::type::get<Ref<Audio>>())
@@ -446,10 +472,11 @@ namespace Borealis
 					AssetHandle data = *(const uint64_t*)payload->Data;
 					rttr::variant value(AssetManager::GetAsset<Audio>(data));
 					Property.set_value(rInstance, value);
+					return true;
 				}
 				ImGui::EndDragDropTarget();
 			}
-			return;
+			return false;
 		}
 
 		if (propType.is_valid() && propType.is_class()) // any other type that is registered but not in above "basic types"
@@ -466,6 +493,7 @@ namespace Borealis
 				}
 
 				Property.set_value(rInstance, oldVariant);
+				return true;
 
 			}
 		}
@@ -473,19 +501,22 @@ namespace Borealis
 	}
 
 	template <typename Type>
-	static void DrawComponent(Type& component)
+	static bool DrawComponent(Type& component)
 	{
+		bool isEdited = false;
 		ReflectionInstance rInstance(component);
 		auto properties = rInstance.get_type().get_properties();
 		for (auto Property : properties)
 		{
-			DrawProperty(Property, rInstance);
+			isEdited = DrawProperty(Property, rInstance) ? true : isEdited;
 		}
+		return isEdited;
 	}
 
 	template <typename T>
-	static void DrawComponentLayout(const std::string& name, Entity entity, bool allowDelete = true)
+	static bool DrawComponentLayout(const std::string& name, Entity entity, bool allowDelete = true)
 	{
+		bool isEdited = false;
 		if (entity.HasComponent<T>())
 		{
 			ImGui::Spacing();
@@ -514,6 +545,7 @@ namespace Borealis
 					if (ImGui::MenuItem("Remove Component"))
 					{
 						deleteComponent = true;
+						isEdited = true;
 					}
 
 					ImGui::EndPopup();
@@ -527,7 +559,7 @@ namespace Borealis
 			if (open)
 			{
 				ImGui::Spacing();
-				DrawComponent(component);
+				isEdited = DrawComponent(component) ? true : isEdited;
 			}
 
 			if (deleteComponent)
@@ -539,6 +571,7 @@ namespace Borealis
 				entity.RemoveComponent<T>();
 			}
 		}
+		return isEdited;
 	}
 
 
@@ -643,7 +676,6 @@ namespace Borealis
 		ImGui::Begin("Inspector");
 
 		if (Project::GetProjectPath() != "")
-
 		{
 			if (mSelectedEntity)
 			{
@@ -684,6 +716,26 @@ namespace Borealis
 				case AssetType::Material:
 				{
 					MaterialEditor::SetMaterial(metadata.Handle);
+					break;
+				}
+				case AssetType::Prefab:
+				{
+				
+					//When click on prefab, get the UUID, and use the UUID to get the prefab that is in the prefab registry
+					//Update the prefab within the prefab registry.
+					MaterialEditor::SetMaterial(0);
+					Ref<Prefab> selectedPrefab = PrefabManager::GetPrefab(ContentBrowserPanel::sSelectedAsset);
+					Entity prefabEntity(selectedPrefab->GetPrefabID(), PrefabManager::GetScenePtr());
+
+					if(DrawComponents(prefabEntity))
+					{
+						selectedPrefab->UpdateAllInstances();
+					}
+	
+					//std::filesystem::path dir = metadata.SourcePath;
+					//std::string dirString = dir.string(); // Convert to std::string
+					//Serialiser::SerialisePrefab(dirString.c_str(), mSelectedPrefab);
+
 					break;
 				}
 				default:
@@ -760,8 +812,9 @@ namespace Borealis
 	}
 
 	template <typename T>
-	static void SearchBar(std::string& SearchList, Entity& mSelectedEntity, const char* menuText, char* search_buffer)
+	static bool SearchBar(std::string& SearchList, Entity& mSelectedEntity, const char* menuText, char* search_buffer)
 	{
+		bool isEdited = false;
 		std::string MenuConverter(menuText);
 		std::transform(MenuConverter.begin(), MenuConverter.end(), MenuConverter.begin(), ::tolower);
 		if (SearchList.empty() || MenuConverter.find(SearchList) != std::string::npos)
@@ -780,18 +833,23 @@ namespace Borealis
 					if (std::is_same<T, MeshFilterComponent>::value)
 					{
 						if (!mSelectedEntity.HasComponent<MeshRendererComponent>())
+						{
 							mSelectedEntity.AddComponent<MeshRendererComponent>();
+							isEdited = true;
+						}
 					}
 				}
 				ImGui::CloseCurrentPopup();
 				memset(search_buffer, 0, sizeof(search_buffer));
 			}
+		return isEdited;
 	}
 
 	
 
-	static void DrawScriptField(Ref<ScriptInstance> component)
+	static bool DrawScriptField(Ref<ScriptInstance> component)
 	{
+		bool isEdited = false;
 		for (const auto& [name, field] : component->GetScriptClass()->mFields) // name of script field, script field
 		{
 			if (field.mType == ScriptFieldType::Bool)
@@ -800,6 +858,7 @@ namespace Borealis
 				if (ImGui::Checkbox((name + "##" + component->GetKlassName()).c_str(), &Data))
 				{
 					component->SetFieldValue(name, &Data);
+					isEdited = true;
 				}
 			}
 			if (field.mType == ScriptFieldType::Float)
@@ -808,6 +867,7 @@ namespace Borealis
 				if (ImGui::DragFloat((name + "##" + component->GetKlassName()).c_str(), &Data))
 				{
 					component->SetFieldValue(name, &Data);
+					isEdited = true;
 				}
 			}
 
@@ -817,6 +877,7 @@ namespace Borealis
 				if (ImGui::DragInt((name + "##" + component->GetKlassName()).c_str(), &Data))
 				{
 					component->SetFieldValue(name, &Data);
+					isEdited = true;
 				}
 			}
 
@@ -830,6 +891,7 @@ namespace Borealis
 				{
 					Data = std::string(buffer);
 					component->SetFieldValue(name, &Data);
+					isEdited = true;
 				}
 			}
 
@@ -839,6 +901,7 @@ namespace Borealis
 				if (ImGui::DragFloat2((name + "##" + component->GetKlassName()).c_str(), glm::value_ptr(Data)))
 				{
 					component->SetFieldValue(name, &Data);
+					isEdited = true;
 				}
 			}
 
@@ -846,7 +909,10 @@ namespace Borealis
 			{
 				glm::vec3 Data = component->GetFieldValue<glm::vec3>(name);
 				if(DrawVec3Controller(name, Data))
+				{
 					component->SetFieldValue(name, &Data);
+					isEdited = true;
+				}
 				
 			}
 
@@ -856,6 +922,8 @@ namespace Borealis
 				if (ImGui::DragFloat4((name + "##" + component->GetKlassName()).c_str(), glm::value_ptr(Data)))
 				{
 					component->SetFieldValue(name, &Data);
+					isEdited = true;
+
 				}
 			}
 
@@ -865,6 +933,8 @@ namespace Borealis
 				if (ImGui::DragScalar((name + "##" + component->GetKlassName()).c_str(), ImGuiDataType_U8, &Data))
 				{
 					component->SetFieldValue(name, &Data);
+					isEdited = true;
+
 				}
 			}
 
@@ -874,6 +944,8 @@ namespace Borealis
 				if (ImGui::DragScalar((name + "##" + component->GetKlassName()).c_str(), ImGuiDataType_S8, &Data))
 				{
 					component->SetFieldValue(name, &Data);
+					isEdited = true;
+
 				}
 			}
 
@@ -883,6 +955,8 @@ namespace Borealis
 				if (ImGui::DragScalar((name + "##" + component->GetKlassName()).c_str(), ImGuiDataType_U16, &Data))
 				{
 					component->SetFieldValue(name, &Data);
+					isEdited = true;
+
 				}
 			}
 
@@ -892,6 +966,8 @@ namespace Borealis
 				if (ImGui::DragScalar((name + "##" + component->GetKlassName()).c_str(), ImGuiDataType_S16, &Data))
 				{
 					component->SetFieldValue(name, &Data);
+					isEdited = true;
+
 				}
 			}
 
@@ -901,6 +977,8 @@ namespace Borealis
 				if (ImGui::DragScalar((name + "##" + component->GetKlassName()).c_str(), ImGuiDataType_U32, &Data))
 				{
 					component->SetFieldValue(name, &Data);
+					isEdited = true;
+
 				}
 			}
 
@@ -910,6 +988,8 @@ namespace Borealis
 				if (ImGui::DragScalar((name + "##" + component->GetKlassName()).c_str(), ImGuiDataType_S64, &Data))
 				{
 					component->SetFieldValue(name, &Data);
+					isEdited = true;
+
 				}
 			}
 
@@ -919,6 +999,8 @@ namespace Borealis
 				if (ImGui::DragScalar((name + "##" + component->GetKlassName()).c_str(), ImGuiDataType_U64, &Data))
 				{
 					component->SetFieldValue(name, &Data);
+					isEdited = true;
+
 				}
 			}
 
@@ -928,12 +1010,16 @@ namespace Borealis
 				if (ImGui::DragScalar((name + "##" + component->GetKlassName()).c_str(), ImGuiDataType_Double, &Data))
 				{
 					component->SetFieldValue(name, &Data);
+					isEdited = true;
+
 				}
 			}
 		}
+		return isEdited;
 	}
-	static void DrawScriptComponent(ScriptComponent& component, Entity& entity, bool allowDelete = true)
+	static bool DrawScriptComponent(ScriptComponent& component, Entity& entity, bool allowDelete = true)
 	{
+		bool isEdited = false;
 		for (auto& [name, script] : component.mScripts)
 		{
 			ImGui::Spacing();
@@ -973,7 +1059,7 @@ namespace Borealis
 			if (open)
 			{
 				ImGui::Spacing();
-				DrawScriptField(script);
+				isEdited = DrawScriptField(script) ? true : isEdited;
 			}
 
 			if (deleteComponent)
@@ -982,13 +1068,16 @@ namespace Borealis
 				if (component.mScripts.empty())
 				{
 					entity.RemoveComponent<ScriptComponent>();
-					return;
+					return true;
 				}
 			}
 		}
+
+		return isEdited;
 	}
-	void SceneHierarchyPanel::DrawComponents(Entity entity)
+	bool SceneHierarchyPanel::DrawComponents(Entity entity)
 	{
+		bool isEdited = false;
 		if (entity.HasComponent<TagComponent>())
 		{
 			auto& tag = entity.GetComponent<TagComponent>().Tag;
@@ -1020,19 +1109,19 @@ namespace Borealis
 			std::transform(search_text.begin(), search_text.end(), search_text.begin(), ::tolower);
 
 	
-			SearchBar<SpriteRendererComponent>(search_text, mSelectedEntity, "Sprite Renderer", search_buffer);
-			SearchBar<CircleRendererComponent>( search_text, mSelectedEntity, "Circle Renderer", search_buffer);
-			SearchBar<CameraComponent>			(search_text, mSelectedEntity, "Camera", search_buffer);
-			SearchBar<MeshFilterComponent	  >(search_text, mSelectedEntity,"Mesh Filter", search_buffer);
-			SearchBar<MeshRendererComponent	  >(search_text, mSelectedEntity,"Mesh Renderer", search_buffer);
-			SearchBar<BoxColliderComponent	  >(search_text, mSelectedEntity,"Box Collider", search_buffer);
-			SearchBar<CapsuleColliderComponent>(search_text, mSelectedEntity,"Capsule Collider", search_buffer);
-			SearchBar<RigidBodyComponent	  >(search_text, mSelectedEntity,"Rigidbody", search_buffer);
-			SearchBar<LightComponent		  >(search_text, mSelectedEntity,"Light", search_buffer);
-			SearchBar<TextComponent				>(search_text, mSelectedEntity,"Text", search_buffer);
-			SearchBar<BehaviourTreeComponent	>(search_text, mSelectedEntity, "Behaviour Tree", search_buffer);
-			SearchBar<AudioSourceComponent		>(search_text, mSelectedEntity, "Audio Source", search_buffer);
-			SearchBar<AudioListenerComponent	>(search_text, mSelectedEntity, "Audio Listener", search_buffer);
+			isEdited = SearchBar<SpriteRendererComponent>(search_text, entity, "Sprite Renderer", search_buffer) ? true : isEdited;
+			isEdited = SearchBar<CircleRendererComponent>( search_text, entity, "Circle Renderer", search_buffer) ? true : isEdited;
+			isEdited = SearchBar<CameraComponent>			(search_text, entity, "Camera", search_buffer) ? true : isEdited;
+			isEdited = SearchBar<MeshFilterComponent	  >(search_text, entity,"Mesh Filter", search_buffer) ? true : isEdited;
+			isEdited = SearchBar<MeshRendererComponent	  >(search_text, entity,"Mesh Renderer", search_buffer) ? true : isEdited;
+			isEdited = SearchBar<BoxColliderComponent	  >(search_text, entity,"Box Collider", search_buffer) ? true : isEdited;
+			isEdited = SearchBar<CapsuleColliderComponent>(search_text, entity,"Capsule Collider", search_buffer) ? true : isEdited;
+			isEdited = SearchBar<RigidBodyComponent	  >(search_text, entity,"Rigidbody", search_buffer) ? true : isEdited;
+			isEdited = SearchBar<LightComponent		  >(search_text, entity,"Light", search_buffer) ? true : isEdited;
+			isEdited = SearchBar<TextComponent				>(search_text, entity,"Text", search_buffer) ? true : isEdited;
+			isEdited = SearchBar<BehaviourTreeComponent	>(search_text, entity, "Behaviour Tree", search_buffer) ? true : isEdited;
+			isEdited = SearchBar<AudioSourceComponent		>(search_text, entity, "Audio Source", search_buffer) ? true : isEdited;
+			isEdited = SearchBar<AudioListenerComponent	>(search_text, entity, "Audio Listener", search_buffer) ? true : isEdited;
 
 			// scripts
 			for (auto [name, klass] : ScriptingSystem::mScriptClasses)
@@ -1047,32 +1136,29 @@ namespace Borealis
 						}
 						auto scriptInstance = MakeRef<ScriptInstance>(klass);
 						mSelectedEntity.GetComponent<ScriptComponent>().AddScript(name, scriptInstance);
-						scriptInstance->Init(mSelectedEntity.GetUUID());
+						scriptInstance->Init(entity.GetUUID());
 						ImGui::CloseCurrentPopup();
 						memset(search_buffer, 0, sizeof(search_buffer));
+						isEdited = true;
 					}
 			}
-				
-				
-
-
 			ImGui::EndPopup();
 		}
 		
-		DrawComponentLayout<TransformComponent>("Transform Component", mSelectedEntity);
-		DrawComponentLayout<SpriteRendererComponent>("Sprite Renderer", mSelectedEntity);
-		DrawComponentLayout<CircleRendererComponent>("Circle Renderer", mSelectedEntity);
-		DrawComponentLayout<CameraComponent>("Camera", mSelectedEntity);
-		DrawComponentLayout<MeshFilterComponent>("Mesh Filter", mSelectedEntity);
-		DrawComponentLayout<MeshRendererComponent>("Mesh Renderer", mSelectedEntity);
-		DrawComponentLayout<BoxColliderComponent>("Box Collider", mSelectedEntity);
-		DrawComponentLayout<CapsuleColliderComponent>("Capsule Collider", mSelectedEntity);
-		DrawComponentLayout<RigidBodyComponent>("Rigidbody", mSelectedEntity);
-		DrawComponentLayout<LightComponent>("Light", mSelectedEntity);
-		DrawComponentLayout<TextComponent>("Text", mSelectedEntity);
-		DrawComponentLayout<BehaviourTreeComponent>("Behaviour Tree", mSelectedEntity);
-		DrawComponentLayout<AudioSourceComponent>("Audio Source", mSelectedEntity);
-		DrawComponentLayout<AudioListenerComponent>("Audio Listener", mSelectedEntity);
+		isEdited = DrawComponentLayout<TransformComponent>("Transform Component", entity) ? true : isEdited;
+		isEdited = DrawComponentLayout<SpriteRendererComponent>("Sprite Renderer", entity) ? true : isEdited;
+		isEdited = DrawComponentLayout<CircleRendererComponent>("Circle Renderer", entity) ? true : isEdited;
+		isEdited = DrawComponentLayout<CameraComponent>("Camera", entity) ? true : isEdited;
+		isEdited = DrawComponentLayout<MeshFilterComponent>("Mesh Filter", entity) ? true : isEdited;
+		isEdited = DrawComponentLayout<MeshRendererComponent>("Mesh Renderer", entity) ? true : isEdited;
+		isEdited = DrawComponentLayout<BoxColliderComponent>("Box Collider", entity) ? true : isEdited;
+		isEdited = DrawComponentLayout<CapsuleColliderComponent>("Capsule Collider", entity) ? true : isEdited;
+		isEdited = DrawComponentLayout<RigidBodyComponent>("Rigidbody", entity) ? true : isEdited;
+		isEdited = DrawComponentLayout<LightComponent>("Light", entity) ? true : isEdited;
+		isEdited = DrawComponentLayout<TextComponent>("Text", entity) ? true : isEdited;
+		isEdited = DrawComponentLayout<BehaviourTreeComponent>("Behaviour Tree", entity) ? true : isEdited;
+		isEdited = DrawComponentLayout<AudioSourceComponent>("Audio Source", entity) ? true : isEdited;
+		isEdited = DrawComponentLayout<AudioListenerComponent>("Audio Listener", entity) ? true : isEdited;
 
 
 		/*DrawComponent<CameraComponent>("Camera", mSelectedEntity, [](auto& cameraComponent)
@@ -1140,12 +1226,12 @@ namespace Borealis
 
 
 
-		if (mSelectedEntity.HasComponent<ScriptComponent>())
+		if (entity.HasComponent<ScriptComponent>())
 		{
-			DrawScriptComponent(mSelectedEntity.GetComponent<ScriptComponent>(), mSelectedEntity);
+			isEdited = DrawScriptComponent(entity.GetComponent<ScriptComponent>(), entity) ? true : isEdited;
 		}
 
-
+		return isEdited;
 	}
 
 	

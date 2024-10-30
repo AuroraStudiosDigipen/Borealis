@@ -1,0 +1,19 @@
+Assets:
+  - Name: untitled.meta
+    AssetHandle: 6048849789493271684
+    AssetType: AssetType::None
+    SourcePath: ..\Assets\untitled.meta
+    CachePath: ..\..
+    LastModifiedDate: 910692730085
+  - Name: Prefab.prefab
+    AssetHandle: 2118063925878104762
+    AssetType: AssetType::Prefab
+    SourcePath: ..\Assets\Prefab.prefab
+    CachePath: ..\..
+    LastModifiedDate: 1730281911
+  - Name: lk.mat
+    AssetHandle: 16479464110014837595
+    AssetType: AssetType::Material
+    SourcePath: ..\Assets\lk.mat
+    CachePath: ..\..
+    LastModifiedDate: 1730282598

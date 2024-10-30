@@ -84,10 +84,10 @@ namespace Borealis {
 			\param[in] entity
 				The entity to be drawn
 		*************************************************************************/	
-		void DrawComponents(Entity entity);
+		bool DrawComponents(Entity entity);
 		Ref<Scene> mContext;
 		Entity mSelectedEntity;
-		Prefab mSelectedPrefab;
+		Entity mSelectedPrefab;
 	};
 }
 

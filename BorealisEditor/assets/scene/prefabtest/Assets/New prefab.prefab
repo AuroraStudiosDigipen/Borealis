@@ -1,0 +1,14 @@
+Scene: Prefab
+Entities:
+  - EntityID: 18243709782099886665
+    Tag Component:
+      Tag: New prefab
+    Transform Component:
+      Translate: [1.70000005, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Sprite Renderer Component:
+      Colour: [0.725868702, 0.355927914, 0.355927914, 1]
+      Texture:
+        {}
+      Tiling Factor: 1

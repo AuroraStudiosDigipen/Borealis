@@ -16,6 +16,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/Animation/VertexBone.hpp>
 #include <map>
 
+#include "EditorAssets/AnimationImporter.hpp"
+
 namespace Borealis
 {
 	glm::mat4 ConvertMatrixtoGLM(aiMatrix4x4 const& mat)
@@ -52,10 +54,11 @@ namespace Borealis
 		//BOREALIS_CORE_TRACE("FBX load from {0}", path);
 		Model model;
 		ProcessNode(scene->mRootNode, scene, model);
+		model.mAnimation = AnimationImporter::LoadAnimations(path, MakeRef<Model>(model));
 		return MakeRef<Model>(model);
 	}
 
-	Mesh SkinnedMeshImporter::ProcessMesh(aiMesh* mesh, const aiScene* scene, Model& model)
+	SkinnedMesh SkinnedMeshImporter::ProcessMesh(aiMesh* mesh, const aiScene* scene, Model& model)
 	{
 		std::vector<glm::vec3> vertices;
 		std::vector<unsigned int> indices;
@@ -100,7 +103,7 @@ namespace Borealis
 
 		ExtractBoneWeight(bones, mesh, scene, model);
 
-		return Mesh(vertices, indices, normals, texCoords, bones);
+		return SkinnedMesh(vertices, indices, normals, texCoords, bones);
 	}
 
 	void SkinnedMeshImporter::ProcessNode(aiNode* node, const aiScene* scene, Model& model)

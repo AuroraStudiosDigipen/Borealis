@@ -40,6 +40,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <AI/BehaviourTree/RegisterNodes.hpp>
 #include <AI/BehaviourTree/BehaviourTree.hpp>
 
+#include "EditorAssets/SkinnedMeshImporter.hpp"
+
 namespace Borealis {
 	EditorLayer::SceneState EditorLayer::mSceneState = EditorLayer::SceneState::Edit;
 #ifndef _DIST
@@ -89,7 +91,7 @@ namespace Borealis {
 			font.SetTexture(std::filesystem::path("engineResources/fonts/OpenSans_Condensed-Bold.dds"));
 			Font::SetDefaultFont(MakeRef<Font>(font));
 
-			MeshImporter::LoadFBXModel("assets/meshes/spider.fbx");
+			SkinnedMeshImporter::LoadFBXModel("assets/meshes/spider.fbx");
 		}
 	}
 

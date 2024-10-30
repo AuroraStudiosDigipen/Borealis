@@ -22,6 +22,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/Shader.hpp>
 #include <Graphics/Mesh.hpp>
 
+#include "Animation/Animation.hpp"
 #include "Animation/Bone.hpp"
 
 namespace Borealis
@@ -56,7 +57,7 @@ namespace Borealis
 		std::vector<Mesh> mMeshes;
 		std::map<std::string, BoneData> mBoneDataMap;
 		int mBoneCounter;
-
+		Ref<Animation> mAnimation;
 	private:
 
 		RTTR_ENABLE(Asset)

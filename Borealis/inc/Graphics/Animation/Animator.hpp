@@ -2,6 +2,8 @@
 #define ANIMATOR_HPP
 
 #include <Core/Core.hpp>
+
+#include "Graphics/Model.hpp"
 #include "Graphics/Animation/Animation.hpp"
 
 namespace Borealis

@@ -26,6 +26,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/Animation/Bone.hpp>
 #include <map>
 
+#include "Graphics/SkinnedMesh.hpp"
+
 namespace Borealis
 {
 	class SkinnedMeshImporter
@@ -34,7 +36,7 @@ namespace Borealis
 		static Ref<Model> LoadFBXModel(const std::string& path);
 	private:
 		static void ProcessNode(aiNode* node, const aiScene* scene, Model& model);
-		static Mesh ProcessMesh(aiMesh* mesh, const aiScene* scene, Model& model);
+		static SkinnedMesh ProcessMesh(aiMesh* mesh, const aiScene* scene, Model& model);
 
 		static void ExtractBoneWeight(std::vector<VertexBoneData>& vertices, aiMesh* mesh, const aiScene* scene, Model& model);
 	};

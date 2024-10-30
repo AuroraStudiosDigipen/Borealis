@@ -41,6 +41,8 @@ namespace Borealis
 
 		ReadHierarchyData(anim->mRootNode, scene->mRootNode);
 		ReadMissingBones(animation, model, anim);
+
+		return anim;
 	}
 
 	void AnimationImporter::ImportBones(aiNodeAnim* channel, std::vector<KeyPosition>& pos, std::vector<KeyRotation>& rot, std::vector<KeyScale>& scales)

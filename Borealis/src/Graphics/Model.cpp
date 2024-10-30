@@ -79,6 +79,4 @@ namespace Borealis
 
 		outFile.close();
 	}
-
-	
 }

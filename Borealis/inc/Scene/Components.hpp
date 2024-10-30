@@ -221,7 +221,7 @@ namespace Borealis
 		float halfHeight = 1.f; //half height for capsule
 		float friction = 0.5f;
 		float bounciness = 0.5f;
-
+		bool dynamicBody = false;
 		// not serialised
 		unsigned int bodyID = 0;
 		//glm::vec3 velocity = { 0,0,0 };

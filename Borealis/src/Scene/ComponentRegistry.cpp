@@ -150,6 +150,8 @@ namespace Borealis
             .constructor<>()
             .property("Shape", &RigidBodyComponent::shape)
 
+			.property("Dynamic", &RigidBodyComponent::dynamicBody)
+
             .property("Radius", &RigidBodyComponent::radius)
             (metadata("Dependency", "Shape"), metadata("Visible for", "Sphere"))
 

@@ -391,8 +391,12 @@ void PhysicsSystem::Init()
 		ShapeRefC box_shape = box_shape_result.Get(); // Check for errors in a real-world scenario
 
 		// Create the settings for the body itself. Note that here you can also set other properties like restitution/friction.
-		BodyCreationSettings box_settings(box_shape, RVec3(position.x, position.y, position.z), Quat::sIdentity(), EMotionType::Dynamic, Layers::MOVING);
-
+		BodyCreationSettings box_settings(box_shape, RVec3(position.x, position.y, position.z), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
+		if(rigidbody.dynamicBody)
+		{
+			box_settings.mMotionType = EMotionType::Dynamic;
+			box_settings.mObjectLayer = Layers::MOVING;
+		}
 		// Create the actual rigid body
 		Body* box = sData.body_interface->CreateBody(box_settings); // Make sure to handle potential nullptr errors
 

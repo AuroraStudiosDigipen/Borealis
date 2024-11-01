@@ -1,4 +1,10 @@
 Assets:
+  - Name: Empty.prefab
+    AssetHandle: 8264189513454721680
+    AssetType: AssetType::Prefab
+    SourcePath: ..\Assets\Empty.prefab
+    CachePath: ..\..
+    LastModifiedDate: 1729485888
   - Name: untitled.sc
     AssetHandle: 14716875173292151600
     AssetType: AssetType::Scene
@@ -6,7 +12,7 @@ Assets:
     CachePath: ..\..
     LastModifiedDate: 1729485826
   - Name: Empty.prefab
-    AssetHandle: 8264189513454721680
+    AssetHandle: 11368271705968940705
     AssetType: AssetType::Prefab
     SourcePath: ..\Assets\Empty.prefab
     CachePath: ..\..
@@ -17,12 +23,6 @@ Assets:
     SourcePath: ..\Assets\Red Square.prefab
     CachePath: ..\..
     LastModifiedDate: 1729663908
-  - Name: Empty.prefab
-    AssetHandle: 11368271705968940705
-    AssetType: AssetType::Prefab
-    SourcePath: ..\Assets\Empty.prefab
-    CachePath: ..\..
-    LastModifiedDate: 1729485888
   - Name: Empty.prefab
     AssetHandle: 5514160503196959340
     AssetType: AssetType::Prefab
@@ -35,18 +35,18 @@ Assets:
     SourcePath: ..\Assets\New.prefab
     CachePath: ..\..
     LastModifiedDate: 1729568171
-  - Name: An.prefab
-    AssetHandle: 14521634968061545223
-    AssetType: AssetType::Prefab
-    SourcePath: ..\Assets\An.prefab
-    CachePath: ..\..
-    LastModifiedDate: 1729665297
   - Name: Red Square.prefab
     AssetHandle: 9237033617395836191
     AssetType: AssetType::Prefab
     SourcePath: ..\Assets\Red Square.prefab
     CachePath: ..\..
     LastModifiedDate: 1729663908
+  - Name: An.prefab
+    AssetHandle: 14521634968061545223
+    AssetType: AssetType::Prefab
+    SourcePath: ..\Assets\An.prefab
+    CachePath: ..\..
+    LastModifiedDate: 1729665297
   - Name: An.prefab
     AssetHandle: 1927479089324572274
     AssetType: AssetType::Prefab

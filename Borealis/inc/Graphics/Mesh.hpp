@@ -18,7 +18,6 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <glm/glm.hpp>
 
 #include <Graphics/Shader.hpp>
-#include <Graphics/Animation/VertexBone.hpp>
 
 namespace Borealis
 {
@@ -59,7 +58,7 @@ namespace Borealis
 		*************************************************************************/
 		Mesh(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& texCoords);
 
-		Mesh(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& texCoords, const std::vector<VertexBoneData> boneData);
+		//Mesh(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& texCoords, const std::vector<VertexBoneData> boneData);
 
 		Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices);
 

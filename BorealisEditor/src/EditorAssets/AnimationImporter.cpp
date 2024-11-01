@@ -3,7 +3,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 
-namespace Borealis
+namespace
 {
 	glm::mat4 ConvertMatrixtoGLM(aiMatrix4x4 const& mat)
 	{
@@ -26,18 +26,24 @@ namespace Borealis
 		return glm::quat(pOrientation.w, pOrientation.x, pOrientation.y, pOrientation.z);
 	}
 
-	Ref<Animation> AnimationImporter::LoadAnimations(std::string const& animationPath, Ref<Model> model)
+}
+
+namespace Borealis
+{
+	Ref<Animation> AnimationImporter::LoadAnimations(std::string const& animationPath, Ref<SkinnedModel> model)
 	{
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(animationPath, aiProcess_Triangulate);
+
+		if (scene->mNumAnimations == 0) return nullptr;
 		
 		auto animation = scene->mAnimations[0];
 		Ref<Animation> anim = MakeRef<Animation>();
 
 		anim->mDuration = animation->mDuration;
 		anim->mTicksPerSecond = animation->mTicksPerSecond;
-		aiMatrix4x4 globalXform = scene->mRootNode->mTransformation;
-		globalXform = globalXform.Inverse();
+		//aiMatrix4x4 globalXform = scene->mRootNode->mTransformation;
+		//globalXform = globalXform.Inverse();
 
 		ReadHierarchyData(anim->mRootNode, scene->mRootNode);
 		ReadMissingBones(animation, model, anim);
@@ -82,7 +88,7 @@ namespace Borealis
 		}
 	}
 
-	void AnimationImporter::ReadMissingBones(aiAnimation const* animation, Ref<Model> model, Ref<Animation> anim)
+	void AnimationImporter::ReadMissingBones(aiAnimation const* animation, Ref<SkinnedModel> model, Ref<Animation> anim)
 	{
 		int size = animation->mNumChannels;
 		auto& boneDataMap = model->mBoneDataMap;

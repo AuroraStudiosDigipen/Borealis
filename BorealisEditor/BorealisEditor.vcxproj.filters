@@ -21,6 +21,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="inc\EditorAssets\AnimationImporter.hpp">
+      <Filter>inc\EditorAssets</Filter>
+    </ClInclude>
     <ClInclude Include="inc\EditorAssets\AssetImporter.hpp">
       <Filter>inc\EditorAssets</Filter>
     </ClInclude>
@@ -60,13 +63,13 @@
     <ClInclude Include="inc\ResourceManager.hpp">
       <Filter>inc</Filter>
     </ClInclude>
-    <ClInclude Include="inc\EditorAssets\AnimationImporter.hpp">
-      <Filter>inc\EditorAssets</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\EditorApp.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\EditorAssets\AnimationImporter.cpp">
+      <Filter>src\EditorAssets</Filter>
     </ClCompile>
     <ClCompile Include="src\EditorAssets\AssetImporter.cpp">
       <Filter>src\EditorAssets</Filter>
@@ -103,9 +106,6 @@
     </ClCompile>
     <ClCompile Include="src\ResourceManager.cpp">
       <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\EditorAssets\AnimationImporter.cpp">
-      <Filter>src\EditorAssets</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

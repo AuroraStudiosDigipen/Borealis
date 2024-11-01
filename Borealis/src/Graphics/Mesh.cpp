@@ -51,24 +51,24 @@ namespace Borealis
 		//mTexCoords = texCoords;
 	}
 
-	Mesh::Mesh(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& texCoords, const std::vector<VertexBoneData> boneData)
-	{
-		mIndices = indices;
-		//mNormals = normals;
+	//Mesh::Mesh(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& texCoords, const std::vector<VertexBoneData> boneData)
+	//{
+	//	mIndices = indices;
+	//	//mNormals = normals;
 
-		for (int i{}; i < vertices.size(); i++)
-		{
-			Vertex vertex;
-			vertex.Position = vertices[i];
-			vertex.Normal = normals[i];
-			vertex.TexCoords = texCoords[i];
-			//vertex.BoneData = boneData[i];
+	//	for (int i{}; i < vertices.size(); i++)
+	//	{
+	//		Vertex vertex;
+	//		vertex.Position = vertices[i];
+	//		vertex.Normal = normals[i];
+	//		vertex.TexCoords = texCoords[i];
+	//		//vertex.BoneData = boneData[i];
 
-			mVertices.push_back(vertex);
-		}
+	//		mVertices.push_back(vertex);
+	//	}
 
-		SetupMesh();
-	}
+	//	SetupMesh();
+	//}
 
 	Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices)
 	{

@@ -220,6 +220,7 @@
     <ClInclude Include="inc\Graphics\RendererAPI.hpp" />
     <ClInclude Include="inc\Graphics\Shader.hpp" />
     <ClInclude Include="inc\Graphics\SkinnedMesh.hpp" />
+    <ClInclude Include="inc\Graphics\SkinnedModel.hpp" />
     <ClInclude Include="inc\Graphics\SubTexture2D.hpp" />
     <ClInclude Include="inc\Graphics\Texture.hpp" />
     <ClInclude Include="inc\Graphics\VertexArray.hpp" />
@@ -819,6 +820,7 @@
     <ClCompile Include="src\Graphics\RendererAPI.cpp" />
     <ClCompile Include="src\Graphics\Shader.cpp" />
     <ClCompile Include="src\Graphics\SkinnedMesh.cpp" />
+    <ClCompile Include="src\Graphics\SkinnedModel.cpp" />
     <ClCompile Include="src\Graphics\SubTexture2D.cpp" />
     <ClCompile Include="src\Graphics\Texture.cpp" />
     <ClCompile Include="src\Graphics\VertexArray.cpp" />

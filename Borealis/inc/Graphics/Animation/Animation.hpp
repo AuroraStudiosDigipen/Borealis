@@ -19,7 +19,7 @@ namespace Borealis
 	public:
 		Animation() = default;
 
-		Ref<Bone> FindBone(std::string const& name);
+		Bone* FindBone(std::string const& name);
 
 		/*float GetTicksPerSecond() const { return mTicksPerSecond; }
 		float GetDuration() const { return mDuration; }

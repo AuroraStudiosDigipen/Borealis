@@ -18,7 +18,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include "EditorAssets/AnimationImporter.hpp"
 
-namespace Borealis
+namespace
 {
 	glm::mat4 ConvertMatrixtoGLM(aiMatrix4x4 const& mat)
 	{
@@ -30,8 +30,11 @@ namespace Borealis
 		glm_mat[0][3] = mat.d1; glm_mat[1][3] = mat.d2; glm_mat[2][3] = mat.d3; glm_mat[3][3] = mat.d4;
 		return glm_mat;
 	}
+}
 
-	Ref<Model> SkinnedMeshImporter::LoadFBXModel(const std::string& path)
+namespace Borealis
+{
+	Ref<SkinnedModel> SkinnedMeshImporter::LoadFBXModel(const std::string& path)
 	{
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate /*| aiProcess_FlipUVs*/);
@@ -52,15 +55,15 @@ namespace Borealis
 		}
 
 		//BOREALIS_CORE_TRACE("FBX load from {0}", path);
-		Model model;
+		SkinnedModel model;
 		ProcessNode(scene->mRootNode, scene, model);
-		model.mAnimation = AnimationImporter::LoadAnimations(path, MakeRef<Model>(model));
-		return MakeRef<Model>(model);
+		model.mAnimation = AnimationImporter::LoadAnimations(path, MakeRef<SkinnedModel>(model));
+		return MakeRef<SkinnedModel>(model);
 	}
 
-	SkinnedMesh SkinnedMeshImporter::ProcessMesh(aiMesh* mesh, const aiScene* scene, Model& model)
+	SkinnedMesh SkinnedMeshImporter::ProcessMesh(aiMesh* mesh, const aiScene* scene, SkinnedModel& model)
 	{
-		std::vector<glm::vec3> vertices;
+		std::vector<glm::vec3> position;
 		std::vector<unsigned int> indices;
 		std::vector<glm::vec3> normals;
 		std::vector<glm::vec2> texCoords;
@@ -73,7 +76,7 @@ namespace Borealis
 			vector.y = mesh->mVertices[i].y;
 			vector.z = mesh->mVertices[i].z;
 
-			vertices.push_back(vector);
+			position.push_back(vector);
 
 			vector.x = mesh->mNormals[i].x;
 			vector.y = mesh->mNormals[i].y;
@@ -103,10 +106,10 @@ namespace Borealis
 
 		ExtractBoneWeight(bones, mesh, scene, model);
 
-		return SkinnedMesh(vertices, indices, normals, texCoords, bones);
+		return SkinnedMesh(position, indices, normals, texCoords, bones);
 	}
 
-	void SkinnedMeshImporter::ProcessNode(aiNode* node, const aiScene* scene, Model& model)
+	void SkinnedMeshImporter::ProcessNode(aiNode* node, const aiScene* scene, SkinnedModel& model)
 	{
 		for (unsigned int i{}; i < node->mNumMeshes; ++i)
 		{
@@ -120,7 +123,7 @@ namespace Borealis
 		}
 	}
 
-	void SkinnedMeshImporter::ExtractBoneWeight(std::vector<VertexBoneData>& vertices, aiMesh* mesh, const aiScene* scene, Model& model)
+	void SkinnedMeshImporter::ExtractBoneWeight(std::vector<VertexBoneData>& vertices, aiMesh* mesh, const aiScene* scene, SkinnedModel& model)
 	{
 		auto& boneDataMap = model.mBoneDataMap;
 		int& boneCount = model.mBoneCounter;

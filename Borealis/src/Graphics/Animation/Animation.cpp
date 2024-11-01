@@ -3,11 +3,11 @@
 
 namespace Borealis
 {
-	Ref<Bone> Animation::FindBone(std::string const& name)
+	Bone* Animation::FindBone(std::string const& name)
 	{
 		auto i = std::find_if(mBones.begin(), mBones.end(), [&](Bone const& bone)
 			{
-				return bone.GetBoneName() = name;
+				return bone.GetBoneName() == name;
 			});
 
 		if (i == mBones.end())
@@ -15,6 +15,6 @@ namespace Borealis
 			return nullptr;
 		}
 
-		return MakeRef<Bone>(i);
+		return &(*i);
 	}
 }

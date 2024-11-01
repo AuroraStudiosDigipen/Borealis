@@ -271,6 +271,12 @@
     <ClInclude Include="inc\Events\EventWindow.hpp">
       <Filter>inc\Events</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Graphics\Animation\Animation.hpp">
+      <Filter>inc\Graphics\Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Graphics\Animation\Animator.hpp">
+      <Filter>inc\Graphics\Animation</Filter>
+    </ClInclude>
     <ClInclude Include="inc\Graphics\Animation\Bone.hpp">
       <Filter>inc\Graphics\Animation</Filter>
     </ClInclude>
@@ -353,6 +359,9 @@
       <Filter>inc\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="inc\Graphics\SkinnedMesh.hpp">
+      <Filter>inc\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Graphics\SkinnedModel.hpp">
       <Filter>inc\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="inc\Graphics\SubTexture2D.hpp">
@@ -1972,12 +1981,6 @@
     <ClInclude Include="lib\xproperty\include\xproperty\xproperty_config.hpp">
       <Filter>lib\xproperty\include\xproperty</Filter>
     </ClInclude>
-    <ClInclude Include="inc\Graphics\Animation\Animator.hpp">
-      <Filter>inc\Graphics\Animation</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\Graphics\Animation\Animation.hpp">
-      <Filter>inc\Graphics\Animation</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lib\imGuizmo\imGuizmo.cpp">
@@ -2058,6 +2061,15 @@
     <ClCompile Include="src\Events\EventWindow.cpp">
       <Filter>src\Events</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\Animation\Animation.cpp">
+      <Filter>src\Graphics\Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Animation\Animator.cpp">
+      <Filter>src\Graphics\Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Animation\Bone.cpp">
+      <Filter>src\Graphics\Animation</Filter>
+    </ClCompile>
     <ClCompile Include="src\Graphics\Animation\VertexBone.cpp">
       <Filter>src\Graphics\Animation</Filter>
     </ClCompile>
@@ -2133,6 +2145,9 @@
     <ClCompile Include="src\Graphics\SkinnedMesh.cpp">
       <Filter>src\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\SkinnedModel.cpp">
+      <Filter>src\Graphics</Filter>
+    </ClCompile>
     <ClCompile Include="src\Graphics\SubTexture2D.cpp">
       <Filter>src\Graphics</Filter>
     </ClCompile>
@@ -2192,15 +2207,6 @@
     </ClCompile>
     <ClCompile Include="src\Scripting\ScriptingUtils.cpp">
       <Filter>src\Scripting</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Animation\Animator.cpp">
-      <Filter>src\Graphics\Animation</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Animation\Bone.cpp">
-      <Filter>src\Graphics\Animation</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Animation\Animation.cpp">
-      <Filter>src\Graphics\Animation</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

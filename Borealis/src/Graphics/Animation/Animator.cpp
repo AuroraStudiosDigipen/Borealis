@@ -3,16 +3,15 @@
 
 namespace Borealis
 {
-	struct AssimpNodeData;
-
 	Animator::Animator(Ref<Animation> animation)
 	{
+		mDeltaTime = {};
 		mCurrentTime = 0.0;
 		mCurrentAnimation = animation;
 
-		mFinalBoneMatrices.reserve(100);
+		mFinalBoneMatrices.reserve(300);
 
-		for (int i = 0; i < 100; i++)
+		for (int i = 0; i < 300; i++)
 		{
 			mFinalBoneMatrices.push_back(glm::mat4(1.0f));
 		}
@@ -23,7 +22,7 @@ namespace Borealis
 		mDeltaTime = dt;
 		if (mCurrentAnimation)
 		{
-			mCurrentTime += mCurrentAnimation->mTicksPerSecond() * dt;
+			mCurrentTime += mCurrentAnimation->mTicksPerSecond * dt;
 			mCurrentTime = fmod(mCurrentTime, mCurrentAnimation->mDuration);
 			CalculateBoneTransform(&mCurrentAnimation->mRootNode, glm::mat4(1.0f));
 		}
@@ -40,7 +39,7 @@ namespace Borealis
 		std::string nodeName = node->name;
 		glm::mat4 nodeTransform = node->transformation;
 
-		Ref<Bone> Bone = mCurrentAnimation->FindBone(nodeName);
+		Bone* Bone = mCurrentAnimation->FindBone(nodeName);
 
 		if (Bone)
 		{

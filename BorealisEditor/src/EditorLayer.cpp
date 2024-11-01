@@ -100,12 +100,19 @@ namespace Borealis {
 			Font::SetDefaultFont(MakeRef<Font>(font));
 
 			//skinnedModel = SkinnedMeshImporter::LoadFBXModel("assets/meshes/Thriller3.fbx");
+			//ef<Animation> anim = AnimationImporter::LoadAnimations("assets/meshes/Thriller3.fbx");
+
 			skinnedModel = MakeRef<SkinnedModel>();
 			skinnedModel->LoadModel("model.skmesh");
-			Ref<Animation> anim = AnimationImporter::LoadAnimations("assets/meshes/Thriller3.fbx", skinnedModel);
 			//skinnedModel->SaveModel();
+
+			Ref<Animation> anim = MakeRef<Animation>();
+			anim->Load("anim.anim");
+			//anim->Save();
+
+			skinnedModel->AssignAnimation(anim);
 			skinnedShader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_SkinnedModel.glsl");
-			//animator = Animator(skinnedModel->mAnimation);
+			animator = Animator(skinnedModel->mAnimation);
 		}
 	}
 
@@ -177,7 +184,7 @@ namespace Borealis {
 
 			if (skinnedModel)
 			{
-				//animator.UpdateAnimation(dt);
+				animator.UpdateAnimation(dt);
 
 				skinnedShader->Bind();
 				if(skinnedModel->mAnimation)

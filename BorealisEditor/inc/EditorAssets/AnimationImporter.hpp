@@ -14,11 +14,13 @@ namespace Borealis
 	class AnimationImporter
 	{
 	public:
-		static Ref<Animation> LoadAnimations(std::string const& animationPath, Ref<SkinnedModel> model);
+		static Ref<Animation> LoadAnimations(std::string const& animationPath);
+		static void FillMissingBone(Ref<SkinnedModel> model, Ref<Animation> anim);
 
 	private:
 		static void ImportBones(aiNodeAnim* channel, std::vector<KeyPosition>& pos, std::vector<KeyRotation>& rot, std::vector<KeyScale>& scales);
-		static void ReadMissingBones(aiAnimation const* animation, Ref<SkinnedModel> model, Ref<Animation> anim);
+		static void ReadBones(aiAnimation const* animation, Ref<Animation> anim);
+
 		static void ReadHierarchyData(AssimpNodeData& dest, aiNode const* src);
 	};
 }

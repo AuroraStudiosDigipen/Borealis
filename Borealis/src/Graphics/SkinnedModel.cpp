@@ -82,6 +82,24 @@ namespace Borealis
 		inFile.close();
 	}
 
+	void SkinnedModel::AssignAnimation(Ref<Animation> animation)
+	{
+		for (int i{}; i < animation->mBones.size(); ++i)
+		{
+			Bone& bone = animation->mBones[i];
+			std::string boneName = bone.GetBoneName();
+
+			if (mBoneDataMap.find(boneName) == mBoneDataMap.end())
+			{
+				mBoneDataMap[boneName].id = bone.GetBoneID();
+			}
+		}
+
+		animation->mBoneDataMap = mBoneDataMap;
+
+		mAnimation = animation;
+	}
+
 	void SkinnedModel::SaveModel()
 	{
 		std::ofstream outFile("model.skmesh", std::ios::binary);

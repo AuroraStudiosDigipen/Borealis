@@ -30,7 +30,7 @@ namespace
 
 namespace Borealis
 {
-	Ref<Animation> AnimationImporter::LoadAnimations(std::string const& animationPath, Ref<SkinnedModel> model)
+	Ref<Animation> AnimationImporter::LoadAnimations(std::string const& animationPath)
 	{
 		//Assimp::Importer importer;
 		//const aiScene* scene = importer.ReadFile(animationPath, aiProcess_Triangulate);
@@ -62,7 +62,7 @@ namespace Borealis
 		anim->mDuration = animation->mDuration;
 		anim->mTicksPerSecond = animation->mTicksPerSecond;
 		ReadHierarchyData(anim->mRootNode, scene->mRootNode);
-		ReadMissingBones(animation, model, anim);
+		ReadBones(animation, anim);
 
 		return anim;
 	}
@@ -104,29 +104,41 @@ namespace Borealis
 		}
 	}
 
-	void AnimationImporter::ReadMissingBones(aiAnimation const* animation, Ref<SkinnedModel> model, Ref<Animation> anim)
+	void AnimationImporter::ReadBones(aiAnimation const* animation, Ref<Animation> anim)
 	{
-		int size = animation->mNumChannels;
-		auto& boneDataMap = model->mBoneDataMap;
-		int& boneCount = model->mBoneCounter;
+		unsigned size = animation->mNumChannels;
+		auto& boneDataMap = anim->mBoneDataMap;
+		unsigned boneCounter = 0;
 
 		for (int i{}; i < size; ++i)
 		{
-			auto channel = animation->mChannels[i];
-			std::string boneName = channel->mNodeName.data; //channel name
-
-			if (boneDataMap.find(boneName) == boneDataMap.end())
-			{
-				boneDataMap[boneName].id = boneCount;
-				++boneCount;
-			}
+			auto aiChannel = animation->mChannels[i];
+			std::string boneName = aiChannel->mNodeName.data; //channel name
+			boneDataMap[boneName].id = boneCounter;
+			boneCounter++;
 
 			std::vector<KeyPosition> positions;
 			std::vector<KeyRotation> rotations;
 			std::vector<KeyScale> scales;
-			ImportBones(channel, positions, rotations, scales);
-			anim->mBones.push_back(Bone(channel->mNodeName.data, boneDataMap[channel->mNodeName.data].id,
+			ImportBones(aiChannel, positions, rotations, scales);
+			anim->mBones.push_back(Bone(boneName, boneDataMap[boneName].id,
 				positions, rotations, scales));
+		}
+	}
+
+	void AnimationImporter::FillMissingBone(Ref<SkinnedModel> model, Ref<Animation> anim)
+	{
+		auto& boneDataMap = model->mBoneDataMap;
+
+		for (int i{}; i < anim->mBones.size(); ++i)
+		{
+			Bone& bone = anim->mBones[i];
+			std::string boneName = bone.GetBoneName();
+
+			if (boneDataMap.find(boneName) == boneDataMap.end())
+			{
+				boneDataMap[boneName].id = bone.GetBoneID();
+			}
 		}
 
 		anim->mBoneDataMap = boneDataMap;

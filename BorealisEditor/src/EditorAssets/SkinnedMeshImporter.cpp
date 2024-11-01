@@ -57,7 +57,7 @@ namespace Borealis
 		//BOREALIS_CORE_TRACE("FBX load from {0}", path);
 		SkinnedModel model;
 		ProcessNode(scene->mRootNode, scene, model);
-		model.mAnimation = AnimationImporter::LoadAnimations(path, MakeRef<SkinnedModel>(model));
+		//model.mAnimation = AnimationImporter::LoadAnimations(path, MakeRef<SkinnedModel>(model));
 		return MakeRef<SkinnedModel>(model);
 	}
 

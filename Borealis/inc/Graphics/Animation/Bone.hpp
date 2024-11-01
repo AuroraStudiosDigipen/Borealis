@@ -49,6 +49,7 @@ namespace Borealis
 	class Bone
 	{
 	public:
+		Bone() = default;
 		Bone(std::string const& name, int id, std::vector<KeyPosition> const& pos,
 		std::vector<KeyRotation> const& rot,
 		std::vector<KeyScale> const& scale);
@@ -62,6 +63,18 @@ namespace Borealis
 		int GetRotationIndex(float animationTime);
 		int GetScaleIndex(float animationTime);
 
+		int mNumPositions;
+		int mNumRotations;
+		int mNumScalings;
+
+		std::string mName;
+		int mId;
+
+		std::vector<KeyPosition> mPositions;
+		std::vector<KeyRotation> mRotations;
+		std::vector<KeyScale> mScales;
+
+		glm::mat4 mLocalTransform;
 	private:
 		float GetScaleFactor(float lastTimeStamp, float nextTimeStamp, float animationTime);
 
@@ -69,17 +82,6 @@ namespace Borealis
 		glm::mat4 InterpolateRotation(float animationTime);
 		glm::mat4 InterpolateScaling(float animationTime);
 
-		int mNumPositions;
-		int mNumRotations;
-		int mNumScalings;
-
-		std::string mName;
-		int mId;
-		glm::mat4 mLocalTransform;
-
-		std::vector<KeyPosition> mPositions;
-		std::vector<KeyRotation> mRotations;
-		std::vector<KeyScale> mScales;
 	};
 }
 #endif

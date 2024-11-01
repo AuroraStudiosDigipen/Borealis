@@ -33,14 +33,31 @@ namespace Borealis
 	class SkinnedMesh
 	{
 	public:
+		SkinnedMesh() = default;
 		SkinnedMesh(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& texCoords, const std::vector<VertexBoneData> & boneData);
 
 		~SkinnedMesh();
 
 		void Draw(const glm::mat4& transform, Ref<Shader> shader, int entityID);
 
-	private:
+		/*!***********************************************************************
+			\brief
+				Getters and setters
+		*************************************************************************/
+		std::vector<unsigned int> const& GetIndices() const;
+		std::vector<unsigned int>& GetIndices();
+
+		std::vector<SkinnedVertex> const& GetVertices() const;
+		std::vector<SkinnedVertex>& GetVertices();
+
+		uint32_t GetVerticesCount() const;
+		void SetVerticesCount(uint32_t count);
+
+		uint32_t GetIndicesCount() const;
+		void SetIndicesCount(uint32_t count);
+
 		void SetupMesh();
+	private:
 
 		std::vector<unsigned int> mIndices;
 		std::vector<SkinnedVertex> mVertices;

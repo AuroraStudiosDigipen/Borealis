@@ -20,21 +20,15 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace Borealis
 {
-	Mesh::Mesh()// : mVertices(nullptr), mIndices(nullptr), mNormals(nullptr), mTexCoords(nullptr), mVerticesCount(0), mIndicesCount(0), mNormalsCount(0), mTexCoordsCount(0)
+	Mesh::Mesh()
 	{
 	}
 	Mesh::Mesh(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& texCoords)
 	{
-		//SetVertices(vertices);
-		//SetIndices(indices);
-		//SetNormals(normals);
-		//SetTexCoords(texCoords);
 
-		//mVertices = vertices;
 		mIndices = indices;
 		mIndicesCount = (uint32_t)indices.size();
 		mVerticesCount = (uint32_t)vertices.size();
-		//mNormals = normals;
 
 		for (int i{}; i < vertices.size(); i++)
 		{
@@ -47,28 +41,7 @@ namespace Borealis
 		}
 
 		SetupMesh();
-
-		//mTexCoords = texCoords;
 	}
-
-	//Mesh::Mesh(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& texCoords, const std::vector<VertexBoneData> boneData)
-	//{
-	//	mIndices = indices;
-	//	//mNormals = normals;
-
-	//	for (int i{}; i < vertices.size(); i++)
-	//	{
-	//		Vertex vertex;
-	//		vertex.Position = vertices[i];
-	//		vertex.Normal = normals[i];
-	//		vertex.TexCoords = texCoords[i];
-	//		//vertex.BoneData = boneData[i];
-
-	//		mVertices.push_back(vertex);
-	//	}
-
-	//	SetupMesh();
-	//}
 
 	Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices)
 	{
@@ -83,22 +56,7 @@ namespace Borealis
 
 	Mesh::~Mesh()
 	{
-		//if (mTexCoordsCount)
-		//{
-		//	delete[] mTexCoords;
-		//}
-		//if (mNormalsCount)
-		//{
-		//	delete[] mNormals;
-		//}
-		//if (mIndicesCount)
-		//{
-		//	delete[] mIndices;
-		//}
-		//if (mVerticesCount)
-		//{
-		//	delete[] mVertices;
-		//}
+
 	}
 
 	void Mesh::Load(const std::string& path)

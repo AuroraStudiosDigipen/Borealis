@@ -69,7 +69,7 @@ namespace Borealis
 
 	void AnimationImporter::ImportBones(aiNodeAnim* channel, std::vector<KeyPosition>& pos, std::vector<KeyRotation>& rot, std::vector<KeyScale>& scales)
 	{
-		unsigned numPositions = channel->mNumPositionKeys;
+		unsigned numPositions = channel->mNumPositionKeys; //channel key pos
 
 		for (int positionIndex = 0; positionIndex < numPositions; ++positionIndex)
 		{
@@ -113,7 +113,7 @@ namespace Borealis
 		for (int i{}; i < size; ++i)
 		{
 			auto channel = animation->mChannels[i];
-			std::string boneName = channel->mNodeName.data;
+			std::string boneName = channel->mNodeName.data; //channel name
 
 			if (boneDataMap.find(boneName) == boneDataMap.end())
 			{

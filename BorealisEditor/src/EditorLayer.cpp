@@ -43,6 +43,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include "EditorAssets/SkinnedMeshImporter.hpp"
 #include "Graphics/Animation/Animator.hpp"
 
+#include "EditorAssets/AnimationImporter.hpp"
+
 namespace Borealis {
 
 	Ref<SkinnedModel> skinnedModel = nullptr;
@@ -97,9 +99,13 @@ namespace Borealis {
 			font.SetTexture(std::filesystem::path("engineResources/fonts/OpenSans_Condensed-Bold.dds"));
 			Font::SetDefaultFont(MakeRef<Font>(font));
 
-			skinnedModel = SkinnedMeshImporter::LoadFBXModel("assets/meshes/Thriller3.fbx");
+			//skinnedModel = SkinnedMeshImporter::LoadFBXModel("assets/meshes/Thriller3.fbx");
+			skinnedModel = MakeRef<SkinnedModel>();
+			skinnedModel->LoadModel("model.skmesh");
+			Ref<Animation> anim = AnimationImporter::LoadAnimations("assets/meshes/Thriller3.fbx", skinnedModel);
+			//skinnedModel->SaveModel();
 			skinnedShader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_SkinnedModel.glsl");
-			animator = Animator(skinnedModel->mAnimation);
+			//animator = Animator(skinnedModel->mAnimation);
 		}
 	}
 
@@ -171,14 +177,18 @@ namespace Borealis {
 
 			if (skinnedModel)
 			{
-				animator.UpdateAnimation(dt);
+				//animator.UpdateAnimation(dt);
 
 				skinnedShader->Bind();
-				auto transforms = animator.GetFinalBoneMatrices();
-				for (int i = 0; i < transforms.size(); ++i)
+				if(skinnedModel->mAnimation)
 				{
-					std::string str = "u_FinalBonesMatrices[" + std::to_string(i) + "]";
-					skinnedShader->Set(str.c_str(), transforms[i]);
+					skinnedShader->Set("u_HasAnimation", true);
+					auto transforms = animator.GetFinalBoneMatrices();
+					for (int i = 0; i < transforms.size(); ++i)
+					{
+						std::string str = "u_FinalBonesMatrices[" + std::to_string(i) + "]";
+						skinnedShader->Set(str.c_str(), transforms[i]);
+					}
 				}
 				skinnedShader->Set("u_ViewProjection", mEditorCamera.GetViewProjectionMatrix());
 				skinnedModel->Draw(glm::mat4(1.f), skinnedShader, -1);

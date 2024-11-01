@@ -95,4 +95,44 @@ namespace Borealis
 
 		glBindVertexArray(0); // Unbind VAO
 	}
+
+	std::vector<unsigned int> const& SkinnedMesh::GetIndices() const
+	{
+		return mIndices;
+	}
+
+	std::vector<unsigned int>& SkinnedMesh::GetIndices()
+	{
+		return mIndices;
+	}
+
+	std::vector<SkinnedVertex> const& SkinnedMesh::GetVertices() const
+	{
+		return mVertices;
+	}
+
+	std::vector<SkinnedVertex>& SkinnedMesh::GetVertices()
+	{
+		return mVertices;
+	}
+
+	uint32_t SkinnedMesh::GetVerticesCount() const
+	{
+		return mVerticesCount;
+	}
+
+	void SkinnedMesh::SetVerticesCount(uint32_t count)
+	{
+		mVerticesCount = count;
+	}
+
+	uint32_t SkinnedMesh::GetIndicesCount() const
+	{
+		return mIndicesCount;
+	}
+
+	void SkinnedMesh::SetIndicesCount(uint32_t count)
+	{
+		mIndicesCount = count;
+	}
 }

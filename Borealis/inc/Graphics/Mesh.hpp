@@ -78,13 +78,13 @@ namespace Borealis
 			\brief
 				Set up mesh
 		*************************************************************************/
-		virtual void SetupMesh();
+		void SetupMesh();
 
 		/*!***********************************************************************
 			\brief
 				Draw mesh
 		*************************************************************************/
-		virtual void Draw(const glm::mat4& transform, Ref<Shader> shader, int entityID);
+		void Draw(const glm::mat4& transform, Ref<Shader> shader, int entityID);
 
 		/*!***********************************************************************
 			\brief

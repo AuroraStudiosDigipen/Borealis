@@ -97,7 +97,7 @@ namespace Borealis {
 			font.SetTexture(std::filesystem::path("engineResources/fonts/OpenSans_Condensed-Bold.dds"));
 			Font::SetDefaultFont(MakeRef<Font>(font));
 
-			skinnedModel = SkinnedMeshImporter::LoadFBXModel("assets/meshes/animation_with_skeleton.fbx");
+			skinnedModel = SkinnedMeshImporter::LoadFBXModel("assets/meshes/fishing_cast_blender.fbx");
 			skinnedShader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_SkinnedModel.glsl");
 			animator = Animator(skinnedModel->mAnimation);
 		}
@@ -171,7 +171,7 @@ namespace Borealis {
 
 			if (skinnedModel)
 			{
-				//animator.UpdateAnimation(1.f);
+				animator.UpdateAnimation(dt);
 
 				skinnedShader->Bind();
 				auto transforms = animator.GetFinalBoneMatrices();

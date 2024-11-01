@@ -32,19 +32,35 @@ namespace Borealis
 {
 	Ref<Animation> AnimationImporter::LoadAnimations(std::string const& animationPath, Ref<SkinnedModel> model)
 	{
+		//Assimp::Importer importer;
+		//const aiScene* scene = importer.ReadFile(animationPath, aiProcess_Triangulate);
+
+		//if (scene->mNumAnimations == 0) return nullptr;
+		//
+		//auto animation = scene->mAnimations[0];
+		//Ref<Animation> anim = MakeRef<Animation>();
+
+		//anim->mDuration = animation->mDuration;
+		//anim->mTicksPerSecond = animation->mTicksPerSecond;
+		////aiMatrix4x4 globalXform = scene->mRootNode->mTransformation;
+		////globalXform = globalXform.Inverse();
+
+		//ReadHierarchyData(anim->mRootNode, scene->mRootNode);
+		//ReadMissingBones(animation, model, anim);
+
+		//return anim;
+
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(animationPath, aiProcess_Triangulate);
 
-		if (scene->mNumAnimations == 0) return nullptr;
-		
+		assert(scene && scene->mRootNode);
+
 		auto animation = scene->mAnimations[0];
+
 		Ref<Animation> anim = MakeRef<Animation>();
 
 		anim->mDuration = animation->mDuration;
 		anim->mTicksPerSecond = animation->mTicksPerSecond;
-		//aiMatrix4x4 globalXform = scene->mRootNode->mTransformation;
-		//globalXform = globalXform.Inverse();
-
 		ReadHierarchyData(anim->mRootNode, scene->mRootNode);
 		ReadMissingBones(animation, model, anim);
 

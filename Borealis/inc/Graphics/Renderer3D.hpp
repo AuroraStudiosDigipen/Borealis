@@ -52,6 +52,8 @@ namespace Borealis
 		*************************************************************************/
 		static void Begin(const Camera& camera, const glm::mat4& transform);
 
+		static void Begin(glm::mat4 viewProj, Ref<Shader> shader = nullptr);
+
 		static void End();
 
 		static void AddLight(LightComponent const& lightComponent);
@@ -71,7 +73,9 @@ namespace Borealis
 				transform
 		*************************************************************************/
 		static void DrawMesh(const glm::mat4& transform, const MeshFilterComponent& meshFilter, const MeshRendererComponent& meshRenderer, int entityID = -1);
+		static void DrawMesh(const glm::mat4& transform, const MeshFilterComponent& meshFilter, const MeshRendererComponent& meshRenderer, Ref<Shader> shader, int entityID = -1);
 
+		static void DrawQuad();
 	private:
 		static LightEngine mLightEngine;
 	};

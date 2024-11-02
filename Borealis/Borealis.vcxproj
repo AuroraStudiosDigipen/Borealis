@@ -199,6 +199,7 @@
     <ClInclude Include="inc\Graphics\EditorCamera.hpp" />
     <ClInclude Include="inc\Graphics\Font.hpp" />
     <ClInclude Include="inc\Graphics\Framebuffer.hpp" />
+    <ClInclude Include="inc\Graphics\Frustum.hpp" />
     <ClInclude Include="inc\Graphics\GraphicsContext.hpp" />
     <ClInclude Include="inc\Graphics\Light.hpp" />
     <ClInclude Include="inc\Graphics\LightEngine.hpp" />
@@ -214,6 +215,8 @@
     <ClInclude Include="inc\Graphics\OpenGL\VertexArrayOpenGLImpl.hpp" />
     <ClInclude Include="inc\Graphics\OrthographicCamera.hpp" />
     <ClInclude Include="inc\Graphics\RenderCommand.hpp" />
+    <ClInclude Include="inc\Graphics\RenderGraph\RenderGraph.hpp" />
+    <ClInclude Include="inc\Graphics\RenderGraph\RenderGraphOld.hpp" />
     <ClInclude Include="inc\Graphics\Renderer.hpp" />
     <ClInclude Include="inc\Graphics\Renderer2D.hpp" />
     <ClInclude Include="inc\Graphics\Renderer3D.hpp" />
@@ -800,6 +803,7 @@
     <ClCompile Include="src\Graphics\EditorCamera.cpp" />
     <ClCompile Include="src\Graphics\Font.cpp" />
     <ClCompile Include="src\Graphics\Framebuffer.cpp" />
+    <ClCompile Include="src\Graphics\Frustum.cpp" />
     <ClCompile Include="src\Graphics\Light.cpp" />
     <ClCompile Include="src\Graphics\LightEngine.cpp" />
     <ClCompile Include="src\Graphics\Material.cpp" />
@@ -814,6 +818,8 @@
     <ClCompile Include="src\Graphics\OpenGL\VertexArrayOpenGLImpl.cpp" />
     <ClCompile Include="src\Graphics\OrthographicCamera.cpp" />
     <ClCompile Include="src\Graphics\RenderCommand.cpp" />
+    <ClCompile Include="src\Graphics\RenderGraph\RenderGraph.cpp" />
+    <ClCompile Include="src\Graphics\RenderGraph\RenderGraphOld.cpp" />
     <ClCompile Include="src\Graphics\Renderer.cpp" />
     <ClCompile Include="src\Graphics\Renderer2D.cpp" />
     <ClCompile Include="src\Graphics\Renderer3D.cpp" />

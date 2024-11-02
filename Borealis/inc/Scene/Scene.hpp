@@ -17,6 +17,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <entt.hpp>
 #include <Core/UUID.hpp>
 #include <Graphics/EditorCamera.hpp>
+#include <Graphics/RenderGraph/RenderGraph.hpp>
 namespace Borealis
 {
 	class Entity;
@@ -63,6 +64,9 @@ namespace Borealis
 		*************************************************************************/
 		void UpdateRuntime(float dt);
 
+		void Render2DPass();
+		void Render3DPass();
+
 		/*!***********************************************************************
 			\brief
 				Editor update function
@@ -72,6 +76,8 @@ namespace Borealis
 				The editor camera
 		*************************************************************************/
 		void UpdateEditor(float dt, EditorCamera& camera);
+
+		void UpdateRenderer();
 
 		/*!***********************************************************************
 			\brief
@@ -184,6 +190,13 @@ namespace Borealis
 				The primary camera entity
 		*************************************************************************/
 		Entity GetPrimaryCameraEntity();
+
+		Ref<FrameBuffer> GetRunTimeFB();
+		Ref<FrameBuffer> GetEditorFB();
+
+		void SetRenderGraphConfig(RenderGraphConfig renderGraphConfig);
+
+		void AddRenderGraphGlobalSource(Ref<RenderSource> globalSource);
 	private:
 
 		/*!***********************************************************************
@@ -205,6 +218,11 @@ namespace Borealis
 
 		bool hasRuntimeStarted = false;
 
+		Ref<FrameBuffer> mViewportFrameBuffer;
+		Ref<FrameBuffer> mRuntimeFrameBuffer;
+		Ref<FrameBuffer> mGFrameBuffer;
+		Ref<FrameBuffer> mShadowMapBuffer;
+		RenderGraph mRenderGraph;
 	};
 }
 

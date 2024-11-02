@@ -52,6 +52,19 @@ namespace Borealis
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
+
+	void OpenGLFrameBuffer::BindTexture(uint32_t attachmentIndex, uint32_t textureUnit)
+	{
+		glActiveTexture(GL_TEXTURE0 + textureUnit);
+		glBindTexture(GL_TEXTURE_2D, mColorAttachments[attachmentIndex]);
+	}
+
+	void OpenGLFrameBuffer::BindDepthBuffer(uint32_t textureUnit)
+	{
+		glActiveTexture(GL_TEXTURE0 + textureUnit);
+		glBindTexture(GL_TEXTURE_2D, mDepthAttachment);
+	}
+
 	void OpenGLFrameBuffer::Resize(uint32_t width, uint32_t height)
 	{
 		if (width == 0 || height == 0 || width > s_MaxFramebufferSize || height > s_MaxFramebufferSize)
@@ -67,7 +80,7 @@ namespace Borealis
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, mRendererID);
 		glReadBuffer(GL_COLOR_ATTACHMENT0 + attachmentIndex);
-		int pixelData;
+		int pixelData = -1;
 		glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &pixelData);
 		return pixelData;
 	}
@@ -104,12 +117,24 @@ namespace Borealis
 				GraphicsUtils::BindTexture(multisample, mColorAttachments[i]);
 				switch (mColorAttachmentProps[i].mTextureFormat)
 				{
+				case FramebufferTextureFormat::RGB16F:
+					GraphicsUtils::AttachColorTexture(mColorAttachments[i], mProps.Samples, GL_RGB16F, GL_RGB, GL_FLOAT,mProps.Width, mProps.Height, i);
+					break;
+
 				case FramebufferTextureFormat::RGBA8:
-					GraphicsUtils::AttachColorTexture(mColorAttachments[i], mProps.Samples, GL_RGBA8, GL_RGBA, mProps.Width, mProps.Height, i);
+					GraphicsUtils::AttachColorTexture(mColorAttachments[i], mProps.Samples, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, mProps.Width, mProps.Height, i);
+					break;
+
+				case FramebufferTextureFormat::RGBA16F:
+					GraphicsUtils::AttachColorTexture(mColorAttachments[i], mProps.Samples, GL_RGBA16F, GL_RGBA, GL_FLOAT, mProps.Width, mProps.Height, i);
 					break;
 
 				case FramebufferTextureFormat::RedInteger:
-					GraphicsUtils::AttachColorTexture(mColorAttachments[i], mProps.Samples, GL_R32I, GL_RED_INTEGER, mProps.Width, mProps.Height, i);
+					GraphicsUtils::AttachColorTexture(mColorAttachments[i], mProps.Samples, GL_R32I, GL_RED_INTEGER, GL_UNSIGNED_BYTE, mProps.Width, mProps.Height, i);
+					break;
+
+				case FramebufferTextureFormat::R16F:
+					GraphicsUtils::AttachColorTexture(mColorAttachments[i], mProps.Samples, GL_R16F, GL_RED, GL_FLOAT, mProps.Width, mProps.Height, i);
 					break;
 				}
 			}
@@ -129,14 +154,26 @@ namespace Borealis
 
 		if (mColorAttachments.size() > 1)
 		{
-			BOREALIS_CORE_ASSERT(mColorAttachments.size() <= 4,"Too many color attachments!");
-			GLenum buffers[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
-			glDrawBuffers((GLsizei)mColorAttachments.size(), buffers);
+			size_t maxAttachments = 8;
+			BOREALIS_CORE_ASSERT(mColorAttachments.size() <= maxAttachments, "Too many color attachments!");
+
+			std::vector<GLenum> buffers(mColorAttachments.size());
+			for (size_t i = 0; i < mColorAttachments.size(); ++i)
+			{
+				buffers[i] = GL_COLOR_ATTACHMENT0 + i;
+			}
+
+			glDrawBuffers((GLsizei)mColorAttachments.size(), buffers.data());
+
+			//BOREALIS_CORE_ASSERT(mColorAttachments.size() <= 6,"Too many color attachments!");
+			//GLenum buffers[6] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5};
+			//glDrawBuffers((GLsizei)mColorAttachments.size(), buffers);
 
 		}
 		else if (mColorAttachments.empty())
 		{
 			glDrawBuffer(GL_NONE);
+			glReadBuffer(GL_NONE);
 		}
 
 		BOREALIS_CORE_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is incomplete!");

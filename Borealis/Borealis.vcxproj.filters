@@ -40,6 +40,9 @@
     <Filter Include="inc\Graphics\OpenGL">
       <UniqueIdentifier>{93879F21-FFE8-7C2F-8856-C3E1F4B6B3EE}</UniqueIdentifier>
     </Filter>
+    <Filter Include="inc\Graphics\RenderGraph">
+      <UniqueIdentifier>{00E8FDE0-EC0C-4D61-1558-32F101DC4B7F}</UniqueIdentifier>
+    </Filter>
     <Filter Include="inc\ImGui">
       <UniqueIdentifier>{89503E75-F5BA-F2EB-3EF9-A391AAA2D040}</UniqueIdentifier>
     </Filter>
@@ -153,6 +156,9 @@
     </Filter>
     <Filter Include="src\Graphics\OpenGL">
       <UniqueIdentifier>{A10E80C2-0D70-5DD0-96DD-A382023E948F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Graphics\RenderGraph">
+      <UniqueIdentifier>{CE07F316-BA2C-4297-E377-2727CFFB40B5}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\ImGui">
       <UniqueIdentifier>{170E22B3-8378-D629-CCB6-87CF3860B47E}</UniqueIdentifier>
@@ -298,6 +304,9 @@
     <ClInclude Include="inc\Graphics\Framebuffer.hpp">
       <Filter>inc\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Graphics\Frustum.hpp">
+      <Filter>inc\Graphics</Filter>
+    </ClInclude>
     <ClInclude Include="inc\Graphics\GraphicsContext.hpp">
       <Filter>inc\Graphics</Filter>
     </ClInclude>
@@ -342,6 +351,12 @@
     </ClInclude>
     <ClInclude Include="inc\Graphics\RenderCommand.hpp">
       <Filter>inc\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Graphics\RenderGraph\RenderGraph.hpp">
+      <Filter>inc\Graphics\RenderGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Graphics\RenderGraph\RenderGraphOld.hpp">
+      <Filter>inc\Graphics\RenderGraph</Filter>
     </ClInclude>
     <ClInclude Include="inc\Graphics\Renderer.hpp">
       <Filter>inc\Graphics</Filter>
@@ -2085,6 +2100,9 @@
     <ClCompile Include="src\Graphics\Framebuffer.cpp">
       <Filter>src\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\Frustum.cpp">
+      <Filter>src\Graphics</Filter>
+    </ClCompile>
     <ClCompile Include="src\Graphics\Light.cpp">
       <Filter>src\Graphics</Filter>
     </ClCompile>
@@ -2126,6 +2144,12 @@
     </ClCompile>
     <ClCompile Include="src\Graphics\RenderCommand.cpp">
       <Filter>src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\RenderGraph\RenderGraph.cpp">
+      <Filter>src\Graphics\RenderGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\RenderGraph\RenderGraphOld.cpp">
+      <Filter>src\Graphics\RenderGraph</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\Renderer.cpp">
       <Filter>src\Graphics</Filter>

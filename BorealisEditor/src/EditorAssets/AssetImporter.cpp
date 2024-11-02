@@ -13,6 +13,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
  /******************************************************************************/
 
 #include <BorealisPCH.hpp>
+#include <FileWatch.hpp>
 #include <Core/LoggerSystem.hpp>
 
 #include <Core/Project.hpp>
@@ -22,8 +23,10 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <EditorAssets/MetaSerializer.hpp>
 
 #include <thread>
+
 namespace Borealis
 {
+	std::unique_ptr<filewatch::FileWatch<std::wstring>> fileWatcher = nullptr;
 	void AssetImporter::LoadRegistry(Borealis::ProjectInfo projectInfo)
 	{
 		//open registry database file
@@ -42,8 +45,8 @@ namespace Borealis
 			registry.close();
 		}
 
+		mAssetPath = projectInfo.AssetsPath;
 		mAssetRegistryPath = projectInfo.AssetsRegistryPath;
-		mAssetRegistryPathStatic = projectInfo.AssetsRegistryPath;
 
 		std::ifstream registryFile(projectInfo.AssetsRegistryPath);
 		std::stringstream registryStream;
@@ -63,37 +66,16 @@ namespace Borealis
 		RegisterAllAssets(projectInfo.AssetsPath, assetRegistry);
 
 		SerializeRegistry();
-	}
 
+		StartFileWatch();
+	}
+	
 	AssetHandle AssetImporter::GetAssetHandle(std::filesystem::path const& path)
 	{
 		std::size_t hash = std::hash<std::string>{}(path.string());
 		if (mPathRegistry.contains(hash)) return mPathRegistry.at(hash);
 
-		//TEMP==============================================================================
-		BOREALIS_CORE_TRACE("Inserting file into registry (AssetImporter::GetAssetHandle)");
-		AssetRegistry& assetRegistry = Project::GetEditorAssetsManager()->GetAssetRegistry();
-		AssetMetaData meta = MetaFileSerializer::CreateAssetMetaFile(path);
-
-		bool imported = false;
-		std::filesystem::path metaPath = {};
-
-		switch (meta.Type)
-		{
-		case AssetType::Mesh:
-		case AssetType::Texture2D:
-		case AssetType::Font:
-			imported = ImportAssetTEMP(meta);
-			metaPath = path;
-			meta = MetaFileSerializer::GetAssetMetaDataFile(metaPath.replace_extension(".meta"));
-			break;
-		default:
-			break;
-		}
-		assetRegistry.insert({ meta.Handle, meta });
-		mPathRegistry.insert({ hash, meta.Handle });
-		MetaFileSerializer::SerialzeRegistry(mAssetRegistryPathStatic, assetRegistry);
-		return meta.Handle;
+		return {};
 	}
 
 	void AssetImporter::InsertAssetHandle(std::filesystem::path const& path, AssetHandle handle)
@@ -112,30 +94,8 @@ namespace Borealis
 
 		std::filesystem::path compilerPath = std::filesystem::canonical("BorealisAssetCompiler.exe");
 		std::string sourcePath = metaData.SourcePath.string();
-		std::string assetType = Asset::AssetTypeToString(metaData.Type);
-		std::string assetHandle = std::to_string(metaData.Handle);
 
-		std::string command = compilerPath.string() + " " + sourcePath;// +" " + assetType + " " + assetHandle;
-
-		int result = system(command.c_str());
-
-		return false;
-	}
-
-	bool AssetImporter::ImportAssetTEMP(AssetMetaData metaData)
-	{
-		//check if assets needs to be imported
-
-		//if yes pass info to compiler
-
-		//system()
-
-		std::filesystem::path compilerPath = std::filesystem::canonical("BorealisAssetCompiler.exe");
-		std::string sourcePath = metaData.SourcePath.string();
-		std::string assetType = Asset::AssetTypeToString(metaData.Type);
-		std::string assetHandle = std::to_string(metaData.Handle);
-
-		std::string command = compilerPath.string() + " " + sourcePath;// +" " + assetType + " " + assetHandle;
+		std::string command = compilerPath.string() + " " + sourcePath;
 
 		int result = system(command.c_str());
 
@@ -247,6 +207,42 @@ namespace Borealis
 		}
 
 		return false;
+	}
+	void AssetImporter::StartFileWatch()
+	{
+		filewatch::FileWatch<std::wstring> watchBuffer(
+			mAssetPath.generic_wstring(),
+			[this](const std::filesystem::path& path, const filewatch::Event change_type) {
+				AssetRegistry* assetRegistry = nullptr;
+				BOREALIS_CORE_INFO("File change detected : {}", path.string());
+				switch (change_type)
+				{
+				case filewatch::Event::added:
+					assetRegistry = &Project::GetEditorAssetsManager()->GetAssetRegistry();
+					RegisterAsset(mAssetPath / path, *assetRegistry);
+					break;
+				case filewatch::Event::removed:
+					//if .meta is deleted, find related meta data in registry and re-serialize it
+					//if src file is deleted
+					//replace extention with .meta
+					// remove from registry
+					break;
+				case filewatch::Event::modified:
+					//compare modified file with meta file
+					//check if need to re compile
+					break;
+				case filewatch::Event::renamed_old:
+					//handle rename
+					break;
+				case filewatch::Event::renamed_new:
+					//handle rename
+					break;
+				};
+				SerializeRegistry();
+			}
+		);
+
+		fileWatcher = std::make_unique<filewatch::FileWatch<std::wstring>>(watchBuffer);
 	}
 }
 

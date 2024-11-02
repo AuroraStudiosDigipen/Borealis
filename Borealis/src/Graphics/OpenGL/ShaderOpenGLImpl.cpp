@@ -50,6 +50,7 @@ namespace Borealis
 	}
 	void OpenGLShader::Bind() const
 	{
+		BOREALIS_CORE_ASSERT(glGetError() == GL_NO_ERROR, "Error pushing uniform into shader");
 		PROFILE_FUNCTION();
 		glUseProgram(mRendererID);
 	}

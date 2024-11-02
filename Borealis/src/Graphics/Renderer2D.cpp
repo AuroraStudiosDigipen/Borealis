@@ -241,62 +241,15 @@ namespace Borealis
 	{
 		PROFILE_FUNCTION();
 
-		sData->mQuadShader->Bind();
-		sData->mQuadShader->Set("u_ViewProjection", camera.GetViewProjectionMatrix());
-
-		sData->QuadIndexCount = 0;
-		sData->QuadBufferPtr = sData->QuadBufferBase;
-
-		sData->mCircleShader->Bind();
-		sData->mCircleShader->Set("u_ViewProjection", camera.GetViewProjectionMatrix());
-
-		sData->CircleIndexCount = 0;
-		sData->CircleBufferPtr = sData->CircleBufferBase;
-
-		sData->mLineShader->Bind();
-		sData->mLineShader->Set("u_ViewProjection", camera.GetViewProjectionMatrix());
-
-		sData->LineVertexCount = 0;
-		sData->LineBufferPtr = sData->LineBufferBase;
-
-		sData->mFontShader->Bind();
-		sData->mFontShader->Set("u_ViewProjection", camera.GetViewProjectionMatrix());
-
-		sData->FontIndexCount = 0;
-		sData->FontBufferPtr = sData->FontBufferBase;
-
-		sData->TextureSlotIndex = 1;
+		Renderer2D::Begin(camera.GetViewProjectionMatrix());
 	}
 
 	void Renderer2D::Begin(const EditorCamera& camera)
 	{
 		PROFILE_FUNCTION();
-
-		sData->mQuadShader->Bind();
-		sData->mQuadShader->Set("u_ViewProjection", camera.GetViewProjectionMatrix());
-
-		sData->QuadIndexCount = 0;
-		sData->QuadBufferPtr = sData->QuadBufferBase;
-
-		sData->mCircleShader->Bind();
-		sData->mCircleShader->Set("u_ViewProjection", camera.GetViewProjectionMatrix());
-
-		sData->CircleIndexCount = 0;
-		sData->CircleBufferPtr = sData->CircleBufferBase;
-
-		sData->mLineShader->Bind();
-		sData->mLineShader->Set("u_ViewProjection", camera.GetViewProjectionMatrix());
-
-		sData->LineVertexCount = 0;
-		sData->LineBufferPtr = sData->LineBufferBase;
-
-		sData->mFontShader->Bind();
-		sData->mFontShader->Set("u_ViewProjection", camera.GetViewProjectionMatrix());
-
-		sData->FontIndexCount = 0;
-		sData->FontBufferPtr = sData->FontBufferBase;
-		 
-		sData->TextureSlotIndex = 1;
+		//Consider merging into one shader file to avoid constant switching or some other method
+		//profile first to see if its affecting performance
+		Renderer2D::Begin(camera.GetViewProjectionMatrix());
 	}
 
 
@@ -306,6 +259,11 @@ namespace Borealis
 
 		glm::mat4 viewProj = camera.GetProjectionMatrix() *glm::inverse(transform);
 
+		Renderer2D::Begin(viewProj);
+	}
+
+	void Renderer2D::Begin(glm::mat4 viewProj)
+	{
 		sData->mQuadShader->Bind();
 		sData->mQuadShader->Set("u_ViewProjection", viewProj);
 

@@ -20,7 +20,21 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace Borealis
 {
-	Mesh::Mesh()
+	unsigned int Mesh::QuadVAO = 0;
+	unsigned int Mesh::QuadVBO = 0;
+
+	void BoundingSphere::Transform(glm::mat4 const& transform)
+	{
+		Center = glm::vec3(transform * glm::vec4(Center, 1.0f));
+		float scaleX = glm::length(glm::vec3(transform[0]));
+		float scaleY = glm::length(glm::vec3(transform[1]));
+		float scaleZ = glm::length(glm::vec3(transform[2]));
+		float maxScale = std::max({ scaleX, scaleY, scaleZ });
+
+		Radius *= maxScale;
+	}
+
+	Mesh::Mesh()// : mVertices(nullptr), mIndices(nullptr), mNormals(nullptr), mTexCoords(nullptr), mVerticesCount(0), mIndicesCount(0), mNormalsCount(0), mTexCoordsCount(0)
 	{
 	}
 	Mesh::Mesh(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& texCoords)
@@ -106,9 +120,106 @@ namespace Borealis
 		shader->Set("u_ModelTransform", transform);
 		shader->Set("u_EntityID", entityID);
 
+		glDisable(GL_BLEND);
+		glEnable(GL_DEPTH_TEST);
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, (int)mIndices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
+	}
+
+	float DistanceSquared(const glm::vec3& a, const glm::vec3& b)
+	{
+		glm::vec3 diff = a - b;
+		return glm::dot(diff, diff);
+	}
+
+	void Mesh::GenerateRitterBoundingSphere()
+	{
+		if (mVertices.empty()) return;
+
+		// Step 1: Find an initial point (p) and a farthest point (q)
+		glm::vec3 p = mVertices[0].Position;
+		glm::vec3 q = p;
+		float maxDistSq = 0.0f;
+
+		for (const auto& vertex : mVertices)
+		{
+			float distSq = DistanceSquared(p, vertex.Position);
+			if (distSq > maxDistSq)
+			{
+				maxDistSq = distSq;
+				q = vertex.Position;
+			}
+		}
+
+		// Step 2: Use p and q to define initial sphere
+		glm::vec3 center = (p + q) / 2.0f;
+		float radius = std::sqrt(maxDistSq) / 2.0f;
+
+		// Step 3: Expand sphere to include any outside points
+		for (const auto& vertex : mVertices)
+		{
+			glm::vec3 dir = vertex.Position - center;
+			float distSq = glm::dot(dir, dir);
+
+			if (distSq > radius * radius)
+			{
+				float dist = std::sqrt(distSq);
+				float newRadius = (radius + dist) / 2.0f;
+				center += (dir / dist) * (newRadius - radius);
+				radius = newRadius;
+			}
+		}
+
+		mBoundingSphere.Center = center;
+		mBoundingSphere.Radius = radius;
+	}
+
+	BoundingSphere Mesh::GetBoundingSphere()
+	{
+		return mBoundingSphere;
+	}
+
+	void Mesh::DrawQuad()
+	{
+		if (QuadVAO == 0)
+		{
+			// Define the vertex positions and texture coordinates for a fullscreen quad
+			float quadVertices[] = {
+				// Positions    // TexCoords
+				-1.0f,  1.0f,   0.0f, 1.0f,
+				-1.0f, -1.0f,   0.0f, 0.0f,
+				 1.0f, -1.0f,   1.0f, 0.0f,
+
+				-1.0f,  1.0f,   0.0f, 1.0f,
+				 1.0f, -1.0f,   1.0f, 0.0f,
+				 1.0f,  1.0f,   1.0f, 1.0f
+			};
+
+			// Generate and bind a VAO for the quad
+			glGenVertexArrays(1, &QuadVAO);
+			glGenBuffers(1, &QuadVBO);
+
+			glBindVertexArray(QuadVAO);
+			glBindBuffer(GL_ARRAY_BUFFER, QuadVBO);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+
+			// Position attribute
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+
+			// Texture coordinates attribute
+			glEnableVertexAttribArray(1);
+			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+		}
+
+		glDisable(GL_DEPTH_TEST);
+		glBindVertexArray(QuadVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, QuadVBO);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glEnable(GL_DEPTH_TEST);
 	}
 
 	std::vector<unsigned int> const& Mesh::GetIndices() const

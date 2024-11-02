@@ -268,11 +268,13 @@ namespace Borealis
 		//float Range = 10;
 		Type type = Type::Directional;
 		glm::vec3 direction = {0.0, -1.0, 0.0};
+		glm::vec3 spotLightDirection = { 0.0, -1.0, 0.0 };
 		glm::vec3 ambient = {0.4, 0.4, 0.4};
 		glm::vec3 diffuse = {1.f, 1.f, 1.f};
 		glm::vec3 specular = {1.f, 1.f, 1.f};
 		float linear = 0.05f;
 		float quadratic = 0.032f;
+		bool castShadow = false;
 		/*ShadowType shadowType = ShadowType::None;
 		LightAppearance lightAppearance = LightAppearance::Colour;*/
 	};

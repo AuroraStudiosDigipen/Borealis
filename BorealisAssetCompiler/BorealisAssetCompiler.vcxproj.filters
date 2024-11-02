@@ -18,10 +18,16 @@
     <ClInclude Include="inc\Importer\AssetImporter.hpp">
       <Filter>inc\Importer</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Importer\AssetStructs.hpp">
+      <Filter>inc\Importer</Filter>
+    </ClInclude>
     <ClInclude Include="inc\Importer\FontImporter.hpp">
       <Filter>inc\Importer</Filter>
     </ClInclude>
     <ClInclude Include="inc\Importer\MeshImporter.hpp">
+      <Filter>inc\Importer</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Importer\MeshOptimizer.hpp">
       <Filter>inc\Importer</Filter>
     </ClInclude>
     <ClInclude Include="inc\Importer\TextureImporter.hpp">
@@ -39,6 +45,9 @@
       <Filter>src\Importer</Filter>
     </ClCompile>
     <ClCompile Include="src\Importer\MeshImporter.cpp">
+      <Filter>src\Importer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Importer\MeshOptimizer.cpp">
       <Filter>src\Importer</Filter>
     </ClCompile>
     <ClCompile Include="src\Importer\TextureImporter.cpp">

@@ -121,9 +121,12 @@ namespace Borealis
             .property("Quadratic", &LightComponent::quadratic)
             .property("Linear", &LightComponent::linear)
             .property("Offset", &LightComponent::offset)
+            .property("CastShadow", &LightComponent::castShadow)
             .property("Type", &LightComponent::type)
             .property("Direction", &LightComponent::direction)
             (metadata("Dependency", "Type"), metadata("Visible for", "Directional"))
+            .property("SpotLightDirection", &LightComponent::spotLightDirection)
+            (metadata("Dependency", "Type"), metadata("Visible for", "Spot"))
             .property("Inner Outer Spot", &LightComponent::InnerOuterSpot)
             (metadata("Dependency", "Type"), metadata("Visible for", "Spot"));
 

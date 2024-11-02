@@ -20,11 +20,11 @@ namespace Borealis
 	void OpenGLRendererAPI::Init()
 	{
 		PROFILE_FUNCTION();
-
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_LINE_SMOOTH);
+		BOREALIS_CORE_ASSERT(glGetError() == GL_NO_ERROR, "Error");
 	}
 	void OpenGLRendererAPI::Clear()
 	{

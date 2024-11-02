@@ -156,6 +156,10 @@ namespace Borealis
 
 				std::filesystem::path materialPath = mCurrDir;
 				materialPath /= std::string(textBuffer) + ".mat";
+				//creating it like this will call the filewatcher as well, making two asset handle
+				//undefined behaviour
+				//move creation of assets to assets importer?
+				//AssetHandle AsseetImporter::CreateAsset(AssetType Material, Path materialPath)
 				Ref<Material> material = Material::CreateNewMaterial(materialPath);
 				AssetMetaData data = MetaFileSerializer::CreateAssetMetaFile(materialPath);
 				AssetManager::InsertMetaData(data);

@@ -49,8 +49,6 @@ namespace Borealis
 		*************************************************************************/
 		bool ImportAsset(AssetMetaData metaData);
 
-		static bool ImportAssetTEMP(AssetMetaData metaData);
-
 		/*!***********************************************************************
 			\brief
 				Serialize entire registry
@@ -81,10 +79,12 @@ namespace Borealis
 		*************************************************************************/
 		bool VerifyMetaFile(std::filesystem::path path, AssetRegistry& assetRegistry);
 
+		void StartFileWatch();
+
 
 	private:
+		std::filesystem::path mAssetPath;
 		std::filesystem::path mAssetRegistryPath;
-		inline static std::filesystem::path mAssetRegistryPathStatic; //temp
 		inline static std::unordered_map<std::size_t, AssetHandle> mPathRegistry;
 	};
 }

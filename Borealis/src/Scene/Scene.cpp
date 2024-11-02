@@ -31,13 +31,85 @@ namespace Borealis
 {
 	Scene::Scene(std::string name, std::string path) : mName(name), mScenePath(path)
 	{
+		//FrameBufferProperties props{ 1280, 720, false };
+		//props.Attachments = { FramebufferTextureFormat::RGBA8,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
+		//mViewportFrameBuffer = FrameBuffer::Create(props);
 
+		//FrameBufferProperties propsRuntime{ 1280, 720, false };
+		//propsRuntime.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RedInteger,FramebufferTextureFormat::Depth };
+		//mRuntimeFrameBuffer = FrameBuffer::Create(propsRuntime);
+
+		//FrameBufferProperties propsGBuffer{ 1280, 720, false };
+		//propsGBuffer.Attachments = 
+		//{
+		//	FramebufferTextureFormat::RGBA16F,  // Albedo + Alpha
+		//	FramebufferTextureFormat::RedInteger,  // entity id
+		//	FramebufferTextureFormat::RGBA8,   // Normal + roughness
+		//	FramebufferTextureFormat::RGBA8,   // Specular + metallic
+		//	//FramebufferTextureFormat::RGB16F,   // Position
+		//	FramebufferTextureFormat::Depth     // Depth buffer
+		//};
+		//mGFrameBuffer = FrameBuffer::Create(propsGBuffer);
 	}
 
 	Scene::~Scene()
 	{
 		auto view = mRegistry.view<RigidBodyComponent>();
 	}
+
+	void Scene::Render2DPass()
+	{
+		//2D pass
+		{
+			auto group = mRegistry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);
+			for (auto& entity : group)
+			{
+				auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
+				Renderer2D::DrawSprite(transform, sprite, (int)entity);
+			}
+		}
+		{
+			auto group = mRegistry.group<>(entt::get<TransformComponent, CircleRendererComponent>);
+			for (auto& entity : group)
+			{
+				auto [transform, circle] = group.get<TransformComponent, CircleRendererComponent>(entity);
+				Renderer2D::DrawCircle(transform, circle.Colour, circle.thickness, circle.fade, (int)entity);
+			}
+		}
+		{
+			auto group = mRegistry.group<>(entt::get<TransformComponent, TextComponent>);
+			for (auto& entity : group)
+			{
+				auto [transform, text] = group.get<TransformComponent, TextComponent>(entity);
+				Renderer2D::DrawString(text.text, text.font, transform, (int)entity);
+			}
+		}
+	}
+
+	void Scene::Render3DPass()
+	{
+		//3D pass
+		{
+			entt::basic_group group = mRegistry.group<>(entt::get<TransformComponent, LightComponent>);
+			for (auto& entity : group)
+			{
+				auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
+				lightComponent.offset = transform.Translate;
+				Renderer3D::AddLight(lightComponent);
+			}
+		}
+		{
+			auto group = mRegistry.group<>(entt::get<TransformComponent, MeshFilterComponent, MeshRendererComponent>);
+			for (auto& entity : group)
+			{
+				auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
+				auto groupLight = mRegistry.group<>(entt::get<TransformComponent, LightComponent>);
+
+				Renderer3D::DrawMesh(transform, meshFilter, meshRenderer, (int)entity);
+			}
+		}
+	}
+
 	void Scene::UpdateRuntime(float dt)
 	{
 		if (hasRuntimeStarted)
@@ -122,88 +194,6 @@ namespace Borealis
 			}
 		}
 
-		Camera* mainCamera = nullptr;
-		glm::mat4 mainCameratransform(1.f);
-	
-		{
-			auto group = mRegistry.group<>(entt::get<TransformComponent, CameraComponent>);
-			for (auto entity : group)
-			{
-				auto [transform, camera] = group.get<TransformComponent, CameraComponent>(entity);
-
-				if (camera.Primary)
-				{
-					//camera.Camera.SetCameraType(SceneCamera::CameraType::Perspective);
-					mainCamera = &camera.Camera;
-					mainCameratransform = transform;
-					break;
-				}
-			}
-		}
-
-		// Pre-Render
-		if (mainCamera)
-		{
-			Renderer3D::Begin(*mainCamera, mainCameratransform);
-			{
-				{
-					auto group = mRegistry.group<>(entt::get<TransformComponent, LightComponent>);
-					for (auto& entity : group)
-					{
-						auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
-						lightComponent.offset = transform.Translate;
-						Renderer3D::AddLight(lightComponent);
-					}
-				}
-
-				auto group = mRegistry.group<>(entt::get<TransformComponent, MeshFilterComponent, MeshRendererComponent>);
-				for (auto& entity : group)
-				{
-					auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
-					auto groupLight = mRegistry.group<>(entt::get<TransformComponent, LightComponent>);
-
-					Renderer3D::DrawMesh(transform, meshFilter, meshRenderer, (int)entity);
-				}
-			}
-			Renderer3D::End();
-
-			Renderer2D::Begin(*mainCamera, mainCameratransform);
-			{
-				auto group = mRegistry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);
-				for (auto& entity : group)
-				{
-					auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-					Renderer2D::DrawSprite(transform, sprite, (int)entity);
-				}
-				//Renderer2D::End();
-			}
-
-			{
-				//Renderer2D::Begin(*mainCamera, mainCameratransform);
-				auto group = mRegistry.group<>(entt::get<TransformComponent, CircleRendererComponent>);
-				for (auto& entity : group)
-				{
-					auto [transform, circle] = group.get<TransformComponent, CircleRendererComponent>(entity);
-					Renderer2D::DrawCircle(transform, circle.Colour, circle.thickness, circle.fade);
-				}
-				//Renderer2D::End();
-			}
-
-			{
-				//Renderer2D::Begin(*mainCamera, mainCameratransform);
-				auto group = mRegistry.group<>(entt::get<TransformComponent, TextComponent>);
-				for (auto& entity : group)
-				{
-
-					auto [transform, text] = group.get<TransformComponent, TextComponent>(entity);
-					// multiply text scale into transform
-					Renderer2D::DrawString(text, transform, (int)entity);
-				}
-			}
-				Renderer2D::End();
-			
-		}
-
 		//Audio
 		{
 			auto group = mRegistry.group<>(entt::get<TransformComponent, AudioListenerComponent>);
@@ -239,58 +229,114 @@ namespace Borealis
 		}
 	}
 
+	//move down ltr
+	Ref<FrameBuffer> Scene::GetRunTimeFB()
+	{
+		return mRuntimeFrameBuffer;
+	}
+
+	Ref<FrameBuffer> Scene::GetEditorFB()
+	{
+		//move to rendergraph
+		if (!mViewportFrameBuffer || !mRuntimeFrameBuffer || !mGFrameBuffer)
+		{
+			FrameBufferProperties props{ 1280, 720, false };
+			props.Attachments = { FramebufferTextureFormat::RGBA8,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
+			mViewportFrameBuffer = FrameBuffer::Create(props);
+
+			FrameBufferProperties propsRuntime{ 1280, 720, false };
+			propsRuntime.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RedInteger,FramebufferTextureFormat::Depth };
+			mRuntimeFrameBuffer = FrameBuffer::Create(propsRuntime);
+
+			FrameBufferProperties propsGBuffer{ 1280, 720, false };
+			propsGBuffer.Attachments =
+			{
+				FramebufferTextureFormat::RGBA16F,  // Albedo + Alpha
+				FramebufferTextureFormat::RedInteger,  // entity id
+				FramebufferTextureFormat::RGBA8,   // Normal + roughness
+				FramebufferTextureFormat::RGBA8,   // Specular + metallic
+				//FramebufferTextureFormat::RGB16F,   // Position
+				FramebufferTextureFormat::Depth     // Depth buffer
+			};
+			mGFrameBuffer = FrameBuffer::Create(propsGBuffer);
+
+			FrameBufferProperties propsShadowMapBuffer{ 2024, 2024,false };
+			propsShadowMapBuffer.Attachments = { FramebufferTextureFormat::Depth };
+			mShadowMapBuffer = FrameBuffer::Create(propsShadowMapBuffer);
+		}
+		return mViewportFrameBuffer;
+	}
+
+	void Scene::SetRenderGraphConfig(RenderGraphConfig renderGraphConfig)
+	{
+		mRenderGraph.SetConfig(renderGraphConfig);
+	}
+
+	void Scene::AddRenderGraphGlobalSource(Ref<RenderSource> globalSource)
+	{
+		mRenderGraph.SetGlobalSource(globalSource);
+	}
+
 	void Scene::UpdateEditor(float dt, EditorCamera& camera)
 	{
 		Renderer3D::Begin(camera);
-		{
-			auto group = mRegistry.group<>(entt::get<TransformComponent, LightComponent>);
-			for (auto& entity : group)
-			{
-				auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
-				lightComponent.offset = transform.Translate;
-				Renderer3D::AddLight(lightComponent);
-			}
-		}
-		{
-			auto group = mRegistry.group<>(entt::get<TransformComponent, MeshFilterComponent, MeshRendererComponent>);
-			for (auto& entity : group)
-			{
-				auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
-				auto groupLight = mRegistry.group<>(entt::get<TransformComponent, LightComponent>);
-
-				Renderer3D::DrawMesh(transform, meshFilter, meshRenderer, (int)entity);
-			}
-		}
+		Render3DPass();
+		Renderer3D::End();
 
 		Renderer2D::Begin(camera);
-		{
-			auto group = mRegistry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);
-			for (auto& entity : group)
-			{
-				auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-				Renderer2D::DrawSprite(transform, sprite, (int)entity);
-			}
-		}
-		{
-			auto group = mRegistry.group<>(entt::get<TransformComponent, CircleRendererComponent>);
-			for (auto& entity : group)
-			{
-				auto [transform, circle] = group.get<TransformComponent, CircleRendererComponent>(entity);
-				Renderer2D::DrawCircle(transform, circle.Colour, circle.thickness, circle.fade, (int)entity);
-			}
-		}
-		{
-			auto group = mRegistry.group<>(entt::get<TransformComponent, TextComponent>);
-			for (auto& entity : group)
-			{
-				auto [transform, text] = group.get<TransformComponent, TextComponent>(entity);
-				Renderer2D::DrawString(text, transform, (int)entity);
-			}
-		}
-
+		Render2DPass();
 		Renderer2D::End();
-
 	}
+
+	void Scene::UpdateRenderer()
+	{
+		Camera* mainCamera = nullptr;
+		glm::mat4 mainCameratransform(1.f);
+
+		{
+			auto group = mRegistry.group<>(entt::get<TransformComponent, CameraComponent>);
+			for (auto entity : group)
+			{
+				auto [transform, camera] = group.get<TransformComponent, CameraComponent>(entity);
+
+				if (camera.Primary)
+				{
+					//camera.Camera.SetCameraType(SceneCamera::CameraType::Perspective);
+					mainCamera = &camera.Camera;
+					mainCameratransform = transform;
+					break;
+				}
+			}
+		}
+
+		mRenderGraph.Init();
+
+		RenderTargetSource editorBuffer("EditorBuffer", mViewportFrameBuffer);
+		mRenderGraph.SetGlobalSource(MakeRef<RenderTargetSource>(editorBuffer));
+
+		GBufferSource gBufferSource("gBuffer", mGFrameBuffer);
+		mRenderGraph.SetGlobalSource(MakeRef<GBufferSource>(gBufferSource));
+
+		RenderTargetSource shadowMapBuffer("ShadowMapBuffer", mShadowMapBuffer);
+		mRenderGraph.SetGlobalSource(MakeRef<RenderTargetSource>(shadowMapBuffer));
+
+		if (mainCamera)
+		{
+			RenderTargetSource runtimeBuffer("RunTimeBuffer", mRuntimeFrameBuffer);
+			mRenderGraph.SetGlobalSource(MakeRef<RenderTargetSource>(runtimeBuffer));
+
+			CameraSource runTimeCameraSource("RunTimeCamera", *mainCamera, mainCameratransform);
+			mRenderGraph.SetGlobalSource(MakeRef<CameraSource>(runTimeCameraSource));
+		}
+
+		mRenderGraph.SetEntityRegistry(mRegistry);
+
+		mRenderGraph.Finalize();
+
+		mRenderGraph.SetFinalSink("BackBuffer", "Render2D.renderTarget"); //do i need it for immediate mode?
+		mRenderGraph.Execute();
+	}
+
 	Entity Scene::CreateEntity(const std::string& name)
 	{
 
@@ -529,7 +575,6 @@ namespace Borealis
 		}
 		return Entity{};
 	}
-
 	template<>
 	void Scene::OnComponentAdded<CameraComponent>(Entity entity, CameraComponent& component)
 	{

@@ -26,17 +26,96 @@ namespace Borealis
 		PathToAssetFolder = path;
 	}
 
+	void SerializeMeshConfig(YAML::Emitter& out, MeshConfig const& meshConfig)
+	{
+		out << YAML::Key << "IsSkinnedMesh" << YAML::Value << meshConfig.skinMesh;
+	}
+
+	void SerializeMetaConfigFile(YAML::Emitter& out, AssetType type, AssetConfig const& assetConfig)
+	{
+		switch (type)
+		{
+		case Borealis::AssetType::None:
+			break;
+		case Borealis::AssetType::Audio:
+			break;
+		case Borealis::AssetType::Mesh:
+			SerializeMeshConfig(out, GetConfig<MeshConfig>(assetConfig));
+			break;
+		case Borealis::AssetType::Shader:
+			break;
+		case Borealis::AssetType::Texture2D:
+			break;
+		case Borealis::AssetType::Folder:
+			break;
+		case Borealis::AssetType::Font:
+			break;
+		case Borealis::AssetType::Scene:
+			break;
+		case Borealis::AssetType::Material:
+			break;
+		case Borealis::AssetType::Prefab:
+			break;
+		default:
+			break;
+		}
+	}
+
 	void SerializeMetaFile(YAML::Emitter& out, AssetMetaData const& assetMetaData, std::filesystem::path PathToAssetFolder)
 	{
 		out << YAML::BeginMap;
 		out << YAML::Key << "Name" << YAML::Value << assetMetaData.name;
 		out << YAML::Key << "AssetHandle" << YAML::Value << assetMetaData.Handle;
 		out << YAML::Key << "AssetType" << YAML::Value << Asset::AssetTypeToString(assetMetaData.Type);
+		SerializeMetaConfigFile(out, assetMetaData.Type ,assetMetaData.Config);
 		//out << YAML::Key << "SourcePath" << YAML::Value << assetMetaData.SourcePath.lexically_relative(PathToAssetFolder).string();
 		out << YAML::Key << "SourcePath" << YAML::Value << std::filesystem::relative(assetMetaData.SourcePath, PathToAssetFolder).string();
 		out << YAML::Key << "CachePath" << YAML::Value << std::filesystem::relative(assetMetaData.CachePath, PathToAssetFolder).string();
 		out << YAML::Key << "LastModifiedDate" << YAML::Value << assetMetaData.importDate;
 		out << YAML::EndMap;
+	}
+
+	MeshConfig DeserializeMeshConfig(YAML::Node& node)
+	{
+		MeshConfig config;
+
+		config.skinMesh = node["IsSkinnedMesh"].as<bool>();
+
+		return config;
+	}
+
+	AssetConfig DeserializeMetaConfigFile(YAML::Node& node, AssetType type)
+	{
+		AssetConfig config{};
+
+		switch (type)
+		{
+		case Borealis::AssetType::None:
+			break;
+		case Borealis::AssetType::Audio:
+			break;
+		case Borealis::AssetType::Mesh:
+			config = DeserializeMeshConfig(node);
+			break;
+		case Borealis::AssetType::Shader:
+			break;
+		case Borealis::AssetType::Texture2D:
+			break;
+		case Borealis::AssetType::Folder:
+			break;
+		case Borealis::AssetType::Font:
+			break;
+		case Borealis::AssetType::Scene:
+			break;
+		case Borealis::AssetType::Material:
+			break;
+		case Borealis::AssetType::Prefab:
+			break;
+		default:
+			break;
+		}
+
+		return config;
 	}
 
 	AssetMetaData DeserializeMetaFile(YAML::Node& node, std::filesystem::path PathToAssetFolder)
@@ -46,6 +125,8 @@ namespace Borealis
 		metaData.name = node["Name"].as<std::string>();
 		metaData.Handle = node["AssetHandle"].as<uint64_t>();
 		metaData.Type = Asset::StringToAssetType(node["AssetType"].as<std::string>());
+		metaData.Config = DeserializeMetaConfigFile(node, metaData.Type);
+
 		std::string str = node["SourcePath"].as<std::string>();
 
 		const std::string pattern = "..\\";
@@ -203,11 +284,47 @@ namespace Borealis
 
 		metaData.Type = Asset::GetAssetTypeFromExtention(path);
 
+		metaData.Config = GetDefaultConfig(metaData.Type);
+
 		metaData.SourcePath = path;// .lexically_relative(PathToAssetFolder);
 
 		metaData.importDate = GetLastWriteTime(path);
 
 		return metaData;
+	}
+
+	AssetConfig MetaFileSerializer::GetDefaultConfig(AssetType type)
+	{
+		AssetConfig assetConfig{};
+
+		switch (type)
+		{
+		case Borealis::AssetType::None:
+			break;
+		case Borealis::AssetType::Audio:
+			break;
+		case Borealis::AssetType::Mesh:
+			assetConfig = MeshConfig{};
+			break;
+		case Borealis::AssetType::Shader:
+			break;
+		case Borealis::AssetType::Texture2D:
+			break;
+		case Borealis::AssetType::Folder:
+			break;
+		case Borealis::AssetType::Font:
+			break;
+		case Borealis::AssetType::Scene:
+			break;
+		case Borealis::AssetType::Material:
+			break;
+		case Borealis::AssetType::Prefab:
+			break;
+		default:
+			break;
+		}
+
+		return assetConfig;
 	}
 }
 

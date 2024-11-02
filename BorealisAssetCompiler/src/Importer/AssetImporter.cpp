@@ -61,7 +61,7 @@ namespace BorealisAssetCompiler
 			FontImporter::SaveFile(metaData.SourcePath, cachePath);
 			break;
 		case AssetType::Mesh:
-			MeshImporter::SaveFile(metaData.SourcePath, cachePath);
+			MeshImporter::SaveFile(metaData.SourcePath, metaData.Config, cachePath);
 			break;
 		case AssetType::None:
 		default:

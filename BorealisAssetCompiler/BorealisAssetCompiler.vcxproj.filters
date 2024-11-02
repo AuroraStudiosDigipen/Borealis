@@ -36,6 +36,12 @@
     <ClInclude Include="inc\MetaSerializer.hpp">
       <Filter>inc</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Importer\AssetConfigs.hpp">
+      <Filter>inc\Importer</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Importer\SkinnedMeshImporter.hpp">
+      <Filter>inc\Importer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Importer\AssetImporter.cpp">
@@ -58,6 +64,9 @@
     </ClCompile>
     <ClCompile Include="src\main.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Importer\SkinnedMeshImporter.cpp">
+      <Filter>src\Importer</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

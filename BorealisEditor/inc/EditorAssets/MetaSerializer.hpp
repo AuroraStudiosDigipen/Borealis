@@ -62,6 +62,7 @@ namespace Borealis
 		static void SaveAsFile(const std::filesystem::path& path, const char* outputFile);
 		static std::time_t GetLastWriteTime(const std::filesystem::path& path);
 		static AssetMetaData GetAssetMetaData(std::filesystem::path const& path);
+		static AssetConfig GetDefaultConfig(AssetType type);
 
 	private:
 		inline static std::filesystem::path PathToAssetFolder;

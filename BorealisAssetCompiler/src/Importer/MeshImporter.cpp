@@ -19,20 +19,42 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <assimp/postprocess.h>
 
 #include "Importer/MeshImporter.hpp"
+#include "Importer/SkinnedMeshImporter.hpp"
 #include "Importer/MeshOptimizer.hpp"
+
 
 namespace BorealisAssetCompiler
 {
-	void MeshImporter::SaveFile(std::filesystem::path const& sourcePath, std::filesystem::path& cachePath)
+	void MeshImporter::SaveFile(std::filesystem::path const& sourcePath, AssetConfig& assetConfig, std::filesystem::path& cachePath)
 	{
-		Model model;
+		MeshConfig config = GetConfig<MeshConfig>(assetConfig);
 
-		LoadFBXModel(model, sourcePath.string());
+		Assimp::Importer importer;
+		const aiScene* scene = importer.ReadFile(sourcePath.string(), aiProcess_Triangulate | aiProcess_FlipUVs);
 
-		OptimizeModel(model);
+		if (scene->HasAnimations() || scene->hasSkeletons())
+		{
+			config.skinMesh = true;
+			SkinnedModel skinnedModel;
 
-		cachePath.replace_extension(".mesh");
-		SaveModel(model, cachePath);
+			SkinnedMeshImporter::LoadFBXModel(skinnedModel, sourcePath.string());
+
+			cachePath.replace_extension(".skmesh");
+			SkinnedMeshImporter::SaveSkinnedModel(skinnedModel, cachePath);
+		}
+		else
+		{
+			config.skinMesh = false;
+			Model model;
+
+			LoadFBXModel(model, sourcePath.string());
+
+			OptimizeModel(model);
+
+			cachePath.replace_extension(".mesh");
+			SaveModel(model, cachePath);
+		}
+		assetConfig = config;
 	}
 
 	Mesh ProcessMesh(aiMesh* mesh, const aiScene* scene)

@@ -20,6 +20,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include <glm/glm.hpp>
 
+#include "Importer/AssetConfigs.hpp"
 #include "Importer/AssetStructs.hpp"
 
 namespace BorealisAssetCompiler
@@ -27,7 +28,7 @@ namespace BorealisAssetCompiler
 	class MeshImporter
 	{
 	public:
-		static void SaveFile(std::filesystem::path const& sourcePath, std::filesystem::path& cachePath);
+		static void SaveFile(std::filesystem::path const& sourcePath, AssetConfig& assetConfig, std::filesystem::path& cachePath);
 
 	private:
 		static void LoadFBXModel(Model & model, const std::string& path);

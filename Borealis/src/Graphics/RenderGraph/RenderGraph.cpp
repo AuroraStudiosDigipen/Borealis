@@ -317,7 +317,7 @@ namespace Borealis
 				if (!skinnedModel)
 				{
 					skinnedModel = MakeRef<SkinnedModel>();
-					skinnedModel->LoadModel("model.skmesh");
+					skinnedModel->LoadModel("fishing_cast_blender.skmesh");
 					//skinnedModel->SaveModel();
 
 					Ref<Animation> anim = MakeRef<Animation>();

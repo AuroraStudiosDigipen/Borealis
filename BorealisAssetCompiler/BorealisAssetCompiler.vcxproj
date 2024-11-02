@@ -149,11 +149,19 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="inc\Importer\AssetConfigs.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="inc\Importer\AssetImporter.hpp" />
     <ClInclude Include="inc\Importer\AssetStructs.hpp" />
     <ClInclude Include="inc\Importer\FontImporter.hpp" />
     <ClInclude Include="inc\Importer\MeshImporter.hpp" />
     <ClInclude Include="inc\Importer\MeshOptimizer.hpp" />
+    <ClInclude Include="inc\Importer\SkinnedMeshImporter.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="inc\Importer\TextureImporter.hpp" />
     <ClInclude Include="inc\MetaSerializer.hpp" />
   </ItemGroup>
@@ -162,6 +170,10 @@
     <ClCompile Include="src\Importer\FontImporter.cpp" />
     <ClCompile Include="src\Importer\MeshImporter.cpp" />
     <ClCompile Include="src\Importer\MeshOptimizer.cpp" />
+    <ClCompile Include="src\Importer\SkinnedMeshImporter.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="src\Importer\TextureImporter.cpp" />
     <ClCompile Include="src\MetaSerializer.cpp" />
     <ClCompile Include="src\main.cpp" />

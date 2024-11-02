@@ -166,6 +166,7 @@
     <ClInclude Include="inc\AI\BehaviourTree\RegisterNodes.hpp" />
     <ClInclude Include="inc\AI\BehaviourTree\ScanForNewNodes.hpp" />
     <ClInclude Include="inc\Assets\Asset.hpp" />
+    <ClInclude Include="inc\Assets\AssetConfigs.hpp" />
     <ClInclude Include="inc\Assets\AssetManager.hpp" />
     <ClInclude Include="inc\Assets\AssetMetaData.hpp" />
     <ClInclude Include="inc\Assets\EditorAssetManager.hpp" />

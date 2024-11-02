@@ -205,6 +205,9 @@
     <ClInclude Include="inc\Assets\Asset.hpp">
       <Filter>inc\Assets</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Assets\AssetConfigs.hpp">
+      <Filter>inc\Assets</Filter>
+    </ClInclude>
     <ClInclude Include="inc\Assets\AssetManager.hpp">
       <Filter>inc\Assets</Filter>
     </ClInclude>

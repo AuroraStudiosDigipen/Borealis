@@ -19,29 +19,12 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <ctime>
 #include <filesystem>
 #include <string>
-#include <variant>
 
 #include <Assets/Asset.hpp>
+#include <Assets/AssetConfigs.hpp>
 
 namespace Borealis
 {
-	struct TextureConfig {};
-
-	struct MeshConfig 
-	{
-		bool skinMesh = false;
-	};
-
-	struct FontConfig {};
-
-	using AssetConfig = std::variant
-		<
-		TextureConfig, 
-		MeshConfig, 
-		FontConfig
-		/*...*/
-		>;
-
 	struct AssetMetaData
 	{
 		std::string name{};

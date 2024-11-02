@@ -23,6 +23,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/Texture.hpp>
 #include <Graphics/Mesh.hpp>
 #include <Graphics/Model.hpp>
+#include <Graphics/SkinnedModel.hpp>
+#include <Graphics/Animation/Animator.hpp>
 #include <Graphics/Material.hpp>
 #include <Graphics/Font.hpp>
 #include <AI/BehaviourTree/BehaviourTree.hpp>
@@ -139,6 +141,23 @@ namespace Borealis
 
 		MeshRendererComponent() = default;
 		MeshRendererComponent(const MeshRendererComponent&) = default;
+	};
+
+	struct SkinnedMeshRendererComponent
+	{
+		Ref<SkinnedModel> SkinnnedModel = nullptr;
+		Ref<Material>	  Material = nullptr;
+
+		SkinnedMeshRendererComponent() = default;
+		SkinnedMeshRendererComponent(const SkinnedMeshRendererComponent&) = default;
+	};
+
+	struct AnimatorComponent
+	{
+		Animator animator{};
+
+		AnimatorComponent() = default;
+		AnimatorComponent(const AnimatorComponent&) = default;
 	};
 
 	// Move into appropraite file another time
@@ -333,6 +352,7 @@ namespace Borealis
 		AudioListenerComponent() = default;
 		AudioListenerComponent(const AudioListenerComponent&) = default;
 	};
+
 	struct BehaviourTreeComponent
 	{
 		std::unordered_set<Ref<BehaviourTree>> mBehaviourTrees;

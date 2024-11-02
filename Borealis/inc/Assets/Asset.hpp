@@ -15,9 +15,11 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #ifndef Asset_HPP
 #define Asset_HPP
 
-#include <Core/UUID.hpp>
-#include <rttr/rttr_enable.h>
 #include <filesystem>
+
+#include <rttr/rttr_enable.h>
+
+#include <Core/UUID.hpp>
 
 namespace Borealis
 {

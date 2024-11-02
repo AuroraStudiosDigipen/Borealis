@@ -27,6 +27,11 @@ namespace Borealis
 {
 	Ref<Shader> s_shader = nullptr;
 	Ref<Shader> shadow_shader = nullptr;
+
+	Ref<SkinnedModel> skinnedModel = nullptr;
+	Ref<Shader> skinnedShader = nullptr;
+	Animator animator(nullptr);
+
 	//========================================================================
 	//BUFFER SOURCE
 	//========================================================================
@@ -304,6 +309,44 @@ namespace Borealis
 
 				//Renderer3D::SetLights(shader);
 				Renderer3D::DrawMesh(transform, meshFilter, meshRenderer, (int)entity);
+			}
+
+			//test skinned model & animation
+			if(false)
+			{
+				if (!skinnedModel)
+				{
+					skinnedModel = MakeRef<SkinnedModel>();
+					skinnedModel->LoadModel("model.skmesh");
+					//skinnedModel->SaveModel();
+
+					Ref<Animation> anim = MakeRef<Animation>();
+					anim->Load("anim.anim");
+					//anim->Save();
+
+					skinnedModel->AssignAnimation(anim);
+					skinnedShader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_SkinnedModel.glsl");
+					animator = Animator(skinnedModel->mAnimation);
+				}
+				if (skinnedModel)
+				{
+					animator.UpdateAnimation(1.f / 60.f);
+
+					skinnedShader->Bind();
+					if (skinnedModel->mAnimation)
+					{
+						skinnedShader->Set("u_HasAnimation", true);
+						auto transforms = animator.GetFinalBoneMatrices();
+						for (int i = 0; i < transforms.size(); ++i)
+						{
+							std::string str = "u_FinalBonesMatrices[" + std::to_string(i) + "]";
+							skinnedShader->Set(str.c_str(), transforms[i]);
+						}
+					}
+					skinnedShader->Set("u_ViewProjection", projMatrix * viewMatrix);
+					skinnedModel->Draw(glm::mat4(1.f), skinnedShader, -1);
+					skinnedShader->Unbind();
+				}
 			}
 		}
 		Renderer3D::End();

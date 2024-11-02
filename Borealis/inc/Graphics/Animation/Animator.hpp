@@ -11,6 +11,7 @@ namespace Borealis
 	class Animator
 	{
 	public:
+		Animator();
 		Animator(Ref<Animation> animation);
 
 		void UpdateAnimation(float dt);

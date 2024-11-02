@@ -410,6 +410,8 @@ namespace Borealis
 		CopyComponent<NativeScriptComponent>(newEntity, entity);
 		CopyComponent<MeshFilterComponent>(newEntity,entity);
 		CopyComponent<MeshRendererComponent>(newEntity,entity);
+		CopyComponent<SkinnedMeshRendererComponent>(newEntity,entity);
+		CopyComponent<AnimatorComponent>(newEntity,entity);
 		CopyComponent<BoxColliderComponent>(newEntity,entity);
 		CopyComponent<CapsuleColliderComponent>(newEntity,entity);
 		CopyComponent<RigidBodyComponent>(newEntity, entity);
@@ -519,6 +521,8 @@ namespace Borealis
 		CopyComponent<NativeScriptComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<MeshFilterComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<MeshRendererComponent>(newRegistry, originalRegistry, UUIDtoENTT);
+		CopyComponent<SkinnedMeshRendererComponent>(newRegistry, originalRegistry, UUIDtoENTT);
+		CopyComponent<AnimatorComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<BoxColliderComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<CapsuleColliderComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<RigidBodyComponent>(newRegistry, originalRegistry, UUIDtoENTT);
@@ -617,6 +621,16 @@ namespace Borealis
 	}
 	template<>
 	void Scene::OnComponentAdded<MeshRendererComponent>(Entity entity, MeshRendererComponent& component)
+	{
+
+	}
+	template<>
+	void Scene::OnComponentAdded<SkinnedMeshRendererComponent>(Entity entity, SkinnedMeshRendererComponent& component)
+	{
+
+	}
+	template<>
+	void Scene::OnComponentAdded<AnimatorComponent>(Entity entity, AnimatorComponent& component)
 	{
 
 	}

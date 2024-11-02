@@ -403,6 +403,21 @@ namespace Borealis
 			}
 		}
 
+		if (propType == rttr::type::get<Ref<SkinnedModel>>())
+		{
+			ImGui::Button(propName.c_str());
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropMeshItem"))
+				{
+					AssetHandle data = *(const uint64_t*)payload->Data;
+					rttr::variant value(AssetManager::GetAsset<Model>(data));
+					Property.set_value(rInstance, value);
+				}
+				ImGui::EndDragDropTarget();
+			}
+		}
+
 		if (propType == rttr::type::get<Ref<Material>>())
 		{
 			ImGui::Button(propName.c_str());
@@ -1088,6 +1103,8 @@ namespace Borealis
 			SearchBar<CameraComponent>			(search_text, mSelectedEntity, "Camera", search_buffer);
 			SearchBar<MeshFilterComponent	  >(search_text, mSelectedEntity,"Mesh Filter", search_buffer);
 			SearchBar<MeshRendererComponent	  >(search_text, mSelectedEntity,"Mesh Renderer", search_buffer);
+			SearchBar<SkinnedMeshRendererComponent	  >(search_text, mSelectedEntity, "Skinned Mesh Renderer", search_buffer);
+			SearchBar<AnimatorComponent	  >(search_text, mSelectedEntity, "Animator", search_buffer);
 			SearchBar<BoxColliderComponent	  >(search_text, mSelectedEntity,"Box Collider", search_buffer);
 			SearchBar<CapsuleColliderComponent>(search_text, mSelectedEntity,"Capsule Collider", search_buffer);
 			SearchBar<RigidBodyComponent	  >(search_text, mSelectedEntity,"Rigidbody", search_buffer);
@@ -1128,6 +1145,8 @@ namespace Borealis
 		DrawComponentLayout<CameraComponent>("Camera", mSelectedEntity);
 		DrawComponentLayout<MeshFilterComponent>("Mesh Filter", mSelectedEntity);
 		DrawComponentLayout<MeshRendererComponent>("Mesh Renderer", mSelectedEntity);
+		DrawComponentLayout<SkinnedMeshRendererComponent>("Skinned Mesh Renderer", mSelectedEntity);
+		DrawComponentLayout<AnimatorComponent>("Animator", mSelectedEntity);
 		DrawComponentLayout<BoxColliderComponent>("Box Collider", mSelectedEntity);
 		DrawComponentLayout<CapsuleColliderComponent>("Capsule Collider", mSelectedEntity);
 		DrawComponentLayout<RigidBodyComponent>("Rigidbody", mSelectedEntity);

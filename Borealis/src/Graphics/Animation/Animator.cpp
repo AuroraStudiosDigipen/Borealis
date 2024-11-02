@@ -3,6 +3,20 @@
 
 namespace Borealis
 {
+	Animator::Animator()
+	{
+		mDeltaTime = {};
+		mCurrentTime = 0.0;
+		mCurrentAnimation = nullptr;
+
+		mFinalBoneMatrices.reserve(300);
+
+		for (int i = 0; i < 300; i++)
+		{
+			mFinalBoneMatrices.push_back(glm::mat4(1.0f));
+		}
+	}
+
 	Animator::Animator(Ref<Animation> animation)
 	{
 		mDeltaTime = {};

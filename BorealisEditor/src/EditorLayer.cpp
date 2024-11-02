@@ -47,11 +47,6 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <RenderGraphEditor/RenderGraphNodeEditor.hpp>
 
 namespace Borealis {
-
-	Ref<SkinnedModel> skinnedModel = nullptr;
-	Ref<Shader> skinnedShader = nullptr;
-	Animator animator(nullptr);
-
 	EditorLayer::SceneState EditorLayer::mSceneState = EditorLayer::SceneState::Edit;
 #ifndef _DIST
 	EditorLayer::EditorLayer() : Layer("EditorLayer"), mCamera(1280.0f / 720.0f)
@@ -94,21 +89,6 @@ namespace Borealis {
 			Font font(std::filesystem::path("engineResources/fonts/OpenSans_Condensed-Bold.bfi"));
 			font.SetTexture(std::filesystem::path("engineResources/fonts/OpenSans_Condensed-Bold.dds"));
 			Font::SetDefaultFont(MakeRef<Font>(font));
-
-			//skinnedModel = SkinnedMeshImporter::LoadFBXModel("assets/meshes/Thriller3.fbx");
-			//ef<Animation> anim = AnimationImporter::LoadAnimations("assets/meshes/Thriller3.fbx");
-
-			skinnedModel = MakeRef<SkinnedModel>();
-			skinnedModel->LoadModel("model.skmesh");
-			//skinnedModel->SaveModel();
-
-			Ref<Animation> anim = MakeRef<Animation>();
-			anim->Load("anim.anim");
-			//anim->Save();
-
-			skinnedModel->AssignAnimation(anim);
-			skinnedShader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_SkinnedModel.glsl");
-			animator = Animator(skinnedModel->mAnimation);
 		}
 	}
 
@@ -169,28 +149,6 @@ namespace Borealis {
 			PROFILE_SCOPE("Renderer::Draw");
 			RenderGraphConfig dconfig;
 			RenderGraphConfig fconfig;
-
-			// {
-			// 	if (skinnedModel)
-			// 	{
-			// 		animator.UpdateAnimation(dt);
-
-			// 		skinnedShader->Bind();
-			// 		if(skinnedModel->mAnimation)
-			// 		{
-			// 			skinnedShader->Set("u_HasAnimation", true);
-			// 			auto transforms = animator.GetFinalBoneMatrices();
-			// 			for (int i = 0; i < transforms.size(); ++i)
-			// 			{
-			// 				std::string str = "u_FinalBonesMatrices[" + std::to_string(i) + "]";
-			// 				skinnedShader->Set(str.c_str(), transforms[i]);
-			// 			}
-			// 		}
-			// 		skinnedShader->Set("u_ViewProjection", mEditorCamera.GetViewProjectionMatrix());
-			// 		skinnedModel->Draw(glm::mat4(1.f), skinnedShader, -1);
-			// 		skinnedShader->Unbind();
-			// 	}
-			// }
 
 			//deferred rendering
 			{
@@ -516,16 +474,6 @@ namespace Borealis {
 
 				}
 			ImGui::End(); // Of Settings
-
-			//AnimationUpdate
-			{
-				ImGui::Begin("Anim");
-				if(ImGui::Button("Update Anim"))
-				{
-					animator.UpdateAnimation(0.1f);
-				}
-				ImGui::End();
-			}
 
 			SCPanel.ImGuiRender();
 			CBPanel.ImGuiRender();

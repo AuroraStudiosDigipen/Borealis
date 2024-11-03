@@ -16,6 +16,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <BorealisPCH.hpp>
 #include <Scripting/ScriptInstance.hpp>
 #include <Scripting/ScriptingUtils.hpp>
+#include <Scripting/ScriptingSystem.hpp>
 #include <mono/metadata/object.h>
 #include <mono/jit/jit.h>
 
@@ -123,6 +124,11 @@ namespace Borealis
 			return true;
 		}
 		return false;
+	}
+
+	bool ScriptInstance::IsActive()
+	{
+		return ScriptingSystem::GetEnabled(shared_from_this());
 	}
 
 #ifdef _DEB

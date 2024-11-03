@@ -23,7 +23,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 namespace Borealis
 {
 	// Specifically meant for MonoBehaviours, not for other classes
-	class ScriptInstance
+	class ScriptInstance : public std::enable_shared_from_this<ScriptInstance>
 	{
 	public:
 		/*!***********************************************************************
@@ -175,6 +175,8 @@ namespace Borealis
 		void OnJointBreak();
 		void OnAnimatorMove();
 		void OnAnimatorIK();
+
+		bool IsActive();
 
 	private:
 

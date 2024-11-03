@@ -68,6 +68,9 @@ namespace Borealis
 		*************************************************************************/
 		static Ref<ScriptClass> GetScriptClass(const std::string& className) { return mScriptClasses[className]; }
 
+		static bool GetEnabled(Ref<ScriptInstance> instance);
+		static void SetEnabled(Ref<ScriptInstance>, bool enabled);
+
 		static std::unordered_map<std::string, Ref<ScriptClass>> mScriptClasses; // Library of available scripts
 		static std::unordered_map<std::string, std::unordered_set<UUID>> mEntityScriptMap; // Scripts attached to entities
 

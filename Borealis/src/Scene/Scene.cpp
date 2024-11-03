@@ -49,9 +49,12 @@ namespace Borealis
 						{
 							component.Instance = component.Init();
 							component.Instance->mEntity = Entity{ entity, this };
-							component.Instance->Start();
+							if (component.Instance->mEntity.IsActive())
+								component.Instance->Start();
 						}
-						component.Instance->Update(dt);
+						Entity brEntity{ entity, this };
+						if (brEntity.IsActive())
+							component.Instance->Update(dt);
 					});
 			}
 
@@ -60,10 +63,18 @@ namespace Borealis
 			auto view = mRegistry.view<ScriptComponent>();
 			for (auto entity : view)
 			{
+				Entity brEntity{ entity, this };
+				if (!brEntity.IsActive())
+				{
+					continue;
+				}
 				auto& scriptComponent = view.get<ScriptComponent>(entity);
 				for (auto& [name, script] : scriptComponent.mScripts)
 				{
-					script->Update();
+					if (script->IsActive())
+					{
+						script->Update();
+					}
 				}
 			}
 			static float accumDt = 0;
@@ -74,6 +85,11 @@ namespace Borealis
 			auto BTview = mRegistry.view<BehaviourTreeComponent>();
 			for (auto entity : BTview)
 			{
+				Entity brEntity{ entity, this };
+				if (!brEntity.IsActive())
+				{
+					continue;
+				}
 				BTview.get<BehaviourTreeComponent>(entity).Update(dt);
 			}
 
@@ -82,11 +98,19 @@ namespace Borealis
 			//timeStep = dt / 1.66667f;
 			for (auto entity : view)
 			{
+				Entity brEntity{ entity, this };
+				if (!brEntity.IsActive())
+				{
+					continue;
+				}
 				auto& scriptComponent = view.get<ScriptComponent>(entity);
 				for (auto& [name, script] : scriptComponent.mScripts)
 				{
-					for (int i = 0; i < timeStep; i++)
-						script->FixedUpdate();
+					if (script->IsActive())
+					{
+						for (int i = 0; i < timeStep; i++)
+							script->FixedUpdate();
+					}
 				}
 			}
 
@@ -99,6 +123,11 @@ namespace Borealis
 				auto physicsGroup = mRegistry.group<>(entt::get<TransformComponent, RigidBodyComponent>);
 				for (auto entity : physicsGroup)
 				{
+					Entity brEntity{ entity, this };
+					if (!brEntity.IsActive())
+					{
+						continue;
+					}
 					auto [transform, rigidbody] = physicsGroup.get<TransformComponent, RigidBodyComponent>(entity);
 					PhysicsSystem::PushTransform(rigidbody.bodyID, transform);
 				}
@@ -108,15 +137,28 @@ namespace Borealis
 				// Set entity values to Jolt transform.
 				for (auto entity : physicsGroup)
 				{
+					Entity brEntity{ entity, this };
+					if (!brEntity.IsActive())
+					{
+						continue;
+					}
 					auto [transform, rigidbody] = physicsGroup.get<TransformComponent, RigidBodyComponent>(entity);
 					PhysicsSystem::PullTransform(rigidbody.bodyID, transform);
 				}
 				for (auto entity : view)
 				{
+					Entity brEntity{ entity, this };
+					if (!brEntity.IsActive())
+					{
+						continue;
+					}
 					auto& scriptComponent = view.get<ScriptComponent>(entity);
 					for (auto& [name, script] : scriptComponent.mScripts)
 					{
-						script->LateUpdate();
+						if (script->IsActive())
+						{
+							script->LateUpdate();
+						}
 					}
 				}
 			}
@@ -129,13 +171,20 @@ namespace Borealis
 			auto group = mRegistry.group<>(entt::get<TransformComponent, CameraComponent>);
 			for (auto entity : group)
 			{
+				Entity brEntity{ entity, this };
+				if (!brEntity.IsActive())
+				{
+					continue;
+				}
 				auto [transform, camera] = group.get<TransformComponent, CameraComponent>(entity);
 
 				if (camera.Primary)
 				{
+					Entity brEntity{ entity, this };
+
 					//camera.Camera.SetCameraType(SceneCamera::CameraType::Perspective);
 					mainCamera = &camera.Camera;
-					mainCameratransform = transform;
+					mainCameratransform = TransformComponent::GetGlobalTransform(brEntity);
 					break;
 				}
 			}
@@ -150,8 +199,13 @@ namespace Borealis
 					auto group = mRegistry.group<>(entt::get<TransformComponent, LightComponent>);
 					for (auto& entity : group)
 					{
+						Entity brEntity{ entity, this };
+						if (!brEntity.IsActive())
+						{
+							continue;
+						}
 						auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
-						lightComponent.offset = transform.Translate;
+						lightComponent.offset = TransformComponent::GetGlobalTranslate(brEntity);
 						Renderer3D::AddLight(lightComponent);
 					}
 				}
@@ -159,10 +213,15 @@ namespace Borealis
 				auto group = mRegistry.group<>(entt::get<TransformComponent, MeshFilterComponent, MeshRendererComponent>);
 				for (auto& entity : group)
 				{
+					Entity brEntity{ entity, this };
+					if (!brEntity.IsActive())
+					{
+						continue;
+					}
 					auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
 					auto groupLight = mRegistry.group<>(entt::get<TransformComponent, LightComponent>);
 
-					Renderer3D::DrawMesh(transform, meshFilter, meshRenderer, (int)entity);
+					Renderer3D::DrawMesh(TransformComponent::GetGlobalTransform(brEntity), meshFilter, meshRenderer, (int)entity);
 				}
 			}
 			Renderer3D::End();
@@ -172,8 +231,13 @@ namespace Borealis
 				auto group = mRegistry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);
 				for (auto& entity : group)
 				{
+					Entity brEntity{ entity, this };
+					if (!brEntity.IsActive())
+					{
+						continue;
+					}
 					auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-					Renderer2D::DrawSprite(TransformComponent::GetGlobalTransform(GetEntityByUUID(mRegistry.get<IDComponent>(entity).ID)), sprite, (int)entity);
+					Renderer2D::DrawSprite(TransformComponent::GetGlobalTransform(brEntity), sprite, (int)entity);
 				}
 				//Renderer2D::End();
 			}
@@ -183,8 +247,13 @@ namespace Borealis
 				auto group = mRegistry.group<>(entt::get<TransformComponent, CircleRendererComponent>);
 				for (auto& entity : group)
 				{
+					Entity brEntity{ entity, this };
+					if (!brEntity.IsActive())
+					{
+						continue;
+					}
 					auto [transform, circle] = group.get<TransformComponent, CircleRendererComponent>(entity);
-					Renderer2D::DrawCircle(TransformComponent::GetGlobalTransform(GetEntityByUUID(mRegistry.get<IDComponent>(entity).ID)), circle.Colour, circle.thickness, circle.fade);
+					Renderer2D::DrawCircle(TransformComponent::GetGlobalTransform(brEntity), circle.Colour, circle.thickness, circle.fade);
 				}
 				//Renderer2D::End();
 			}
@@ -194,7 +263,11 @@ namespace Borealis
 				auto group = mRegistry.group<>(entt::get<TransformComponent, TextComponent>);
 				for (auto& entity : group)
 				{
-
+					Entity brEntity{ entity, this };
+					if (!brEntity.IsActive())
+					{
+						continue;
+					}
 					auto [transform, text] = group.get<TransformComponent, TextComponent>(entity);
 					// multiply text scale into transform
 					Renderer2D::DrawString(text, transform, (int)entity);
@@ -210,6 +283,11 @@ namespace Borealis
 			int listener = 0;
 			for (auto& entity : group)
 			{
+				Entity brEntity{ entity, this };
+				if (!brEntity.IsActive())
+				{
+					continue;
+				}
 				auto [transform, audioListener] = group.get<TransformComponent, AudioListenerComponent>(entity);
 				if (listener == 0)
 				{
@@ -246,8 +324,13 @@ namespace Borealis
 			auto group = mRegistry.group<>(entt::get<TransformComponent, LightComponent>);
 			for (auto& entity : group)
 			{
+				Entity brEntity{ entity, this };
+				if (!brEntity.IsActive())
+				{
+					continue;
+				}
 				auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
-				lightComponent.offset = transform.Translate;
+				lightComponent.offset = TransformComponent::GetGlobalTranslate(brEntity);
 				Renderer3D::AddLight(lightComponent);
 			}
 		}
@@ -255,10 +338,15 @@ namespace Borealis
 			auto group = mRegistry.group<>(entt::get<TransformComponent, MeshFilterComponent, MeshRendererComponent>);
 			for (auto& entity : group)
 			{
+				Entity brEntity{ entity, this };
+				if (!brEntity.IsActive())
+				{
+					continue;
+				}
 				auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
 				auto groupLight = mRegistry.group<>(entt::get<TransformComponent, LightComponent>);
 
-				Renderer3D::DrawMesh(transform, meshFilter, meshRenderer, (int)entity);
+				Renderer3D::DrawMesh(TransformComponent::GetGlobalTransform(brEntity), meshFilter, meshRenderer, (int)entity);
 			}
 		}
 
@@ -267,22 +355,37 @@ namespace Borealis
 			auto group = mRegistry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);
 			for (auto& entity : group)
 			{
+				Entity brEntity{ entity, this };
+				if (!brEntity.IsActive())
+				{
+					continue;
+				}
 				auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-				Renderer2D::DrawSprite(TransformComponent::GetGlobalTransform(GetEntityByUUID(mRegistry.get<IDComponent>(entity).ID)), sprite, (int)entity);
+				Renderer2D::DrawSprite(TransformComponent::GetGlobalTransform(brEntity), sprite, (int)entity);
 			}
 		}
 		{
 			auto group = mRegistry.group<>(entt::get<TransformComponent, CircleRendererComponent>);
 			for (auto& entity : group)
 			{
+				Entity brEntity{ entity, this };
+				if (!brEntity.IsActive())
+				{
+					continue;
+				}
 				auto [transform, circle] = group.get<TransformComponent, CircleRendererComponent>(entity);
-				Renderer2D::DrawCircle(TransformComponent::GetGlobalTransform(GetEntityByUUID(mRegistry.get<IDComponent>(entity).ID)), circle.Colour, circle.thickness, circle.fade, (int)entity);
+				Renderer2D::DrawCircle(TransformComponent::GetGlobalTransform(brEntity), circle.Colour, circle.thickness, circle.fade, (int)entity);
 			}
 		}
 		{
 			auto group = mRegistry.group<>(entt::get<TransformComponent, TextComponent>);
 			for (auto& entity : group)
 			{
+				Entity brEntity{ entity, this };
+				if (!brEntity.IsActive())
+				{
+					continue;
+				}
 				auto [transform, text] = group.get<TransformComponent, TextComponent>(entity);
 				Renderer2D::DrawString(text, transform, (int)entity);
 			}

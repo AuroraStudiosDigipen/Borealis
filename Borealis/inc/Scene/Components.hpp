@@ -43,6 +43,7 @@ namespace Borealis
 	};
 	struct TagComponent
 	{
+		bool active = true;
 		std::string Tag;
 
 		TagComponent() = default;

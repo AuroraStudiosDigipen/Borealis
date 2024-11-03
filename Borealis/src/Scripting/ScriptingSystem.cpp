@@ -68,6 +68,24 @@ namespace Borealis
 		
 	}
 
+	bool ScriptingSystem::GetEnabled(Ref<ScriptInstance> instance)
+	{
+		auto klass = mono_class_from_name(mono_assembly_get_image(sData->mRoslynAssembly), "Borealis", "Behaviour");
+		auto field = mono_class_get_field_from_name(klass, "enabled");
+		bool output = true;
+		char s_fieldValueBuffer[1];
+		mono_field_get_value(instance->GetInstance(), field, s_fieldValueBuffer);
+		output = *(bool*)s_fieldValueBuffer;
+		return output;
+	}
+
+	void ScriptingSystem::SetEnabled(Ref<ScriptInstance> instance, bool enabled)
+	{
+		auto klass = mono_class_from_name(mono_assembly_get_image(sData->mRoslynAssembly), "Borealis", "Behaviour");
+		auto field = mono_class_get_field_from_name(klass, "enabled");
+		mono_field_set_value(instance->GetInstance(), field, &enabled);
+	}
+
 	static void RegisterCSharpScriptsFromAssembly(MonoAssembly* assembly)
 	{
 		MonoImage* image = mono_assembly_get_image(assembly);
@@ -78,8 +96,9 @@ namespace Borealis
 		int32_t numTypes = mono_table_info_get_rows(typeDefinitionsTable);
 		MonoClass* behaviourClass = mono_class_from_name(assemblyImage, "Borealis", "MonoBehaviour");
 
-
 		ScriptingSystem::RegisterCSharpClass(ScriptClass("Borealis", "MonoBehaviour", assembly));
+		ScriptingSystem::RegisterCSharpClass(ScriptClass("Borealis", "Behaviour", assembly));
+
 
 		for (int32_t i = 0; i < numTypes; i++)
 		{

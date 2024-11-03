@@ -828,6 +828,7 @@ namespace Borealis
 
 	static void DrawScriptField(Ref<ScriptInstance> component, Ref<Scene> context)
 	{
+
 		for (const auto& [name, field] : component->GetScriptClass()->mFields) // name of script field, script field
 		{
 			if (field.isMonoBehaviour())
@@ -1041,6 +1042,14 @@ namespace Borealis
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4,4 });
 				float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
 				ImGui::Separator();
+
+				bool Data = ScriptingSystem::GetEnabled(script);
+				if (ImGui::Checkbox((std::string("##") + name + "enabled").c_str(), &Data))
+				{
+					ScriptingSystem::SetEnabled(script, Data);
+				}
+
+				ImGui::SameLine();
 				open = ImGui::CollapsingHeader(name.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
 				ImGui::PopStyleVar();
 				ImGui::SameLine(ContentRegionAvailable.x - lineHeight * 0.5f); // Align to right (Button)
@@ -1087,14 +1096,21 @@ namespace Borealis
 	{
 		if (entity.HasComponent<TagComponent>())
 		{
+
 			auto& tag = entity.GetComponent<TagComponent>().Tag;
 			char buffer[256];
 			memset(buffer, 0, sizeof(buffer));
 			strcpy_s(buffer, sizeof(buffer), tag.c_str());
+			ImGui::Checkbox("##Active", &entity.GetComponent<TagComponent>().active);
+			ImGui::SameLine();
 			if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
 			{
 				tag = std::string(buffer);
 			}
+
+			ImGui::SameLine();
+
+			
 		}
 
 		ImGui::SameLine();

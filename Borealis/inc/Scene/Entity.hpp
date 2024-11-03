@@ -158,6 +158,20 @@ namespace Borealis
 			return mScene->mRegistry.valid(mID);
 		}
 
+		bool IsActive()
+		{
+			bool activeResult = GetComponent<TagComponent>().active;
+			if (!activeResult)
+			{
+				return false;
+			}
+			else
+			{
+				UUID parentID = GetComponent<TransformComponent>().ParentID;
+				return parentID == 0 ? true : mScene->GetEntityByUUID(parentID).IsActive();
+			}
+		}
+
 		/*!***********************************************************************
 			\brief
 				Bool overlaod to check if the entity is null

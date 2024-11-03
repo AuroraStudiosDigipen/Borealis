@@ -173,7 +173,7 @@ namespace Borealis
 				for (auto& entity : group)
 				{
 					auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-					Renderer2D::DrawSprite(transform, sprite, (int)entity);
+					Renderer2D::DrawSprite(TransformComponent::GetGlobalTransform(GetEntityByUUID(mRegistry.get<IDComponent>(entity).ID)), sprite, (int)entity);
 				}
 				//Renderer2D::End();
 			}
@@ -184,7 +184,7 @@ namespace Borealis
 				for (auto& entity : group)
 				{
 					auto [transform, circle] = group.get<TransformComponent, CircleRendererComponent>(entity);
-					Renderer2D::DrawCircle(transform, circle.Colour, circle.thickness, circle.fade);
+					Renderer2D::DrawCircle(TransformComponent::GetGlobalTransform(GetEntityByUUID(mRegistry.get<IDComponent>(entity).ID)), circle.Colour, circle.thickness, circle.fade);
 				}
 				//Renderer2D::End();
 			}
@@ -268,7 +268,7 @@ namespace Borealis
 			for (auto& entity : group)
 			{
 				auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-				Renderer2D::DrawSprite(transform, sprite, (int)entity);
+				Renderer2D::DrawSprite(TransformComponent::GetGlobalTransform(GetEntityByUUID(mRegistry.get<IDComponent>(entity).ID)), sprite, (int)entity);
 			}
 		}
 		{
@@ -276,7 +276,7 @@ namespace Borealis
 			for (auto& entity : group)
 			{
 				auto [transform, circle] = group.get<TransformComponent, CircleRendererComponent>(entity);
-				Renderer2D::DrawCircle(transform, circle.Colour, circle.thickness, circle.fade, (int)entity);
+				Renderer2D::DrawCircle(TransformComponent::GetGlobalTransform(GetEntityByUUID(mRegistry.get<IDComponent>(entity).ID)), circle.Colour, circle.thickness, circle.fade, (int)entity);
 			}
 		}
 		{

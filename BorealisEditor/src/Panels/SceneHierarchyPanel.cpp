@@ -174,6 +174,10 @@ namespace Borealis
 			}
 		}
 
+		if (Property.get_metadata("Hide").is_valid())
+		{
+			return;
+		}
 
 		if (Property.is_enumeration())
 		{
@@ -573,7 +577,11 @@ namespace Borealis
 					{
 
 						Entity entity{ item, mContext.get() };
-						DrawEntityNode(entity);
+						auto transform = entity.GetComponent<TransformComponent>();
+						if (transform.ParentID == 0)
+						{
+							DrawEntityNode(entity);
+						}
 					}
 					ImGui::PushFont(bold);
 					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.1f, 0.1f, 0.1f, 0.4f));
@@ -601,6 +609,7 @@ namespace Borealis
 					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.1f, 0.1f, 0.1f, 0.4f));
 				}
 			}
+
 
 			ImGui::PopFont();
 			ImGui::PopStyleColor();
@@ -705,10 +714,23 @@ namespace Borealis
 		auto& tag = entity.GetComponent<TagComponent>().Tag;
 		ImGuiTreeNodeFlags flags = ((mSelectedEntity == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
 		flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
+		flags |= ImGuiTreeNodeFlags_DefaultOpen;
 		uint64_t entityID = static_cast<uint64_t>((uint32_t)entity);
 		if (entity.HasComponent<PrefabComponent>())
 			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.16f, 0.34f, 0.63f, 1.f));
+
 		bool opened = ImGui::TreeNodeEx((void*)entityID, flags, tag.c_str());
+		if (ImGui::BeginDragDropTarget()) {
+			const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropEntityItem");
+			if (payload) {
+				UUID data = *(const uint64_t*)payload->Data;
+				Entity childEntity = SceneManager::GetActiveScene()->GetEntityByUUID(data);
+				TransformComponent::ResetParent(childEntity);
+				TransformComponent::SetParent(childEntity, entity);
+			}
+			ImGui::EndDragDropTarget();
+		}
+
 		if (entity.HasComponent<PrefabComponent>())
 			ImGui::PopStyleColor();
 
@@ -748,13 +770,23 @@ namespace Borealis
 			{
 				mContext->DuplicateEntity(mSelectedEntity);
 			}
+			if (ImGui::MenuItem("Unparent Entity"))
+			{
+				TransformComponent::ResetParent(mSelectedEntity);
+			}
 			ImGui::EndPopup();
 		}
 
 		if (opened)
 		{
+			auto transform = entity.GetComponent<TransformComponent>();
+			for (auto child : transform.ChildrenID)
+			{
+				DrawEntityNode(mContext->GetEntityByUUID(child));
+			}
 			ImGui::TreePop();
 		}
+
 
 		if(entityDeleted)
 		{

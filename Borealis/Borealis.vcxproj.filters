@@ -2187,5 +2187,6 @@
     <ClCompile Include="src\Scripting\ScriptingUtils.cpp">
       <Filter>src\Scripting</Filter>
     </ClCompile>
+    <ClCompile Include="src\Scene\Components\Components.cpp" />
   </ItemGroup>
 </Project>

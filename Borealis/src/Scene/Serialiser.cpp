@@ -325,6 +325,25 @@ namespace Borealis
 			return true;
 		}
 
+		if (propType == rttr::type::get<std::unordered_set<UUID>>())
+		{
+			out << YAML::Key << propName.to_string() << YAML::BeginMap;
+			std::unordered_set<UUID> uuidList = propValue.get_value<std::unordered_set<UUID>>();
+			for (auto id : uuidList)
+			{
+				out << YAML::Key << "UUID" << YAML::Value << id;
+			}
+			out << YAML::EndMap;
+			return true;
+		}
+
+		if (propType == rttr::type::get<UUID>())
+		{
+			out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<UUID>();
+			return true;
+		}
+
+
 		if (propType.get_wrapped_type().is_valid())
 		{
 			auto wrappedType = propType.get_wrapped_type();
@@ -738,6 +757,24 @@ namespace Borealis
 			{
 				prop.set_value(instance, propData.as<glm::vec4>());
 				return true;
+			}
+
+			if (propType == rttr::type::get<UUID>())
+			{
+				UUID uuid = propData.as<uint64_t>();
+				prop.set_value(instance, uuid);
+				return true;
+			}
+
+			if (propType == rttr::type::get<std::unordered_set<UUID>>())
+			{
+				std::unordered_set<UUID> uuidList;
+				for (const auto& it : propData) {
+					auto value = it.second; // Get the value
+					UUID uuid = value.as<uint64_t>();
+					uuidList.insert(uuid);
+				}
+				prop.set_value(instance, uuidList);
 			}
 
 			if (propType == rttr::type::get<Ref<Model>>())

@@ -176,4 +176,24 @@ namespace Borealis
 		
 	}
 
+	void Math::MatrixDecomposition(glm::mat4* transform, glm::vec3* translate, glm::vec3* rotate, glm::vec3* scale)
+	{
+
+		*translate = glm::vec3((*transform)[3]);
+
+		scale->x = glm::length(glm::vec3((*transform)[0]));
+		scale->y = glm::length(glm::vec3((*transform)[1]));
+		scale->z = glm::length(glm::vec3((*transform)[2]));
+
+
+		// Normalize the basis vectors
+		glm::vec3 xAxis = glm::vec3((*transform)[0]) / scale->x;
+		glm::vec3 yAxis = glm::vec3((*transform)[1]) / scale->y;
+		glm::vec3 zAxis = glm::vec3((*transform)[2]) / scale->z;
+
+		glm::quat rotation = glm::quat_cast(glm::mat3(xAxis, yAxis, zAxis));
+		*rotate = glm::degrees(glm::eulerAngles(rotation)); // Convert quaternion to Euler angles
+
+	}
+
 }

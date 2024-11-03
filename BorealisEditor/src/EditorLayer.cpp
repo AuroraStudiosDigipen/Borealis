@@ -472,6 +472,7 @@ namespace Borealis {
 					 
 					auto& tc = selectedEntity.GetComponent<TransformComponent>();
 					glm::mat4 transform = tc.GetTransform();
+					glm::mat4 globalTransform = TransformComponent::GetGlobalTransform(selectedEntity);
 
 					bool snap = InputSystem::IsKeyPressed(Key::LeftShift);
 					float snapValue = 0.5f;
@@ -482,14 +483,30 @@ namespace Borealis {
 
 
 					ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection), (ImGuizmo::OPERATION)mGizmoType, 
-						ImGuizmo::MODE::LOCAL, glm::value_ptr(transform), nullptr, snap ? snapValues:nullptr);
+						ImGuizmo::MODE::LOCAL, glm::value_ptr(globalTransform), nullptr, snap ? snapValues:nullptr);
+
 						if (!(InputSystem::IsKeyPressed(Key::LeftAlt) || InputSystem::IsKeyPressed(Key::RightAlt)))
 						{
 							if (ImGuizmo::IsUsing())
 							{
 								glm::vec3 translation, rotation, scale;
-								ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(transform), glm::value_ptr(translation), glm::value_ptr(rotation), glm::value_ptr(scale));
-								glm::vec3 deltaRotation = rotation - tc.Rotation;
+
+								if (tc.ParentID != 0)
+								{
+									// Get the parent entity
+									Entity parent = SceneManager::GetActiveScene()->GetEntityByUUID(tc.ParentID);
+									TransformComponent& parentTC = parent.GetComponent<TransformComponent>();
+									glm::mat4 parentInverse = glm::inverse(parentTC.GetGlobalTransform(parent));
+
+									// Compute the child's local transform relative to the parent
+									glm::mat4 childRelativeTransform = parentInverse * globalTransform;
+									ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(childRelativeTransform), glm::value_ptr(translation), glm::value_ptr(rotation), glm::value_ptr(scale));
+
+								}
+								else
+								{
+									ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(globalTransform), glm::value_ptr(translation), glm::value_ptr(rotation), glm::value_ptr(scale));
+								}
 								tc.Rotation = rotation;
 								tc.Translate = translation;
 								tc.Scale = scale;
@@ -670,7 +687,7 @@ namespace Borealis {
 		{
 			if (SCPanel.GetSelectedEntity())
 			{
-				mEditorCamera.SetFocalPoint(SCPanel.GetSelectedEntity().GetComponent<TransformComponent>().Translate);
+				mEditorCamera.SetFocalPoint(TransformComponent::GetGlobalTranslate(SCPanel.GetSelectedEntity()));
 			}
 		}
 

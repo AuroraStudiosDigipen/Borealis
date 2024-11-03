@@ -822,6 +822,10 @@
     <ClCompile Include="src\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="src\Physics\PhysicsSystem.cpp" />
     <ClCompile Include="src\Scene\ComponentRegistry.cpp" />
+    <ClCompile Include="src\Scene\Components\Components.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="src\Scene\Entity.cpp" />
     <ClCompile Include="src\Scene\OrthographicCameraController.cpp" />
     <ClCompile Include="src\Scene\Scene.cpp" />

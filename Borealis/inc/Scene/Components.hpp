@@ -29,8 +29,10 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/UUID.hpp>
 #include <Audio/Audio.hpp>
 
+
 namespace Borealis
 {
+	class Entity;
 
 	struct IDComponent
 	{
@@ -54,6 +56,8 @@ namespace Borealis
 		glm::vec3 Translate { 0.0f, 0.0f ,0.0f };
 		glm::vec3 Rotation{ 0.0f, 0.0f ,0.0f };
 		glm::vec3 Scale = { 1.0f, 1.0f, 1.0f };
+		UUID ParentID = 0;
+		std::unordered_set<UUID> ChildrenID;
 	
 		TransformComponent() = default;
 		TransformComponent(const TransformComponent&) = default;
@@ -68,6 +72,16 @@ namespace Borealis
 
 			return translation * rotation * scale;
 		}
+
+		static glm::mat4 GetGlobalTransform(Entity entity);
+		static glm::vec3 GetGlobalTranslate(Entity entity);
+		static glm::vec3 GetGlobalRotation(Entity entity);
+		static glm::vec3 GetGlobalScale(Entity entity);
+		static void GetGlobalTransformComp(Entity entity, glm::vec3* translate, glm::vec3* rotate, glm::vec3* scale);
+		static void SetGlobalTransform(Entity entity, glm::mat4 transform);
+		static void SetParent(Entity entity, Entity parent);
+		static void ResetParent(Entity entity);
+
 		operator glm::mat4() { return GetTransform(); }
 	};
 

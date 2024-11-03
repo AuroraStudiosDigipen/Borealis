@@ -181,6 +181,10 @@ namespace Borealis
             .property("Rotation", &TransformComponent::Rotation)
             .property("Scale", &TransformComponent::Scale)
             (metadata("Min", 1.f))
+            .property("ParentID", &TransformComponent::ParentID)
+            (metadata("Hide", true))
+            .property("ChildrenID", &TransformComponent::ChildrenID)
+            (metadata("Hide", true))
             .method("GetTransform", &TransformComponent::GetTransform);
     }
 

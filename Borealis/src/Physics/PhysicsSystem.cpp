@@ -452,6 +452,72 @@ void PhysicsSystem::Init()
 		rigidbody.bodyID = capsule->GetID().GetIndexAndSequenceNumber();
 	}
 
+	void PhysicsSystem::addBody(glm::vec3 position, RigidBodyComponent& rigidbody) {
+		ShapeRefC shape;
+		ShapeSettings::ShapeResult shape_result;
+
+		switch (rigidbody.shape) {
+		case RigidBodyType::Box :{
+			// Create box shape settings
+			BoxShapeSettings box_shape_settings(Vec3(rigidbody.size.x, rigidbody.size.y, rigidbody.size.z));
+			box_shape_settings.SetEmbedded();
+			shape_result = box_shape_settings.Create();
+			shape = shape_result.Get();
+			break;
+		}
+		case RigidBodyType::Sphere: {
+			// Create sphere shape settings
+			float radius = rigidbody.radius; // Assuming size.x represents the radius for a sphere
+			SphereShapeSettings sphere_shape_settings(radius);
+			sphere_shape_settings.SetEmbedded();
+			shape_result = sphere_shape_settings.Create();
+			shape = shape_result.Get();
+			break;
+		}
+		case RigidBodyType::Capsule: {
+			// Create capsule shape settings
+			float radius = rigidbody.radius;     // Assuming size.x represents the radius for a capsule
+			float halfHeight = rigidbody.halfHeight; // Assuming size.y represents the half height for a capsule
+			CapsuleShapeSettings capsule_shape_settings(radius, halfHeight);
+			capsule_shape_settings.SetEmbedded();
+			shape_result = capsule_shape_settings.Create();
+			shape = shape_result.Get();
+			break;
+		}
+		default:
+			// Handle error for unsupported shape type
+			return;
+		}
+
+		if (!shape) {
+			// Handle error (e.g., failed to create shape)
+			return;
+		}
+
+		// Create the settings for the body itself, including other properties like restitution and friction
+		BodyCreationSettings body_settings(shape, RVec3(position.x, position.y, position.z), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
+		body_settings.mFriction = rigidbody.friction;
+		body_settings.mRestitution = rigidbody.bounciness;
+
+		if (rigidbody.dynamicBody) {
+			body_settings.mMotionType = EMotionType::Dynamic;
+			body_settings.mObjectLayer = Layers::MOVING;
+		}
+
+		// Create the actual rigid body
+		Body* body = sData.body_interface->CreateBody(body_settings); // Handle nullptr in a real scenario
+		if (!body) {
+			// Handle error (e.g., failed to create body)
+			return;
+		}
+
+		// Add it to the world
+		sData.body_interface->AddBody(body->GetID(), EActivation::Activate);
+
+		// Store the BodyID in the RigidBodyComponent
+		rigidbody.bodyID = body->GetID().GetIndexAndSequenceNumber();
+	}
+
 	void PhysicsSystem::UpdateSphereValues(RigidBodyComponent& rigidbody)
 	{
 		// Create the settings for the collision volume (the shape).

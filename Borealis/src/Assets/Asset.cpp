@@ -26,6 +26,7 @@ namespace Borealis
 		std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
 
 		if (extension == ".png")	return AssetType::Texture2D;
+		if (extension == ".anim")	return AssetType::Animation;
 		if (extension == ".sc")		return AssetType::Scene;
 		if (extension == ".glsl")	return AssetType::Shader;
 		if (extension == ".ttf")	return AssetType::Font;
@@ -44,6 +45,7 @@ namespace Borealis
 		{
 		case AssetType::None:		return "AssetType::None";
 		case AssetType::Audio:		return "AssetType::Audio";
+		case AssetType::Animation:	return "AssetType::Animation";
 		case AssetType::Mesh:		return "AssetType::Mesh";
 		case AssetType::Shader:		return "AssetType::Shader";
 		case AssetType::Texture2D:	return "AssetType::Texture2D";
@@ -61,6 +63,7 @@ namespace Borealis
 	{
 		if (type == "AssetType::None")			return AssetType::None;
 		if (type == "AssetType::Audio")			return AssetType::Audio;
+		if (type == "AssetType::Animation")		return AssetType::Animation;
 		if (type == "AssetType::Mesh")			return AssetType::Mesh;
 		if (type == "AssetType::Shader")		return AssetType::Shader;
 		if (type == "AssetType::Texture2D")		return AssetType::Texture2D;

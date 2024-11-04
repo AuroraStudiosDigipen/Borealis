@@ -128,7 +128,7 @@ namespace Borealis
 			case AssetType::Font:
 				imported = ImportAsset(meta);
 				metaPath = path;
-				meta = MetaFileSerializer::GetAssetMetaDataFile(metaPath.replace_extension(".meta"));
+				meta = MetaFileSerializer::GetAssetMetaDataFile(metaPath.string() + ".meta");
 				break;
 			default:
 				break;
@@ -181,7 +181,7 @@ namespace Borealis
 		}
 		else
 		{
-			metaFilePath = path.replace_extension(".meta");
+			metaFilePath = path.string() + ".meta";
 		}
 
 		if (!std::filesystem::exists(metaFilePath))

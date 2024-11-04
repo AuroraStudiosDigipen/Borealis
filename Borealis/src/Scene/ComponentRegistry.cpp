@@ -150,6 +150,7 @@ namespace Borealis
         registration::class_<AnimatorComponent>("Animator Component")
             (metadata("Component", true))
             .constructor<>()
+            .property("Animation", &AnimatorComponent::animation)
             .property("Animator", &AnimatorComponent::animator);
 
         registration::enumeration<RigidBodyType>("Rigidbody Collider Type")

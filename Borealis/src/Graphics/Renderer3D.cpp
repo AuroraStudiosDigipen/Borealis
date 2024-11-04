@@ -83,7 +83,8 @@ namespace Borealis
 	void Renderer3D::DrawMesh(const glm::mat4& transform, const MeshFilterComponent& meshFilter, const MeshRendererComponent& meshRenderer, int entityID)
 	{
 		SetLights(s3dData->mModelShader);
-		if (meshFilter.Model) {
+		if (meshFilter.Model) 
+		{
 			if (meshRenderer.Material)
 			{
 				meshRenderer.Material->SetUniforms(s3dData->mModelShader);
@@ -95,13 +96,22 @@ namespace Borealis
 
 	void Renderer3D::DrawMesh(const glm::mat4& transform, const MeshFilterComponent& meshFilter, const MeshRendererComponent& meshRenderer, Ref<Shader> shader, int entityID)
 	{
-		if (meshFilter.Model) {
+		if (meshFilter.Model) 
+		{
 			if (meshRenderer.Material)
 			{
 				meshRenderer.Material->SetUniforms(shader);
 			}
 
 			meshFilter.Model->Draw(transform, shader, entityID);
+		}
+	}
+
+	void Renderer3D::DrawSkinnedMesh(const glm::mat4& transform, const SkinnedMeshRendererComponent& skinnedMeshRenderer, Ref<Shader> shader, int entityID)
+	{
+		if (skinnedMeshRenderer.SkinnnedModel)
+		{
+			skinnedMeshRenderer.SkinnnedModel->Draw(transform, shader, entityID);
 		}
 	}
 

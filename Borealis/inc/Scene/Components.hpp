@@ -154,6 +154,7 @@ namespace Borealis
 
 	struct AnimatorComponent
 	{
+		Ref<Animation> animation = nullptr;
 		Animator animator{};
 
 		AnimatorComponent() = default;

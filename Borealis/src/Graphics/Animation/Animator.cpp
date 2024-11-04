@@ -42,6 +42,11 @@ namespace Borealis
 		}
 	}
 
+	bool Animator::HasAnimation()
+	{
+		return mCurrentAnimation ? true : false;
+	}
+
 	void Animator::PlayAnimation(Ref<Animation> animation)
 	{
 		mCurrentAnimation = animation;

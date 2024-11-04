@@ -15,6 +15,7 @@ namespace Borealis
 		Animator(Ref<Animation> animation);
 
 		void UpdateAnimation(float dt);
+		bool HasAnimation();
 		void PlayAnimation(Ref<Animation> animation);
 		void CalculateBoneTransform(AssimpNodeData const* node, glm::mat4 parentTransform);
 

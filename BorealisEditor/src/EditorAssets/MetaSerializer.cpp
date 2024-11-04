@@ -184,8 +184,7 @@ namespace Borealis
 		}
 		else
 		{
-			metaFilePath = path;
-			metaFilePath.replace_extension(".meta");
+			metaFilePath = path.string() + ".meta";
 		}
 		
 		YAML::Emitter out;
@@ -210,8 +209,7 @@ namespace Borealis
 		}
 		else
 		{
-			metaFilePath = path;
-			metaFilePath.replace_extension(".meta");
+			metaFilePath = path.string() + ".meta";
 		}
 
 		YAML::Emitter out;

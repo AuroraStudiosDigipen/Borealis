@@ -4,6 +4,7 @@
 #include <filesystem>
 
 #include <Core/Core.hpp>
+#include <Assets/Asset.hpp>
 #include "Bone.hpp"
 
 namespace Borealis
@@ -16,7 +17,7 @@ namespace Borealis
 		std::vector<AssimpNodeData> children;
 	};
 
-	class Animation
+	class Animation : public Asset
 	{
 	public:
 		Animation() = default;

@@ -28,6 +28,7 @@ namespace Borealis
 	enum class AssetType
 	{
 		None,
+		Animation,
 		Audio,
 		Mesh,
 		Shader,

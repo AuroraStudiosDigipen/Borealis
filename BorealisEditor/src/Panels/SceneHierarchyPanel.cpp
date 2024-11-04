@@ -411,7 +411,25 @@ namespace Borealis
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropMeshItem"))
 				{
 					AssetHandle data = *(const uint64_t*)payload->Data;
-					rttr::variant value(AssetManager::GetAsset<Model>(data));
+					MeshConfig config = GetConfig<MeshConfig>(AssetManager::GetMetaData(data).Config);
+					if (!config.skinMesh) return;
+					rttr::variant value(AssetManager::GetAsset<SkinnedModel>(data));
+					Property.set_value(rInstance, value);
+				}
+				ImGui::EndDragDropTarget();
+			}
+		}
+
+		if (propType == rttr::type::get<Ref<Animation>>())
+		{
+			ImGui::Button(propName.c_str());
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropAnimationItem"))
+				{
+					AssetHandle data = *(const uint64_t*)payload->Data;
+
+					rttr::variant value(AssetManager::GetAsset<Animation>(data));
 					Property.set_value(rInstance, value);
 				}
 				ImGui::EndDragDropTarget();

@@ -41,14 +41,13 @@ namespace BorealisAssetCompiler
 			SkinnedMeshImporter::LoadFBXModel(skinnedModel, sourcePath.string());
 
 			Animation anim;
-			cachePath.replace_extension(".anim");
+			std::filesystem::path savePath = sourcePath;
+			savePath.replace_extension(".anim");
 			AnimationImporter::LoadAnimations(anim, sourcePath.string());
-			AnimationImporter::SaveAnimation(anim, cachePath);
+			AnimationImporter::SaveAnimation(anim, savePath);
 
 			cachePath.replace_extension(".skmesh");
 			SkinnedMeshImporter::SaveSkinnedModel(skinnedModel, cachePath);
-
-
 		}
 		else
 		{

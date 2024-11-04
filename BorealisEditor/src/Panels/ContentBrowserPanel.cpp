@@ -316,6 +316,10 @@ namespace Borealis
 					{
 						payloadName = "DragDropMeshItem";
 					}
+					else if (extension == ".anim")
+					{
+						payloadName = "DragDropAnimationItem";
+					}
 					else if (extension == ".prefab")
 					{
 						// Correct the assignment of payloadName

@@ -251,6 +251,7 @@ namespace Borealis
 		}
 
 		renderTarget->Bind();
+		//shadow pass
 		{
 			entt::basic_group group = registryPtr->group<>(entt::get<TransformComponent, LightComponent>);
 			for (auto& entity : group)
@@ -280,6 +281,7 @@ namespace Borealis
 				}
 			}
 		}
+		//mesh pass
 		{
 			auto group = registryPtr->group<>(entt::get<TransformComponent, MeshFilterComponent, MeshRendererComponent>);
 			for (auto& entity : group)
@@ -312,17 +314,15 @@ namespace Borealis
 			}
 
 			//test skinned model & animation
-			if(true)
+			if(false)
 			{
 				if (!skinnedModel)
 				{
 					skinnedModel = MakeRef<SkinnedModel>();
 					skinnedModel->LoadModel("thrillier3.skmesh");
-					//skinnedModel->SaveModel();
 
 					Ref<Animation> anim = MakeRef<Animation>();
 					anim->Load("thrillier3.anim");
-					//anim->Save();
 
 					skinnedModel->AssignAnimation(anim);
 					skinnedShader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_SkinnedModel.glsl");
@@ -349,6 +349,85 @@ namespace Borealis
 				}
 			}
 		}
+		//skinned mesh pass
+		{
+			auto group = registryPtr->group<>(entt::get<TransformComponent, SkinnedMeshRendererComponent>);
+			for (auto& entity : group)
+			{
+				auto [transform, skinnedMesh] = group.get<TransformComponent, SkinnedMeshRendererComponent>(entity);
+
+				if (!skinnedMesh.SkinnnedModel) continue;
+
+				if (!skinnedShader)
+				{
+					skinnedShader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_SkinnedModel.glsl");
+				}
+
+				
+				if(registryPtr->storage<AnimatorComponent>().contains(entity))
+				{
+					AnimatorComponent& animatorComponent = registryPtr->get<AnimatorComponent>(entity);
+
+					if (animatorComponent.animation && !animatorComponent.animator.HasAnimation())
+					{
+						animatorComponent.animator.PlayAnimation(animatorComponent.animation);
+						skinnedMesh.SkinnnedModel->AssignAnimation(animatorComponent.animation);
+					}
+
+					if (animatorComponent.animation)
+					{
+						animatorComponent.animator.UpdateAnimation(1.f / 60.f);
+
+						skinnedShader->Bind();
+						if (skinnedMesh.SkinnnedModel->mAnimation)
+						{
+							skinnedShader->Set("u_HasAnimation", true);
+							auto transforms = animatorComponent.animator.GetFinalBoneMatrices();
+							for (int i = 0; i < transforms.size(); ++i)
+							{
+								std::string str = "u_FinalBonesMatrices[" + std::to_string(i) + "]";
+								skinnedShader->Set(str.c_str(), transforms[i]);
+							}
+						}
+					}
+				}
+
+
+				//Frustum frustum = ComputeFrustum(projMatrix * viewMatrix);
+				//BoundingSphere modelBoundingSphere = skinnedMesh.SKinnedModel->mBoundingSphere;
+				//modelBoundingSphere.Transform(transform);
+
+				//if (CullBoundingSphere(frustum, modelBoundingSphere))
+				//{
+				//	BOREALIS_CORE_INFO("Culling entity {}", (int)entity);
+				//	continue;
+				//}
+
+				//Renderer3D::SetLights(shader);
+				skinnedShader->Bind();
+				skinnedShader->Set("u_ViewProjection", projMatrix* viewMatrix);
+				Renderer3D::DrawSkinnedMesh(transform, skinnedMesh, skinnedShader, (int)entity);
+				skinnedShader->Unbind();
+			}
+		}
+		//animation
+		//{
+		//	auto group = registryPtr->group<>(entt::get<TransformComponent, SkinnedMeshRendererComponent, AnimatorComponent>);
+		//	for (auto& entity : group)
+		//	{
+		//		auto [transform, skinnedMesh, animator] = group.get<TransformComponent, SkinnedMeshRendererComponent, AnimatorComponent>(entity);
+
+		//		if (!animator.animation) continue;
+
+		//		if(!animator.animator.HasAnimation())
+		//		{
+		//			animator.animator.PlayAnimation(animator.animation);
+		//			skinnedMesh.SkinnnedModel->AssignAnimation(animator.animation);
+		//		}
+
+		//		animator.animator.UpdateAnimation(1.f/60.f);
+		//	}
+		//}
 		Renderer3D::End();
 
 		renderTarget->Unbind();

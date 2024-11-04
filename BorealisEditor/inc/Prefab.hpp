@@ -82,6 +82,10 @@ namespace Borealis
 	private:
 		entt::entity mPrefabID;
 		std::unordered_set<Ref<Entity>> mChildren;
+
+		//templated UpdateComponent helper function
+		template <typename ComponentType>
+		void UpdateComponent(Ref<Entity> child);
 	};
 
 }

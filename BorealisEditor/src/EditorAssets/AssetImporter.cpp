@@ -175,13 +175,13 @@ namespace Borealis
 
 		std::size_t hash = std::hash<std::string>{}(path.string());
 
-		if (std::filesystem::is_directory(path))
+		if (!(path.extension() == ".meta"))
 		{
 			metaFilePath = path.string() + ".meta";
 		}
 		else
 		{
-			metaFilePath = path.string() + ".meta";
+			metaFilePath = path;
 		}
 
 		if (!std::filesystem::exists(metaFilePath))

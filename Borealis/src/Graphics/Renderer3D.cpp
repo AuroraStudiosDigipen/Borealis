@@ -96,6 +96,7 @@ namespace Borealis
 
 	void Renderer3D::DrawMesh(const glm::mat4& transform, const MeshFilterComponent& meshFilter, const MeshRendererComponent& meshRenderer, Ref<Shader> shader, int entityID)
 	{
+		//SetLights(shader);
 		if (meshFilter.Model) 
 		{
 			if (meshRenderer.Material)

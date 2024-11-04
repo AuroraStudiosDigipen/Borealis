@@ -4,20 +4,30 @@
 layout(location = 0) in vec3 a_Position;
 layout(location = 1) in vec3 a_Normal;
 layout(location = 2) in vec2 a_TexCoord;
-layout(location = 3) in vec3 a_Tangent;
-layout(location = 4) in vec3 a_Bitangent;
+// layout(location = 3) in vec3 a_Tangent;
+// layout(location = 4) in vec3 a_Bitangent;
+layout(location = 3) in ivec4 boneIds; 
+layout(location = 4) in vec4 weights;
 
+//default variables
 uniform mat4 u_ModelTransform;
 uniform mat4 u_ViewProjection;
 uniform int u_EntityID;
 
+//Animation variables
+uniform bool u_HasAnimation;
+const int MAX_BONES = 300;
+const int MAX_BONE_INFLUENCE = 4;
+uniform mat4 u_FinalBonesMatrices[MAX_BONES];
+
+//shadow pass variables
 uniform bool shadowPass;
 uniform mat4 u_LightViewProjection;
 
 out vec2 v_TexCoord;
 out vec3 v_FragPos;
-out vec3 v_Tangent;
-out vec3 v_Bitangent;
+// out vec3 v_Tangent;
+// out vec3 v_Bitangent;
 out vec3 v_Normal;
 out vec4 v_LightPos;
 flat out int v_EntityID;
@@ -30,23 +40,49 @@ void ShadowPass()
 
 void Render3DPass()
 {
-	//v_TexCoord = a_TexCoord;
-	v_TexCoord = vec2(a_TexCoord.x, 1.0 - a_TexCoord.y);
+	v_TexCoord = vec2(a_TexCoord.x, 1.0 - a_TexCoord.y); //flip the texture
 
 	v_FragPos = vec3(u_ModelTransform * vec4(a_Position, 1.0));
 	//v_Normal = mat3(transpose(inverse(u_ModelTransform))) * a_Normal;
 	
 	mat3 normalMatrix = transpose(inverse(mat3(u_ModelTransform)));
     vec3 N = normalize(normalMatrix * a_Normal);
-    vec3 T = normalize(normalMatrix * a_Tangent);
-    T = normalize(T - dot(T, N) * N); // Gram-Schmidt orthogonalization
-    vec3 B = cross(N, T);
+    // vec3 T = normalize(normalMatrix * a_Tangent);
+    // T = normalize(T - dot(T, N) * N); // Gram-Schmidt orthogonalization
+    // vec3 B = cross(N, T);
 
     v_Normal = N;
-    v_Tangent = T;
-    v_Bitangent = B;
+    // v_Tangent = T;
+    // v_Bitangent = B;
 
-	gl_Position = u_ViewProjection * vec4(v_FragPos, 1.0);	
+	//animation
+	vec4 TotalPosition = vec4(0.f);
+
+    if(u_HasAnimation)
+    {	
+        for(int i = 0 ; i < MAX_BONE_INFLUENCE ; i++)
+        {
+            if(boneIds[i] == -1) 
+                continue;
+            if(boneIds[i] >= MAX_BONES) 
+            {
+                TotalPosition = vec4(a_Position,1.0f);
+                break;
+            }
+            vec4 localPosition = u_FinalBonesMatrices[boneIds[i]] * vec4(a_Position,1.0f);
+            TotalPosition += localPosition * weights[i];
+            vec3 localNormal = mat3(u_FinalBonesMatrices[boneIds[i]]) * a_Normal;
+        }
+    }
+
+	if(u_HasAnimation)
+	{
+		gl_Position = u_ViewProjection * u_ModelTransform * TotalPosition;	
+	}
+	else
+	{
+		gl_Position = u_ViewProjection * vec4(v_FragPos, 1.0);	
+	}
 	v_LightPos = u_LightViewProjection * vec4(v_FragPos, 1.0);	
 	v_EntityID = u_EntityID;
 }
@@ -119,8 +155,8 @@ in vec2 v_TexCoord;
 in vec3 v_FragPos;
 in vec3 v_Normal; 
 flat in int v_EntityID;
-in vec3 v_Tangent;
-in vec3 v_Bitangent;
+// in vec3 v_Tangent;
+// in vec3 v_Bitangent;
 in vec4 v_LightPos;
 //in vec3 v_Normal;
 
@@ -291,7 +327,8 @@ void Render3DPass()
 {
 	vec3 viewDir = normalize(u_ViewPos - v_FragPos);
 
-	mat3 TBN = mat3(v_Tangent, v_Bitangent, v_Normal);
+	mat3 TBN = mat3(vec3(0.f), vec3(0.f), v_Normal);
+	//mat3 TBN = mat3(v_Tangent, v_Bitangent, v_Normal);
 	vec3 normal;
     if (u_Material.hasNormalMap) 
     {

@@ -226,7 +226,7 @@ namespace Borealis
 				projMatrix = std::dynamic_pointer_cast<CameraSource>(sink->source)->projMtx;
 				viewMatrix = std::dynamic_pointer_cast<CameraSource>(sink->source)->viewMtx;
 				editor = std::dynamic_pointer_cast<CameraSource>(sink->source)->editor;
-				Renderer3D::Begin(std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj());
+				Renderer3D::Begin(std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj(), shader);
 			}
 
 			if (sink->source->sourceType == RenderSourceType::RenderTargetColor)
@@ -250,8 +250,9 @@ namespace Borealis
 			shader->Set("u_ShadowMap", 0);
 		}
 
+		shader->Set("shadowPass", false);
 		renderTarget->Bind();
-		//shadow pass
+		//add light to light engine and shadow pass
 		{
 			entt::basic_group group = registryPtr->group<>(entt::get<TransformComponent, LightComponent>);
 			for (auto& entity : group)
@@ -309,44 +310,8 @@ namespace Borealis
 					continue;
 				}
 
-				//Renderer3D::SetLights(shader);
-				Renderer3D::DrawMesh(transform, meshFilter, meshRenderer, (int)entity);
-			}
-
-			//test skinned model & animation
-			if(false)
-			{
-				if (!skinnedModel)
-				{
-					skinnedModel = MakeRef<SkinnedModel>();
-					skinnedModel->LoadModel("thrillier3.skmesh");
-
-					Ref<Animation> anim = MakeRef<Animation>();
-					anim->Load("thrillier3.anim");
-
-					skinnedModel->AssignAnimation(anim);
-					skinnedShader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_SkinnedModel.glsl");
-					animator = Animator(skinnedModel->mAnimation);
-				}
-				if (skinnedModel)
-				{
-					animator.UpdateAnimation(1.f / 60.f);
-
-					skinnedShader->Bind();
-					if (skinnedModel->mAnimation)
-					{
-						skinnedShader->Set("u_HasAnimation", true);
-						auto transforms = animator.GetFinalBoneMatrices();
-						for (int i = 0; i < transforms.size(); ++i)
-						{
-							std::string str = "u_FinalBonesMatrices[" + std::to_string(i) + "]";
-							skinnedShader->Set(str.c_str(), transforms[i]);
-						}
-					}
-					skinnedShader->Set("u_ViewProjection", projMatrix * viewMatrix);
-					skinnedModel->Draw(glm::mat4(1.f), skinnedShader, -1);
-					skinnedShader->Unbind();
-				}
+				Renderer3D::SetLights(shader);
+				Renderer3D::DrawMesh(transform, meshFilter, meshRenderer, shader, (int)entity);
 			}
 		}
 		//skinned mesh pass

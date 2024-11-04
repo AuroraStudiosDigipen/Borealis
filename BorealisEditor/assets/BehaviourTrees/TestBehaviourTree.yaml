@@ -1,0 +1,19 @@
+BehaviourTreeComponent:
+  BehaviourTree:
+    Tree Name: Untitled-No-Name-Entered
+    Nodes:
+      - ID: 13
+        Name: C_Sequencer
+        Type: ControlFlow
+        ChildrenIDs:
+          - 16
+      - ID: 16
+        Name: D_Delay
+        Type: Decorator
+        ChildrenIDs:
+          - 19
+      - ID: 19
+        Name: L_CheckMouseClick
+        Type: Leaf
+        ChildrenIDs:
+          []

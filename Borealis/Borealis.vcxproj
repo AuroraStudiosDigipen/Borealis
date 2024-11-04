@@ -166,6 +166,10 @@
     </ClInclude>
     <ClInclude Include="inc\AI\BehaviourTree\Leaf\L_CheckMouseClick.hpp" />
     <ClInclude Include="inc\AI\BehaviourTree\Leaf\L_Idle.hpp" />
+    <ClInclude Include="inc\AI\BehaviourTree\NodeHeaderCodeFormat.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="inc\AI\BehaviourTree\NodesDef.hpp" />
     <ClInclude Include="inc\AI\BehaviourTree\RegisterNodes.hpp" />
     <ClInclude Include="inc\AI\BehaviourTree\ScanForNewNodes.hpp" />
@@ -776,6 +780,10 @@
     </ClCompile>
     <ClCompile Include="src\AI\BehaviourTree\Leaf\L_CheckMouseClick.cpp" />
     <ClCompile Include="src\AI\BehaviourTree\Leaf\L_Idle.cpp" />
+    <ClCompile Include="src\AI\BehaviourTree\NodeHeaderCodeFormat.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="src\AI\BehaviourTree\RegisterNodes.cpp" />
     <ClCompile Include="src\AI\BehaviourTree\ScanForNewNodes.cpp" />
     <ClCompile Include="src\Assets\Asset.cpp" />

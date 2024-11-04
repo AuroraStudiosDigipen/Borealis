@@ -1973,6 +1973,7 @@
       <Filter>lib\xproperty\include\xproperty</Filter>
     </ClInclude>
     <ClInclude Include="inc\AI\BehaviourTree\Decorator\D_Delay.hpp" />
+    <ClInclude Include="inc\AI\BehaviourTree\NodeHeaderCodeFormat.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lib\imGuizmo\imGuizmo.cpp">
@@ -2189,5 +2190,6 @@
       <Filter>src\Scripting</Filter>
     </ClCompile>
     <ClCompile Include="src\AI\BehaviourTree\Decorator\D_Delay.cpp" />
+    <ClCompile Include="src\AI\BehaviourTree\NodeHeaderCodeFormat.cpp" />
   </ItemGroup>
 </Project>

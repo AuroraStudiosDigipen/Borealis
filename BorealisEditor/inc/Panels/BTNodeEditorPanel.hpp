@@ -66,13 +66,15 @@ namespace Borealis
     {
     public:
         ed::PinId ID;
-        Ref<Node> Node;
+        Ref<Borealis::Node> Node;
         std::string Name;
         PinType Type;
         PinKind Kind;
 
         Pin(int id, const std::string& name, PinType type)
             : ID(id), Node(nullptr), Name(name), Type(type), Kind(PinKind::Input) {}
+        Pin(int id, const std::string& name, PinType type, Ref<Borealis::Node> node, PinKind kind)
+            : ID(id), Node(node), Name(name), Type(type), Kind(kind) {}
     };
 
 
@@ -88,7 +90,9 @@ namespace Borealis
         ImColor Color;
         ImVec2 Size;
         ImVec2 Position;
-
+        bool PositionSet = false; // Add this flag
+        Node(ed::NodeId id, const std::string& name, NodeType type)
+            : ID(id), Name(name), Type(type), Color(255, 255, 255), Size(0, 0) {}
         Node(int id, const std::string& name, NodeType type, const ImColor& color)
             : ID(id), Name(name), Type(type), Color(color), Size(0, 0) {}
     };
@@ -102,6 +106,8 @@ namespace Borealis
         ed::PinId EndPinID;
 
         Link(int id, ed::PinId startPinId, ed::PinId endPinId)
+            : ID(id), StartPinID(startPinId), EndPinID(endPinId) {}
+        Link(ed::LinkId id, ed::PinId startPinId, ed::PinId endPinId)
             : ID(id), StartPinID(startPinId), EndPinID(endPinId) {}
     };
 
@@ -134,7 +140,25 @@ namespace Borealis
         std::vector<Ref<Node>> FindUnconnectedNodes();
         std::vector<Ref<Node>> GetMaxDepthNodes(const std::vector<Ref<Node>>& rootNodes);
         void GetMaxDepthNodesRecursive(Ref<Node> node, std::vector<Ref<Node>>& maxDepthNodes, std::unordered_set<Ref<Node>>& visited);
-
+        std::vector<std::string> GetAvailableBehaviorTrees();
+        void CreateNewNodeType(int nodeTypeIndex, const std::string& nodeName);
+        void DeserializeNodes(const YAML::Node& nodesNode);
+        void LoadBehaviorTree(const std::string& filepath);
+        NodeType FindNodeType(const std::string& nodeName);
+        void DeleteSelectedNodes();
+        void DeleteSelectedLinks();
+        std::string NodeTypeToString(NodeType type);
+        Ref<Node> FindNodeByInputPinID(ed::PinId pinID);
+        void InitializeNodePins(Ref<Node> node);
+        NodeType StringToNodeType(const std::string& typeStr);
+        void AssignPositionsRecursive(
+            Ref<Node> node,
+            int depth,
+            float& currentX,
+            float nodeSpacing,
+            float levelSpacing,
+            std::unordered_map<int, Ref<Node>>& nodeMap,
+            std::unordered_map<int, std::vector<int>>& nodeChildrenMap);
     private:
         // Helper functions
         void RenderNodes();
@@ -154,7 +178,8 @@ namespace Borealis
         std::string m_TreeName = "Untitled-No-Name-Entered";
         bool m_IsEditingExistingTree = false; 
         std::string m_ValidationMessage;
-
+        std::string m_TreeFileName;
+        std::string m_NodeCreationMessage;
     };
 }
 

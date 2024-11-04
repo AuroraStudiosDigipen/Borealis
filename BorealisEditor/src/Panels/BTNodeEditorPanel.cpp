@@ -15,7 +15,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <BorealisPCH.hpp>
 #include "Panels/BTNodeEditorPanel.hpp"
 #include <Core/LoggerSystem.hpp>
-
+#include <AI/BehaviourTree/NodeHeaderCodeFormat.hpp>
 namespace Borealis
 {
     Ref<Pin> BTNodeEditorPanel::FindPin(ed::PinId id)
@@ -56,13 +56,76 @@ namespace Borealis
             return;
 
         ImGui::Begin("Behavior Tree Editor", &m_ShowPanel, ImGuiWindowFlags_NoCollapse);
+        if (ImGui::Button("New Node"))
+        {
+            ImGui::OpenPopup("NewNodePopup");
+        }
+
+        if (ImGui::BeginPopup("NewNodePopup"))
+        {
+            static int selectedNodeType = 0; // 0: Leaf, 1: Decorator
+            static char nodeName[128] = "";
+
+            const char* nodeTypes[] = { "Leaf", "Decorator" };
+            ImGui::Text("Select Node Type:");
+            ImGui::Combo("##NodeType", &selectedNodeType, nodeTypes, IM_ARRAYSIZE(nodeTypes));
+
+            ImGui::Text("Enter Node Name:");
+            ImGui::InputText("##NodeName", nodeName, IM_ARRAYSIZE(nodeName));
+
+            if (ImGui::Button("Create"))
+            {
+                CreateNewNodeType(selectedNodeType, nodeName);
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel"))
+            {
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::EndPopup();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Load"))
+        {
+            ImGui::OpenPopup("LoadBehaviorTreePopup");
+        }
+
+        if (ImGui::BeginPopup("LoadBehaviorTreePopup"))
+        {
+            static int selectedIndex = -1;
+            auto behaviorTrees = GetAvailableBehaviorTrees();
+            std::vector<const char*> behaviorTreeNames;
+            for (const auto& name : behaviorTrees)
+                behaviorTreeNames.push_back(name.c_str());
+
+            ImGui::Text("Select Behavior Tree:");
+            ImGui::ListBox("##BehaviorTreeList", &selectedIndex, behaviorTreeNames.data(), behaviorTreeNames.size(), 5);
+
+            if (ImGui::Button("Open") && selectedIndex >= 0)
+            {
+                std::string selectedTree = "assets/BehaviourTrees/" + behaviorTrees[selectedIndex] + ".yaml";
+                LoadBehaviorTree(selectedTree);
+
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel"))
+            {
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::EndPopup();
+        }
 
         // Add the Validate Tree button
+        ImGui::SameLine();
         if (ImGui::Button("Validate Tree"))
         {
             ValidateBehaviorTree();
         }
-
+        ImGui::SameLine();
         if (ImGui::Button("Save"))
         {
             ImGui::OpenPopup("SaveBehaviorTreePopup");
@@ -89,7 +152,18 @@ namespace Borealis
             ImGui::EndPopup();
         }
 
-
+        if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Delete)))
+        {
+            DeleteSelectedNodes();
+            DeleteSelectedLinks();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Delete"))
+        {
+            DeleteSelectedNodes();
+            DeleteSelectedLinks();
+        }
+      
         // Split the window into left and right panes
         static float leftPaneWidth = 200.0f;
         ImGui::BeginChild("LeftPanel", ImVec2(leftPaneWidth, 0), true);
@@ -118,7 +192,7 @@ namespace Borealis
         HandleNewLinks();
 
         ed::End();
-        ed::SetCurrentEditor(nullptr);
+        //ed::SetCurrentEditor(nullptr);
 
         ImGui::EndChild();
 
@@ -133,7 +207,28 @@ namespace Borealis
 
             ImGui::EndPopup();
         }
+
+        if (ImGui::BeginPopupModal("NodeCreationResult", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::TextWrapped("%s", m_NodeCreationMessage.c_str());
+
+            if (ImGui::Button("OK"))
+            {
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::EndPopup();
+        }
+
         ImGui::End();
+        // Check if the window was closed
+        if (!m_ShowPanel)
+        {
+            // The window was closed by the user
+            // Perform cleanup here
+            //ed::DestroyEditor(m_EditorContext);
+            //m_EditorContext = nullptr;
+        }
 
     }
     
@@ -142,18 +237,30 @@ namespace Borealis
         // Retrieve the prototype from the factory
         auto prototype = NodeFactory::CreateNodeByName(nodeName);
         if (!prototype)
+        {
             return;
-
+        }
         // Get the node type from the prototype
-        NodeType nodeType = prototype->GetType();
+        NodeType nodeType = FindNodeType(nodeName);
 
         // Set the node color based on type (you can customize colors per type)
-        ImColor nodeColor(255, 255, 255); // Default color
-
+        ImColor nodeColor(0, 0, 0); // Default color
+        if (nodeType == NodeType::CONTROLFLOW)
+        {
+            nodeColor = { 255, 234,0 };
+        }
+        else if (nodeType == NodeType::DECORATOR)
+        {
+            nodeColor = { 0,0, 255 };
+        }
+        else if (nodeType == NodeType::LEAF)
+        {
+            nodeColor = { 0,255,0 };
+        }
         // Create a new node
         int nodeId = GetNextId();
         auto newNode = std::make_shared<Node>(nodeId, nodeName, nodeType, nodeColor);
-
+        ed::PushStyleColor(ed::StyleColor_PinRect, ImColor(229, 229, 229, 60));
         // Set the node position
         newNode->Size = ImVec2(0, 0);
 
@@ -342,7 +449,7 @@ namespace Borealis
 
     void BTNodeEditorPanel::HandleNewLinks()
     {
-        if (ed::BeginCreate())
+        if (ed::BeginCreate(ImVec4(1,0.8,0,1)),100.f)
         {
             ed::PinId startPinId, endPinId;
             if (ed::QueryNewLink(&startPinId, &endPinId))
@@ -493,40 +600,66 @@ namespace Borealis
         return false;
     }
 
-    void BTNodeEditorPanel::SaveBehaviorTree(const std::string& filename)
+    void BTNodeEditorPanel::SaveBehaviorTree(const std::string& filepath)
     {
-        // Find the root node
-        auto rootNode = FindRootNode();
-        if (!rootNode)
-        {
-            BOREALIS_CORE_INFO("No root node found in the behavior tree.");
-            return;
-        }
         YAML::Emitter out;
-        out << YAML::BeginMap; // Start BehaviourTreeComponent map
-        out << YAML::Key << "BehaviourTreeComponent";
-        out << YAML::Value << YAML::BeginMap; // Start BehaviourTree map
-        out << YAML::Key << "BehaviourTree";
-        out << YAML::Value << YAML::BeginMap;
 
-        // Tree Name
-        out << YAML::Key << "Tree Name" << YAML::Value << std::filesystem::path(filename).stem().string();;
+        out << YAML::BeginMap; // Root map
 
-        // Start serialization from the root node
-        SerializeNode(out, rootNode, 0);
+        out << YAML::Key << "BehaviourTreeComponent" << YAML::Value << YAML::BeginMap;
 
-        out << YAML::EndMap; // End BehaviourTree map
-        out << YAML::EndMap; // End BehaviourTreeComponent map
-        std::cout << filename << std::endl;
+        out << YAML::Key << "BehaviourTree" << YAML::Value << YAML::BeginMap;
+
+        // Tree name
+        out << YAML::Key << "Tree Name" << YAML::Value << m_TreeName;
+
+        // Nodes
+        out << YAML::Key << "Nodes" << YAML::Value << YAML::BeginSeq;
+
+        for (const auto& node : m_Nodes)
+        {
+            out << YAML::BeginMap;
+            out << YAML::Key << "ID" << YAML::Value << node->ID.Get();
+            out << YAML::Key << "Name" << YAML::Value << node->Name;
+            out << YAML::Key << "Type" << YAML::Value << NodeTypeToString(node->Type);
+
+            // Collect IDs of child nodes if node has outputs
+            std::vector<int> childrenIDs;
+            if (!node->Outputs.empty())
+            {
+                for (const auto& link : m_Links)
+                {
+                    if (link->StartPinID == node->Outputs.front()->ID)
+                    {
+                        auto childNode = FindNodeByInputPinID(link->EndPinID);
+                        if (childNode)
+                        {
+                            childrenIDs.push_back(childNode->ID.Get());
+                        }
+                    }
+                }
+            }
+
+            // Include an empty ChildrenIDs sequence for leaf nodes
+            out << YAML::Key << "ChildrenIDs" << YAML::Value << YAML::BeginSeq;
+            for (int childID : childrenIDs)
+            {
+                out << childID;
+            }
+            out << YAML::EndSeq;
+
+            out << YAML::EndMap;
+        }
+
+        out << YAML::EndSeq; // End of Nodes
+
+        out << YAML::EndMap; // End of BehaviourTree
+
+        out << YAML::EndMap; // End of BehaviourTreeComponent
+
         // Write to file
-        std::ofstream fout(filename);
-        if (!fout.is_open()) {
-            std::cerr << "Failed to open file: " << filename << std::endl;
-        }
-        else {
-            fout << out.c_str();
-        }
-
+        std::ofstream fout(filepath);
+        fout << out.c_str();
     }
     void BTNodeEditorPanel::SerializeNode(YAML::Emitter& out, Ref<Node> node, int depth)
     {
@@ -730,6 +863,366 @@ namespace Borealis
     bool BTNodeEditorPanel::IsLeafNode(Ref<Node> node)
     {
         return node->Type == NodeType::LEAF || node->Name.substr(0, 2) == "L_";
+    }
+    std::vector<std::string> BTNodeEditorPanel::GetAvailableBehaviorTrees()
+    {
+        std::vector<std::string> behaviorTrees;
+
+        for (const auto& entry : std::filesystem::directory_iterator("assets/BehaviourTrees"))
+        {
+            if (entry.is_regular_file() && entry.path().extension() == ".yaml")
+            {
+                behaviorTrees.push_back(entry.path().stem().string());
+            }
+        }
+
+        return behaviorTrees;
+    }
+    void BTNodeEditorPanel::CreateNewNodeType(int nodeTypeIndex, const std::string& nodeName)
+    {
+        std::string nodePrefix;
+        std::string baseClassName;
+        std::string srcfolderPath;
+        std::string incfolderPath;
+
+        if (nodeTypeIndex == 0) // CONTROL FLOW
+        {
+            nodePrefix = "C_";
+            baseClassName = "BaseNode<" + nodePrefix + nodeName + ">";
+            srcfolderPath = "../Borealis/src/AI/BehaviourTree/ControlFLow/";
+            incfolderPath = "../Borealis/inc/AI/BehaviourTree/ControlFlow/";
+        }
+        else if (nodeTypeIndex == 1) // Decorator
+        {
+            nodePrefix = "D_";
+            baseClassName = "BaseNode<" + nodePrefix + nodeName + ">";
+            srcfolderPath = "../Borealis/src/AI/BehaviourTree/Decorator/";
+            incfolderPath = "../Borealis/inc/AI/BehaviourTree/Decorator/";
+        }
+        else if (nodeTypeIndex == 2) //LEAF
+        {
+            nodePrefix = "L_";
+            baseClassName = "BaseNode<" + nodePrefix + nodeName + ">";
+            srcfolderPath = "../Borealis/src/AI/BehaviourTree/Leaf/";
+            incfolderPath = "../Borealis/inc/AI/BehaviourTree/Leaf/";
+        }
+
+        std::string className = nodePrefix + nodeName;
+
+        // Generate file paths
+        std::string headerFilePath = incfolderPath + className + ".hpp";
+        std::string sourceFilePath = srcfolderPath + className + ".cpp";
+        // Check if files already exist
+        if (std::filesystem::exists(headerFilePath) || std::filesystem::exists(sourceFilePath))
+        {
+            m_NodeCreationMessage = "Node files already exist.";
+        }
+        else
+        {
+            // Generate the code using templates
+            std::string headerCode = NodeHeaderCodeFormat::GenerateHeaderCode(className, baseClassName, nodeTypeIndex);
+            std::string sourceCode = NodeHeaderCodeFormat::GenerateSourceCode(className, nodeTypeIndex);
+
+            // Write the files
+            NodeHeaderCodeFormat::WriteToFile(headerFilePath, headerCode);
+            NodeHeaderCodeFormat::WriteToFile(sourceFilePath, sourceCode);
+
+            // Register the new node in NodeFactory
+            //NodeFactory::RegisterNodePrototype(className,MakeRef<BehaviourNode>(className));
+
+            m_NodeCreationMessage = "Node " + className + " created successfully.";
+        }
+
+        ImGui::OpenPopup("NodeCreationResult");
+    }
+    void BTNodeEditorPanel::DeserializeNodes(const YAML::Node& rootNode)
+    {
+        // Map to store nodes by ID
+        std::unordered_map<int, Ref<Node>> nodeMap;
+
+        // Map to store children IDs for each node
+        std::unordered_map<int, std::vector<int>> nodeChildrenMap;
+
+        // First pass: Create nodes
+        for (const auto& nodeData : rootNode)
+        {
+            int nodeId = nodeData["ID"].as<int>();
+            std::string nodeName = nodeData["Name"].as<std::string>();
+            std::string nodeTypeStr = nodeData["Type"].as<std::string>();
+
+            NodeType nodeType = StringToNodeType(nodeTypeStr);
+
+            // Create the node with the given ID
+            auto node = std::make_shared<Node>(ed::NodeId(nodeId), nodeName, nodeType);
+            InitializeNodePins(node);
+
+            // Add node to the list and map
+            m_Nodes.push_back(node);
+            nodeMap[nodeId] = node;
+
+            // Store children IDs
+            const YAML::Node& childrenIDsNode = nodeData["ChildrenIDs"];
+            if (childrenIDsNode && childrenIDsNode.IsSequence())
+            {
+                for (const auto& childIdNode : childrenIDsNode)
+                {
+                    int childId = childIdNode.as<int>();
+                    nodeChildrenMap[nodeId].push_back(childId);
+                }
+            }
+        }
+
+        // Second pass: Create links and build parent-child relationships
+        for (const auto& [parentId, childrenIds] : nodeChildrenMap)
+        {
+            auto parentNode = nodeMap[parentId];
+            for (int childId : childrenIds)
+            {
+                auto childNode = nodeMap[childId];
+
+                // Create link between parent and child
+                if (!parentNode->Outputs.empty() && !childNode->Inputs.empty())
+                {
+                    auto link = std::make_shared<Link>(ed::LinkId(GetNextId()), parentNode->Outputs.front()->ID, childNode->Inputs.front()->ID);
+                    m_Links.push_back(link);
+                }
+            }
+        }
+
+        // Identify root nodes (nodes with no incoming links)
+        std::unordered_set<int> nodesWithIncomingLinks;
+        for (const auto& link : m_Links)
+        {
+            auto endPin = FindPin(link->EndPinID);
+            if (endPin && endPin->Node)
+            {
+                nodesWithIncomingLinks.insert(endPin->Node->ID.Get());
+            }
+        }
+
+        std::vector<Ref<Node>> rootNodes;
+        for (const auto& node : m_Nodes)
+        {
+            if (nodesWithIncomingLinks.find(node->ID.Get()) == nodesWithIncomingLinks.end())
+            {
+                rootNodes.push_back(node);
+            }
+        }
+
+        // Assign positions based on depth
+        const float levelSpacing = 300.0f; // Vertical spacing between levels
+        const float nodeSpacing = 300.0f;  // Horizontal spacing between nodes
+        float currentX = 0.0f;             // Starting X position
+
+        for (auto& rootNode : rootNodes)
+        {
+            AssignPositionsRecursive(rootNode, 0, currentX, nodeSpacing, levelSpacing, nodeMap, nodeChildrenMap);
+        }
+    }
+    void BTNodeEditorPanel::LoadBehaviorTree(const std::string& filepath)
+    {
+        // Clear existing nodes and links
+        m_Nodes.clear();
+        m_Links.clear();
+        m_NextId = 1;
+
+        // Load and parse the YAML file
+        YAML::Node data = YAML::LoadFile(filepath);
+
+        // Extract the tree name
+        m_TreeName = data["BehaviourTreeComponent"]["BehaviourTree"]["Tree Name"].as<std::string>();
+
+        // Extract the nodes
+        YAML::Node nodesNode = data["BehaviourTreeComponent"]["BehaviourTree"]["Nodes"];
+
+        // Deserialize the nodes and links
+        DeserializeNodes(nodesNode);
+
+        // Set editing flags
+        m_IsEditingExistingTree = true;
+        m_TreeFileName = std::filesystem::path(filepath).stem().string();
+    }
+    NodeType BTNodeEditorPanel::FindNodeType(const std::string& nodeName)
+    {
+
+        if (nodeName.rfind("C_", 0) == 0)
+        {
+            return NodeType::CONTROLFLOW;
+        }
+        else if (nodeName.rfind("D_",0) == 0)
+        {
+            return NodeType::DECORATOR;
+        }
+        else if (nodeName.rfind("L_",0) == 0)
+        {
+            return NodeType::LEAF;
+        }
+        else 
+        {
+            return NodeType::UNKNOWN;
+        }
+
+
+    }
+    void BTNodeEditorPanel::DeleteSelectedNodes()
+    {
+        // Get selected node IDs
+        int selectedNodeCount = ed::GetSelectedObjectCount();
+        if (selectedNodeCount > 0)
+        {
+            std::vector<ed::NodeId> selectedNodes(selectedNodeCount);
+            ed::GetSelectedNodes(selectedNodes.data(), selectedNodeCount);
+
+            // Delete nodes
+            for (const auto& nodeId : selectedNodes)
+            {
+                // Use ed::DeleteNode
+                if (ed::DeleteNode(nodeId))
+                {
+                    // Remove node from your internal data structures
+                    auto it = std::find_if(m_Nodes.begin(), m_Nodes.end(), [&](const auto& node) {
+                        return node->ID == nodeId;
+                        });
+                    if (it != m_Nodes.end())
+                    {
+                        m_Nodes.erase(it);
+                    }
+                }
+            }
+        }
+    }
+    void BTNodeEditorPanel::DeleteSelectedLinks()
+    {
+        int selectedLinkCount = ed::GetSelectedObjectCount();
+        if (selectedLinkCount > 0)
+        {
+            std::vector<ed::LinkId> selectedLinks(selectedLinkCount);
+            ed::GetSelectedLinks(selectedLinks.data(), selectedLinkCount);
+
+            // Delete links
+            for (const auto& linkId : selectedLinks)
+            {
+                // Use ed::DeleteLink
+                if (ed::DeleteLink(linkId))
+                {
+                    // Remove link from your internal data structures
+                    auto it = std::find_if(m_Links.begin(), m_Links.end(), [&](const auto& link) {
+                        return link->ID == linkId;
+                        });
+                    if (it != m_Links.end())
+                    {
+                        m_Links.erase(it);
+                    }
+                }
+            }
+        }
+    }
+    std::string BTNodeEditorPanel::NodeTypeToString(NodeType type)
+    {
+        switch (type)
+        {
+        case NodeType::CONTROLFLOW: return "ControlFlow";
+        case NodeType::DECORATOR: return "Decorator";
+        case NodeType::LEAF: return "Leaf";
+        default: return "Unknown";
+        }
+    }
+
+    Ref<Node> BTNodeEditorPanel::FindNodeByInputPinID(ed::PinId pinID)
+    {
+        for (const auto& node : m_Nodes)
+        {
+            for (const auto& inputPin : node->Inputs)
+            {
+                if (inputPin->ID == pinID)
+                    return node;
+            }
+        }
+        return nullptr;
+    }
+    void BTNodeEditorPanel::InitializeNodePins(const Ref<Node> node)
+    {
+        switch (node->Type)
+        {
+        case NodeType::CONTROLFLOW:
+            // Control flow nodes generally have both input and output pins
+            node->Inputs.push_back(std::make_shared<Pin>(GetNextId(), "In", PinType::Flow, node, PinKind::Input));
+            node->Outputs.push_back(std::make_shared<Pin>(GetNextId(), "Out", PinType::Flow, node, PinKind::Output));
+            break;
+
+        case NodeType::DECORATOR:
+            // Decorator nodes generally have one input and one output
+            node->Inputs.push_back(std::make_shared<Pin>(GetNextId(), "In", PinType::Flow, node, PinKind::Input));
+            node->Outputs.push_back(std::make_shared<Pin>(GetNextId(), "Out", PinType::Flow, node, PinKind::Output));
+            break;
+
+        case NodeType::LEAF:
+            // Leaf nodes typically only have an input pin and no output pin
+            node->Inputs.push_back(std::make_shared<Pin>(GetNextId(), "In", PinType::Flow, node, PinKind::Input));
+            break;
+
+        default:
+            // Unknown types may have no pins, or you could choose a default configuration
+            std::cerr << "Unknown node type: " << static_cast<int>(node->Type) << std::endl;
+            break;
+        }
+    }
+    // Add this function to your BTNodeEditorPanel class
+    NodeType BTNodeEditorPanel::StringToNodeType(const std::string& typeStr)
+    {
+        if (typeStr == "ControlFlow")
+            return NodeType::CONTROLFLOW;
+        else if (typeStr == "Decorator")
+            return NodeType::DECORATOR;
+        else if (typeStr == "Leaf")
+            return NodeType::LEAF;
+        else
+            return NodeType::UNKNOWN;
+    }
+
+    void BTNodeEditorPanel::AssignPositionsRecursive(
+        Ref<Node> node,
+        int depth,
+        float& currentX,
+        float nodeSpacing,
+        float levelSpacing,
+        std::unordered_map<int, Ref<Node>>& nodeMap,
+        std::unordered_map<int, std::vector<int>>& nodeChildrenMap)
+    {
+        if (!node)
+            return;
+
+        // Set node position
+        node->Position = ImVec2(currentX, depth * levelSpacing);
+
+        // Save the starting X position for this node's children
+        float startX = currentX;
+
+        // Get the children of this node
+        const auto& childIds = nodeChildrenMap[node->ID.Get()];
+        int childCount = static_cast<int>(childIds.size());
+
+        // If the node has children, process them
+        if (childCount > 0)
+        {
+            // For centering the parent node over its children
+            float childrenXSum = 0.0f;
+
+            for (int childId : childIds)
+            {
+                auto childNode = nodeMap[childId];
+                AssignPositionsRecursive(childNode, depth + 1, currentX, nodeSpacing, levelSpacing, nodeMap, nodeChildrenMap);
+                childrenXSum += childNode->Position.x;
+            }
+
+            // Center this node over its children
+            node->Position.x = childrenXSum / childCount;
+        }
+        else
+        {
+            // Leaf node, move to next position
+            currentX += nodeSpacing;
+        }
     }
 
 }

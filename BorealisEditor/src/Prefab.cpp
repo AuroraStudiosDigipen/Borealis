@@ -149,6 +149,7 @@ namespace Borealis {
 
             auto& prefabComp = child->GetComponent<PrefabComponent>();
 
+            prefabComp.mEditedComponentList.insert("Translate");
             //template <typename Component>
 			//UpdateComponent<Component>(child, prefabComp);
             UpdateComponent<TransformComponent>(child);
@@ -170,6 +171,7 @@ namespace Borealis {
     template <typename ComponentType>
     void Prefab::UpdateComponent(Ref<Entity> child)
     {
+        // Check if both prefab and child have the component
         if (!HasComponent<ComponentType>() || !child->HasComponent<ComponentType>())
             return;
 
@@ -180,14 +182,26 @@ namespace Borealis {
         rttr::instance dstInstance(dst);
         auto properties = dstInstance.get_type().get_properties();
 
+        // Retrieve the PrefabComponent to check edited properties
+        if (!child->HasComponent<PrefabComponent>())
+            return;
+        auto& prefabComp = child->GetComponent<PrefabComponent>();
+
         for (const auto& prop : properties)
         {
+            // Skip updating if the property has been edited
             if (prop.is_valid() && prop.get_value(srcInstance).is_valid())
             {
-                prop.set_value(dstInstance, prop.get_value(srcInstance));
+                const std::string propName = prop.get_name().to_string();
+                if (prefabComp.mEditedComponentList.find(propName) == prefabComp.mEditedComponentList.end())
+                {
+                    // Update only if the property was not edited
+                    prop.set_value(dstInstance, prop.get_value(srcInstance));
+                }
             }
         }
     }
+
 
     void Prefab::PrintComponentList()
     {

@@ -501,7 +501,7 @@ namespace Borealis
 	}
 
 	template <typename Type>
-	static bool DrawComponent(Type& component)
+	static bool DrawComponent(Type& component, Entity& entity)
 	{
 		bool isEdited = false;
 		ReflectionInstance rInstance(component);
@@ -509,6 +509,11 @@ namespace Borealis
 		for (auto Property : properties)
 		{
 			isEdited = DrawProperty(Property, rInstance) ? true : isEdited;
+			if (entity.HasComponent<PrefabComponent>() && isEdited)
+			{
+				auto& prefabComp = entity.GetComponent<PrefabComponent>();
+				prefabComp.mEditedComponentList.insert(Property.get_name().to_string());
+			}
 		}
 		return isEdited;
 	}
@@ -559,7 +564,7 @@ namespace Borealis
 			if (open)
 			{
 				ImGui::Spacing();
-				isEdited = DrawComponent(component) ? true : isEdited;
+				isEdited = DrawComponent(component,entity) ? true : isEdited;
 			}
 
 			if (deleteComponent)
@@ -720,13 +725,16 @@ namespace Borealis
 				}
 				case AssetType::Prefab:
 				{
-				
 					//When click on prefab, get the UUID, and use the UUID to get the prefab that is in the prefab registry
 					//Update the prefab within the prefab registry.
 					MaterialEditor::SetMaterial(0);
 					Ref<Prefab> selectedPrefab = PrefabManager::GetPrefab(ContentBrowserPanel::sSelectedAsset);
 					Entity prefabEntity(selectedPrefab->GetPrefabID(), PrefabManager::GetScenePtr());
 
+					//Deselect the entity
+					mSelectedEntity = {};
+
+					//Draw prefabEntity
 					if(DrawComponents(prefabEntity))
 					{
 						selectedPrefab->UpdateAllInstances();

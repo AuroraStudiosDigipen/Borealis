@@ -212,8 +212,7 @@ namespace Borealis
 	{
 		if (shader) shader->Bind();
 		
-		glm::mat4 projMatrix{};
-		glm::mat4 viewMatrix{};
+		glm::mat4 viewProjMatrix{};
 		bool editor{};
 
 		Ref<RenderTargetSource> renderTarget = nullptr;
@@ -223,10 +222,9 @@ namespace Borealis
 		{
 			if (sink->source->sourceType == RenderSourceType::Camera)
 			{
-				projMatrix = std::dynamic_pointer_cast<CameraSource>(sink->source)->projMtx;
-				viewMatrix = std::dynamic_pointer_cast<CameraSource>(sink->source)->viewMtx;
+				viewProjMatrix = std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj();
 				editor = std::dynamic_pointer_cast<CameraSource>(sink->source)->editor;
-				Renderer3D::Begin(std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj(), shader);
+				Renderer3D::Begin(viewProjMatrix, shader);
 			}
 
 			if (sink->source->sourceType == RenderSourceType::RenderTargetColor)
@@ -291,7 +289,7 @@ namespace Borealis
 				
 				if (!meshFilter.Model) continue;
 
-				Frustum frustum = ComputeFrustum(projMatrix * viewMatrix);
+				Frustum frustum = ComputeFrustum(viewProjMatrix);
 				BoundingSphere modelBoundingSphere = meshFilter.Model->mBoundingSphere;
 
 				modelBoundingSphere.Transform(transform);
@@ -562,6 +560,7 @@ namespace Borealis
 		shader->Bind();
 		shader->Set("shadowPass", true);
 
+		glm::mat4 viewProjMatrix;
 		Ref<FrameBuffer> shadowMap = nullptr;
 		glm::vec3 cameraPosition{};
 		for (auto sink : sinkList)
@@ -580,6 +579,7 @@ namespace Borealis
 				if (sourcePtr->sourceType == RenderSourceType::Camera)
 				{
 					cameraPosition = std::dynamic_pointer_cast<CameraSource>(sourcePtr)->position;
+					viewProjMatrix = std::dynamic_pointer_cast<CameraSource>(sourcePtr)->GetViewProj();
 				}
 			}
 		}
@@ -596,13 +596,14 @@ namespace Borealis
 					glm::vec3 upVector = { 0.f,1.f,0.f };
 					glm::mat4 lightView = glm::lookAt(lightComponent.offset, lightComponent.offset + lightComponent.spotLightDirection, upVector);
 					float fieldOfView = glm::radians(lightComponent.InnerOuterSpot.x*2.f); // Spotlight cone angle
-					glm::mat4 lightProj = glm::perspective(fieldOfView, 1.f, 20.f, 1000.f);
+					glm::mat4 lightProj = glm::perspective(fieldOfView, 1.f, 0.3f, 1000.f);
 
 					shader->Set("u_LightViewProjection", lightProj * lightView);
 				}
 				else if (lightComponent.type == LightComponent::Type::Directional)
 				{
 					glm::vec3 upVector = { 0.f,1.f,0.f };
+					glm::vec3 lightPos = cameraPosition + lightComponent.offset;
 					glm::mat4 lightView = glm::lookAt(lightComponent.offset, lightComponent.direction, upVector);
 					float fieldOfView = glm::radians(lightComponent.InnerOuterSpot.x * 2.f); // Spotlight cone angle
 					glm::mat4 lightProj = glm::ortho(-100.f, 100.f, -100.f, 100.f, 0.f, 400.f);

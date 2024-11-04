@@ -149,6 +149,10 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="inc\Importer\AnimationImporter.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="inc\Importer\AssetConfigs.hpp">
       <SubType>
       </SubType>
@@ -166,6 +170,10 @@
     <ClInclude Include="inc\MetaSerializer.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Importer\AnimationImporter.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="src\Importer\AssetImporter.cpp" />
     <ClCompile Include="src\Importer\FontImporter.cpp" />
     <ClCompile Include="src\Importer\MeshImporter.cpp" />

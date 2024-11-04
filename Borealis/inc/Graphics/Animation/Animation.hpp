@@ -28,7 +28,7 @@ namespace Borealis
 		void Save();
 
 		float mDuration;
-		int mTicksPerSecond;
+		float mTicksPerSecond;
 		std::vector<Bone> mBones;
 		AssimpNodeData mRootNode;
 		std::map<std::string, BoneData> mBoneDataMap;

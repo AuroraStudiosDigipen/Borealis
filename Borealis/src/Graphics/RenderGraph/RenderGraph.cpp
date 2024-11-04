@@ -312,16 +312,16 @@ namespace Borealis
 			}
 
 			//test skinned model & animation
-			if(false)
+			if(true)
 			{
 				if (!skinnedModel)
 				{
 					skinnedModel = MakeRef<SkinnedModel>();
-					skinnedModel->LoadModel("fishing_cast_blender.skmesh");
+					skinnedModel->LoadModel("thrillier3.skmesh");
 					//skinnedModel->SaveModel();
 
 					Ref<Animation> anim = MakeRef<Animation>();
-					anim->Load("anim.anim");
+					anim->Load("thrillier3.anim");
 					//anim->Save();
 
 					skinnedModel->AssignAnimation(anim);

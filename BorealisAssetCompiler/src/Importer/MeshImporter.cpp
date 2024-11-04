@@ -18,6 +18,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+#include "Importer/AnimationImporter.hpp"
 #include "Importer/MeshImporter.hpp"
 #include "Importer/SkinnedMeshImporter.hpp"
 #include "Importer/MeshOptimizer.hpp"
@@ -39,8 +40,15 @@ namespace BorealisAssetCompiler
 
 			SkinnedMeshImporter::LoadFBXModel(skinnedModel, sourcePath.string());
 
+			Animation anim;
+			cachePath.replace_extension(".anim");
+			AnimationImporter::LoadAnimations(anim, sourcePath.string());
+			AnimationImporter::SaveAnimation(anim, cachePath);
+
 			cachePath.replace_extension(".skmesh");
 			SkinnedMeshImporter::SaveSkinnedModel(skinnedModel, cachePath);
+
+
 		}
 		else
 		{

@@ -42,6 +42,9 @@
     <ClInclude Include="inc\Importer\SkinnedMeshImporter.hpp">
       <Filter>inc\Importer</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Importer\AnimationImporter.hpp">
+      <Filter>inc\Importer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Importer\AssetImporter.cpp">
@@ -66,6 +69,9 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\Importer\SkinnedMeshImporter.cpp">
+      <Filter>src\Importer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Importer\AnimationImporter.cpp">
       <Filter>src\Importer</Filter>
     </ClCompile>
   </ItemGroup>

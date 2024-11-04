@@ -23,6 +23,9 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace BorealisAssetCompiler
 {
+	//============================================================================================
+	// Mesh
+	//============================================================================================
 	struct Vertex
 	{
 		glm::vec3 Position;
@@ -83,9 +86,9 @@ namespace BorealisAssetCompiler
 
 	struct SkinnedVertex 
 	{
-		glm::vec3 Position;
-		glm::vec3 Normal;
-		glm::vec2 TexCoords;
+		glm::vec3 Position{};
+		glm::vec3 Normal{};
+		glm::vec2 TexCoords{};
 		VertexBoneData BoneData;
 	};
 
@@ -147,9 +150,16 @@ namespace BorealisAssetCompiler
 	{
 	public:
 		Bone() = default;
-		Bone(std::string const& name, int id, std::vector<KeyPosition> const& pos,
-			std::vector<KeyRotation> const& rot,
-			std::vector<KeyScale> const& scale);
+		Bone(std::string const& name, int id, 
+			 std::vector<KeyPosition> const& pos,
+			 std::vector<KeyRotation> const& rot,
+			 std::vector<KeyScale> const& scale) 
+			: mName(name), mId(id), mLocalTransform(1.f), mPositions(pos), mRotations(rot), mScales(scale)
+		{
+			mNumPositions = (int)pos.size();
+			mNumRotations = (int)rot.size();
+			mNumScalings =  (int)scale.size();
+		}
 
 		void Update(float animationTime);
 
@@ -187,6 +197,28 @@ namespace BorealisAssetCompiler
 		std::vector<SkinnedMesh> mMeshes;
 		std::map<std::string, BoneData> mBoneDataMap{};
 		int mBoneCounter{};
+	};
+
+	//============================================================================================
+	// Animation
+	//============================================================================================
+
+	struct AssimpNodeData
+	{
+		glm::mat4 transformation;
+		std::string name;
+		int childrenCount;
+		std::vector<AssimpNodeData> children;
+	};
+
+	class Animation
+	{
+	public:
+		float mDuration;
+		float mTicksPerSecond;
+		std::vector<Bone> mBones;
+		AssimpNodeData mRootNode;
+		std::map<std::string, BoneData> mBoneDataMap;
 	};
 }
 

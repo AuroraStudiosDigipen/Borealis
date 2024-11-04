@@ -294,14 +294,6 @@ namespace Borealis
 				Frustum frustum = ComputeFrustum(projMatrix * viewMatrix);
 				BoundingSphere modelBoundingSphere = meshFilter.Model->mBoundingSphere;
 
-				//glm::vec3 transformedCenter = glm::vec3(glm::mat4(transform) * glm::vec4(modelBoundingSphere.Center, 1.0f));
-				//float scaleX = glm::length(glm::vec3(transform[0]));
-				//float scaleY = glm::length(glm::vec3(transform[1]));
-				//float scaleZ = glm::length(glm::vec3(transform[2]));
-				//float maxScale = std::max({ scaleX, scaleY, scaleZ });
-
-				//float transformedRadius = modelBoundingSphere.Radius * maxScale;
-
 				modelBoundingSphere.Transform(transform);
 
 				if (CullBoundingSphere(frustum, modelBoundingSphere))
@@ -323,12 +315,6 @@ namespace Borealis
 
 				if (!skinnedMesh.SkinnnedModel) continue;
 
-				if (!skinnedShader)
-				{
-					skinnedShader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_SkinnedModel.glsl");
-				}
-
-				
 				if(registryPtr->storage<AnimatorComponent>().contains(entity))
 				{
 					AnimatorComponent& animatorComponent = registryPtr->get<AnimatorComponent>(entity);
@@ -343,15 +329,15 @@ namespace Borealis
 					{
 						animatorComponent.animator.UpdateAnimation(1.f / 60.f);
 
-						skinnedShader->Bind();
+						shader->Bind();
 						if (skinnedMesh.SkinnnedModel->mAnimation)
 						{
-							skinnedShader->Set("u_HasAnimation", true);
+							shader->Set("u_HasAnimation", true);
 							auto transforms = animatorComponent.animator.GetFinalBoneMatrices();
 							for (int i = 0; i < transforms.size(); ++i)
 							{
 								std::string str = "u_FinalBonesMatrices[" + std::to_string(i) + "]";
-								skinnedShader->Set(str.c_str(), transforms[i]);
+								shader->Set(str.c_str(), transforms[i]);
 							}
 						}
 					}
@@ -369,30 +355,12 @@ namespace Borealis
 				//}
 
 				//Renderer3D::SetLights(shader);
-				skinnedShader->Bind();
-				skinnedShader->Set("u_ViewProjection", projMatrix* viewMatrix);
-				Renderer3D::DrawSkinnedMesh(transform, skinnedMesh, skinnedShader, (int)entity);
-				skinnedShader->Unbind();
+				shader->Bind();
+				Renderer3D::SetLights(shader);
+				Renderer3D::DrawSkinnedMesh(transform, skinnedMesh, shader, (int)entity);
+				shader->Unbind();
 			}
 		}
-		//animation
-		//{
-		//	auto group = registryPtr->group<>(entt::get<TransformComponent, SkinnedMeshRendererComponent, AnimatorComponent>);
-		//	for (auto& entity : group)
-		//	{
-		//		auto [transform, skinnedMesh, animator] = group.get<TransformComponent, SkinnedMeshRendererComponent, AnimatorComponent>(entity);
-
-		//		if (!animator.animation) continue;
-
-		//		if(!animator.animator.HasAnimation())
-		//		{
-		//			animator.animator.PlayAnimation(animator.animation);
-		//			skinnedMesh.SkinnnedModel->AssignAnimation(animator.animation);
-		//		}
-
-		//		animator.animator.UpdateAnimation(1.f/60.f);
-		//	}
-		//}
 		Renderer3D::End();
 
 		renderTarget->Unbind();

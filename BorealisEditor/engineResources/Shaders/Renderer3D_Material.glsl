@@ -50,11 +50,6 @@ void Render3DPass()
     // vec3 T = normalize(normalMatrix * a_Tangent);
     // T = normalize(T - dot(T, N) * N); // Gram-Schmidt orthogonalization
     // vec3 B = cross(N, T);
-
-    v_Normal = N;
-    // v_Tangent = T;
-    // v_Bitangent = B;
-
 	//animation
 	vec4 TotalPosition = vec4(0.f);
 
@@ -71,20 +66,25 @@ void Render3DPass()
             }
             vec4 localPosition = u_FinalBonesMatrices[boneIds[i]] * vec4(a_Position,1.0f);
             TotalPosition += localPosition * weights[i];
-            vec3 localNormal = mat3(u_FinalBonesMatrices[boneIds[i]]) * a_Normal;
+            N = mat3(u_FinalBonesMatrices[boneIds[i]]) * a_Normal;
         }
     }
 
 	if(u_HasAnimation)
 	{
 		gl_Position = u_ViewProjection * u_ModelTransform * TotalPosition;	
+		v_LightPos = u_LightViewProjection * u_ModelTransform * TotalPosition;
 	}
 	else
 	{
 		gl_Position = u_ViewProjection * vec4(v_FragPos, 1.0);	
+		v_LightPos = u_LightViewProjection * vec4(v_FragPos, 1.0);	
 	}
-	v_LightPos = u_LightViewProjection * vec4(v_FragPos, 1.0);	
+	
 	v_EntityID = u_EntityID;
+	v_Normal = N;
+    // v_Tangent = T;
+    // v_Bitangent = B;
 }
 
 void main()

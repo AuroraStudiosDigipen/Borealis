@@ -637,6 +637,69 @@ namespace Borealis
 		}
 	}
 
+	template<> //temp until idk
+	static void DrawComponentLayout<SkinnedMeshRendererComponent>(const std::string& name, Entity entity, bool allowDelete)
+	{
+		if (entity.HasComponent<SkinnedMeshRendererComponent>())
+		{
+			ImGui::Spacing();
+			auto& component = entity.GetComponent<SkinnedMeshRendererComponent>();
+
+			bool deleteComponent = false;
+			bool open;
+
+			if (allowDelete)
+			{
+				auto ContentRegionAvailable = ImGui::GetContentRegionAvail();
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4,4 });
+				float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
+				ImGui::Separator();
+				open = ImGui::CollapsingHeader(name.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+				ImGui::PopStyleVar();
+				ImGui::SameLine(ContentRegionAvailable.x - lineHeight * 0.5f); // Align to right (Button)
+				if (ImGui::Button(("+##" + name).c_str(), ImVec2{ lineHeight,lineHeight }))
+				{
+					ImGui::OpenPopup(("ComponentSettingsPopup##" + name).c_str());
+				}
+
+
+				if (ImGui::BeginPopup(("ComponentSettingsPopup##" + name).c_str()))
+				{
+					if (ImGui::MenuItem("Remove Component"))
+					{
+						deleteComponent = true;
+					}
+
+					ImGui::EndPopup();
+				}
+			}
+			else
+			{
+				open = ImGui::CollapsingHeader(name.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+			}
+
+			if (open)
+			{
+				ImGui::Spacing();
+				DrawComponent(component);
+			}
+
+			if (deleteComponent)
+			{
+				if (typeid(SkinnedMeshRendererComponent) == typeid(RigidBodyComponent))
+				{
+					PhysicsSystem::FreeRigidBody(entity.GetComponent<RigidBodyComponent>());
+				}
+				entity.RemoveComponent<SkinnedMeshRendererComponent>();
+			}
+
+			if (component.Material)
+			{
+				MaterialEditor::RenderProperties(component.Material);
+			}
+		}
+	}
+
 
 	SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& scene)
 	{

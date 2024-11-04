@@ -403,6 +403,16 @@ namespace Borealis
 			SerializeComponent(out, entity.GetComponent<MeshRendererComponent>());
 		}
 
+		if (entity.HasComponent<SkinnedMeshRendererComponent>())
+		{
+			SerializeComponent(out, entity.GetComponent<SkinnedMeshRendererComponent>());
+		}
+
+		if (entity.HasComponent<AnimatorComponent>())
+		{
+			SerializeComponent(out, entity.GetComponent<AnimatorComponent>());
+		}
+
 		if (entity.HasComponent<BoxColliderComponent>())
 		{
 			SerializeComponent(out, entity.GetComponent<BoxColliderComponent>());

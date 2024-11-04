@@ -112,6 +112,11 @@ namespace Borealis
 	{
 		if (skinnedMeshRenderer.SkinnnedModel)
 		{
+			if (skinnedMeshRenderer.Material)
+			{
+				skinnedMeshRenderer.Material->SetUniforms(shader);
+			}
+
 			skinnedMeshRenderer.SkinnnedModel->Draw(transform, shader, entityID);
 		}
 	}

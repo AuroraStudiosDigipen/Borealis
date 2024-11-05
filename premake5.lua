@@ -48,6 +48,8 @@ workspace "Borealis"
 	LibraryDir["MSDF_Release"] = "lib/MSDF/Build/Release"
 	LibraryDir["meshoptimizer_Debug"] = "lib/MeshOptimizer/Build/Debug"
 	LibraryDir["meshoptimizer_Release"] = "lib/MeshOptimizer/Build/Release"
+	LibraryDir["Compressonator_Debug"] = "lib/compressonator/build/Debug"
+	LibraryDir["Compressonator_Release"] = "lib/compressonator/build/Release"
 	LibraryDir["GLAD_Debug"] = "lib/GLAD/lib/Deb"
 	LibraryDir["GLAD_Release"] = "lib/GLAD/lib/Rel"
 	LibraryDir["GLFW_Debug"] = "lib/GLFW/lib/Deb"
@@ -87,6 +89,8 @@ workspace "Borealis"
 
 	Library["meshoptimizer_Debug"] = "%{LibraryDir.meshoptimizer_Debug}/meshoptimizer.lib"
 	Library["meshoptimizer_Release"] = "%{LibraryDir.meshoptimizer_Release}/meshoptimizer.lib"
+	Library["Compressonator_Debug"] = "%{LibraryDir.Compressonator_Debug}/Compressonator_MTd.lib"
+	Library["Compressonator_Release"] = "%{LibraryDir.Compressonator_Release}/Compressonator_MT.lib"
 
 	Library["GLAD_Debug"] = "%{LibraryDir.GLAD_Debug}/GLAD.lib"
 	Library["GLAD_Release"] = "%{LibraryDir.GLAD_Release}/GLAD.lib"
@@ -529,15 +533,13 @@ workspace "Borealis"
 
 		libdirs
 		{
-			"BorealisAssetCompiler/lib/ispc/build",
-			"BorealisAssetCompiler/lib/compressonator/build"
+			"BorealisAssetCompiler/lib/ispc/build"
 		}
 
 		links
 		{
 			"Assimp",
-			"ispc_texcomp",
-			"Compressonator_MTd"
+			"ispc_texcomp"
 		}
 
 		postbuildcommands {
@@ -559,6 +561,7 @@ workspace "Borealis"
 				"%{Library.MSDF_Debug_LibBrotli}",
 				"%{Library.MSDF_Debug_LibBrotliCommon}",
 				"%{Library.meshoptimizer_Debug}",
+				"%{Library.Compressonator_Debug}",
 				"Borealis/%{Library.YAML_Debug}"
 			}
 
@@ -577,6 +580,7 @@ workspace "Borealis"
 				"%{Library.MSDF_Release_LibBrotli}",
 				"%{Library.MSDF_Release_LibBrotliCommon}",
 				"%{Library.meshoptimizer_Release}",
+				"%{Library.Compressonator_Release}",
 				"Borealis/%{Library.YAML_Release}"
 			}
 

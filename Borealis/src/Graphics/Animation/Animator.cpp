@@ -3,15 +3,16 @@
 
 namespace Borealis
 {
+#define MAX_BONES 128
 	Animator::Animator()
 	{
 		mDeltaTime = {};
 		mCurrentTime = 0.0;
 		mCurrentAnimation = nullptr;
 
-		mFinalBoneMatrices.reserve(300);
+		mFinalBoneMatrices.reserve(MAX_BONES);
 
-		for (int i = 0; i < 300; i++)
+		for (int i = 0; i < MAX_BONES; i++)
 		{
 			mFinalBoneMatrices.push_back(glm::mat4(1.0f));
 		}
@@ -23,9 +24,9 @@ namespace Borealis
 		mCurrentTime = 0.0;
 		mCurrentAnimation = animation;
 
-		mFinalBoneMatrices.reserve(300);
+		mFinalBoneMatrices.reserve(MAX_BONES);
 
-		for (int i = 0; i < 300; i++)
+		for (int i = 0; i < MAX_BONES; i++)
 		{
 			mFinalBoneMatrices.push_back(glm::mat4(1.0f));
 		}

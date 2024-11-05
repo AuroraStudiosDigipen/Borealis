@@ -323,7 +323,7 @@ namespace Borealis
 			mShadowMapBuffer = FrameBuffer::Create(propsShadowMapBuffer);
 		}
 
-		Camera* mainCamera = nullptr;
+		Camera* mainCamera = nullptr; // camera not found
 		glm::mat4 mainCameratransform(1.f);
 
 		{

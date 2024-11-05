@@ -35,7 +35,8 @@ namespace Borealis
 		std::map<std::string, BoneData> mBoneDataMap;
 
 	private:
-		
+
+		RTTR_ENABLE(Asset)
 	};
 }
 

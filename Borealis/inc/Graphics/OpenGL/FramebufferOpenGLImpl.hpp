@@ -109,10 +109,6 @@ namespace Borealis
 				Recreates the Attachments of the FrameBuffer
 		*************************************************************************/
 		void Recreate();
-
-		uint32_t GetID() override;
-
-		void Blit(uint32_t target, FrameBufferProperties const& prop) override;
 	private:
 		FrameBufferProperties mProps; //!< Properties of the Frame Buffer
 		uint32_t mRendererID; //!< Renderer ID of the Frame Buffer

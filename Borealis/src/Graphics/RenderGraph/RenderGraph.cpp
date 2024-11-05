@@ -464,6 +464,7 @@ namespace Borealis
 		}
 
 		{
+			RenderCommand::DisableBlend();
 			auto group = registryPtr->group<>(entt::get<TransformComponent, MeshFilterComponent, MeshRendererComponent>);
 			for (auto& entity : group)
 			{
@@ -471,6 +472,7 @@ namespace Borealis
 
 				Renderer3D::DrawMesh(transform, meshFilter, meshRenderer, shader,(int)entity);
 			}
+			RenderCommand::EnableBlend();
 		}
 
 		if (gBuffer) gBuffer->Unbind();

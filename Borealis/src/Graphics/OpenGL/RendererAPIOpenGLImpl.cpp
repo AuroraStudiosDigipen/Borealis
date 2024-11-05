@@ -59,6 +59,26 @@ namespace Borealis
 		glLineWidth(thickness);
 	}
 
+	void OpenGLRendererAPI::EnableBlend()
+	{
+		glEnable(GL_BLEND);
+	}
+
+	void OpenGLRendererAPI::DisableBlend()
+	{
+		glDisable(GL_BLEND);
+	}
+
+	void OpenGLRendererAPI::EnableDepthTest()
+	{
+		glEnable(GL_DEPTH_TEST);
+	}
+
+	void OpenGLRendererAPI::DisableDepthTest()
+	{
+		glDisable(GL_DEPTH_TEST);
+	}
+
 	void OpenGLRendererAPI::IgnoreNextError()
 	{
 		ignoreNextError = true;

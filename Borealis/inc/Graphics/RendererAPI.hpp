@@ -108,6 +108,11 @@ namespace Borealis
 		*************************************************************************/
 		virtual void SetLineThickness(const float& thickness) = 0;
 
+		virtual void EnableBlend() = 0;
+		virtual void DisableBlend() = 0;
+		virtual void EnableDepthTest() = 0;
+		virtual void DisableDepthTest() = 0;
+
 		virtual void IgnoreNextError() = 0;
 		virtual unsigned GetError(std::string const& errorMsg) = 0;
 

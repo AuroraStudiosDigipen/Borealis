@@ -102,12 +102,12 @@ namespace Borealis
 		// vertex texture coords
 		glEnableVertexAttribArray(2);
 		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
-		// Tangents
-		glEnableVertexAttribArray(3);
-		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(VertexData, Tangent));
-		// Bitangents
-		glEnableVertexAttribArray(4);
-		glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(VertexData, Bitangent));
+		//// Tangents
+		//glEnableVertexAttribArray(3);
+		//glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(VertexData, Tangent));
+		//// Bitangents
+		//glEnableVertexAttribArray(4);
+		//glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(VertexData, Bitangent));
 
 		// Unbind VAO
 		glBindVertexArray(0);
@@ -120,8 +120,6 @@ namespace Borealis
 		shader->Set("u_ModelTransform", transform);
 		shader->Set("u_EntityID", entityID);
 
-		glDisable(GL_BLEND);
-		glEnable(GL_DEPTH_TEST);
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, (int)mIndices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);

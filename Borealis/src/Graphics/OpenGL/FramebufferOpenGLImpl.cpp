@@ -180,18 +180,4 @@ namespace Borealis
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	}
-
-	uint32_t OpenGLFrameBuffer::GetID()
-	{
-		return mRendererID;
-	}
-
-	void OpenGLFrameBuffer::Blit(uint32_t target, FrameBufferProperties const& prop)
-	{
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, mRendererID);
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, target);
-		//add others size
-		glBlitFramebuffer(0, 0, mProps.Width, mProps.Height, 0, 0, mProps.Width, mProps.Height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-		BOREALIS_CORE_ASSERT(glGetError() == GL_NO_ERROR, "Blit failed");
-	}
 }

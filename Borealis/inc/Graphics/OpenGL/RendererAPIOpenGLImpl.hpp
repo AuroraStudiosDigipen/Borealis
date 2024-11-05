@@ -98,6 +98,14 @@ namespace Borealis
 		*************************************************************************/
 		void SetLineThickness(const float& thickness) override;
 
+		void EnableBlend() override;
+
+		void DisableBlend() override;
+
+		void EnableDepthTest() override;
+
+		void DisableDepthTest() override;
+
 		void IgnoreNextError() override;
 
 		unsigned GetError(std::string const& errorMsg) override;

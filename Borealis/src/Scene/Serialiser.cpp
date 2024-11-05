@@ -349,8 +349,16 @@ namespace Borealis
 			auto wrappedType = propType.get_wrapped_type();
 			if (wrappedType.is_derived_from<Asset>())
 			{
-				out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<Ref<Asset>>()->mAssetHandle;
-				return true;
+				if (propType == rttr::type::get<Ref<Material>>())
+				{
+					out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<Ref<Material>>()->mAssetHandle;
+					return true;
+				}
+				if (propType == rttr::type::get<Ref<Model>>())
+				{
+					out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<Ref<Model>>()->mAssetHandle;
+					return true;
+				}
 			}
 		}
 
@@ -789,7 +797,8 @@ namespace Borealis
 
 			if (propType == rttr::type::get<Ref<Model>>())
 			{
-				prop.set_value(instance, rttr::variant(AssetManager::GetAsset<Model>(propData.as<uint64_t>())));
+				auto asset = AssetManager::GetAsset<Model>(propData.as<uint64_t>());
+				prop.set_value(instance, rttr::variant(asset));
 				return true;
 			}
 

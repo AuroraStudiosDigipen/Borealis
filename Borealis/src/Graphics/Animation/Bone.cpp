@@ -1,5 +1,7 @@
 #include <BorealisPCH.hpp>
+#include <Core/LoggerSystem.hpp>
 #include "Graphics/Animation/Bone.hpp"
+
 
 
 namespace Borealis
@@ -7,9 +9,9 @@ namespace Borealis
 	Bone::Bone(std::string const& name, int id, std::vector<KeyPosition> const& pos, std::vector<KeyRotation> const& rot, std::vector<KeyScale> const& scale)
 		: mName(name), mId(id), mLocalTransform(1.f), mPositions(pos), mRotations(rot), mScales(scale)
 	{
-		mNumPositions = pos.size();
-		mNumRotations = rot.size();
-		mNumScalings = scale.size();
+		mNumPositions = (int)pos.size();
+		mNumRotations = (int)rot.size();
+		mNumScalings =  (int)scale.size();
 	}
 
 	void Bone::Update(float animationTime)
@@ -27,6 +29,8 @@ namespace Borealis
 			if (animationTime < mPositions[i + 1].timeStamp)
 				return i;
 		}
+		BOREALIS_CORE_ASSERT(false, "Failed to find position");
+		return -1;
 	}
 
 	int Bone::GetRotationIndex(float animationTime)
@@ -36,6 +40,8 @@ namespace Borealis
 			if (animationTime < mRotations[i + 1].timeStamp)
 				return i;
 		}
+		BOREALIS_CORE_ASSERT(false, "Failed to find rotation");
+		return -1;
 	}
 
 	int Bone::GetScaleIndex(float animationTime)
@@ -45,6 +51,8 @@ namespace Borealis
 			if (animationTime < mScales[i + 1].timeStamp)
 				return i;
 		}
+		BOREALIS_CORE_ASSERT(false, "Failed to find scale");
+		return -1;
 	}
 
 	float Bone::GetScaleFactor(float lastTimeStamp, float nextTimeStamp, float animationTime)

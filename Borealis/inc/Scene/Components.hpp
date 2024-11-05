@@ -302,7 +302,7 @@ namespace Borealis
 	struct TextComponent
 	{
 		std::string text{};
-		uint32_t fontSize = 16;
+		uint32_t fontSize = 16; //change to float?
 		glm::vec4 colour{ 1.f,1.f,1.f,1.f };
 		Ref<Font> font;
 

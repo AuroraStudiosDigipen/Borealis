@@ -43,8 +43,8 @@ namespace Borealis
 	class Asset
 	{
 	public:
-		AssetHandle mAssetHandle;
-		AssetType mAssetType;
+		AssetHandle mAssetHandle{};
+		AssetType mAssetType{AssetType::None};
 
 		static AssetType GetAssetTypeFromExtention(std::filesystem::path path);
 		static std::string AssetTypeToString(AssetType type);

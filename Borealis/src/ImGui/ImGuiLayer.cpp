@@ -25,6 +25,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
 #include <ImGuizmo.h>
+
+#include <Graphics/RenderCommand.hpp>
 namespace Borealis
 { 
 	/*!***********************************************************************
@@ -160,6 +162,7 @@ namespace Borealis
 
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		RenderCommand::GetError({});
 
 		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{

@@ -99,6 +99,9 @@ namespace Borealis
 				The thickness of the line
 		*************************************************************************/
 		inline static void SetLineThickness(const float& thickness) { sRendererAPI->SetLineThickness(thickness); }
+
+		inline static void IgnoreNextError() { sRendererAPI->IgnoreNextError(); }
+		inline static unsigned GetError(std::string const& errorMsg) { return sRendererAPI->GetError(errorMsg); }
 	private:
 		static std::unique_ptr<RendererAPI> sRendererAPI; /*!< The Renderer API */
 	}; // class RenderCommand

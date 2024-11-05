@@ -277,6 +277,11 @@ namespace Borealis
 		mRenderGraph.SetGlobalSource(globalSource);
 	}
 
+	void Scene::ClearRenderGraph()
+	{
+		mRenderGraph.Init();
+	}
+
 	void Scene::UpdateEditor(float dt, EditorCamera& camera)
 	{
 		Renderer3D::Begin(camera);
@@ -288,8 +293,36 @@ namespace Borealis
 		Renderer2D::End();
 	}
 
-	void Scene::UpdateRenderer()
+	void Scene::UpdateRenderer(float dt)
 	{
+		//move to rendergraph
+		if (!mViewportFrameBuffer || !mRuntimeFrameBuffer || !mGFrameBuffer)
+		{
+			FrameBufferProperties props{ 1280, 720, false };
+			props.Attachments = { FramebufferTextureFormat::RGBA8,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
+			mViewportFrameBuffer = FrameBuffer::Create(props);
+
+			FrameBufferProperties propsRuntime{ 1280, 720, false };
+			propsRuntime.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RedInteger,FramebufferTextureFormat::Depth };
+			mRuntimeFrameBuffer = FrameBuffer::Create(propsRuntime);
+
+			FrameBufferProperties propsGBuffer{ 1280, 720, false };
+			propsGBuffer.Attachments =
+			{
+				FramebufferTextureFormat::RGBA16F,  // Albedo + Alpha
+				FramebufferTextureFormat::RedInteger,  // entity id
+				FramebufferTextureFormat::RGBA8,   // Normal + roughness
+				FramebufferTextureFormat::RGBA8,   // Specular + metallic
+				//FramebufferTextureFormat::RGB16F,   // Position
+				FramebufferTextureFormat::Depth     // Depth buffer
+			};
+			mGFrameBuffer = FrameBuffer::Create(propsGBuffer);
+
+			FrameBufferProperties propsShadowMapBuffer{ 2024, 2024,false };
+			propsShadowMapBuffer.Attachments = { FramebufferTextureFormat::Depth };
+			mShadowMapBuffer = FrameBuffer::Create(propsShadowMapBuffer);
+		}
+
 		Camera* mainCamera = nullptr;
 		glm::mat4 mainCameratransform(1.f);
 
@@ -334,7 +367,8 @@ namespace Borealis
 		mRenderGraph.Finalize();
 
 		mRenderGraph.SetFinalSink("BackBuffer", "Render2D.renderTarget"); //do i need it for immediate mode?
-		mRenderGraph.Execute();
+
+		mRenderGraph.Execute(dt);
 	}
 
 	Entity Scene::CreateEntity(const std::string& name)

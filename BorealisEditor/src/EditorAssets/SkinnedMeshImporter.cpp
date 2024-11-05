@@ -128,7 +128,7 @@ namespace Borealis
 		auto& boneDataMap = model.mBoneDataMap;
 		int& boneCount = model.mBoneCounter;
 
-		for (int boneIndex{}; boneIndex < mesh->mNumBones; ++boneIndex)
+		for (unsigned int boneIndex{}; boneIndex < mesh->mNumBones; ++boneIndex)
 		{
 			int boneId = -1;
 			std::string boneName = mesh->mBones[boneIndex]->mName.C_Str();

@@ -59,8 +59,8 @@ namespace Borealis
 
 		Ref<Animation> anim = MakeRef<Animation>();
 
-		anim->mDuration = animation->mDuration;
-		anim->mTicksPerSecond = animation->mTicksPerSecond;
+		anim->mDuration = (float)animation->mDuration;
+		anim->mTicksPerSecond = (float)animation->mTicksPerSecond;
 		ReadHierarchyData(anim->mRootNode, scene->mRootNode);
 		ReadBones(animation, anim);
 
@@ -71,10 +71,10 @@ namespace Borealis
 	{
 		unsigned numPositions = channel->mNumPositionKeys; //channel key pos
 
-		for (int positionIndex = 0; positionIndex < numPositions; ++positionIndex)
+		for (unsigned positionIndex = 0; positionIndex < numPositions; ++positionIndex)
 		{
 			aiVector3D aiPosition = channel->mPositionKeys[positionIndex].mValue;
-			float timeStamp = channel->mPositionKeys[positionIndex].mTime;
+			float timeStamp = (float)channel->mPositionKeys[positionIndex].mTime;
 			KeyPosition data;
 			data.position = GetGLMVec(aiPosition);
 			data.timeStamp = timeStamp;
@@ -82,10 +82,10 @@ namespace Borealis
 		}
 
 		unsigned numRotations = channel->mNumRotationKeys;
-		for (int rotationIndex = 0; rotationIndex < numRotations; ++rotationIndex)
+		for (unsigned rotationIndex = 0; rotationIndex < numRotations; ++rotationIndex)
 		{
 			aiQuaternion aiOrientation = channel->mRotationKeys[rotationIndex].mValue;
-			float timeStamp = channel->mRotationKeys[rotationIndex].mTime;
+			float timeStamp = (float)channel->mRotationKeys[rotationIndex].mTime;
 			KeyRotation data;
 			data.orientation = GetGLMQuat(aiOrientation);
 			data.timeStamp = timeStamp;
@@ -93,10 +93,10 @@ namespace Borealis
 		}
 
 		unsigned numScalings = channel->mNumScalingKeys;
-		for (int keyIndex = 0; keyIndex < numScalings; ++keyIndex)
+		for (unsigned keyIndex = 0; keyIndex < numScalings; ++keyIndex)
 		{
 			aiVector3D scale = channel->mScalingKeys[keyIndex].mValue;
-			float timeStamp = channel->mScalingKeys[keyIndex].mTime;
+			float timeStamp = (float)channel->mScalingKeys[keyIndex].mTime;
 			KeyScale data;
 			data.scale = GetGLMVec(scale);
 			data.timeStamp = timeStamp;
@@ -110,7 +110,7 @@ namespace Borealis
 		auto& boneDataMap = anim->mBoneDataMap;
 		unsigned boneCounter = 0;
 
-		for (int i{}; i < size; ++i)
+		for (unsigned i{}; i < size; ++i)
 		{
 			auto aiChannel = animation->mChannels[i];
 			std::string boneName = aiChannel->mNodeName.data; //channel name
@@ -130,7 +130,7 @@ namespace Borealis
 	{
 		auto& boneDataMap = model->mBoneDataMap;
 
-		for (int i{}; i < anim->mBones.size(); ++i)
+		for (size_t i{}; i < anim->mBones.size(); ++i)
 		{
 			Bone& bone = anim->mBones[i];
 			std::string boneName = bone.GetBoneName();
@@ -150,7 +150,7 @@ namespace Borealis
 		dest.transformation = ConvertMatrixtoGLM(src->mTransformation);
 		dest.childrenCount = src->mNumChildren;
 
-		for (int i{}; i < src->mNumChildren; ++i)
+		for (unsigned i{}; i < src->mNumChildren; ++i)
 		{
 			AssimpNodeData newData;
 			ReadHierarchyData(newData, src->mChildren[i]);

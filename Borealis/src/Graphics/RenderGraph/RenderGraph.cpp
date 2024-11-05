@@ -208,7 +208,7 @@ namespace Borealis
 		shader = shadow_shader;
 	}
 	
-	void Render3D::Execute()
+	void Render3D::Execute(float dt)
 	{
 		if (shader) shader->Bind();
 		
@@ -325,7 +325,7 @@ namespace Borealis
 
 					if (animatorComponent.animation)
 					{
-						animatorComponent.animator.UpdateAnimation(1.f / 60.f);
+						animatorComponent.animator.UpdateAnimation(dt);
 
 						shader->Bind();
 						if (skinnedMesh.SkinnnedModel->mAnimation)
@@ -366,7 +366,7 @@ namespace Borealis
 		if (shader) shader->Unbind();
 	}
 
-	void Render2D::Execute()
+	void Render2D::Execute(float dt)
 	{
 		if (shader) shader->Bind();
 		for (auto sink : sinkList)
@@ -431,7 +431,7 @@ namespace Borealis
 		//shader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_DeferredLighting.glsl");
 	}
 
-	void GeometryPass::Execute()
+	void GeometryPass::Execute(float dt)
 	{
 		if (shader) shader->Bind();
 		shader->Set("u_lightPass", false);
@@ -482,7 +482,7 @@ namespace Borealis
 		shader = s_shader;
 	}
 
-	void LightingPass::Execute()
+	void LightingPass::Execute(float dt)
 	{
 		if (shader) shader->Bind();
 		shader->Set("u_lightPass", true);
@@ -555,7 +555,7 @@ namespace Borealis
 		shader = shadow_shader;
 	}
 
-	void ShadowPass::Execute()
+	void ShadowPass::Execute(float dt)
 	{
 		shader->Bind();
 		shader->Set("shadowPass", true);
@@ -625,6 +625,8 @@ namespace Borealis
 
 		if (shadowMap)
 			shadowMap->Unbind();
+
+		shader->Unbind();
 	}
 
 	//========================================================================
@@ -637,10 +639,10 @@ namespace Borealis
 		mPassName = passName;
 
 		if(!s_shader)
-			s_shader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_DeferredLighting.glsl");
+			s_shader = Shader::Create("engineResources/Shaders/Renderer3D_DeferredLighting.glsl");
 
 		if (!shadow_shader)
-			shadow_shader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_Material.glsl");
+			shadow_shader = Shader::Create("engineResources/Shaders/Renderer3D_Material.glsl");
 	}
 
 	void RenderPassConfig::AddSinkLinkage(std::string sinkName, std::string sourceName)
@@ -674,7 +676,7 @@ namespace Borealis
 		renderPassList.push_back(pass);
 	}
 
-	void RenderGraph::Execute()
+	void RenderGraph::Execute(float dt)
 	{
 		for (auto pass : renderPassList) 
 		{
@@ -693,7 +695,7 @@ namespace Borealis
 				}
 			}
 			if (skipPass) continue;
-			pass->Execute();
+			pass->Execute(dt);
 		}
 	}
 

@@ -127,7 +127,7 @@ namespace Borealis
 		std::string passName;
 
 		void SetSinkLinkage(std::string sinkName, std::string sourceName);
-		virtual void Execute() = 0;
+		virtual void Execute(float dt) = 0;
 
 		void Bind();
 		void Unbind();
@@ -142,7 +142,7 @@ namespace Borealis
 	public:
 		EntityPass(std::string name) : RenderPass(name), registryPtr(nullptr) {};
 		void SetEntityRegistry(entt::registry& registry);
-		void Execute() override {};
+		void Execute(float dt) override {};
 
 		entt::registry* registryPtr;
 	};
@@ -151,14 +151,14 @@ namespace Borealis
 	{
 	public:
 		Render3D(std::string name);
-		void Execute() override;
+		void Execute(float dt) override;
 	};
 
 	class Render2D : public EntityPass
 	{
 	public:
 		Render2D(std::string name) : EntityPass(name) {};
-		void Execute() override;
+		void Execute(float dt) override;
 	};
 
 	class GeometryPass : public EntityPass
@@ -166,7 +166,7 @@ namespace Borealis
 	public:
 		GeometryPass(std::string name);
 
-		void Execute() override;
+		void Execute(float dt) override;
 	};
 
 	class LightingPass : public EntityPass
@@ -174,7 +174,7 @@ namespace Borealis
 	public:
 		LightingPass(std::string name);
 
-		void Execute() override;
+		void Execute(float dt) override;
 	};
 
 	class ShadowPass : public EntityPass
@@ -182,7 +182,7 @@ namespace Borealis
 	public:
 		ShadowPass(std::string name);
 
-		void Execute() override;
+		void Execute(float dt) override;
 	};
 
 	struct RenderPassConfig
@@ -217,7 +217,7 @@ namespace Borealis
 	public:
 		void Init();
 		void AddPass(Ref<RenderPass> pass);
-		void Execute();
+		void Execute(float dt);
 
 		void SetConfig(RenderGraphConfig renderGraphConfig);
 

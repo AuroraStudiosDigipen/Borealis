@@ -79,7 +79,7 @@ namespace Borealis {
 
 		SCPanel.SetContext(SceneManager::GetActiveScene());
 
-		mEditorCamera = EditorCamera(45.0f, 1.778f, 20.f, 1000.0f);
+		mEditorCamera = EditorCamera(60.0f, 1.778f, 0.3f, 1000.0f);
 		ScriptingSystem::InitCoreAssembly();
 		ResourceManager::Init();
 
@@ -122,6 +122,7 @@ namespace Borealis {
 			}
 		}
 
+
 		if (mViewportHovered)
 		{
 			mCamera.UpdateFn(dt);
@@ -150,26 +151,23 @@ namespace Borealis {
 			RenderGraphConfig dconfig;
 			RenderGraphConfig fconfig;
 
-			//deferred rendering
-			{
-				RenderPassConfig geometryPass(RenderPassType::Geometry, "geometricPass");
-				geometryPass.AddSinkLinkage("gBuffer", "gBuffer");
-				geometryPass.AddSinkLinkage("camera", "RunTimeCamera");
-				dconfig.AddPass(geometryPass);
+			//add global source to render graph
+			CameraSource editorCameraSource("EditorCamera", mEditorCamera);
+			dconfig.AddGlobalSource(MakeRef<CameraSource>(editorCameraSource));
 
-				RenderPassConfig lightingPass(RenderPassType::Lighting, "lightPass");
-				lightingPass.AddSinkLinkage("gBuffer", "geometricPass.gBuffer");
-				lightingPass.AddSinkLinkage("renderTarget", "RunTimeBuffer");
-				lightingPass.AddSinkLinkage("viewProj", "geometricPass.camera");
-				dconfig.AddPass(lightingPass);
-
-				//add render2d
-			}
+			CameraSource feditorCameraSource("EditorCamera", mEditorCamera);
+			fconfig.AddGlobalSource(MakeRef<CameraSource>(feditorCameraSource));
 
 			//forward rendering
 			{
+				RenderPassConfig shadowPass(RenderPassType::Shadow, "ShadowPass");
+				shadowPass.AddSinkLinkage("shadowMap", "ShadowMapBuffer");
+				shadowPass.AddSinkLinkage("camera", "RunTimeCamera");
+				fconfig.AddPass(shadowPass);
+
 				RenderPassConfig Render3D(RenderPassType::Render3D, "Render3D");
 				Render3D.AddSinkLinkage("renderTarget", "RunTimeBuffer");
+				Render3D.AddSinkLinkage("shadowMap", "ShadowPass.shadowMap");
 				Render3D.AddSinkLinkage("camera", "RunTimeCamera");
 				fconfig.AddPass(Render3D);
 
@@ -179,29 +177,7 @@ namespace Borealis {
 				fconfig.AddPass(Render2D);
 			}
 
-			CameraSource editorCameraSource("EditorCamera", mEditorCamera);
-			dconfig.AddGlobalSource(MakeRef<CameraSource>(editorCameraSource));			
-			
-			CameraSource feditorCameraSource("EditorCamera", mEditorCamera);
-			fconfig.AddGlobalSource(MakeRef<CameraSource>(feditorCameraSource));
-
-			//deferred rendering
-			{
-				RenderPassConfig editorGeometricPass(RenderPassType::Geometry, "editorGeometricPass");
-				editorGeometricPass.AddSinkLinkage("gBuffer", "gBuffer");
-				editorGeometricPass.AddSinkLinkage("camera", "EditorCamera");
-				dconfig.AddPass(editorGeometricPass);
-
-				RenderPassConfig editorLightPass(RenderPassType::Lighting, "editorLightPass");
-				editorLightPass.AddSinkLinkage("gBuffer", "editorGeometricPass.gBuffer");
-				editorLightPass.AddSinkLinkage("renderTarget", "EditorBuffer");
-				editorLightPass.AddSinkLinkage("viewProj", "editorGeometricPass.camera");
-				dconfig.AddPass(editorLightPass);
-
-				//add render2d
-			}
-
-			//forward rendering
+			//forward rendering editor
 			{
 				RenderPassConfig editorShadowPass(RenderPassType::Shadow, "editorShadowPass");
 				editorShadowPass.AddSinkLinkage("shadowMap", "ShadowMapBuffer");
@@ -220,12 +196,42 @@ namespace Borealis {
 				fconfig.AddPass(editorRender2D);
 			}
 
-			SceneManager::GetActiveScene()->SetRenderGraphConfig(fconfig);
+			//deferred rendering
+			{
+				RenderPassConfig geometryPass(RenderPassType::Geometry, "geometricPass");
+				geometryPass.AddSinkLinkage("gBuffer", "gBuffer");
+				geometryPass.AddSinkLinkage("camera", "RunTimeCamera");
+				dconfig.AddPass(geometryPass);
 
-			SceneManager::GetActiveScene()->UpdateRuntime(dt);
+				RenderPassConfig lightingPass(RenderPassType::Lighting, "lightPass");
+				lightingPass.AddSinkLinkage("gBuffer", "geometricPass.gBuffer");
+				lightingPass.AddSinkLinkage("renderTarget", "RunTimeBuffer");
+				lightingPass.AddSinkLinkage("viewProj", "geometricPass.camera");
+				dconfig.AddPass(lightingPass);
+
+				//add render2d
+			}
+
+			//deferred rendering editor
+			{
+				RenderPassConfig editorGeometricPass(RenderPassType::Geometry, "editorGeometricPass");
+				editorGeometricPass.AddSinkLinkage("gBuffer", "gBuffer");
+				editorGeometricPass.AddSinkLinkage("camera", "EditorCamera");
+				dconfig.AddPass(editorGeometricPass);
+
+				RenderPassConfig editorLightPass(RenderPassType::Lighting, "editorLightPass");
+				editorLightPass.AddSinkLinkage("gBuffer", "editorGeometricPass.gBuffer");
+				editorLightPass.AddSinkLinkage("renderTarget", "EditorBuffer");
+				editorLightPass.AddSinkLinkage("viewProj", "editorGeometricPass.camera");
+				dconfig.AddPass(editorLightPass);
+
+				//add render2d
+			}
+
+			SceneManager::GetActiveScene()->SetRenderGraphConfig(fconfig);
+			SceneManager::GetActiveScene()->UpdateRenderer(dt);	
 		}
 
-		SceneManager::GetActiveScene()->UpdateRenderer();
 
 		auto[mx,my] = ImGui::GetMousePos();
 		mx -= mViewportBounds[0].x;
@@ -252,6 +258,10 @@ namespace Borealis {
 			}
 		}
 		SceneManager::GetActiveScene()->GetEditorFB()->Unbind();
+
+		SceneManager::GetActiveScene()->UpdateRuntime(dt); //update physics, scripts and audio
+
+		//SceneManager::GetActiveScene()->GetEditorFB()->Blit(SceneManager::GetActiveScene()->GetRunTimeFB()->GetID(), SceneManager::GetActiveScene()->GetRunTimeFB()->GetProperties());
 	}
 
 	void EditorLayer::EventFn(Event& e)
@@ -498,6 +508,7 @@ namespace Borealis {
 				{
 					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropSceneItem"))
 					{
+						RenderCommand::IgnoreNextError();
 						AssetHandle data = *(const uint64_t*)payload->Data;
 						//const char* data= (const char*)payload->Data;
 						if (Project::GetProjectPath() != "")

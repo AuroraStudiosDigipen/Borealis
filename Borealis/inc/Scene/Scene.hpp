@@ -77,7 +77,7 @@ namespace Borealis
 		*************************************************************************/
 		void UpdateEditor(float dt, EditorCamera& camera);
 
-		void UpdateRenderer();
+		void UpdateRenderer(float dt);
 
 		/*!***********************************************************************
 			\brief
@@ -197,6 +197,8 @@ namespace Borealis
 		void SetRenderGraphConfig(RenderGraphConfig renderGraphConfig);
 
 		void AddRenderGraphGlobalSource(Ref<RenderSource> globalSource);
+
+		void ClearRenderGraph();
 	private:
 
 		/*!***********************************************************************
@@ -218,6 +220,7 @@ namespace Borealis
 
 		bool hasRuntimeStarted = false;
 
+		//render graph being in scene cause error with imgui when scene is changed, consider moving it out
 		Ref<FrameBuffer> mViewportFrameBuffer;
 		Ref<FrameBuffer> mRuntimeFrameBuffer;
 		Ref<FrameBuffer> mGFrameBuffer;

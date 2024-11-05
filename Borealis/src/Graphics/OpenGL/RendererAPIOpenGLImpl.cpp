@@ -58,4 +58,23 @@ namespace Borealis
 	{
 		glLineWidth(thickness);
 	}
+
+	void OpenGLRendererAPI::IgnoreNextError()
+	{
+		ignoreNextError = true;
+	}
+
+	unsigned OpenGLRendererAPI::GetError(std::string const& errorMsg)
+	{
+		unsigned err{};
+		err = glGetError();
+		if (ignoreNextError)
+			ignoreNextError = false;
+		else
+		{
+			BOREALIS_CORE_ASSERT(err == GL_NO_ERROR, errorMsg);
+		}
+
+		return err;
+	}
 }

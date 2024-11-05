@@ -98,6 +98,12 @@ namespace Borealis
 		*************************************************************************/
 		void SetLineThickness(const float& thickness) override;
 
+		void IgnoreNextError() override;
+
+		unsigned GetError(std::string const& errorMsg) override;
+
+	private:
+		bool ignoreNextError = false;
 	}; // class OpenGLRendererAPI
 } // namespace Borealis
 

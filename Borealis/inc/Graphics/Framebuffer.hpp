@@ -150,6 +150,9 @@ namespace Borealis
 		*************************************************************************/
 		virtual const FrameBufferProperties& GetProperties() const = 0;
 
+		virtual uint32_t GetID() = 0;
+		virtual void Blit(uint32_t target, FrameBufferProperties const& prop) = 0;
+
 		/*!***********************************************************************
 			\brief
 				Create a Frame Buffer depending on the Graphics API

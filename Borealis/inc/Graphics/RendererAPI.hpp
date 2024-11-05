@@ -108,6 +108,9 @@ namespace Borealis
 		*************************************************************************/
 		virtual void SetLineThickness(const float& thickness) = 0;
 
+		virtual void IgnoreNextError() = 0;
+		virtual unsigned GetError(std::string const& errorMsg) = 0;
+
 		/*!***********************************************************************
 			\brief
 				Get the API being used

@@ -313,6 +313,9 @@ namespace Borealis
 
 				if (!skinnedMesh.SkinnnedModel) continue;
 
+				shader->Bind();
+				shader->Set("u_HasAnimation", false);
+
 				if(registryPtr->storage<AnimatorComponent>().contains(entity))
 				{
 					AnimatorComponent& animatorComponent = registryPtr->get<AnimatorComponent>(entity);
@@ -327,7 +330,6 @@ namespace Borealis
 					{
 						animatorComponent.animator.UpdateAnimation(dt);
 
-						shader->Bind();
 						if (skinnedMesh.SkinnnedModel->mAnimation)
 						{
 							shader->Set("u_HasAnimation", true);
@@ -340,7 +342,6 @@ namespace Borealis
 						}
 					}
 				}
-
 
 				//Frustum frustum = ComputeFrustum(projMatrix * viewMatrix);
 				//BoundingSphere modelBoundingSphere = skinnedMesh.SKinnedModel->mBoundingSphere;

@@ -413,3 +413,6 @@ FodyWeavers.xsd
 !BorealisAssetCompiler/lib/ispc/build/
 !BorealisAssetCompiler/lib/ispc/dll/
 !BorealisAssetCompiler/lib/compressonator/build/
+!BorealisAssetCompiler/lib/MeshOptimizer/build/
+!BorealisAssetCompiler/lib/MeshOptimizer/build/Debug/
+!BorealisAssetCompiler/lib/MeshOptimizer/build/Release

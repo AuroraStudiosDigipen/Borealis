@@ -228,7 +228,7 @@ namespace Borealis {
 				//add render2d
 			}
 
-			SceneManager::GetActiveScene()->SetRenderGraphConfig(dconfig);
+			SceneManager::GetActiveScene()->SetRenderGraphConfig(fconfig);
 			SceneManager::GetActiveScene()->UpdateRenderer(dt);	
 		}
 

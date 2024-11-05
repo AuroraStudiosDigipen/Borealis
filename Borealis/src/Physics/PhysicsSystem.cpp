@@ -233,6 +233,8 @@ struct PhysicsSystemData
 };
 
 static PhysicsSystemData sData;
+static glm::vec3 minExtent, maxExtent;
+
 namespace Borealis
 {
 void PhysicsSystem::Init()
@@ -359,6 +361,115 @@ void PhysicsSystem::Init()
 		delete Factory::sInstance;
 	}
 
+	std::pair<glm::vec3, glm::vec3> PhysicsSystem::calculateBoundingVolume(const Model& model)
+	{
+		for (const auto& mesh : model.mMeshes)
+		{
+			for (const auto& vertex : mesh.GetVertices())
+			{
+				// Update min and max extents for each axis
+				minExtent.x = std::min(minExtent.x, vertex.Position.x);
+				minExtent.y = std::min(minExtent.y, vertex.Position.y);
+				minExtent.z = std::min(minExtent.z, vertex.Position.z);
+														   
+				maxExtent.x = std::max(maxExtent.x, vertex.Position.x);
+				maxExtent.y = std::max(maxExtent.y, vertex.Position.y);
+				maxExtent.z = std::max(maxExtent.z, vertex.Position.z);
+			}
+		}
+		return { minExtent, maxExtent };
+	}
+
+	glm::vec3 PhysicsSystem::calculateBoxSize(glm::vec3 minExtent, glm::vec3 maxExtent)
+	{
+		// Calculate the size of the box
+		return maxExtent - minExtent;
+	}
+
+	float PhysicsSystem::calculateSphereRadius(glm::vec3 minExtent, glm::vec3 maxExtent)
+	{
+		glm::vec3 dimensions = maxExtent - minExtent;
+		return glm::length(dimensions) / 2.0f;
+	}
+
+	std::pair<float, float> PhysicsSystem::calculateCapsuleDimensions(glm::vec3 minExtent, glm::vec3 maxExtent)
+	{
+		glm::vec3 dimensions = maxExtent - minExtent;
+		float radius = glm::length(glm::vec2(dimensions.x, dimensions.z)) / 2.0f;
+		float halfHeight = (dimensions.y - 2 * radius) / 2.0f;
+		return { radius, halfHeight };
+	}
+
+	void PhysicsSystem::addBody(glm::vec3 position, RigidBodyComponent& rigidbody, MeshFilterComponent& mesh) {
+		ShapeRefC shape;
+		ShapeSettings::ShapeResult shape_result;
+
+		// Calculate the bounding volume of the mesh
+		auto[minExtent1, maxExtent1] = calculateBoundingVolume(*mesh.Model);
+
+		switch (rigidbody.shape) {
+		case RigidBodyType::Box: {
+			// Create box shape settings
+			glm::vec3 size = calculateBoxSize(minExtent1, maxExtent1);
+			BoxShapeSettings box_shape_settings(Vec3(size.x, size.y, size.z));
+			box_shape_settings.SetEmbedded();
+			shape_result = box_shape_settings.Create();
+			shape = shape_result.Get();
+			break;
+		}
+		case RigidBodyType::Sphere: {
+			// Create sphere shape settings
+			float radius = rigidbody.radius; // Assuming size.x represents the radius for a sphere
+			SphereShapeSettings sphere_shape_settings(radius);
+			sphere_shape_settings.SetEmbedded();
+			shape_result = sphere_shape_settings.Create();
+			shape = shape_result.Get();
+			break;
+		}
+		case RigidBodyType::Capsule: {
+			// Create capsule shape settings
+			float radius = rigidbody.radius;     // Assuming size.x represents the radius for a capsule
+			float halfHeight = rigidbody.halfHeight; // Assuming size.y represents the half height for a capsule
+			CapsuleShapeSettings capsule_shape_settings(radius, halfHeight);
+			capsule_shape_settings.SetEmbedded();
+			shape_result = capsule_shape_settings.Create();
+			shape = shape_result.Get();
+			break;
+		}
+		default:
+			// Handle error for unsupported shape type
+			return;
+		}
+
+		if (!shape) {
+			// Handle error (e.g., failed to create shape)
+			return;
+		}
+
+		// Create the settings for the body itself, including other properties like restitution and friction
+		BodyCreationSettings body_settings(shape, RVec3(position.x, position.y, position.z), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
+		body_settings.mFriction = rigidbody.friction;
+		body_settings.mRestitution = rigidbody.bounciness;
+
+		if (rigidbody.dynamicBody) {
+			body_settings.mMotionType = EMotionType::Dynamic;
+			body_settings.mObjectLayer = Layers::MOVING;
+		}
+
+		// Create the actual rigid body
+		Body* body = sData.body_interface->CreateBody(body_settings); // Handle nullptr in a real scenario
+		if (!body) {
+			// Handle error (e.g., failed to create body)
+			return;
+		}
+
+		// Add it to the world
+		sData.body_interface->AddBody(body->GetID(), EActivation::Activate);
+
+		// Store the BodyID in the RigidBodyComponent
+		rigidbody.bodyID = body->GetID().GetIndexAndSequenceNumber();
+	}
+
 	void PhysicsSystem::addSquareBody(glm::vec3 size, glm::vec3 position, RigidBodyComponent& rigidbody) {
 
 		// Create the settings for the collision volume (the shape).
@@ -450,72 +561,6 @@ void PhysicsSystem::Init()
 
 		// Store the BodyID in the RigidBodyComponent
 		rigidbody.bodyID = capsule->GetID().GetIndexAndSequenceNumber();
-	}
-
-	void PhysicsSystem::addBody(glm::vec3 position, RigidBodyComponent& rigidbody) {
-		ShapeRefC shape;
-		ShapeSettings::ShapeResult shape_result;
-
-		switch (rigidbody.shape) {
-		case RigidBodyType::Box :{
-			// Create box shape settings
-			BoxShapeSettings box_shape_settings(Vec3(rigidbody.size.x, rigidbody.size.y, rigidbody.size.z));
-			box_shape_settings.SetEmbedded();
-			shape_result = box_shape_settings.Create();
-			shape = shape_result.Get();
-			break;
-		}
-		case RigidBodyType::Sphere: {
-			// Create sphere shape settings
-			float radius = rigidbody.radius; // Assuming size.x represents the radius for a sphere
-			SphereShapeSettings sphere_shape_settings(radius);
-			sphere_shape_settings.SetEmbedded();
-			shape_result = sphere_shape_settings.Create();
-			shape = shape_result.Get();
-			break;
-		}
-		case RigidBodyType::Capsule: {
-			// Create capsule shape settings
-			float radius = rigidbody.radius;     // Assuming size.x represents the radius for a capsule
-			float halfHeight = rigidbody.halfHeight; // Assuming size.y represents the half height for a capsule
-			CapsuleShapeSettings capsule_shape_settings(radius, halfHeight);
-			capsule_shape_settings.SetEmbedded();
-			shape_result = capsule_shape_settings.Create();
-			shape = shape_result.Get();
-			break;
-		}
-		default:
-			// Handle error for unsupported shape type
-			return;
-		}
-
-		if (!shape) {
-			// Handle error (e.g., failed to create shape)
-			return;
-		}
-
-		// Create the settings for the body itself, including other properties like restitution and friction
-		BodyCreationSettings body_settings(shape, RVec3(position.x, position.y, position.z), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
-		body_settings.mFriction = rigidbody.friction;
-		body_settings.mRestitution = rigidbody.bounciness;
-
-		if (rigidbody.dynamicBody) {
-			body_settings.mMotionType = EMotionType::Dynamic;
-			body_settings.mObjectLayer = Layers::MOVING;
-		}
-
-		// Create the actual rigid body
-		Body* body = sData.body_interface->CreateBody(body_settings); // Handle nullptr in a real scenario
-		if (!body) {
-			// Handle error (e.g., failed to create body)
-			return;
-		}
-
-		// Add it to the world
-		sData.body_interface->AddBody(body->GetID(), EActivation::Activate);
-
-		// Store the BodyID in the RigidBodyComponent
-		rigidbody.bodyID = body->GetID().GetIndexAndSequenceNumber();
 	}
 
 	void PhysicsSystem::UpdateSphereValues(RigidBodyComponent& rigidbody)

@@ -15,11 +15,14 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <BorealisPCH.hpp>
 #include <spdlog\sinks\stdout_color_sinks.h>
 #include <Core/LoggerSystem.hpp>
+#include <spdlog\sinks\ostream_sink.h>
 
 namespace Borealis 
 {
 	spdlog::logger* LoggerSystem::sEngineLogger;
 	spdlog::logger* LoggerSystem::sApplicationLogger;
+	std::ostringstream LoggerSystem::sOSS;
+
 
 	/*!***********************************************************************
 		\brief
@@ -36,6 +39,9 @@ namespace Borealis
 
 		sApplicationLogger = spdlog::stdout_color_mt("APP").get();
 		sApplicationLogger->set_level(level);
+
+		sApplicationLogger->sinks().push_back(std::make_shared<spdlog::sinks::ostream_sink_mt>(sOSS));
+		sEngineLogger->sinks().push_back(std::make_shared<spdlog::sinks::ostream_sink_mt>(sOSS));
 	}
 
 

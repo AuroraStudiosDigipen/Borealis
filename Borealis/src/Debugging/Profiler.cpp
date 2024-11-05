@@ -1,6 +1,6 @@
 /******************************************************************************/
 /*!
-\file		Profiler.hpp
+\file		Profiler.cpp
 \author 	Liu Chengrong
 \par    	email: chengrong.liu\@digipen.edu
 \date   	July 10, 2024

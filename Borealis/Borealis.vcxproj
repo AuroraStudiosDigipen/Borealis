@@ -187,6 +187,7 @@
     <ClInclude Include="inc\Core\UUID.hpp" />
     <ClInclude Include="inc\Core\Utils.hpp" />
     <ClInclude Include="inc\Core\WindowManager.hpp" />
+    <ClInclude Include="inc\Debugging\Console.hpp" />
     <ClInclude Include="inc\Debugging\Profiler.hpp" />
     <ClInclude Include="inc\Events\EventInput.hpp" />
     <ClInclude Include="inc\Events\EventWindow.hpp" />
@@ -786,6 +787,7 @@
     <ClCompile Include="src\Core\UUID.cpp" />
     <ClCompile Include="src\Core\Utils.cpp" />
     <ClCompile Include="src\Core\WindowManager.cpp" />
+    <ClCompile Include="src\Debugging\Console.cpp" />
     <ClCompile Include="src\Debugging\Profiler.cpp" />
     <ClCompile Include="src\Events\EventInput.cpp" />
     <ClCompile Include="src\Events\EventWindow.cpp" />

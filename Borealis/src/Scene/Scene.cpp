@@ -496,7 +496,7 @@ namespace Borealis
 		{
 			auto mesh = mRegistry.get<MeshFilterComponent>(entity);
 			auto [transform, rigidbody] = physicsGroup.get<TransformComponent, RigidBodyComponent>(entity);
-			PhysicsSystem::addBody(transform.Translate, rigidbody, mesh);
+			PhysicsSystem::addBody(transform, rigidbody, mesh);
 		}
 	}
 

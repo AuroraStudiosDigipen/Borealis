@@ -86,7 +86,7 @@ namespace Borealis
         * \param position The position of the body.
         * \param rigidbody The rigid body component of the body.
         */
-        static void addBody(glm::vec3 position, RigidBodyComponent& rigidbody, MeshFilterComponent& mesh);
+        static void addBody(TransformComponent& transform, RigidBodyComponent& rigidbody, MeshFilterComponent& mesh);
 
 		/**
    * \brief Updates the sphere values of the specified rigid body.
@@ -102,7 +102,7 @@ namespace Borealis
 		
 		static void FreeRigidBody(RigidBodyComponent& rigidbody);
 
-		static std::pair<glm::vec3,glm::vec3> calculateBoundingVolume(const Model& model);
+		static std::pair<glm::vec3,glm::vec3> calculateBoundingVolume(const Model& model, const TransformComponent& transform);
 
 		static glm::vec3 calculateBoxSize(glm::vec3 minExtent, glm::vec3 maxExtent);
 

@@ -233,7 +233,6 @@ struct PhysicsSystemData
 };
 
 static PhysicsSystemData sData;
-static glm::vec3 minExtent, maxExtent;
 
 namespace Borealis
 {
@@ -361,8 +360,10 @@ void PhysicsSystem::Init()
 		delete Factory::sInstance;
 	}
 
-	std::pair<glm::vec3, glm::vec3> PhysicsSystem::calculateBoundingVolume(const Model& model)
+	std::pair<glm::vec3, glm::vec3> PhysicsSystem::calculateBoundingVolume(const Model& model, const TransformComponent& transform)
 	{
+		glm::vec3 minExtent{}, maxExtent{};
+
 		for (const auto& mesh : model.mMeshes)
 		{
 			for (const auto& vertex : mesh.GetVertices())
@@ -377,7 +378,11 @@ void PhysicsSystem::Init()
 				maxExtent.z = std::max(maxExtent.z, vertex.Position.z);
 			}
 		}
-		return { minExtent, maxExtent };
+
+		cout << "Min Extent: " << minExtent.x << ", " << minExtent.y << ", " << minExtent.z << endl;
+		cout << "Max Extent: " << maxExtent.x << ", " << maxExtent.y << ", " << maxExtent.z << endl;
+
+		return { minExtent/2.f, maxExtent/2.f };
 	}
 
 	glm::vec3 PhysicsSystem::calculateBoxSize(glm::vec3 minExtent, glm::vec3 maxExtent)
@@ -400,12 +405,12 @@ void PhysicsSystem::Init()
 		return { radius, halfHeight };
 	}
 
-	void PhysicsSystem::addBody(glm::vec3 position, RigidBodyComponent& rigidbody, MeshFilterComponent& mesh) {
+	void PhysicsSystem::addBody(TransformComponent& transform, RigidBodyComponent& rigidbody, MeshFilterComponent& mesh) {
 		ShapeRefC shape;
 		ShapeSettings::ShapeResult shape_result;
 
 		// Calculate the bounding volume of the mesh
-		auto[minExtent1, maxExtent1] = calculateBoundingVolume(*mesh.Model);
+		auto[minExtent1, maxExtent1] = calculateBoundingVolume(*mesh.Model, transform);
 
 		switch (rigidbody.shape) {
 		case RigidBodyType::Box: {
@@ -419,7 +424,7 @@ void PhysicsSystem::Init()
 		}
 		case RigidBodyType::Sphere: {
 			// Create sphere shape settings
-			float radius = rigidbody.radius; // Assuming size.x represents the radius for a sphere
+			float radius = calculateSphereRadius(minExtent1,maxExtent1); // Assuming size.x represents the radius for a sphere
 			SphereShapeSettings sphere_shape_settings(radius);
 			sphere_shape_settings.SetEmbedded();
 			shape_result = sphere_shape_settings.Create();
@@ -447,7 +452,7 @@ void PhysicsSystem::Init()
 		}
 
 		// Create the settings for the body itself, including other properties like restitution and friction
-		BodyCreationSettings body_settings(shape, RVec3(position.x, position.y, position.z), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
+		BodyCreationSettings body_settings(shape, RVec3(transform.Translate.x, transform.Translate.y, transform.Translate.z), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
 		body_settings.mFriction = rigidbody.friction;
 		body_settings.mRestitution = rigidbody.bounciness;
 

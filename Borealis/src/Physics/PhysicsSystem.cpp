@@ -378,6 +378,8 @@ void PhysicsSystem::Init()
 				maxExtent.z = std::max(maxExtent.z, vertex.Position.z);
 			}
 		}
+		minExtent *= transform.Scale;
+		maxExtent *= transform.Scale;
 
 		cout << "Min Extent: " << minExtent.x << ", " << minExtent.y << ", " << minExtent.z << endl;
 		cout << "Max Extent: " << maxExtent.x << ", " << maxExtent.y << ", " << maxExtent.z << endl;

@@ -121,9 +121,12 @@ namespace Borealis
             .property("Quadratic", &LightComponent::quadratic)
             .property("Linear", &LightComponent::linear)
             .property("Offset", &LightComponent::offset)
+            .property("CastShadow", &LightComponent::castShadow)
             .property("Type", &LightComponent::type)
             .property("Direction", &LightComponent::direction)
             (metadata("Dependency", "Type"), metadata("Visible for", "Directional"))
+            .property("SpotLightDirection", &LightComponent::spotLightDirection)
+            (metadata("Dependency", "Type"), metadata("Visible for", "Spot"))
             .property("Inner Outer Spot", &LightComponent::InnerOuterSpot)
             (metadata("Dependency", "Type"), metadata("Visible for", "Spot"));
 
@@ -137,6 +140,18 @@ namespace Borealis
             .constructor<>()
             .property("Material", &MeshRendererComponent::Material)
             .property("Cast Shadow", &MeshRendererComponent::castShadow);
+
+        registration::class_<SkinnedMeshRendererComponent>("Skinned Mesh Renderer Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("Skinnned Model", &SkinnedMeshRendererComponent::SkinnnedModel)
+            .property("Material", &SkinnedMeshRendererComponent::Material);
+
+        registration::class_<AnimatorComponent>("Animator Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("Animation", &AnimatorComponent::animation)
+            .property("Animator", &AnimatorComponent::animator);
 
         registration::enumeration<RigidBodyType>("Rigidbody Collider Type")
             (
@@ -340,6 +355,8 @@ void Borealis::ComponentRegistry::SetPropertyInternal(const std::string& propert
     RegisterSetPropertyFunction(NativeScriptComponent);
     RegisterSetPropertyFunction(MeshFilterComponent);
     RegisterSetPropertyFunction(MeshRendererComponent);
+    RegisterSetPropertyFunction(SkinnedMeshRendererComponent);
+    RegisterSetPropertyFunction(AnimatorComponent);
     RegisterSetPropertyFunction(BoxColliderComponent);
     RegisterSetPropertyFunction(CapsuleColliderComponent);
     RegisterSetPropertyFunction(RigidBodyComponent);
@@ -353,6 +370,8 @@ void Borealis::ComponentRegistry::SetPropertyInternal(const std::string& propert
     RegisterCopyPropertyFunction(NativeScriptComponent);
     RegisterCopyPropertyFunction(MeshFilterComponent);
     RegisterCopyPropertyFunction(MeshRendererComponent);
+    RegisterCopyPropertyFunction(SkinnedMeshRendererComponent);
+    RegisterCopyPropertyFunction(AnimatorComponent);
     RegisterCopyPropertyFunction(BoxColliderComponent);
     RegisterCopyPropertyFunction(CapsuleColliderComponent);
     RegisterCopyPropertyFunction(RigidBodyComponent);

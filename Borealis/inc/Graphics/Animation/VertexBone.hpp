@@ -16,28 +16,37 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include <Core/Core.hpp>
 
-#define MAX_NUM_BONES_PER_VERTEX 4
+#define MAX_BONE_INFLUENCE 4
 
 namespace Borealis 
 {
 	struct VertexBoneData 
 	{
-		uint32_t mBoneIds[MAX_NUM_BONES_PER_VERTEX] = {};
-		float mWeights[MAX_NUM_BONES_PER_VERTEX] = {};
+		int32_t mBoneIds[MAX_BONE_INFLUENCE] = {};
+		float mWeights[MAX_BONE_INFLUENCE] = {};
 
 		VertexBoneData() {}
 
-		void AddBoneData(uint32_t boneid, float weight) {
+		void AddBoneData(int32_t boneid, float weight) {
 
-			for (uint32_t i{}; i < MAX_NUM_BONES_PER_VERTEX; ++i)
+			for (int32_t i{}; i < MAX_BONE_INFLUENCE; ++i)
 			{
-				if (mWeights[i] == 0.f)
+				if (mBoneIds[i] < 0)
 				{
 					mBoneIds[i] = boneid;
 					mWeights[i] = weight;
 					//printf("bone %d weight %f index %i\n", boneid, weight, i);
-					return;
+					break;
 				}
+			}
+		}
+
+		void ResetBoneData()
+		{
+			for (int i{}; i < MAX_BONE_INFLUENCE; ++i) 
+			{
+				mBoneIds[i] = -1;
+				mWeights[i] = 0.f;
 			}
 		}
 	};

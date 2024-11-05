@@ -407,6 +407,39 @@ namespace Borealis
 			}
 		}
 
+		if (propType == rttr::type::get<Ref<SkinnedModel>>())
+		{
+			ImGui::Button(propName.c_str());
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropMeshItem"))
+				{
+					AssetHandle data = *(const uint64_t*)payload->Data;
+					MeshConfig config = GetConfig<MeshConfig>(AssetManager::GetMetaData(data).Config);
+					if (!config.skinMesh) return;
+					rttr::variant value(AssetManager::GetAsset<SkinnedModel>(data));
+					Property.set_value(rInstance, value);
+				}
+				ImGui::EndDragDropTarget();
+			}
+		}
+
+		if (propType == rttr::type::get<Ref<Animation>>())
+		{
+			ImGui::Button(propName.c_str());
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropAnimationItem"))
+				{
+					AssetHandle data = *(const uint64_t*)payload->Data;
+
+					rttr::variant value(AssetManager::GetAsset<Animation>(data));
+					Property.set_value(rInstance, value);
+				}
+				ImGui::EndDragDropTarget();
+			}
+		}
+
 		if (propType == rttr::type::get<Ref<Material>>())
 		{
 			ImGui::Button(propName.c_str());
@@ -541,6 +574,132 @@ namespace Borealis
 					PhysicsSystem::FreeRigidBody(entity.GetComponent<RigidBodyComponent>());
 				}
 				entity.RemoveComponent<T>();
+			}
+		}
+	}
+
+	template<> //temp until idk
+	static void DrawComponentLayout<MeshRendererComponent>(const std::string& name, Entity entity, bool allowDelete)
+	{
+		if (entity.HasComponent<MeshRendererComponent>())
+		{
+			ImGui::Spacing();
+			auto& component = entity.GetComponent<MeshRendererComponent>();
+
+			bool deleteComponent = false;
+			bool open;
+
+			if (allowDelete)
+			{
+				auto ContentRegionAvailable = ImGui::GetContentRegionAvail();
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4,4 });
+				float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
+				ImGui::Separator();
+				open = ImGui::CollapsingHeader(name.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+				ImGui::PopStyleVar();
+				ImGui::SameLine(ContentRegionAvailable.x - lineHeight * 0.5f); // Align to right (Button)
+				if (ImGui::Button(("+##" + name).c_str(), ImVec2{ lineHeight,lineHeight }))
+				{
+					ImGui::OpenPopup(("ComponentSettingsPopup##" + name).c_str());
+				}
+
+
+				if (ImGui::BeginPopup(("ComponentSettingsPopup##" + name).c_str()))
+				{
+					if (ImGui::MenuItem("Remove Component"))
+					{
+						deleteComponent = true;
+					}
+
+					ImGui::EndPopup();
+				}
+			}
+			else
+			{
+				open = ImGui::CollapsingHeader(name.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+			}
+
+			if (open)
+			{
+				ImGui::Spacing();
+				DrawComponent(component);
+			}
+
+			if (deleteComponent)
+			{
+				if (typeid(MeshRendererComponent) == typeid(RigidBodyComponent))
+				{
+					PhysicsSystem::FreeRigidBody(entity.GetComponent<RigidBodyComponent>());
+				}
+				entity.RemoveComponent<MeshRendererComponent>();
+			}
+
+			if (component.Material)
+			{
+				MaterialEditor::RenderProperties(component.Material);
+			}
+		}
+	}
+
+	template<> //temp until idk
+	static void DrawComponentLayout<SkinnedMeshRendererComponent>(const std::string& name, Entity entity, bool allowDelete)
+	{
+		if (entity.HasComponent<SkinnedMeshRendererComponent>())
+		{
+			ImGui::Spacing();
+			auto& component = entity.GetComponent<SkinnedMeshRendererComponent>();
+
+			bool deleteComponent = false;
+			bool open;
+
+			if (allowDelete)
+			{
+				auto ContentRegionAvailable = ImGui::GetContentRegionAvail();
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4,4 });
+				float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
+				ImGui::Separator();
+				open = ImGui::CollapsingHeader(name.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+				ImGui::PopStyleVar();
+				ImGui::SameLine(ContentRegionAvailable.x - lineHeight * 0.5f); // Align to right (Button)
+				if (ImGui::Button(("+##" + name).c_str(), ImVec2{ lineHeight,lineHeight }))
+				{
+					ImGui::OpenPopup(("ComponentSettingsPopup##" + name).c_str());
+				}
+
+
+				if (ImGui::BeginPopup(("ComponentSettingsPopup##" + name).c_str()))
+				{
+					if (ImGui::MenuItem("Remove Component"))
+					{
+						deleteComponent = true;
+					}
+
+					ImGui::EndPopup();
+				}
+			}
+			else
+			{
+				open = ImGui::CollapsingHeader(name.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+			}
+
+			if (open)
+			{
+				ImGui::Spacing();
+				DrawComponent(component);
+			}
+
+			if (deleteComponent)
+			{
+				if (typeid(SkinnedMeshRendererComponent) == typeid(RigidBodyComponent))
+				{
+					PhysicsSystem::FreeRigidBody(entity.GetComponent<RigidBodyComponent>());
+				}
+				entity.RemoveComponent<SkinnedMeshRendererComponent>();
+			}
+
+			if (component.Material)
+			{
+				MaterialEditor::RenderProperties(component.Material);
 			}
 		}
 	}
@@ -1137,6 +1296,8 @@ namespace Borealis
 			SearchBar<CameraComponent>			(search_text, mSelectedEntity, "Camera", search_buffer);
 			SearchBar<MeshFilterComponent	  >(search_text, mSelectedEntity,"Mesh Filter", search_buffer);
 			SearchBar<MeshRendererComponent	  >(search_text, mSelectedEntity,"Mesh Renderer", search_buffer);
+			SearchBar<SkinnedMeshRendererComponent	  >(search_text, mSelectedEntity, "Skinned Mesh Renderer", search_buffer);
+			SearchBar<AnimatorComponent	  >(search_text, mSelectedEntity, "Animator", search_buffer);
 			SearchBar<BoxColliderComponent	  >(search_text, mSelectedEntity,"Box Collider", search_buffer);
 			SearchBar<CapsuleColliderComponent>(search_text, mSelectedEntity,"Capsule Collider", search_buffer);
 			SearchBar<RigidBodyComponent	  >(search_text, mSelectedEntity,"Rigidbody", search_buffer);
@@ -1178,6 +1339,8 @@ namespace Borealis
 		DrawComponentLayout<CameraComponent>("Camera", mSelectedEntity);
 		DrawComponentLayout<MeshFilterComponent>("Mesh Filter", mSelectedEntity);
 		DrawComponentLayout<MeshRendererComponent>("Mesh Renderer", mSelectedEntity);
+		DrawComponentLayout<SkinnedMeshRendererComponent>("Skinned Mesh Renderer", mSelectedEntity);
+		DrawComponentLayout<AnimatorComponent>("Animator", mSelectedEntity);
 		DrawComponentLayout<BoxColliderComponent>("Box Collider", mSelectedEntity);
 		DrawComponentLayout<CapsuleColliderComponent>("Capsule Collider", mSelectedEntity);
 		DrawComponentLayout<RigidBodyComponent>("Rigidbody", mSelectedEntity);

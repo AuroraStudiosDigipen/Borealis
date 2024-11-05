@@ -84,6 +84,8 @@ namespace Borealis
 		*************************************************************************/
 		inline void SetViewportSize(float width, float height) { mViewportWidth = width; mViewportHeight = height; UpdateProjection(); }
 
+		glm::vec2 GetViewPortSize() const override { return glm::vec2(mViewportWidth, mViewportHeight); }
+
 		/*!***********************************************************************
 			\brief
 				Get View Matrix of Editor Camera

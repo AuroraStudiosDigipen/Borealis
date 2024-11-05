@@ -51,7 +51,11 @@ namespace Borealis
 			inFile.read(reinterpret_cast<char*>(mesh.GetIndices().data()), indicesCount * sizeof(uint32_t));
 
 			mesh.SetupMesh();
+
+			mesh.GenerateRitterBoundingSphere();
 		}
+
+		GenerateRitterBoundingSphere();
 
 		inFile.close();
 	}
@@ -78,6 +82,44 @@ namespace Borealis
 		}
 
 		outFile.close();
+	}
+
+	void Model::GenerateRitterBoundingSphere()
+	{
+		if (mMeshes.empty()) return;
+
+		// Start with the bounding sphere of the first mesh
+		BoundingSphere modelSphere = mMeshes[0].GetBoundingSphere();
+
+		for (size_t i = 1; i < mMeshes.size(); ++i)
+		{
+			const BoundingSphere& meshSphere = mMeshes[i].GetBoundingSphere();
+
+			// Compute the distance between model sphere center and current mesh sphere center
+			glm::vec3 direction = meshSphere.Center - modelSphere.Center;
+			float distBetweenCenters = glm::length(direction);
+
+			// Check if the mesh sphere is already within the current model sphere
+			if (distBetweenCenters + meshSphere.Radius <= modelSphere.Radius)
+				continue;
+
+			// If the current model sphere fully encompasses the mesh sphere, skip
+			if (distBetweenCenters + modelSphere.Radius <= meshSphere.Radius)
+			{
+				modelSphere.Center = meshSphere.Center;
+				modelSphere.Radius = meshSphere.Radius;
+				continue;
+			}
+
+			// Expand model sphere to include the mesh sphere
+			float newRadius = (distBetweenCenters + modelSphere.Radius + meshSphere.Radius) / 2.0f;
+			glm::vec3 offset = direction / distBetweenCenters * (newRadius - modelSphere.Radius);
+
+			modelSphere.Center += offset;
+			modelSphere.Radius = newRadius;
+		}
+
+		mBoundingSphere = modelSphere;
 	}
 
 	

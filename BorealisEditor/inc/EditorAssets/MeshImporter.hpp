@@ -35,10 +35,6 @@ namespace Borealis
 	private:
 		static void ProcessNode(aiNode* node, const aiScene* scene, Model& model);
 		static Mesh ProcessMesh(aiMesh* mesh, const aiScene* scene);
-
-		static int GetBoneId(const aiBone* pBone);
-
-		static std::map<std::string, unsigned int> mBoneToIndexMap;
 	};
 }
 

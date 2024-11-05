@@ -18,7 +18,6 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <glm/glm.hpp>
 
 #include <Graphics/Shader.hpp>
-#include <Graphics/Animation/VertexBone.hpp>
 
 namespace Borealis
 {
@@ -26,7 +25,6 @@ namespace Borealis
 		glm::vec3 Position;
 		glm::vec3 Normal;
 		glm::vec2 TexCoords;
-		//VertexBoneData BoneData;
 
 	};
 
@@ -34,9 +32,17 @@ namespace Borealis
 	{
 		glm::vec3 Tangent;
 		glm::vec3 Bitangent;
-
-		VertexBoneData BoneData;
 	};
+
+
+	struct BoundingSphere
+	{
+		glm::vec3 Center;
+		float Radius;
+
+		void Transform(glm::mat4 const& transform);
+	};
+
 
 	class Mesh
 	{
@@ -62,7 +68,7 @@ namespace Borealis
 		*************************************************************************/
 		Mesh(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& texCoords);
 
-		Mesh(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& texCoords, const std::vector<VertexBoneData> boneData);
+		//Mesh(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& texCoords, const std::vector<VertexBoneData> boneData);
 
 		Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices);
 
@@ -90,6 +96,14 @@ namespace Borealis
 		*************************************************************************/
 		void Draw(const glm::mat4& transform, Ref<Shader> shader, int entityID);
 
+		void GenerateRitterBoundingSphere();
+
+		BoundingSphere GetBoundingSphere();
+
+		static void DrawQuad();
+
+
+
 		/*!***********************************************************************
 			\brief
 				Getters and setters
@@ -114,10 +128,14 @@ namespace Borealis
 		uint32_t mVerticesCount; // Number of vertices
 		uint32_t mIndicesCount; // Number of indices
 
+
 		unsigned int VAO, VBO, EBO;
 
+		BoundingSphere mBoundingSphere;
 
 		void ComputeTangents();
+
+		static unsigned int QuadVAO, QuadVBO;
 
 	}; // class Mesh
 } // namespace Borealis

@@ -23,6 +23,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/Texture.hpp>
 #include <Graphics/Mesh.hpp>
 #include <Graphics/Model.hpp>
+#include <Graphics/SkinnedModel.hpp>
+#include <Graphics/Animation/Animator.hpp>
 #include <Graphics/Material.hpp>
 #include <Graphics/Font.hpp>
 #include <AI/BehaviourTree/BehaviourTree.hpp>
@@ -156,6 +158,24 @@ namespace Borealis
 		MeshRendererComponent(const MeshRendererComponent&) = default;
 	};
 
+	struct SkinnedMeshRendererComponent
+	{
+		Ref<SkinnedModel> SkinnnedModel = nullptr;
+		Ref<Material>	  Material = nullptr;
+
+		SkinnedMeshRendererComponent() = default;
+		SkinnedMeshRendererComponent(const SkinnedMeshRendererComponent&) = default;
+	};
+
+	struct AnimatorComponent
+	{
+		Ref<Animation> animation = nullptr;
+		Animator animator{};
+
+		AnimatorComponent() = default;
+		AnimatorComponent(const AnimatorComponent&) = default;
+	};
+
 	// Move into appropraite file another time
 	class PhysicMaterial
 	{
@@ -283,11 +303,13 @@ namespace Borealis
 		//float Range = 10;
 		Type type = Type::Directional;
 		glm::vec3 direction = {0.0, -1.0, 0.0};
+		glm::vec3 spotLightDirection = { 0.0, -1.0, 0.0 };
 		glm::vec3 ambient = {0.4, 0.4, 0.4};
 		glm::vec3 diffuse = {1.f, 1.f, 1.f};
 		glm::vec3 specular = {1.f, 1.f, 1.f};
 		float linear = 0.05f;
 		float quadratic = 0.032f;
+		bool castShadow = false;
 		/*ShadowType shadowType = ShadowType::None;
 		LightAppearance lightAppearance = LightAppearance::Colour;*/
 	};
@@ -295,7 +317,7 @@ namespace Borealis
 	struct TextComponent
 	{
 		std::string text{};
-		uint32_t fontSize = 16;
+		uint32_t fontSize = 16; //change to float?
 		glm::vec4 colour{ 1.f,1.f,1.f,1.f };
 		Ref<Font> font;
 
@@ -346,6 +368,7 @@ namespace Borealis
 		AudioListenerComponent() = default;
 		AudioListenerComponent(const AudioListenerComponent&) = default;
 	};
+
 	struct BehaviourTreeComponent
 	{
 		std::unordered_set<Ref<BehaviourTree>> mBehaviourTrees;

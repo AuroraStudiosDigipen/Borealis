@@ -100,7 +100,7 @@ namespace Borealis
 			\param[in] index
 				The index of the texture
 		*************************************************************************/
-		static void AttachColorTexture(uint32_t id, int samples, unsigned internalformat, unsigned format, uint32_t width, uint32_t height, int index);
+		static void AttachColorTexture(uint32_t id, int samples, unsigned internalformat, unsigned format, unsigned type, uint32_t width, uint32_t height, int index);
 		
 		/*!***********************************************************************
 			\brief

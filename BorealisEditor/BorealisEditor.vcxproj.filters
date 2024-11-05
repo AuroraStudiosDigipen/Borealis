@@ -10,6 +10,9 @@
     <Filter Include="inc\Panels">
       <UniqueIdentifier>{9177982C-7D2F-DA79-E636-B3D5D20D756A}</UniqueIdentifier>
     </Filter>
+    <Filter Include="inc\RenderGraphEditor">
+      <UniqueIdentifier>{A71ADCED-1387-97E8-DC7A-2F4648A6B950}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src">
       <UniqueIdentifier>{2DAB880B-99B4-887C-2230-9F7C8E38947C}</UniqueIdentifier>
     </Filter>
@@ -19,8 +22,14 @@
     <Filter Include="src\Panels">
       <UniqueIdentifier>{DFE6F326-CB9E-3574-34A6-0ED0207DD064}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\RenderGraphEditor">
+      <UniqueIdentifier>{359DFA48-A109-B643-6AFD-4DA1D628D8AB}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="inc\EditorAssets\AnimationImporter.hpp">
+      <Filter>inc\EditorAssets</Filter>
+    </ClInclude>
     <ClInclude Include="inc\EditorAssets\AssetImporter.hpp">
       <Filter>inc\EditorAssets</Filter>
     </ClInclude>
@@ -57,6 +66,9 @@
     <ClInclude Include="inc\PrefabManager.hpp">
       <Filter>inc</Filter>
     </ClInclude>
+    <ClInclude Include="inc\RenderGraphEditor\RenderGraphNodeEditor.hpp">
+      <Filter>inc\RenderGraphEditor</Filter>
+    </ClInclude>
     <ClInclude Include="inc\ResourceManager.hpp">
       <Filter>inc</Filter>
     </ClInclude>
@@ -64,6 +76,9 @@
   <ItemGroup>
     <ClCompile Include="src\EditorApp.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\EditorAssets\AnimationImporter.cpp">
+      <Filter>src\EditorAssets</Filter>
     </ClCompile>
     <ClCompile Include="src\EditorAssets\AssetImporter.cpp">
       <Filter>src\EditorAssets</Filter>
@@ -97,6 +112,9 @@
     </ClCompile>
     <ClCompile Include="src\PrefabManager.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RenderGraphEditor\RenderGraphNodeEditor.cpp">
+      <Filter>src\RenderGraphEditor</Filter>
     </ClCompile>
     <ClCompile Include="src\ResourceManager.cpp">
       <Filter>src</Filter>

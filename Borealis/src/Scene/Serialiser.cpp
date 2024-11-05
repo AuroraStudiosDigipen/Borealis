@@ -422,6 +422,16 @@ namespace Borealis
 			SerializeComponent(out, entity.GetComponent<MeshRendererComponent>());
 		}
 
+		if (entity.HasComponent<SkinnedMeshRendererComponent>())
+		{
+			SerializeComponent(out, entity.GetComponent<SkinnedMeshRendererComponent>());
+		}
+
+		if (entity.HasComponent<AnimatorComponent>())
+		{
+			SerializeComponent(out, entity.GetComponent<AnimatorComponent>());
+		}
+
 		if (entity.HasComponent<BoxColliderComponent>())
 		{
 			SerializeComponent(out, entity.GetComponent<BoxColliderComponent>());
@@ -783,9 +793,21 @@ namespace Borealis
 				return true;
 			}
 
+			if (propType == rttr::type::get<Ref<SkinnedModel>>())
+			{
+				prop.set_value(instance, rttr::variant(AssetManager::GetAsset<SkinnedModel>(propData.as<uint64_t>())));
+				return true;
+			}
+
 			if (propType == rttr::type::get<Ref<Material>>())
 			{
 				prop.set_value(instance, rttr::variant(AssetManager::GetAsset<Material>(propData.as<uint64_t>())));
+				return true;
+			}
+
+			if (propType == rttr::type::get<Ref<Animation>>())
+			{
+				prop.set_value(instance, rttr::variant(AssetManager::GetAsset<Animation>(propData.as<uint64_t>())));
 				return true;
 			}
 
@@ -873,6 +895,8 @@ namespace Borealis
 				DeserialiseComponent<CameraComponent>(entity, loadedEntity);
 				DeserialiseComponent<MeshFilterComponent>(entity, loadedEntity);
 				DeserialiseComponent<MeshRendererComponent>(entity, loadedEntity);
+				DeserialiseComponent<SkinnedMeshRendererComponent>(entity, loadedEntity);
+				DeserialiseComponent<AnimatorComponent>(entity, loadedEntity);
 				DeserialiseComponent<BoxColliderComponent>(entity, loadedEntity);
 				DeserialiseComponent<CapsuleColliderComponent>(entity, loadedEntity);
 				DeserialiseComponent<RigidBodyComponent>(entity, loadedEntity);

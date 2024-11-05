@@ -79,7 +79,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;YAML_CPP_STATIC_DEFINE;_DEB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Borealis\lib\yaml-cpp\include;..\Borealis\lib\glm;inc;..\BorealisEditor\lib\assimp\include;..\BorealisEditor\lib\MSDF\Include;lib\stb_image;lib\ispc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Borealis\lib\yaml-cpp\include;..\Borealis\lib\glm;inc;..\BorealisEditor\lib\assimp\include;..\BorealisEditor\lib\MSDF\Include;lib\stb_image;lib\ispc;lib\compressonator;lib\MeshOptimizer\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -89,8 +89,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>ispc_texcomp.lib;lib\MSDF\Build\Debug\msdf-atlas-gen.lib;lib\MSDF\Build\Debug\msdfgen-core.lib;lib\MSDF\Build\Debug\msdfgen-ext.lib;lib\MSDF\Build\Debug\freetyped.lib;lib\MSDF\Build\Debug\libpng16d.lib;lib\MSDF\Build\Debug\bz2d.lib;lib\MSDF\Build\Debug\brotlidec.lib;lib\MSDF\Build\Debug\brotlicommon.lib;..\Borealis\lib\yaml-cpp\lib\Deb\yaml-cpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>lib\ispc\build;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ispc_texcomp.lib;Compressonator_MTd.lib;lib\MSDF\Build\Debug\msdf-atlas-gen.lib;lib\MSDF\Build\Debug\msdfgen-core.lib;lib\MSDF\Build\Debug\msdfgen-ext.lib;lib\MSDF\Build\Debug\freetyped.lib;lib\MSDF\Build\Debug\libpng16d.lib;lib\MSDF\Build\Debug\bz2d.lib;lib\MSDF\Build\Debug\brotlidec.lib;lib\MSDF\Build\Debug\brotlicommon.lib;lib\MeshOptimizer\Build\Debug\meshoptimizer.lib;..\Borealis\lib\yaml-cpp\lib\Deb\yaml-cpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>lib\ispc\build;lib\compressonator\build;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>copy /B /Y "..\BorealisAssetCompiler\lib\ispc\dll\ispc_texcomp.dll" "$(TargetDir)"</Command>
@@ -101,7 +101,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;YAML_CPP_STATIC_DEFINE;_REL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Borealis\lib\yaml-cpp\include;..\Borealis\lib\glm;inc;..\BorealisEditor\lib\assimp\include;..\BorealisEditor\lib\MSDF\Include;lib\stb_image;lib\ispc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Borealis\lib\yaml-cpp\include;..\Borealis\lib\glm;inc;..\BorealisEditor\lib\assimp\include;..\BorealisEditor\lib\MSDF\Include;lib\stb_image;lib\ispc;lib\compressonator;lib\MeshOptimizer\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -115,8 +115,8 @@
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>ispc_texcomp.lib;lib\MSDF\Build\Release\msdf-atlas-gen.lib;lib\MSDF\Build\Release\msdfgen-core.lib;lib\MSDF\Build\Release\msdfgen-ext.lib;lib\MSDF\Build\Release\freetype.lib;lib\MSDF\Build\Release\libpng16.lib;lib\MSDF\Build\Release\bz2.lib;lib\MSDF\Build\Release\brotlidec.lib;lib\MSDF\Build\Release\brotlicommon.lib;..\Borealis\lib\yaml-cpp\lib\Rel\yaml-cpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>lib\ispc\build;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ispc_texcomp.lib;Compressonator_MTd.lib;lib\MSDF\Build\Release\msdf-atlas-gen.lib;lib\MSDF\Build\Release\msdfgen-core.lib;lib\MSDF\Build\Release\msdfgen-ext.lib;lib\MSDF\Build\Release\freetype.lib;lib\MSDF\Build\Release\libpng16.lib;lib\MSDF\Build\Release\bz2.lib;lib\MSDF\Build\Release\brotlidec.lib;lib\MSDF\Build\Release\brotlicommon.lib;lib\MeshOptimizer\Build\Release\meshoptimizer.lib;..\Borealis\lib\yaml-cpp\lib\Rel\yaml-cpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>lib\ispc\build;lib\compressonator\build;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>copy /B /Y "..\BorealisAssetCompiler\lib\ispc\dll\ispc_texcomp.dll" "$(TargetDir)"</Command>
@@ -127,7 +127,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;YAML_CPP_STATIC_DEFINE;_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Borealis\lib\yaml-cpp\include;..\Borealis\lib\glm;inc;..\BorealisEditor\lib\assimp\include;..\BorealisEditor\lib\MSDF\Include;lib\stb_image;lib\ispc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Borealis\lib\yaml-cpp\include;..\Borealis\lib\glm;inc;..\BorealisEditor\lib\assimp\include;..\BorealisEditor\lib\MSDF\Include;lib\stb_image;lib\ispc;lib\compressonator;lib\MeshOptimizer\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -141,24 +141,32 @@
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>ispc_texcomp.lib;lib\MSDF\Build\Release\msdf-atlas-gen.lib;lib\MSDF\Build\Release\msdfgen-core.lib;lib\MSDF\Build\Release\msdfgen-ext.lib;lib\MSDF\Build\Release\freetype.lib;lib\MSDF\Build\Release\libpng16.lib;lib\MSDF\Build\Release\bz2.lib;lib\MSDF\Build\Release\brotlidec.lib;lib\MSDF\Build\Release\brotlicommon.lib;..\Borealis\lib\yaml-cpp\lib\Rel\yaml-cpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>lib\ispc\build;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ispc_texcomp.lib;Compressonator_MTd.lib;lib\MSDF\Build\Release\msdf-atlas-gen.lib;lib\MSDF\Build\Release\msdfgen-core.lib;lib\MSDF\Build\Release\msdfgen-ext.lib;lib\MSDF\Build\Release\freetype.lib;lib\MSDF\Build\Release\libpng16.lib;lib\MSDF\Build\Release\bz2.lib;lib\MSDF\Build\Release\brotlidec.lib;lib\MSDF\Build\Release\brotlicommon.lib;..\Borealis\lib\yaml-cpp\lib\Rel\yaml-cpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>lib\ispc\build;lib\compressonator\build;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>copy /B /Y "..\BorealisAssetCompiler\lib\ispc\dll\ispc_texcomp.dll" "$(TargetDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="inc\Importer\AnimationImporter.hpp" />
+    <ClInclude Include="inc\Importer\AssetConfigs.hpp" />
     <ClInclude Include="inc\Importer\AssetImporter.hpp" />
+    <ClInclude Include="inc\Importer\AssetStructs.hpp" />
     <ClInclude Include="inc\Importer\FontImporter.hpp" />
     <ClInclude Include="inc\Importer\MeshImporter.hpp" />
+    <ClInclude Include="inc\Importer\MeshOptimizer.hpp" />
+    <ClInclude Include="inc\Importer\SkinnedMeshImporter.hpp" />
     <ClInclude Include="inc\Importer\TextureImporter.hpp" />
     <ClInclude Include="inc\MetaSerializer.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Importer\AnimationImporter.cpp" />
     <ClCompile Include="src\Importer\AssetImporter.cpp" />
     <ClCompile Include="src\Importer\FontImporter.cpp" />
     <ClCompile Include="src\Importer\MeshImporter.cpp" />
+    <ClCompile Include="src\Importer\MeshOptimizer.cpp" />
+    <ClCompile Include="src\Importer\SkinnedMeshImporter.cpp" />
     <ClCompile Include="src\Importer\TextureImporter.cpp" />
     <ClCompile Include="src\MetaSerializer.cpp" />
     <ClCompile Include="src\main.cpp" />

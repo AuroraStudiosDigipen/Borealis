@@ -33,7 +33,7 @@ namespace Borealis
 	{
 		shader->Bind();
 		shader->Set("u_LightsCount", static_cast<int>(mLights.size()));
-		shader->Unbind();
+		//shader->Unbind();
 
 
 		for (int i{}; i < mLights.size(); ++i)

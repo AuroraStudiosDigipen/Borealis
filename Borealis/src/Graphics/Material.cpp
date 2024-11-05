@@ -107,6 +107,9 @@ namespace Borealis
 
     Material::Material(std::filesystem::path path)
     {
+        //temp until add to material meta config
+        mShader = Shader::GetDefault3DMaterialShader();
+
         YAML::Node data = YAML::LoadFile(path.string());
 
         mName = data["Name"].as<std::string>();
@@ -152,7 +155,7 @@ namespace Borealis
 
     Ref<Material> Material::CreateNewMaterial(std::filesystem::path const& path)
     {
-        Material material(Shader::Create("engineResources/Shaders/Renderer3D_Material.glsl"));
+        Material material(Shader::GetDefault3DMaterialShader());
         material.SerializeMaterial(path);
         return MakeRef<Material>(material);
     }

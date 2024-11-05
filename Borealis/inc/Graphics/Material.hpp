@@ -207,6 +207,8 @@ namespace Borealis
 		*************************************************************************/
 		std::unordered_map<Props, glm::vec2> GetPropertiesVec2() const { return mPropertiesVec2; }
 
+		Ref<Shader> GetShader() { return mShader; }
+
 		/*!***********************************************************************
 			\brief
 				Returns the texture map enums in strings

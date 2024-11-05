@@ -136,7 +136,7 @@ namespace Borealis
 
 	struct MeshRendererComponent
 	{
-		Ref<Material> Material;
+		Ref<Material> Material = nullptr;
 		bool castShadow = true;
 
 		MeshRendererComponent() = default;

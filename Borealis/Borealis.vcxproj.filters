@@ -322,6 +322,9 @@
     <ClInclude Include="inc\Graphics\Material.hpp">
       <Filter>inc\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Graphics\MaterialInstance.hpp">
+      <Filter>inc\Graphics</Filter>
+    </ClInclude>
     <ClInclude Include="inc\Graphics\Mesh.hpp">
       <Filter>inc\Graphics</Filter>
     </ClInclude>

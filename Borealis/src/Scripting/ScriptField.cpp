@@ -45,7 +45,7 @@ namespace Borealis
 	}
 	UUID ScriptField::GetGameObjectID(MonoObject* object) const
 	{
-		auto Method = mono_class_get_method_from_name(GetScriptClassUtils("GameObject")->GetMonoClass(), "GetInstanceID", 0);
+		auto Method = mono_class_get_method_from_name(GetScriptClassUtils("Object")->GetMonoClass(), "GetInstanceID", 0);
 		MonoObject* result = mono_runtime_invoke(Method, object, nullptr, nullptr);
 		uint64_t id = *reinterpret_cast<uint64_t*>(mono_object_unbox(result));
 

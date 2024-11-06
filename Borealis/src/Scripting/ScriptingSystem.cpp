@@ -99,6 +99,8 @@ namespace Borealis
 		ScriptingSystem::RegisterCSharpClass(ScriptClass("Borealis", "MonoBehaviour", assembly));
 		ScriptingSystem::RegisterCSharpClass(ScriptClass("Borealis", "Behaviour", assembly));
 		ScriptingSystem::RegisterCSharpClass(ScriptClass("Borealis", "GameObject", assembly));
+		ScriptingSystem::RegisterCSharpClass(ScriptClass("Borealis", "Object", assembly));
+
 
 		for (int32_t i = 0; i < numTypes; i++)
 		{

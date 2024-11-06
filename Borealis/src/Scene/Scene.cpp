@@ -547,6 +547,27 @@ namespace Borealis
 		//}
 	}
 
+	template <>
+	static void CopyComponent<ScriptComponent>(Entity dst, Entity src)
+	{
+		if (src.HasComponent<ScriptComponent>())
+			dst.AddOrReplaceComponent<ScriptComponent>(src.GetComponent<ScriptComponent>());
+
+
+		// Initialize details
+		auto& dstScriptComponent = dst.GetComponent<ScriptComponent>();
+		auto& srcScriptComponent = src.GetComponent<ScriptComponent>();
+
+		for (auto dstIT = dstScriptComponent.mScripts.begin(), srcIT = srcScriptComponent.mScripts.begin(); dstIT != dstScriptComponent.mScripts.end(); srcIT++, dstIT++)
+		{
+			auto scriptKlass = srcIT->second->GetScriptClass();
+			for (auto property : scriptKlass->mFields)
+			{
+				dstIT->second->SetFieldValue(property.first, srcIT->second->GetFieldValue<MonoObject*>(property.first));
+			}
+		}
+	}
+
 	void Scene::DuplicateEntity(Entity entity)
 	{
 		std::string name = entity.GetName();
@@ -623,13 +644,26 @@ namespace Borealis
 
 			auto& newScriptComponent = dst.emplace<ScriptComponent>(dstEntity);
 
-
 			for (auto script : srcComponent.mScripts)
 			{
 				Ref<ScriptInstance> newScript = MakeRef<ScriptInstance>(script.second->GetScriptClass());
 				newScript->Init(uuid);
 				newScriptComponent.AddScript(script.first, newScript);
 			}
+
+			// Initialize details
+			auto& dstScriptComponent = newScriptComponent;
+			auto& srcScriptComponent = srcComponent;
+
+			for (auto dstIT = dstScriptComponent.mScripts.begin(), srcIT = srcScriptComponent.mScripts.begin(); dstIT != dstScriptComponent.mScripts.end(); srcIT++, dstIT++)
+			{
+				auto scriptKlass = srcIT->second->GetScriptClass();
+				for (auto property : scriptKlass->mFields)
+				{
+					dstIT->second->SetFieldValue(property.first, srcIT->second->GetFieldValue<MonoObject*>(property.first));
+				}
+			}
+
 		}
 	}
 

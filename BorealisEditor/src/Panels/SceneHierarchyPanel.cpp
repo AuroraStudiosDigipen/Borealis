@@ -880,7 +880,7 @@ namespace Borealis
 			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.16f, 0.34f, 0.63f, 1.f));
 
 		if (!entity.IsActive())
-			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.2f, 0.2f, 0.2f, 1.f));
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.2f, 0.2f, 0.2f, 0.4f));
 
 		bool opened = ImGui::TreeNodeEx((void*)entityID, flags, tag.c_str());
 		if (ImGui::BeginDragDropTarget()) {
@@ -1012,13 +1012,16 @@ namespace Borealis
 				if (Data)
 				{
 					auto currentEntityID = field.GetGameObjectID(Data);
-					currentEntityName = SceneManager::GetActiveScene()->GetEntityByUUID(currentEntityID).GetName();
+					if (currentEntityID != 0)
+					{
+						currentEntityName = SceneManager::GetActiveScene()->GetEntityByUUID(currentEntityID).GetName();
+					}
 				}
 				else
 				{
 					// call the constructor
 					InitGameObject(Data, 0);
-
+					component->SetFieldValue(name, Data);
 				}
 
 				if (ImGui::BeginCombo(name.c_str(), currentEntityName.c_str()))
@@ -1032,6 +1035,7 @@ namespace Borealis
 							currentEntityName = entityNames[i];
 							UUID entityID = ID;
 							InitGameObject(Data, entityID);
+							component->SetFieldValue(name, Data);
 						}
 						if (isSelected)
 						{
@@ -1048,12 +1052,11 @@ namespace Borealis
 					{
 						UUID data = *(const uint64_t*)payload->Data;
 						InitGameObject(Data, data);
+						component->SetFieldValue(name, Data);
 						// Init game object
 					}
 					ImGui::EndDragDropTarget();
 				}
-
-				ImGui::Text(name.c_str());
 
 			}
 			if (field.isMonoBehaviour())
@@ -1113,7 +1116,6 @@ namespace Borealis
 					ImGui::EndDragDropTarget();
 				}
 
-				ImGui::Text(name.c_str());
 			}
 			if (field.mType == ScriptFieldType::Bool)
 			{

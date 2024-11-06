@@ -287,20 +287,20 @@ namespace Borealis
 			}
 		}
 
-		// Pre-Render
-		if (mainCamera)
-		{
-			auto viewMatrix = glm::inverse(mainCameratransform);
-			auto projectionMatrix = mainCamera->GetProjectionMatrix();
-			auto ProjectionViewMatrix = projectionMatrix * viewMatrix;
-			Renderer3D::Begin(ProjectionViewMatrix);
-			Render3DPass();
-			Renderer3D::End();
+		//// Pre-Render
+		//if (mainCamera)
+		//{
+		//	auto viewMatrix = glm::inverse(mainCameratransform);
+		//	auto projectionMatrix = mainCamera->GetProjectionMatrix();
+		//	auto ProjectionViewMatrix = projectionMatrix * viewMatrix;
+		//	Renderer3D::Begin(ProjectionViewMatrix);
+		//	Render3DPass();
+		//	Renderer3D::End();
 
-			Renderer2D::Begin(ProjectionViewMatrix);
-			Render2DPass();
-			Renderer2D::End();
-		}
+		//	Renderer2D::Begin(ProjectionViewMatrix);
+		//	Render2DPass();
+		//	Renderer2D::End();
+		//}
 		
 
 		//Audio

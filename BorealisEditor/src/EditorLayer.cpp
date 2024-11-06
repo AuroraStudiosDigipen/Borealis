@@ -518,12 +518,14 @@ namespace Borealis {
 							AssetMetaData assetMeta = AssetManager::GetMetaData(data);
 							//OpenScene(sceneName.c_str());
 							OpenScene(assetMeta.SourcePath.string().c_str());
+							hasRuntimeCamera = false;
 						}
 						else
 						{
 							std::string sceneName = "assets/";
 							sceneName += std::to_string(data);
 							OpenScene(sceneName.c_str());
+							hasRuntimeCamera = false;
 						}
 					}
 
@@ -1003,6 +1005,7 @@ namespace Borealis {
 			std::string assetsPath = Project::GetProjectPath() + "\\Assets";
 			CBPanel.SetCurrDir(assetsPath);
 			DeserialiseEditorScene();
+			hasRuntimeCamera = false;
 			// Clear Scenes in Scene Manager
 			// Clear Assets in Assets Manager
 			// Load Scenes in Assets Manager

@@ -537,14 +537,14 @@ namespace Borealis
 		if (src.HasComponent<RigidBodyComponent>())
 			dst.AddOrReplaceComponent<RigidBodyComponent>(src.GetComponent<RigidBodyComponent>());
 
-		if ((bool)dst.GetComponent<RigidBodyComponent>().isBox)
-		{
-			PhysicsSystem::UpdateBoxValues(dst.GetComponent<RigidBodyComponent>());
-		}
-		else
-		{
-			PhysicsSystem::UpdateSphereValues(dst.GetComponent<RigidBodyComponent>());
-		}
+		//if ((bool)dst.GetComponent<RigidBodyComponent>().isBox)
+		//{
+		//	PhysicsSystem::UpdateBoxValues(dst.GetComponent<RigidBodyComponent>());
+		//}
+		//else
+		//{
+		//	PhysicsSystem::UpdateSphereValues(dst.GetComponent<RigidBodyComponent>());
+		//}
 	}
 
 	void Scene::DuplicateEntity(Entity entity)
@@ -570,6 +570,14 @@ namespace Borealis
 		CopyComponent<AudioListenerComponent>(newEntity, entity);
 		CopyComponent<ScriptComponent>(newEntity, entity);
 		CopyComponent<BehaviourTreeComponent>(newEntity, entity);
+
+		auto& tc = newEntity.GetComponent<TransformComponent>();
+		if (tc.ParentID)
+		{
+			auto parent = GetEntityByUUID(tc.ParentID);
+			auto& parentTC = parent.GetComponent<TransformComponent>();
+			parentTC.ChildrenID.insert(newEntity.GetComponent<IDComponent>().ID);
+		}
 	}
 
 	void Scene::ResizeViewport(const uint32_t& width, const uint32_t& height)

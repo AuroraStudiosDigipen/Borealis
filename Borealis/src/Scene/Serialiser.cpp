@@ -359,6 +359,11 @@ namespace Borealis
 					out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<Ref<Model>>()->mAssetHandle;
 					return true;
 				}
+				if (propType == rttr::type::get<Ref<SkinnedModel>>())
+				{
+					out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<Ref<SkinnedModel>>()->mAssetHandle;
+					return true;
+				}
 			}
 		}
 
@@ -394,7 +399,7 @@ namespace Borealis
 	static void SerializeEntity(YAML::Emitter& out, Entity& entity)
 	{
 		out << YAML::BeginMap;
-		out << YAML::Key << "EntityID" << YAML::Value << entity.GetUUID();
+		out << YAML::Key << "EntityID" << YAML::Value << entity.GetComponent<IDComponent>().ID;
 		if (entity.HasComponent<TagComponent>())
 		{
 			SerializeComponent(out, entity.GetComponent<TagComponent>());

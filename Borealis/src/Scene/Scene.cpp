@@ -700,15 +700,9 @@ namespace Borealis
 		auto physicsGroup = mRegistry.group<>(entt::get<TransformComponent, RigidBodyComponent>);
 		for (auto entity : physicsGroup)
 		{
+			auto mesh = mRegistry.get<MeshFilterComponent>(entity);
 			auto [transform, rigidbody] = physicsGroup.get<TransformComponent, RigidBodyComponent>(entity);
-			if (rigidbody.isBox == RigidBodyType::Box)
-			{
-				PhysicsSystem::addSquareBody(rigidbody.radius, transform.Translate, rigidbody);
-			}
-			else
-			{
-				PhysicsSystem::addSphereBody(rigidbody.radius, transform.Translate, rigidbody);
-			}
+			PhysicsSystem::addBody(transform, rigidbody, mesh);
 		}
 	}
 

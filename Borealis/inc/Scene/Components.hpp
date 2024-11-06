@@ -243,16 +243,20 @@ namespace Borealis
 	enum class RigidBodyType : int
 	{
 		Box,
-		Circle
+		Sphere,
+		Capsule
 	};
+
 	struct RigidBodyComponent
 	{
 
-		RigidBodyType isBox = RigidBodyType::Box;
-		float radius = 1.5f; //radius for circle, side for cube
-
-		
-
+		RigidBodyType shape = RigidBodyType::Box;
+		float radius = 1.5f; //radius for circle
+		glm::vec3 size = { 1.f,1.f,1.f }; //size for box
+		float halfHeight = 1.f; //half height for capsule
+		float friction = 0.5f;
+		float bounciness = 0.5f;
+		bool dynamicBody = false;
 		// not serialised
 		unsigned int bodyID = 0;
 		//glm::vec3 velocity = { 0,0,0 };

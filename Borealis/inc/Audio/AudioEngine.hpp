@@ -160,6 +160,8 @@ namespace Borealis
         *************************************************************************/
         bool IsPlaying(int nChannelId) const;
 
+        void SetListenerPosition(const Vector3& position, const Vector3& forward, const Vector3& up);
+
         /*!***********************************************************************
         \brief
             Converts a decibel value to a linear volume scale.

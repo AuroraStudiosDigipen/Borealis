@@ -149,48 +149,36 @@ namespace Borealis
     {
         int nChannelId = sgpImplementation->mnNextChannelId++;
 
-        // Load the sound if it hasn't been loaded yet
-        
-        //auto tFoundIt = sgpImplementation->mSounds.find(strSoundName);
-        //if (tFoundIt == sgpImplementation->mSounds.end())
-        //{
-        //    AudioEngine::LoadAudio(strSoundName, true, bLoop);  // Load with loop if needed
-        //    tFoundIt = sgpImplementation->mSounds.find(strSoundName);
-        //    if (tFoundIt == sgpImplementation->mSounds.end())
-        //    {
-        //        return -1;  // Error: Sound not found or failed to load
-        //    }
-        //}
         FMOD::Sound* fmodSound = audio.audio->audioPtr;
-        if (!fmodSound)
-        {
-            return -1;
-        }
+        if (!fmodSound) return -1;
 
         FMOD::Channel* pChannel = nullptr;
         ErrorCheck(sgpImplementation->mpSystem->playSound(fmodSound, nullptr, true, &pChannel));
 
         if (pChannel)
         {
+            // Check if the sound is in 3D mode
             FMOD_MODE currMode;
             fmodSound->getMode(&currMode);
             if (currMode & FMOD_3D)
             {
-                FMOD_VECTOR position = VectorToFmod(vPosition);
-                ErrorCheck(pChannel->set3DAttributes(&position, nullptr));
+                FMOD_VECTOR fmodPosition = VectorToFmod(vPosition);
+                FMOD_VECTOR fmodVelocity = { 0.0f, 0.0f, 0.0f };  // Set velocity if the sound is moving
+
+                // Set the 3D attributes for the sound
+                ErrorCheck(pChannel->set3DAttributes(&fmodPosition, &fmodVelocity));
             }
 
-            // Set the volume, mute, and loop properties
+            // Other settings (volume, mute, etc.)
             ErrorCheck(pChannel->setVolume(dbToVolume(fVolumedB)));
             ErrorCheck(pChannel->setPaused(false));
-            ErrorCheck(pChannel->setMute(bMute));  // Mute the sound if necessary
-            ErrorCheck(pChannel->setMode(bLoop ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF));  // Set loop mode
+            ErrorCheck(pChannel->setMute(bMute));
+            ErrorCheck(pChannel->setMode(bLoop ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF));
 
-            // Store the channel in the channel map
             sgpImplementation->mChannels[nChannelId] = pChannel;
         }
 
-        return nChannelId;  // Return the channel ID for tracking
+        return nChannelId;
     }
 
     bool AudioEngine::isSoundPlaying(int nChannelId)
@@ -248,6 +236,14 @@ namespace Borealis
         ErrorCheck(tFoundIt->second->setVolume(dbToVolume(fVolumedB)));
     }
 
+    void AudioEngine::SetListenerPosition(const Vector3& position, const Vector3& forward, const Vector3& up)
+    {
+        FMOD_VECTOR pos = VectorToFmod(position);
+        FMOD_VECTOR fwd = VectorToFmod(forward);
+        FMOD_VECTOR upVec = VectorToFmod(up);
+
+        ErrorCheck(sgpImplementation->mpSystem->set3DListenerAttributes(0, &pos, nullptr, &fwd, &upVec));
+    }
   
     float AudioEngine::dbToVolume(float dB)
     {

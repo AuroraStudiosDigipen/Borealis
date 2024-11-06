@@ -414,6 +414,10 @@ void PhysicsSystem::Init()
 		// Calculate the bounding volume of the mesh
 		auto[minExtent1, maxExtent1] = calculateBoundingVolume(*mesh.Model, transform);
 
+		glm::vec3 centerBoundingVolume = (minExtent1 + maxExtent1) * 0.5f;
+
+		glm::vec3 centerOffset = transform.Translate - centerBoundingVolume;
+
 		switch (rigidbody.shape) {
 		case RigidBodyType::Box: {
 			// Create box shape settings
@@ -454,7 +458,7 @@ void PhysicsSystem::Init()
 		}
 
 		// Create the settings for the body itself, including other properties like restitution and friction
-		BodyCreationSettings body_settings(shape, RVec3(transform.Translate.x, transform.Translate.y, transform.Translate.z), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
+		BodyCreationSettings body_settings(shape, RVec3(transform.Translate.x+centerOffset.x, transform.Translate.y+centerOffset.y, transform.Translate.z+centerOffset.z), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
 		body_settings.mFriction = rigidbody.friction;
 		body_settings.mRestitution = rigidbody.bounciness;
 

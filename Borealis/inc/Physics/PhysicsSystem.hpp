@@ -102,7 +102,7 @@ namespace Borealis
 		
 		static void FreeRigidBody(RigidBodyComponent& rigidbody);
 
-		static std::pair<glm::vec3,glm::vec3> calculateBoundingVolume(const Model& model, const TransformComponent& transform);
+		static void calculateBoundingVolume(const Model& model, TransformComponent& transform);
 
 		static glm::vec3 calculateBoxSize(glm::vec3 minExtent, glm::vec3 maxExtent);
 

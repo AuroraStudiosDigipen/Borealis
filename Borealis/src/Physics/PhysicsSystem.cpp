@@ -360,7 +360,7 @@ void PhysicsSystem::Init()
 		delete Factory::sInstance;
 	}
 
-	std::pair<glm::vec3, glm::vec3> PhysicsSystem::calculateBoundingVolume(const Model& model, const TransformComponent& transform)
+	void PhysicsSystem::calculateBoundingVolume(const Model& model, TransformComponent& transform)
 	{
 		glm::vec3 minExtent{}, maxExtent{};
 
@@ -378,13 +378,19 @@ void PhysicsSystem::Init()
 				maxExtent.z = std::max(maxExtent.z, vertex.Position.z);
 			}
 		}
-		minExtent *= transform.Scale;
-		maxExtent *= transform.Scale;
+		minExtent *= transform.Scale * 0.5f;
+		maxExtent *= transform.Scale * 0.5f;
 
-		cout << "Min Extent: " << minExtent.x << ", " << minExtent.y << ", " << minExtent.z << endl;
-		cout << "Max Extent: " << maxExtent.x << ", " << maxExtent.y << ", " << maxExtent.z << endl;
+		transform.minExtent = minExtent;
+		transform.maxExtent = maxExtent;
 
-		return { minExtent/2.f, maxExtent/2.f };
+		glm::vec3 boundingVolumeCenter = (minExtent + maxExtent) * 0.5f;
+
+		transform.offset = transform.Translate - boundingVolumeCenter;
+
+		/*cout << "Min Extent: " << minExtent.x << ", " << minExtent.y << ", " << minExtent.z << endl;
+		cout << "Max Extent: " << maxExtent.x << ", " << maxExtent.y << ", " << maxExtent.z << endl;*/
+
 	}
 
 	glm::vec3 PhysicsSystem::calculateBoxSize(glm::vec3 minExtent, glm::vec3 maxExtent)
@@ -411,17 +417,12 @@ void PhysicsSystem::Init()
 		ShapeRefC shape;
 		ShapeSettings::ShapeResult shape_result;
 
-		// Calculate the bounding volume of the mesh
-		auto[minExtent1, maxExtent1] = calculateBoundingVolume(*mesh.Model, transform);
-
-		glm::vec3 centerBoundingVolume = (minExtent1 + maxExtent1) * 0.5f;
-
-		glm::vec3 centerOffset = transform.Translate - centerBoundingVolume;
+		calculateBoundingVolume(*mesh.Model, transform);
 
 		switch (rigidbody.shape) {
 		case RigidBodyType::Box: {
 			// Create box shape settings
-			glm::vec3 size = calculateBoxSize(minExtent1, maxExtent1);
+			glm::vec3 size = calculateBoxSize(transform.minExtent, transform.maxExtent);
 			BoxShapeSettings box_shape_settings(Vec3(size.x, size.y, size.z));
 			box_shape_settings.SetEmbedded();
 			shape_result = box_shape_settings.Create();
@@ -430,7 +431,7 @@ void PhysicsSystem::Init()
 		}
 		case RigidBodyType::Sphere: {
 			// Create sphere shape settings
-			float radius = calculateSphereRadius(minExtent1,maxExtent1); // Assuming size.x represents the radius for a sphere
+			float radius = calculateSphereRadius(transform.minExtent,transform.maxExtent); // Assuming size.x represents the radius for a sphere
 			SphereShapeSettings sphere_shape_settings(radius);
 			sphere_shape_settings.SetEmbedded();
 			shape_result = sphere_shape_settings.Create();
@@ -458,7 +459,7 @@ void PhysicsSystem::Init()
 		}
 
 		// Create the settings for the body itself, including other properties like restitution and friction
-		BodyCreationSettings body_settings(shape, RVec3(transform.Translate.x+centerOffset.x, transform.Translate.y+centerOffset.y, transform.Translate.z+centerOffset.z), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
+		BodyCreationSettings body_settings(shape, RVec3(transform.Translate.x+transform.offset.x, transform.Translate.y+ transform.offset.y, transform.Translate.z+ transform.offset.z), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
 		body_settings.mFriction = rigidbody.friction;
 		body_settings.mRestitution = rigidbody.bounciness;
 

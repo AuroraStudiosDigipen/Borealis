@@ -41,11 +41,13 @@ namespace Borealis
 		// Properties of Fields
 		std::string mFieldClassName() const; // The name of the class of the field
 		UUID GetAttachedID(MonoObject* object) const; // The ID of the attached object
+		UUID GetGameObjectID(MonoObject* object) const;
 		bool isPublic() const;
 		bool isPrivate() const;
 		bool hasHideInInspector() const;
 		bool hasSerializeField() const;
 		bool isMonoBehaviour() const;
+		bool isGameObject() const;
 	};
 }
 

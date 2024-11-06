@@ -43,6 +43,16 @@ namespace Borealis
 
 		
 	}
+	UUID ScriptField::GetGameObjectID(MonoObject* object) const
+	{
+		auto Method = mono_class_get_method_from_name(GetScriptClassUtils("GameObject")->GetMonoClass(), "GetInstanceID", 0);
+		MonoObject* result = mono_runtime_invoke(Method, object, nullptr, nullptr);
+		uint64_t id = *reinterpret_cast<uint64_t*>(mono_object_unbox(result));
+
+		return id;
+
+
+	}
 	bool ScriptField::isPublic() const
 	{
 		return mono_field_get_flags(mMonoFieldType) & MONO_FIELD_ATTR_PUBLIC;
@@ -65,6 +75,13 @@ namespace Borealis
 		auto type = mono_field_get_type(mMonoFieldType);
 		auto klass = mono_class_from_mono_type(type);
 		return mono_class_is_subclass_of(klass, ScriptingSystem::GetScriptClass("MonoBehaviour")->GetMonoClass(), false);
+	}
+
+	bool ScriptField::isGameObject() const
+	{
+		auto type = mono_field_get_type(mMonoFieldType);
+		auto klass = mono_class_from_mono_type(type);
+		return mono_class_is_subclass_of(klass, ScriptingSystem::GetScriptClass("GameObject")->GetMonoClass(), false);
 	}
 }
 

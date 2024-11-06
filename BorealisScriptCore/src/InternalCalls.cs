@@ -6,7 +6,7 @@ namespace Borealis
     internal static class InternalCalls
     {
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void SetActive(bool value);
+        internal extern static void SetActive(bool value, out ulong entityID);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static ulong GenerateUUID();
 

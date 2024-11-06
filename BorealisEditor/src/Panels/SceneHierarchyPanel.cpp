@@ -20,6 +20,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scene/ReflectionInstance.hpp>
 #include <Scripting/ScriptingSystem.hpp>
 #include <Scripting/ScriptInstance.hpp>
+#include <Scripting/ScriptingUtils.hpp>
 #include <Panels/SceneHierarchyPanel.hpp>
 #include <Panels/ContentBrowserPanel.hpp>
 #include <Physics/PhysicsSystem.hpp>
@@ -878,6 +879,9 @@ namespace Borealis
 		if (entity.HasComponent<PrefabComponent>())
 			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.16f, 0.34f, 0.63f, 1.f));
 
+		if (!entity.IsActive())
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.2f, 0.2f, 0.2f, 1.f));
+
 		bool opened = ImGui::TreeNodeEx((void*)entityID, flags, tag.c_str());
 		if (ImGui::BeginDragDropTarget()) {
 			const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropEntityItem");
@@ -891,6 +895,9 @@ namespace Borealis
 		}
 
 		if (entity.HasComponent<PrefabComponent>())
+			ImGui::PopStyleColor();
+
+		if (!entity.IsActive())
 			ImGui::PopStyleColor();
 
 		//Dragging of items for creation of prefab
@@ -990,6 +997,65 @@ namespace Borealis
 
 		for (const auto& [name, field] : component->GetScriptClass()->mFields) // name of script field, script field
 		{
+			if (field.isGameObject())
+			{
+				MonoObject* Data = component->GetFieldValue<MonoObject*>(name);
+				std::vector<std::string> entityNames;
+				std::vector<UUID> entityIDList;
+				for (auto entity : SceneManager::GetActiveScene()->GetRegistry().group<TagComponent>())
+				{
+					entityIDList.push_back(SceneManager::GetActiveScene()->GetRegistry().get<IDComponent>(entity).ID);
+					entityNames.push_back(std::string(SceneManager::GetActiveScene()->GetRegistry().get<TagComponent>(entity).Tag));
+				}
+
+				std::string currentEntityName = "";
+				if (Data)
+				{
+					auto currentEntityID = field.GetGameObjectID(Data);
+					currentEntityName = SceneManager::GetActiveScene()->GetEntityByUUID(currentEntityID).GetName();
+				}
+				else
+				{
+					// call the constructor
+					InitGameObject(Data, 0);
+
+				}
+
+				if (ImGui::BeginCombo(name.c_str(), currentEntityName.c_str()))
+				{
+					int i = 0;
+					for (auto ID : entityIDList)
+					{
+						bool isSelected = currentEntityName == entityNames[i];
+						if (ImGui::Selectable(entityNames[i].c_str(), isSelected))
+						{
+							currentEntityName = entityNames[i];
+							UUID entityID = ID;
+							InitGameObject(Data, entityID);
+						}
+						if (isSelected)
+						{
+							ImGui::SetItemDefaultFocus();
+						}
+						i++;
+					}
+					ImGui::EndCombo();
+				}
+
+				if (ImGui::BeginDragDropTarget())
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropEntityItem"))
+					{
+						UUID data = *(const uint64_t*)payload->Data;
+						InitGameObject(Data, data);
+						// Init game object
+					}
+					ImGui::EndDragDropTarget();
+				}
+
+				ImGui::Text(name.c_str());
+
+			}
 			if (field.isMonoBehaviour())
 			{
 				MonoObject* Data = component->GetFieldValue<MonoObject*>(name);

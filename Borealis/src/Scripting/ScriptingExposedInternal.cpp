@@ -34,6 +34,7 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(GenerateUUID);
 		BOREALIS_ADD_INTERNAL_CALL(Log);
 		BOREALIS_ADD_INTERNAL_CALL(CreateEntity);
+		BOREALIS_ADD_INTERNAL_CALL(SetActive);
 
 		BOREALIS_ADD_INTERNAL_CALL(Entity_AddComponent);
 		BOREALIS_ADD_INTERNAL_CALL(Entity_HasComponent);
@@ -79,6 +80,15 @@ namespace Borealis
 		char* name = mono_string_to_utf8(text);
 		std::string strName = name;
 		return SceneManager::GetActiveScene()->CreateEntity(strName).GetUUID();
+	}
+
+	void SetActive(bool value, uint64_t* outEntityID)
+	{
+		auto entity = SceneManager::GetActiveScene()->GetEntityByUUID(*outEntityID);
+		if (entity)
+		{
+			entity.GetComponent<TagComponent>().active = value;
+		}
 	}
 
 	void Entity_RemoveComponent(uint64_t entityID, MonoReflectionType* reflectionType)

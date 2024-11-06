@@ -57,6 +57,8 @@ namespace Borealis
 	*************************************************************************/
 	void Log(MonoString* text);
 
+	void SetActive(bool value, uint64_t* outEntityID);
+
 	/*!***********************************************************************
 		\brief
 			Creates an Entity

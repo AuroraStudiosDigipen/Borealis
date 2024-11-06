@@ -15,17 +15,19 @@ namespace Borealis
             transform = new Transform(InstanceID);
 
         }
+        internal GameObject(ulong id)
+        {
+            InstanceID = id;
+            transform = new Transform(id);
+        }
+
         public GameObject(string name)
         {
             InstanceID = InternalCalls.CreateEntity(name);
             transform = new Transform(InstanceID);
         }
 
-        internal GameObject(ulong id)
-        {
-            InstanceID = id;
-            transform = new Transform(id);
-        }
+        
         public T AddComponent<T>() where T : Component, new()
         {
             if (HasComponent<T>())
@@ -92,7 +94,7 @@ namespace Borealis
         }
         public void SetActive(bool value) 
         { 
-            InternalCalls.SetActive(value);
+            InternalCalls.SetActive(value, out InstanceID);
         }
 
     }

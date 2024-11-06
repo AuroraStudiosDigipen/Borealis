@@ -162,6 +162,7 @@
     <Compile Include="src\RoslynCompiler.cs" />
     <Compile Include="src\Scripts\CameraController.cs" />
     <Compile Include="src\Scripts\FieldScript.cs" />
+    <Compile Include="src\Scripts\MoodSwitching.cs" />
     <Compile Include="src\Scripts\NestedScript.cs" />
   </ItemGroup>
   <ItemGroup>

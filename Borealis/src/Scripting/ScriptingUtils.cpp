@@ -212,5 +212,16 @@ namespace Borealis
 		return ScriptingSystem::GetScriptClass(className);
 	}
 
+	void InitGameObject(MonoObject*& object, UUID id)
+	{
+		object = mono_object_new(mono_domain_get(), ScriptingSystem::GetScriptClass("GameObject")->GetMonoClass());
+		void* args[1];
+		MonoMethod* ctor = mono_class_get_method_from_name(ScriptingSystem::GetScriptClass("GameObject")->GetMonoClass(), ".ctor", 1);
+
+		args[0] = &id;
+		mono_runtime_invoke(ctor, object, args, NULL);
+
+	}
+
 
 }

@@ -134,6 +134,8 @@ namespace Borealis
 	*************************************************************************/
 	Ref<ScriptClass> GetScriptClassUtils(const std::string& className);
 
+	void InitGameObject(MonoObject*& object, UUID id);
+
 }
 
 #endif //SCRIPTING_UTILS_HPP

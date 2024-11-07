@@ -111,7 +111,6 @@ namespace Borealis
 		static std::pair<float, float> calculateCapsuleDimensions(glm::vec3 minExtent, glm::vec3 maxExtent);
 
 		static UUID BodyIDToUUID(unsigned int bodyID);
-
 	};
 
 }

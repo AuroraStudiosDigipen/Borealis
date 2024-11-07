@@ -381,13 +381,15 @@ void PhysicsSystem::Init()
 		minExtent *= transform.Scale * 0.5f;
 		maxExtent *= transform.Scale * 0.5f;
 
+		glm::vec3 boundingVolumeCenter = (minExtent + maxExtent) * 0.5f;
+
+		transform.Translate -= boundingVolumeCenter;
+
+		transform.offset = transform.Translate - boundingVolumeCenter;
+
 		transform.minExtent = minExtent;
 		transform.maxExtent = maxExtent;
 
-		glm::vec3 boundingVolumeCenter = (minExtent + maxExtent) * 0.5f;
-
-		transform.temp = transform.Translate;
-		transform.offset = transform.Translate - boundingVolumeCenter;
 
 		/*cout << "Min Extent: " << minExtent.x << ", " << minExtent.y << ", " << minExtent.z << endl;
 		cout << "Max Extent: " << maxExtent.x << ", " << maxExtent.y << ", " << maxExtent.z << endl;*/
@@ -459,7 +461,7 @@ void PhysicsSystem::Init()
 		}
 
 		// Create the settings for the body itself, including other properties like restitution and friction
-		BodyCreationSettings body_settings(shape, RVec3(transform.temp.x, transform.temp.y, transform.temp.z), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
+		BodyCreationSettings body_settings(shape, RVec3(transform.Translate.x, transform.Translate.y, transform.Translate.z), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
 		body_settings.mFriction = rigidbody.friction;
 		body_settings.mRestitution = rigidbody.bounciness;
 

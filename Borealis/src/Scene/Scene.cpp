@@ -226,7 +226,7 @@ namespace Borealis
 						continue;
 					}
 					auto [transform, rigidbody] = physicsGroup.get<TransformComponent, RigidBodyComponent>(entity);
-					//PhysicsSystem::PushTransform(rigidbody.bodyID, transform);
+					PhysicsSystem::PushTransform(rigidbody.bodyID, transform);
 				}
 
 				PhysicsSystem::Update(dt);

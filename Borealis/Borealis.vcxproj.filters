@@ -169,6 +169,9 @@
     <Filter Include="src\Scene">
       <UniqueIdentifier>{0A06D2B3-7670-862A-BFAE-37D02B58647F}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Scene\Components">
+      <UniqueIdentifier>{DFD07067-CB5F-FA30-747E-0E2C60EC0AD7}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\Scripting">
       <UniqueIdentifier>{6FBC2D98-DB7C-A9CE-A4B7-F24B1037EEAA}</UniqueIdentifier>
     </Filter>
@@ -2202,6 +2205,9 @@
     <ClCompile Include="src\Scene\ComponentRegistry.cpp">
       <Filter>src\Scene</Filter>
     </ClCompile>
+    <ClCompile Include="src\Scene\Components\Components.cpp">
+      <Filter>src\Scene\Components</Filter>
+    </ClCompile>
     <ClCompile Include="src\Scene\Entity.cpp">
       <Filter>src\Scene</Filter>
     </ClCompile>
@@ -2238,6 +2244,5 @@
     <ClCompile Include="src\Scripting\ScriptingUtils.cpp">
       <Filter>src\Scripting</Filter>
     </ClCompile>
-    <ClCompile Include="src\Scene\Components\Components.cpp" />
   </ItemGroup>
 </Project>

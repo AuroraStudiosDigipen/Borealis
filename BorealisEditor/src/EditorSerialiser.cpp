@@ -26,5 +26,9 @@ namespace Borealis
 			SerializeComponent(out, entity.GetComponent<PrefabComponent>());
 		}
 	}
+	void EditorSerialiser::DeserialiseAbstractItems(YAML::detail::iterator_value& data, Entity& entity)
+	{
+		DeserialiseComponent<PrefabComponent>(data, entity);
+	}
 }
 

@@ -63,6 +63,9 @@ namespace Borealis
 		bool DeserialiseScene(const std::string& filepath);
 
 		virtual void SerialiseAbstractItems(YAML::Emitter& out, Entity& entity) {};
+		virtual void DeserialiseAbstractItems(YAML::detail::iterator_value& data, Entity& entity) {};
+
+		virtual void operator() (const Ref<Scene>& scene);
 
 		void SerialisePrefab(const std::string& filepath, Entity entity);
 

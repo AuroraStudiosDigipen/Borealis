@@ -77,7 +77,8 @@ namespace Borealis {
 
 		mEditorScene = MakeRef<Scene>();
 		SceneManager::AddScene(mEditorScene->GetName(), mEditorScene->GetScenePath());
-		SceneManager::SetActiveScene(mEditorScene->GetName());
+		EditorSerialiser serialiser(nullptr);
+		SceneManager::SetActiveScene(mEditorScene->GetName(), serialiser);
 		mEditorScene = SceneManager::GetActiveScene();
 
 		SCPanel.SetContext(SceneManager::GetActiveScene());
@@ -725,7 +726,7 @@ namespace Borealis {
 			mEditorScene->ResizeViewport((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
 			SCPanel.SetContext(mEditorScene);
 
-			Serialiser serialiser(mEditorScene);
+			EditorSerialiser serialiser(mEditorScene);
 			serialiser.DeserialiseScene(filepath);
 
 			SceneManager::GetActiveScene() = mEditorScene;
@@ -750,7 +751,8 @@ namespace Borealis {
 			std::string fileName = filepath.substr(filepath.find_last_of("/\\") + 1);
 			fileName = fileName.substr(0, fileName.find_last_of("."));
 			AddScene(fileName, filepath);
-			SceneManager::SetActiveScene(fileName);
+			EditorSerialiser serialiser(nullptr);
+			SceneManager::SetActiveScene(fileName, serialiser);
 
 			DeserialiseEditorScene();
 		}
@@ -846,7 +848,8 @@ namespace Borealis {
 		SCPanel.SetSelectedEntity({});
 		std::string tmpName = SceneManager::GetActiveScene()->GetName();
 		SceneManager::SetActiveScene(mEditorScene);
-		SceneManager::RemoveScene(tmpName);
+		EditorSerialiser serialiser(nullptr);
+		SceneManager::RemoveScene(tmpName, serialiser);
 		SCPanel.SetContext(SceneManager::GetActiveScene());
 
 		auto view = SceneManager::GetActiveScene()->GetRegistry().view<CameraComponent>();
@@ -877,7 +880,8 @@ namespace Borealis {
 
 	void EditorLayer::RemoveScene(std::string sceneName)
 	{
-		SceneManager::RemoveScene(sceneName);
+		EditorSerialiser serialiser(nullptr);
+		SceneManager::RemoveScene(sceneName, serialiser);
 	}
 
 	void EditorLayer::DeserialiseEditorScene()
@@ -903,7 +907,8 @@ namespace Borealis {
 			if (Project::SetProjectPath(filepath.c_str(), activeSceneName))
 			{
 				mAssetImporter.LoadRegistry(Project::GetProjectInfo());
-				SceneManager::SetActiveScene(activeSceneName);
+				EditorSerialiser serialiser(nullptr);
+				SceneManager::SetActiveScene(activeSceneName, serialiser);
 
 				for (auto [handle,meta] : Project::GetEditorAssetsManager()->GetAssetRegistry())
 				{
@@ -949,7 +954,8 @@ namespace Borealis {
 			// Create default empty scene
 			SceneManager::ClearSceneLibrary();
 			SceneManager::CreateScene("untitled", assetsPath);
-			SceneManager::SetActiveScene("untitled");
+			EditorSerialiser serialiser(nullptr);
+			SceneManager::SetActiveScene("untitled", serialiser);
 
 			CBPanel.SetCurrDir(assetsPath);
 			EditorLayer::DeserialiseEditorScene();

@@ -50,7 +50,7 @@ namespace Borealis
 			\param[in] sceneName
 				The name of the scene
 		*************************************************************************/
-		static void RemoveScene(std::string sceneName);
+		static void RemoveScene(std::string sceneName, Serialiser& serialiser);
 
 		/*!***********************************************************************
 			\brief
@@ -58,7 +58,7 @@ namespace Borealis
 			\param[in] sceneName
 				The name of the scene in the scene library
 		*************************************************************************/
-		static void SetActiveScene(std::string sceneName);
+		static void SetActiveScene(std::string sceneName, Serialiser& serialiser);
 
 		/*!***********************************************************************
 			\brief

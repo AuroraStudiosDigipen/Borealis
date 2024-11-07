@@ -377,6 +377,8 @@ namespace Borealis
 		DeserialiseComponent<CapsuleColliderComponent>(entity, BorealisEntity);
 		DeserialiseComponent<RigidBodyComponent>(entity, BorealisEntity);
 		DeserialiseComponent<LightComponent>(entity, BorealisEntity);
+
+		DeserialiseAbstractItems(entity, BorealisEntity);
 		auto behaviourTreeComponent = entity["BehaviourTreeComponent"];
 		/*
 			extract the name of tree and root node, then iteritivly build the tree, then call the clone method by createfromname function
@@ -576,6 +578,11 @@ namespace Borealis
 		}
 
 		return true;
+	}
+
+	void Serialiser::operator()(const Ref<Scene>& scene)
+	{
+		mScene = scene;
 	}
 
 	void Serialiser::SerialisePrefab(const std::string& filepath, Entity entity)

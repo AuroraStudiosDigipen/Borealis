@@ -13,6 +13,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
  /******************************************************************************/
 #include <filesystem>
 #include <RuntimeLayer.hpp>
+#include <Scene/Serialiser.hpp>
 namespace BorealisRuntime
 {
 	void RuntimeLayer::Init()
@@ -42,7 +43,8 @@ namespace BorealisRuntime
 		{
 			// Load Asset Registry here
 			Borealis::AssetManager::SetRunTime();
-			Borealis::SceneManager::SetActiveScene(activeSceneName);
+			Borealis::Serialiser serialiser(nullptr);
+			Borealis::SceneManager::SetActiveScene(activeSceneName, serialiser);
 			Borealis::ScriptingSystem::InitCoreAssembly();
 
 			auto view = Borealis::SceneManager::GetActiveScene()->GetRegistry().view<Borealis::CameraComponent>();

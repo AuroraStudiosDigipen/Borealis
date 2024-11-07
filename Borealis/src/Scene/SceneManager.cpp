@@ -29,7 +29,7 @@ namespace Borealis
         else
             BOREALIS_CORE_ERROR("Scene {0} already exists in Scene Library", sceneName);
     }
-    void SceneManager::RemoveScene(std::string sceneName)
+    void SceneManager::RemoveScene(std::string sceneName, Serialiser& serialiser)
     {
         std::transform(sceneName.begin(), sceneName.end(), sceneName.begin(), ::tolower);
         if (mSceneLibrary.find(sceneName) != mSceneLibrary.end())
@@ -37,7 +37,9 @@ namespace Borealis
             {
                 mSceneLibrary.erase(sceneName);
                 if (!mSceneLibrary.empty())
-                    SetActiveScene(mSceneLibrary.begin()->first);
+                {
+                    SetActiveScene(mSceneLibrary.begin()->first, serialiser);
+                }
                 else
                     mActiveScene = nullptr;
             }
@@ -48,7 +50,7 @@ namespace Borealis
         else
             BOREALIS_CORE_ERROR("Scene {0} not found in Scene Library", sceneName);
     }
-    void SceneManager::SetActiveScene(std::string sceneName)
+    void SceneManager::SetActiveScene(std::string sceneName, Serialiser& serialiser)
     {
 		std::transform(sceneName.begin(), sceneName.end(), sceneName.begin(), ::tolower);
         if (mSceneLibrary.find(sceneName) != mSceneLibrary.end())
@@ -56,7 +58,7 @@ namespace Borealis
             Ref<Scene> newScene = MakeRef<Scene>(sceneName, mSceneLibrary[sceneName]);
             if (mSceneLibrary[sceneName] != "")
             {
-                Serialiser serialiser(newScene);
+                serialiser(newScene);
                 serialiser.DeserialiseScene(SceneManager::GetSceneLibrary()[sceneName]);
             }
             mActiveScene = newScene;

@@ -629,7 +629,7 @@ namespace Borealis
 							{
 								EditorSerialiser serialiser(mContext);
 								SceneManager::SaveActiveScene(serialiser);
-								SceneManager::SetActiveScene(name);
+								SceneManager::SetActiveScene(name, serialiser);
 								mContext = SceneManager::GetActiveScene();
 								mSelectedEntity = {};
 							}

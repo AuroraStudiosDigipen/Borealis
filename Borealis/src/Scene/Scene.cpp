@@ -226,7 +226,7 @@ namespace Borealis
 						continue;
 					}
 					auto [transform, rigidbody] = physicsGroup.get<TransformComponent, RigidBodyComponent>(entity);
-					PhysicsSystem::PushTransform(rigidbody.bodyID, transform);
+					//PhysicsSystem::PushTransform(rigidbody.bodyID, transform);
 				}
 
 				PhysicsSystem::Update(dt);
@@ -702,7 +702,8 @@ namespace Borealis
 		{
 			auto mesh = mRegistry.get<MeshFilterComponent>(entity);
 			auto [transform, rigidbody] = physicsGroup.get<TransformComponent, RigidBodyComponent>(entity);
-			PhysicsSystem::addBody(transform, rigidbody, mesh);
+			auto entityID = mRegistry.get<IDComponent>(entity).ID;
+			PhysicsSystem::addBody(transform, rigidbody, mesh, entityID);
 		}
 	}
 

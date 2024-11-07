@@ -86,7 +86,7 @@ namespace Borealis
         * \param position The position of the body.
         * \param rigidbody The rigid body component of the body.
         */
-        static void addBody(TransformComponent& transform, RigidBodyComponent& rigidbody, MeshFilterComponent& mesh);
+        static void addBody(TransformComponent& transform, RigidBodyComponent& rigidbody, MeshFilterComponent& mesh, UUID entityID);
 
 		/**
    * \brief Updates the sphere values of the specified rigid body.
@@ -109,6 +109,8 @@ namespace Borealis
 		static float calculateSphereRadius(glm::vec3 minExtent, glm::vec3 maxExtent);
 
 		static std::pair<float, float> calculateCapsuleDimensions(glm::vec3 minExtent, glm::vec3 maxExtent);
+
+		static UUID BodyIDToUUID(unsigned int bodyID);
 
 	};
 

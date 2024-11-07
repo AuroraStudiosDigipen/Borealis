@@ -233,6 +233,7 @@ struct PhysicsSystemData
 };
 
 static PhysicsSystemData sData;
+unordered_map<unsigned int, UUID> bodyIDMapUUID;
 
 namespace Borealis
 {
@@ -360,6 +361,11 @@ void PhysicsSystem::Init()
 		delete Factory::sInstance;
 	}
 
+	UUID PhysicsSystem::BodyIDToUUID(unsigned int bodyID)
+	{
+		//return bodyIDMapUUID[bodyID];
+	}
+
 	void PhysicsSystem::calculateBoundingVolume(const Model& model, TransformComponent& transform)
 	{
 		glm::vec3 minExtent{}, maxExtent{};
@@ -383,13 +389,12 @@ void PhysicsSystem::Init()
 
 		glm::vec3 boundingVolumeCenter = (minExtent + maxExtent) * 0.5f;
 
-		transform.Translate -= boundingVolumeCenter;
+		transform.offset = transform.Translate;
 
-		transform.offset = transform.Translate - boundingVolumeCenter;
+		transform.Translate -= boundingVolumeCenter;
 
 		transform.minExtent = minExtent;
 		transform.maxExtent = maxExtent;
-
 
 		/*cout << "Min Extent: " << minExtent.x << ", " << minExtent.y << ", " << minExtent.z << endl;
 		cout << "Max Extent: " << maxExtent.x << ", " << maxExtent.y << ", " << maxExtent.z << endl;*/
@@ -415,9 +420,11 @@ void PhysicsSystem::Init()
 		return { radius, halfHeight };
 	}
 
-	void PhysicsSystem::addBody(TransformComponent& transform, RigidBodyComponent& rigidbody, MeshFilterComponent& mesh) {
+	void PhysicsSystem::addBody(TransformComponent& transform, RigidBodyComponent& rigidbody, MeshFilterComponent& mesh, UUID entityID) {
 		ShapeRefC shape;
 		ShapeSettings::ShapeResult shape_result;
+
+		bodyIDMapUUID[rigidbody.bodyID] = entityID;
 
 		calculateBoundingVolume(*mesh.Model, transform);
 

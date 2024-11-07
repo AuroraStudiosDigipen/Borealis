@@ -215,9 +215,9 @@ namespace Borealis {
 	    }
     }
 	
-	    struct PrefabInstanceComponent
-	    {
-            UUID ParentID;
-		    std::unordered_set<std::type_info> mEditedComponents;
-	    };
+	    //struct PrefabInstanceComponent
+	    //{
+     //       UUID ParentID;
+		   // std::unordered_set<std::type_info> mEditedComponents;
+	    //};
     }

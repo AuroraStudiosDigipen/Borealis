@@ -45,6 +45,29 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include<EditorSerialiser.hpp>
 
+namespace ImGui
+{
+	static bool BeginDrapDropTargetWindow(const char* payload_type)
+	{
+		using namespace ImGui;
+		ImRect inner_rect = GetCurrentWindow()->InnerRect;
+		if (BeginDragDropTargetCustom(inner_rect, GetID("##WindowBgArea")))
+			if (const ImGuiPayload* payload = AcceptDragDropPayload(payload_type, ImGuiDragDropFlags_AcceptBeforeDelivery | ImGuiDragDropFlags_AcceptNoDrawDefaultRect))
+			{
+				if (payload->IsPreview())
+				{
+					ImDrawList* draw_list = GetForegroundDrawList();
+					draw_list->AddRectFilled(inner_rect.Min, inner_rect.Max, GetColorU32(ImGuiCol_DragDropTarget, 0.05f));
+					draw_list->AddRect(inner_rect.Min, inner_rect.Max, GetColorU32(ImGuiCol_DragDropTarget), 0.0f, 0, 2.0f);
+				}
+				if (payload->IsDelivery())
+					return true;
+				EndDragDropTarget();
+			}
+		return false;
+	}
+}
+
 namespace Borealis {
 	EditorLayer::SceneState EditorLayer::mSceneState = EditorLayer::SceneState::Edit;
 #ifndef _DIST
@@ -465,6 +488,19 @@ namespace Borealis {
 						//SceneManager::GetEntity(prefabInstanceID).AddOrReplaceComponent<SpriteRendererComponent>();
 					}
 
+					ImGui::EndDragDropTarget();
+				}
+
+				//Create Entities from prefab
+				if (ImGui::BeginDrapDropTargetWindow("DragPrefab"))
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragPrefab"))
+					{
+						AssetHandle data = *(const uint64_t*)payload->Data;
+						Ref<Prefab> prefab = PrefabManager::GetPrefab(data);
+						prefab->CreateChild(SceneManager::GetActiveScene());
+
+					}
 					ImGui::EndDragDropTarget();
 				}
 

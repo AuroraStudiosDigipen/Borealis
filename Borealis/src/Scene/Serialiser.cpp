@@ -975,6 +975,11 @@ namespace Borealis
 									unsigned data = fieldData["Data"].as<unsigned>();
 									scriptInstance->SetFieldValue(fieldName, &data);
 									continue;
+
+								/*	Ref<BehaviourTree> tree = AssetManager::GetAsset<BehaviourTree>(fieldData["Data"].as<uint64_t>());
+									auto newTree = MakeRef<BehaviourTree>(tree);*/
+									
+									//btc.insert(newTree);
 								}
 
 								if (fieldData["Type"].as<std::string>() == "Long")

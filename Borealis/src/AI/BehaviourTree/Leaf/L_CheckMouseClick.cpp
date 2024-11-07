@@ -25,7 +25,7 @@ namespace Borealis
         {
             // grab the current mouse pos
             //const auto& mousePos = InputHandler::get_mouse_position();
-
+           
             //// we want to know where on the ground the mouse was clicked
             //const auto& plane = terrain->get_terrain_plane();
 

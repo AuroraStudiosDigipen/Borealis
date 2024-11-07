@@ -16,6 +16,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include "Panels/BTNodeEditorPanel.hpp"
 #include <Core/LoggerSystem.hpp>
 #include <AI/BehaviourTree/NodeHeaderCodeFormat.hpp>
+#include <Core/Project.hpp>
 namespace Borealis
 {
     Ref<Pin> BTNodeEditorPanel::FindPin(ed::PinId id)
@@ -138,8 +139,9 @@ namespace Borealis
 
             if (ImGui::Button("Save"))
             {
-                std::string savePath = "assets/BehaviourTrees/";
-                std::string fullPath = savePath + fileName + ".yaml";
+                
+                std::string savePath = Project::GetAssetsPath();
+                std::string fullPath = savePath + fileName + ".btree";
                 SaveBehaviorTree(fullPath);
                 ImGui::CloseCurrentPopup();
             }
@@ -260,7 +262,6 @@ namespace Borealis
         // Create a new node
         int nodeId = GetNextId();
         auto newNode = std::make_shared<Node>(nodeId, nodeName, nodeType, nodeColor);
-        ed::PushStyleColor(ed::StyleColor_PinRect, ImColor(229, 229, 229, 60));
         // Set the node position
         newNode->Size = ImVec2(0, 0);
 
@@ -1194,7 +1195,6 @@ namespace Borealis
 
         // Set node position
         node->Position = ImVec2(currentX, depth * levelSpacing);
-
         // Save the starting X position for this node's children
         float startX = currentX;
 

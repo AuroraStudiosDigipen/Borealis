@@ -182,8 +182,8 @@ namespace Borealis
         std::string treeName = behaviourTreeNode["Tree Name"].as<std::string>();
 
         // Create a new BehaviourTree instance
-        Ref<BehaviourTree> tree = std::make_shared<BehaviourTree>(treeName);
-
+        Ref<BehaviourTree> tree = std::make_shared<BehaviourTree>();
+        tree->SetBehaviourTreeName(treeName);
         // Build the behaviour tree structure
         BuildBehaviourTree(behaviourTreeNode, tree);
 

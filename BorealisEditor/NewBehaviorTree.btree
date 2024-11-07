@@ -1,6 +1,6 @@
 BehaviourTreeComponent:
   BehaviourTree:
-    Tree Name: Untitled-No-Name-Entered
+    Tree Name: TestingTree
     Nodes:
       - ID: 1
         Name: C_Sequencer

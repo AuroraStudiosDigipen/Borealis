@@ -20,11 +20,11 @@ namespace Borealis
 	void OpenGLRendererAPI::Init()
 	{
 		PROFILE_FUNCTION();
-
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_LINE_SMOOTH);
+		BOREALIS_CORE_ASSERT(glGetError() == GL_NO_ERROR, "Error");
 	}
 	void OpenGLRendererAPI::Clear()
 	{
@@ -57,5 +57,44 @@ namespace Borealis
 	void OpenGLRendererAPI::SetLineThickness(const float& thickness)
 	{
 		glLineWidth(thickness);
+	}
+
+	void OpenGLRendererAPI::EnableBlend()
+	{
+		glEnable(GL_BLEND);
+	}
+
+	void OpenGLRendererAPI::DisableBlend()
+	{
+		glDisable(GL_BLEND);
+	}
+
+	void OpenGLRendererAPI::EnableDepthTest()
+	{
+		glEnable(GL_DEPTH_TEST);
+	}
+
+	void OpenGLRendererAPI::DisableDepthTest()
+	{
+		glDisable(GL_DEPTH_TEST);
+	}
+
+	void OpenGLRendererAPI::IgnoreNextError()
+	{
+		ignoreNextError = true;
+	}
+
+	unsigned OpenGLRendererAPI::GetError(std::string const& errorMsg)
+	{
+		unsigned err{};
+		err = glGetError();
+		if (ignoreNextError)
+			ignoreNextError = false;
+		else
+		{
+			BOREALIS_CORE_ASSERT(err == GL_NO_ERROR, errorMsg);
+		}
+
+		return err;
 	}
 }

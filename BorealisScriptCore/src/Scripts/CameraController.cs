@@ -7,6 +7,7 @@ namespace Borealis
     public class CameraController : MonoBehaviour
     {
         public float speed = 1f;
+        public NestedScript nestedScript;
         public override void Start()
         {
         }

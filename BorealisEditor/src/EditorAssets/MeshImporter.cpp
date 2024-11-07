@@ -18,8 +18,6 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace Borealis
 {
-	std::map<std::string, unsigned int> MeshImporter::mBoneToIndexMap;
-
 	Ref<Model> MeshImporter::LoadFBXModel(const std::string& path)
 	{
 		Assimp::Importer importer;
@@ -52,8 +50,6 @@ namespace Borealis
 		std::vector<unsigned int> indices;
 		std::vector<glm::vec3> normals;
 		std::vector<glm::vec2> texCoords;
-
-		std::vector<VertexBoneData> bones(mesh->mNumVertices);
 
 		for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 		{
@@ -88,21 +84,7 @@ namespace Borealis
 				indices.push_back(face.mIndices[j]);
 		}
 
-		for (unsigned int i{}; i < mesh->mNumBones; ++i) 
-		{
-			aiBone* bone = mesh->mBones[i];
-			int boneid = GetBoneId(bone);
-
-			for (unsigned int j{}; j < bone->mNumWeights; ++j) 
-			{
-				aiVertexWeight const& vw = bone->mWeights[j];
-				unsigned int vertexid = vw.mVertexId;
-
-				bones[vertexid].AddBoneData(boneid, vw.mWeight);
-			}
-		}
-	
-		return Mesh(vertices, indices, normals, texCoords, bones);
+		return Mesh(vertices, indices, normals, texCoords);
 	}
 
 	void MeshImporter::ProcessNode(aiNode* node, const aiScene* scene, Model& model)
@@ -117,19 +99,5 @@ namespace Borealis
 		{
 			ProcessNode(node->mChildren[i], scene, model);
 		}
-	}
-
-	int MeshImporter::GetBoneId(const aiBone* pBone) 
-	{
-		std::string boneName(pBone->mName.C_Str());
-
-		if (mBoneToIndexMap.find(boneName) == mBoneToIndexMap.end())
-		{
-			int boneid = static_cast<int>(mBoneToIndexMap.size());
-			mBoneToIndexMap[boneName] = boneid;
-			return boneid;
-		}
-	
-		return mBoneToIndexMap[boneName];
 	}
 }

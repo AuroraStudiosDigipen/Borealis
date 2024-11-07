@@ -40,6 +40,9 @@
     <Filter Include="inc\Graphics\OpenGL">
       <UniqueIdentifier>{93879F21-FFE8-7C2F-8856-C3E1F4B6B3EE}</UniqueIdentifier>
     </Filter>
+    <Filter Include="inc\Graphics\RenderGraph">
+      <UniqueIdentifier>{00E8FDE0-EC0C-4D61-1558-32F101DC4B7F}</UniqueIdentifier>
+    </Filter>
     <Filter Include="inc\ImGui">
       <UniqueIdentifier>{89503E75-F5BA-F2EB-3EF9-A391AAA2D040}</UniqueIdentifier>
     </Filter>
@@ -154,6 +157,9 @@
     <Filter Include="src\Graphics\OpenGL">
       <UniqueIdentifier>{A10E80C2-0D70-5DD0-96DD-A382023E948F}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Graphics\RenderGraph">
+      <UniqueIdentifier>{CE07F316-BA2C-4297-E377-2727CFFB40B5}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\ImGui">
       <UniqueIdentifier>{170E22B3-8378-D629-CCB6-87CF3860B47E}</UniqueIdentifier>
     </Filter>
@@ -162,6 +168,9 @@
     </Filter>
     <Filter Include="src\Scene">
       <UniqueIdentifier>{0A06D2B3-7670-862A-BFAE-37D02B58647F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Scene\Components">
+      <UniqueIdentifier>{DFD07067-CB5F-FA30-747E-0E2C60EC0AD7}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Scripting">
       <UniqueIdentifier>{6FBC2D98-DB7C-A9CE-A4B7-F24B1037EEAA}</UniqueIdentifier>
@@ -197,6 +206,9 @@
       <Filter>inc\AI\BehaviourTree</Filter>
     </ClInclude>
     <ClInclude Include="inc\Assets\Asset.hpp">
+      <Filter>inc\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Assets\AssetConfigs.hpp">
       <Filter>inc\Assets</Filter>
     </ClInclude>
     <ClInclude Include="inc\Assets\AssetManager.hpp">
@@ -271,6 +283,12 @@
     <ClInclude Include="inc\Events\EventWindow.hpp">
       <Filter>inc\Events</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Graphics\Animation\Animation.hpp">
+      <Filter>inc\Graphics\Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Graphics\Animation\Animator.hpp">
+      <Filter>inc\Graphics\Animation</Filter>
+    </ClInclude>
     <ClInclude Include="inc\Graphics\Animation\Bone.hpp">
       <Filter>inc\Graphics\Animation</Filter>
     </ClInclude>
@@ -292,6 +310,9 @@
     <ClInclude Include="inc\Graphics\Framebuffer.hpp">
       <Filter>inc\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Graphics\Frustum.hpp">
+      <Filter>inc\Graphics</Filter>
+    </ClInclude>
     <ClInclude Include="inc\Graphics\GraphicsContext.hpp">
       <Filter>inc\Graphics</Filter>
     </ClInclude>
@@ -302,6 +323,9 @@
       <Filter>inc\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="inc\Graphics\Material.hpp">
+      <Filter>inc\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Graphics\MaterialInstance.hpp">
       <Filter>inc\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="inc\Graphics\Mesh.hpp">
@@ -337,6 +361,12 @@
     <ClInclude Include="inc\Graphics\RenderCommand.hpp">
       <Filter>inc\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Graphics\RenderGraph\RenderGraph.hpp">
+      <Filter>inc\Graphics\RenderGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Graphics\RenderGraph\RenderGraphOld.hpp">
+      <Filter>inc\Graphics\RenderGraph</Filter>
+    </ClInclude>
     <ClInclude Include="inc\Graphics\Renderer.hpp">
       <Filter>inc\Graphics</Filter>
     </ClInclude>
@@ -353,6 +383,9 @@
       <Filter>inc\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="inc\Graphics\SkinnedMesh.hpp">
+      <Filter>inc\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Graphics\SkinnedModel.hpp">
       <Filter>inc\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="inc\Graphics\SubTexture2D.hpp">
@@ -2054,6 +2087,15 @@
     <ClCompile Include="src\Events\EventWindow.cpp">
       <Filter>src\Events</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\Animation\Animation.cpp">
+      <Filter>src\Graphics\Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Animation\Animator.cpp">
+      <Filter>src\Graphics\Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Animation\Bone.cpp">
+      <Filter>src\Graphics\Animation</Filter>
+    </ClCompile>
     <ClCompile Include="src\Graphics\Animation\VertexBone.cpp">
       <Filter>src\Graphics\Animation</Filter>
     </ClCompile>
@@ -2067,6 +2109,9 @@
       <Filter>src\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\Framebuffer.cpp">
+      <Filter>src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Frustum.cpp">
       <Filter>src\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\Light.cpp">
@@ -2111,6 +2156,12 @@
     <ClCompile Include="src\Graphics\RenderCommand.cpp">
       <Filter>src\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\RenderGraph\RenderGraph.cpp">
+      <Filter>src\Graphics\RenderGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\RenderGraph\RenderGraphOld.cpp">
+      <Filter>src\Graphics\RenderGraph</Filter>
+    </ClCompile>
     <ClCompile Include="src\Graphics\Renderer.cpp">
       <Filter>src\Graphics</Filter>
     </ClCompile>
@@ -2127,6 +2178,9 @@
       <Filter>src\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\SkinnedMesh.cpp">
+      <Filter>src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\SkinnedModel.cpp">
       <Filter>src\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\SubTexture2D.cpp">
@@ -2152,6 +2206,9 @@
     </ClCompile>
     <ClCompile Include="src\Scene\ComponentRegistry.cpp">
       <Filter>src\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scene\Components\Components.cpp">
+      <Filter>src\Scene\Components</Filter>
     </ClCompile>
     <ClCompile Include="src\Scene\Entity.cpp">
       <Filter>src\Scene</Filter>

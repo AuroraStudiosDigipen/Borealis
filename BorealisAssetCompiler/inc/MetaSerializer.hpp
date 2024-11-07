@@ -18,6 +18,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <string>
 #include <filesystem>
 
+#include "Importer/AssetConfigs.hpp"
+
 namespace BorealisAssetCompiler
 {
 	using AssetHandle = uint64_t;
@@ -32,6 +34,8 @@ namespace BorealisAssetCompiler
 		Folder,
 		Font,
 		Scene,
+		Material,
+		Prefab
 	};
 
 	struct AssetMetaData
@@ -41,14 +45,14 @@ namespace BorealisAssetCompiler
 		AssetHandle Handle;
 		AssetType Type;
 
+		AssetConfig Config;
+
 		std::filesystem::path CachePath;
 		std::filesystem::path SourcePath;
 
 		std::time_t importDate;
 		std::time_t cacheCreationDate;
 	};
-
-
 
 	class Asset
 	{
@@ -61,6 +65,7 @@ namespace BorealisAssetCompiler
 	{
 	public:
 		static AssetMetaData GetAssetMetaDataFile(std::filesystem::path const& path);
+		static AssetConfig GetDefaultConfig(AssetType type);
 		static void SaveMetaFile(AssetMetaData metaData, std::filesystem::path const& metaFilePath);
 	};
 }

@@ -47,6 +47,10 @@ namespace Borealis
 		*************************************************************************/
 		void Unbind() override;
 
+		void BindTexture(uint32_t attachmentIndex, uint32_t textureUnit) override;
+
+		void BindDepthBuffer(uint32_t textureUnit) override;
+
 		/*!***********************************************************************
 			\brief
 				Resize the Frame Buffer

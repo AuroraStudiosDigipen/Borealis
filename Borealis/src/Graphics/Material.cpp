@@ -107,6 +107,9 @@ namespace Borealis
 
     Material::Material(std::filesystem::path path)
     {
+        //temp until add to material meta config
+        mShader = Shader::GetDefault3DMaterialShader();
+
         YAML::Node data = YAML::LoadFile(path.string());
 
         mName = data["Name"].as<std::string>();
@@ -152,7 +155,7 @@ namespace Borealis
 
     Ref<Material> Material::CreateNewMaterial(std::filesystem::path const& path)
     {
-        Material material(Shader::Create("engineResources/Shaders/Renderer3D_Material.glsl"));
+        Material material(Shader::GetDefault3DMaterialShader());
         material.SerializeMaterial(path);
         return MakeRef<Material>(material);
     }
@@ -205,10 +208,10 @@ namespace Borealis
         fout << out.c_str();
     }
 
-    void Material::SetUniforms(Ref<Shader> shader)
+    void Material::SetUniforms(Ref<Shader> shader/*, int startingTextureUnit*/)
 	{
 		shader->Bind();
-        int textureUnit = 0;
+        int textureUnit = 1; //switched to start with 1, for shadow map, think of a more dynamic way in the future
 
         // Albedo Map
         if (mTextureMaps[Albedo])

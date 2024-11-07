@@ -17,6 +17,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 //#include "ispc_texcomp.h"
+#include <cmp_compressonatorlib/compressonator.h>
 
 #define FOURCC_DXT5 0x35545844  // 'DXT5' in ASCII
 #define FOURCC_DX10 0x30315844  // 'DX10' in ASCII
@@ -24,6 +25,84 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace BorealisAssetCompiler
 {
+    void compressonatorTest(std::string const& filePath)
+    {
+        CMP_InitFramework();
+
+        CMP_MipSet MipSetIn;
+        memset(&MipSetIn, 0, sizeof(CMP_MipSet));
+        CMP_ERROR cmp_status = CMP_LoadTexture(filePath.c_str(), &MipSetIn);
+        if (cmp_status != CMP_OK) {
+            std::printf("Error %d: Loading source file!\n", cmp_status);
+            return;
+        }
+
+        if (MipSetIn.m_nMipLevels <= 1)
+        {
+            CMP_INT requestLevel = 10; // Request 10 miplevels for the source image
+
+            //------------------------------------------------------------------------
+            // Checks what the minimum image size will be for the requested mip levels
+            // if the request is too large, a adjusted minimum size will be returned
+            //------------------------------------------------------------------------
+            CMP_INT nMinSize = CMP_CalcMinMipSize(MipSetIn.m_nHeight, MipSetIn.m_nWidth, 10);
+
+            //--------------------------------------------------------------
+            // now that the minimum size is known, generate the miplevels
+            // users can set any requested minumum size to use. The correct
+            // miplevels will be set acordingly.
+            //--------------------------------------------------------------
+            CMP_GenerateMIPLevels(&MipSetIn, nMinSize);
+        }
+
+        //==========================
+        // Set Compression Options
+        //==========================
+        KernelOptions   kernel_options;
+        memset(&kernel_options, 0, sizeof(KernelOptions));
+
+        kernel_options.format = CMP_FORMAT_BC3;   // Set the format to process
+        kernel_options.fquality = 0.5;     // Set the quality of the result (range of 0 - 1)
+        kernel_options.threads = 0;            // Auto setting
+
+        if (kernel_options.format == CMP_FORMAT_BC3)
+        {
+            // Enable punch through alpha setting
+            kernel_options.bc15.useAlphaThreshold = true;
+            kernel_options.bc15.alphaThreshold = 128;
+
+            // Enable setting channel weights
+            kernel_options.bc15.useChannelWeights = true;
+            kernel_options.bc15.channelWeights[0] = 0.3086f;
+            kernel_options.bc15.channelWeights[1] = 0.6094f;
+            kernel_options.bc15.channelWeights[2] = 0.0820f;
+        }
+
+        //--------------------------------------------------------------
+        // Setup a results buffer for the processed file,
+        // the content will be set after the source texture is processed
+        // in the call to CMP_ProcessTexture()
+        //--------------------------------------------------------------
+        CMP_MipSet MipSetCmp;
+        memset(&MipSetCmp, 0, sizeof(CMP_MipSet));
+
+        //===============================================
+        // Compress the texture using Framework Lib
+        //===============================================
+        cmp_status = CMP_ProcessTexture(&MipSetIn, &MipSetCmp, kernel_options, nullptr);
+        if (cmp_status != CMP_OK) {
+            
+        }
+
+        //----------------------------------------------------------------
+        // Save the result into a DDS file
+        //----------------------------------------------------------------
+        cmp_status = CMP_SaveTexture("CMP_test.dds", &MipSetCmp);
+
+        CMP_FreeMipSet(&MipSetIn);
+        CMP_FreeMipSet(&MipSetCmp);
+    }
+
     void TextureImporter::SaveDDSFile(const std::string& filePath, int width, int height, const std::vector<uint8_t>& compressedData)
     {
         //DDSHeader header = {};
@@ -126,6 +205,8 @@ namespace BorealisAssetCompiler
         SaveDDSFile(cacheString.c_str(), width, height, compressedData);
 
         stbi_image_free(imageData);
+
+        //compressonatorTest(sourcePath.string());
     }
 }
 

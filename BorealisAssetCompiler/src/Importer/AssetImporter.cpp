@@ -36,6 +36,8 @@ namespace BorealisAssetCompiler
 
 		std::filesystem::path cachePath = cacheString;
 
+		std::cout << "In compiler, cache path : " << cachePath.string() << '\n';
+
 		//if(cachePathExist)
 		//{
 			std::filesystem::path directoryPath = cachePath.parent_path();
@@ -59,7 +61,7 @@ namespace BorealisAssetCompiler
 			FontImporter::SaveFile(metaData.SourcePath, cachePath);
 			break;
 		case AssetType::Mesh:
-			MeshImporter::SaveFile(metaData.SourcePath, cachePath);
+			MeshImporter::SaveFile(metaData.SourcePath, metaData.Config, cachePath);
 			break;
 		case AssetType::None:
 		default:

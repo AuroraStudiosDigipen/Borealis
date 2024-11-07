@@ -323,13 +323,45 @@ namespace Borealis
 			return true;
 		}
 
+		if (propType == rttr::type::get<std::unordered_set<UUID>>())
+		{
+			out << YAML::Key << propName.to_string() << YAML::BeginMap;
+			std::unordered_set<UUID> uuidList = propValue.get_value<std::unordered_set<UUID>>();
+			for (auto id : uuidList)
+			{
+				out << YAML::Key << "UUID" << YAML::Value << id;
+			}
+			out << YAML::EndMap;
+			return true;
+		}
+
+		if (propType == rttr::type::get<UUID>())
+		{
+			out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<UUID>();
+			return true;
+		}
+
+
 		if (propType.get_wrapped_type().is_valid())
 		{
 			auto wrappedType = propType.get_wrapped_type();
 			if (wrappedType.is_derived_from<Asset>())
 			{
-				out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<Ref<Asset>>()->mAssetHandle;
-				return true;
+				if (propType == rttr::type::get<Ref<Material>>())
+				{
+					out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<Ref<Material>>()->mAssetHandle;
+					return true;
+				}
+				if (propType == rttr::type::get<Ref<Model>>())
+				{
+					out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<Ref<Model>>()->mAssetHandle;
+					return true;
+				}
+				if (propType == rttr::type::get<Ref<SkinnedModel>>())
+				{
+					out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<Ref<SkinnedModel>>()->mAssetHandle;
+					return true;
+				}
 			}
 		}
 
@@ -365,7 +397,7 @@ namespace Borealis
 	static void SerializeEntity(YAML::Emitter& out, Entity& entity)
 	{
 		out << YAML::BeginMap;
-		out << YAML::Key << "EntityID" << YAML::Value << entity.GetUUID();
+		out << YAML::Key << "EntityID" << YAML::Value << entity.GetComponent<IDComponent>().ID;
 		if (entity.HasComponent<TagComponent>())
 		{
 			SerializeComponent(out, entity.GetComponent<TagComponent>());
@@ -399,6 +431,16 @@ namespace Borealis
 		if (entity.HasComponent<MeshRendererComponent>())
 		{
 			SerializeComponent(out, entity.GetComponent<MeshRendererComponent>());
+		}
+
+		if (entity.HasComponent<SkinnedMeshRendererComponent>())
+		{
+			SerializeComponent(out, entity.GetComponent<SkinnedMeshRendererComponent>());
+		}
+
+		if (entity.HasComponent<AnimatorComponent>())
+		{
+			SerializeComponent(out, entity.GetComponent<AnimatorComponent>());
 		}
 
 		if (entity.HasComponent<BoxColliderComponent>())
@@ -738,15 +780,46 @@ namespace Borealis
 				return true;
 			}
 
+			if (propType == rttr::type::get<UUID>())
+			{
+				UUID uuid = propData.as<uint64_t>();
+				prop.set_value(instance, uuid);
+				return true;
+			}
+
+			if (propType == rttr::type::get<std::unordered_set<UUID>>())
+			{
+				std::unordered_set<UUID> uuidList;
+				for (const auto& it : propData) {
+					auto value = it.second; // Get the value
+					UUID uuid = value.as<uint64_t>();
+					uuidList.insert(uuid);
+				}
+				prop.set_value(instance, uuidList);
+			}
+
 			if (propType == rttr::type::get<Ref<Model>>())
 			{
-				prop.set_value(instance, rttr::variant(AssetManager::GetAsset<Model>(propData.as<uint64_t>())));
+				auto asset = AssetManager::GetAsset<Model>(propData.as<uint64_t>());
+				prop.set_value(instance, rttr::variant(asset));
+				return true;
+			}
+
+			if (propType == rttr::type::get<Ref<SkinnedModel>>())
+			{
+				prop.set_value(instance, rttr::variant(AssetManager::GetAsset<SkinnedModel>(propData.as<uint64_t>())));
 				return true;
 			}
 
 			if (propType == rttr::type::get<Ref<Material>>())
 			{
 				prop.set_value(instance, rttr::variant(AssetManager::GetAsset<Material>(propData.as<uint64_t>())));
+				return true;
+			}
+
+			if (propType == rttr::type::get<Ref<Animation>>())
+			{
+				prop.set_value(instance, rttr::variant(AssetManager::GetAsset<Animation>(propData.as<uint64_t>())));
 				return true;
 			}
 
@@ -834,6 +907,8 @@ namespace Borealis
 				DeserialiseComponent<CameraComponent>(entity, loadedEntity);
 				DeserialiseComponent<MeshFilterComponent>(entity, loadedEntity);
 				DeserialiseComponent<MeshRendererComponent>(entity, loadedEntity);
+				DeserialiseComponent<SkinnedMeshRendererComponent>(entity, loadedEntity);
+				DeserialiseComponent<AnimatorComponent>(entity, loadedEntity);
 				DeserialiseComponent<BoxColliderComponent>(entity, loadedEntity);
 				DeserialiseComponent<CapsuleColliderComponent>(entity, loadedEntity);
 				DeserialiseComponent<RigidBodyComponent>(entity, loadedEntity);

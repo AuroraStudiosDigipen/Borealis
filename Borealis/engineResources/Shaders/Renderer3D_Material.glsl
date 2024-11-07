@@ -4,40 +4,99 @@
 layout(location = 0) in vec3 a_Position;
 layout(location = 1) in vec3 a_Normal;
 layout(location = 2) in vec2 a_TexCoord;
-layout(location = 3) in vec3 a_Tangent;
-layout(location = 4) in vec3 a_Bitangent;
+// layout(location = 3) in vec3 a_Tangent;
+// layout(location = 4) in vec3 a_Bitangent;
+layout(location = 3) in ivec4 boneIds; 
+layout(location = 4) in vec4 weights;
 
+//default variables
 uniform mat4 u_ModelTransform;
 uniform mat4 u_ViewProjection;
 uniform int u_EntityID;
 
+//Animation variables
+uniform bool u_HasAnimation;
+const int MAX_BONES = 128;
+const int MAX_BONE_INFLUENCE = 4;
+uniform mat4 u_FinalBonesMatrices[MAX_BONES];
+
+//shadow pass variables
+uniform bool shadowPass;
+uniform mat4 u_LightViewProjection;
+
 out vec2 v_TexCoord;
 out vec3 v_FragPos;
-out vec3 v_Tangent;
-out vec3 v_Bitangent;
+// out vec3 v_Tangent;
+// out vec3 v_Bitangent;
 out vec3 v_Normal;
+out vec4 v_LightPos;
 flat out int v_EntityID;
 
-void main()
+void ShadowPass()
 {
-	//v_TexCoord = a_TexCoord;
-	v_TexCoord = vec2(a_TexCoord.x, 1.0 - a_TexCoord.y);
+	mat4 MVP = u_LightViewProjection * u_ModelTransform;
+	gl_Position = MVP * vec4(a_Position, 1.0);
+}
+
+void Render3DPass()
+{
+	v_TexCoord = vec2(a_TexCoord.x, 1.0 - a_TexCoord.y); //flip the texture
 
 	v_FragPos = vec3(u_ModelTransform * vec4(a_Position, 1.0));
 	//v_Normal = mat3(transpose(inverse(u_ModelTransform))) * a_Normal;
 	
 	mat3 normalMatrix = transpose(inverse(mat3(u_ModelTransform)));
     vec3 N = normalize(normalMatrix * a_Normal);
-    vec3 T = normalize(normalMatrix * a_Tangent);
-    T = normalize(T - dot(T, N) * N); // Gram-Schmidt orthogonalization
-    vec3 B = cross(N, T);
+    // vec3 T = normalize(normalMatrix * a_Tangent);
+    // T = normalize(T - dot(T, N) * N); // Gram-Schmidt orthogonalization
+    // vec3 B = cross(N, T);
+	//animation
+	vec4 TotalPosition = vec4(0.f);
 
-    v_Normal = N;
-    v_Tangent = T;
-    v_Bitangent = B;
+    if(u_HasAnimation)
+    {	
+        for(int i = 0 ; i < MAX_BONE_INFLUENCE ; i++)
+        {
+            if(boneIds[i] == -1) 
+                continue;
+            if(boneIds[i] >= MAX_BONES) 
+            {
+                TotalPosition = vec4(a_Position,1.0f);
+                break;
+            }
+            vec4 localPosition = u_FinalBonesMatrices[boneIds[i]] * vec4(a_Position,1.0f);
+            TotalPosition += localPosition * weights[i];
+            N = mat3(u_FinalBonesMatrices[boneIds[i]]) * a_Normal;
+        }
+    }
 
-	gl_Position = u_ViewProjection * vec4(v_FragPos, 1.0);	
+	if(u_HasAnimation)
+	{
+		gl_Position = u_ViewProjection * u_ModelTransform * TotalPosition;	
+		v_LightPos = u_LightViewProjection * u_ModelTransform * TotalPosition;
+	}
+	else
+	{
+		gl_Position = u_ViewProjection * vec4(v_FragPos, 1.0);	
+		v_LightPos = u_LightViewProjection * vec4(v_FragPos, 1.0);	
+	}
+	
 	v_EntityID = u_EntityID;
+	v_Normal = N;
+    // v_Tangent = T;
+    // v_Bitangent = B;
+}
+
+void main()
+{
+	if(shadowPass)
+	{
+		ShadowPass();
+	}
+	else
+	{
+		Render3DPass();
+	}
 }
 
 #type fragment
@@ -81,20 +140,24 @@ struct Light {
 	vec3 diffuse;
 	vec3 specular;
 	vec3 direction;
+	vec3 spotLightDirection;
 
 	//float range;
 	vec2 innerOuterAngle;
 
 	float linear;
 	float quadratic;
+
+	bool castShadow;
 };
 
 in vec2 v_TexCoord;
 in vec3 v_FragPos;
 in vec3 v_Normal; 
 flat in int v_EntityID;
-in vec3 v_Tangent;
-in vec3 v_Bitangent;
+// in vec3 v_Tangent;
+// in vec3 v_Bitangent;
+in vec4 v_LightPos;
 //in vec3 v_Normal;
 
 uniform mat4 u_ViewProjection;
@@ -104,7 +167,9 @@ const int MAX_LIGHTS = 20;
 uniform Light u_Lights[20];
 uniform int u_LightsCount;
 			
-uniform sampler2D u_Texture;
+
+uniform sampler2D u_ShadowMap;
+uniform bool shadowPass = false;
 
 vec2 GetTexCoord() 
 {
@@ -136,16 +201,38 @@ vec3 GetEmission()
 	return u_Material.hasEmissionMap ? texture(u_Material.emissionMap, GetTexCoord()).rgb : u_Material.emissionColor.rgb;
 }
 
+float GetShadowFactor()
+{
+	vec3 projCoord = v_LightPos.xyz / v_LightPos.w;
+	vec2 UVCoord;
+	UVCoord.x = 0.5 * projCoord.x + 0.5;
+	UVCoord.y = 0.5 * projCoord.y + 0.5;
+	float z = 0.5 * projCoord.z + 0.5;
+
+	float depth = texture(u_ShadowMap, UVCoord).x;
+
+	float bias = 0.0025;
+
+	if(depth + bias < z)
+	{
+		return 0.5;
+	}
+	else
+	{
+		return 1.f;
+	}
+}
+
 vec3 ComputeDirectionalLight(Light light, vec3 normal, vec3 viewDir) 
 {
 	vec3 lightDir = normalize(-light.direction);
-
     vec3 ambient = light.ambient * GetAlbedoColor().rgb;
+
+	float diff = max(dot(normal, lightDir), 0.0);
+
 	vec3 color = ambient;
 	float metallic = GetMetallic();
 	vec3 emission = GetEmission();
-
-	float diff = max(dot(normal, lightDir), 0.0);
 
     if (diff > 0.0) 
 	{
@@ -156,7 +243,10 @@ vec3 ComputeDirectionalLight(Light light, vec3 normal, vec3 viewDir)
         vec3 diffuse = light.diffuse * diff * (1.0 - metallic);
         vec3 specular = light.specular * spec * GetSpecular() * metallic; 
 
-        color = ambient + diffuse + specular + emission;
+		//temp
+		float shadowFactor = GetShadowFactor();
+
+        color = ambient + shadowFactor * (diffuse + specular + emission);
     }
 	return color;
 }
@@ -212,7 +302,8 @@ vec3 ComputeSpotLight(Light light, vec3 normal, vec3 viewDir)
     {
         float spec = pow(max(dot(normal, halfwayDir), 0.0), u_Material.shininess * u_Material.smoothness);
 
-        float theta = dot(lightDir, normalize(-light.direction)); 
+        float theta = dot(lightDir, normalize(-light.spotLightDirection)); 
+
         float epsilon = light.innerOuterAngle.x - light.innerOuterAngle.y;
         float intensity = clamp((theta - light.innerOuterAngle.y) / epsilon, 0.0, 1.0); 
 
@@ -222,16 +313,22 @@ vec3 ComputeSpotLight(Light light, vec3 normal, vec3 viewDir)
 		ambient *= intensity * attenuation;
 		diffuse *= intensity * attenuation;
 		specular *= intensity * attenuation;
-        color = ambient + diffuse + specular + emission;
+
+		//temp
+		float shadowFactor = GetShadowFactor();
+
+        color = ambient + shadowFactor * (diffuse + specular + emission);
     }
 
 	return color;
 }
 
-void main() {
+void Render3DPass()
+{
 	vec3 viewDir = normalize(u_ViewPos - v_FragPos);
 
-	mat3 TBN = mat3(v_Tangent, v_Bitangent, v_Normal);
+	mat3 TBN = mat3(vec3(0.f), vec3(0.f), v_Normal);
+	//mat3 TBN = mat3(v_Tangent, v_Bitangent, v_Normal);
 	vec3 normal;
     if (u_Material.hasNormalMap) 
     {
@@ -284,4 +381,12 @@ void main() {
 	fragColor = color;
 	
 	entityIDs = v_EntityID;
+}
+
+void main() 
+{
+	if(!shadowPass)
+	{
+		Render3DPass();
+	}
 }

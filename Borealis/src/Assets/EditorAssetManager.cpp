@@ -176,14 +176,34 @@ namespace Borealis
 		mAssetRegistryPath.clear();
 	}
 
+	Ref<Asset> GetModel(AssetConfig const& config, std::string const& path)
+	{
+		if (!GetConfig<MeshConfig>(config).skinMesh)
+		{
+			Model model;
+			model.LoadModel(path);
+			return MakeRef<Model>(model);
+		}
+		else // testing
+		{
+			SkinnedModel skinnedModel;
+			skinnedModel.LoadModel(path);
+			return MakeRef<SkinnedModel>(skinnedModel);
+		}
+	}
+
 	Ref<Asset> EditorAssetManager::LoadAsset(AssetHandle assetHandle)
 	{
 		AssetMetaData metaData = mAssetRegistry.at(assetHandle);
 
 		Ref<Asset> asset = nullptr;
-		Model model;
+		Animation anim;
 		switch (metaData.Type)
 		{
+		case AssetType::Animation:
+			anim.Load(metaData.SourcePath);
+			asset = MakeRef<Animation>(anim);
+			break;
 		case AssetType::Audio:
 			asset = MakeRef<Audio>(AudioEngine::LoadAudio(metaData.SourcePath.string()));
 			break;
@@ -194,8 +214,7 @@ namespace Borealis
 			asset = MakeRef<Material>(Material(metaData.SourcePath.string()));
 			break;
 		case AssetType::Mesh:
-			model.LoadModel(metaData.CachePath.string());
-			asset = MakeRef<Model>(model);
+			asset = GetModel(metaData.Config, metaData.CachePath.string());
 			break;
 		default:
 			break;

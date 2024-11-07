@@ -40,5 +40,10 @@ namespace Borealis
             gameObject = new GameObject(id);
         }
 
+        new private ulong GetInstanceID()
+        {
+            return InstanceID;
+        }
+
     }
 }

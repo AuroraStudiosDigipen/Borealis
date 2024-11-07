@@ -15,9 +15,11 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #ifndef Asset_HPP
 #define Asset_HPP
 
-#include <Core/UUID.hpp>
-#include <rttr/rttr_enable.h>
 #include <filesystem>
+
+#include <rttr/rttr_enable.h>
+
+#include <Core/UUID.hpp>
 
 namespace Borealis
 {
@@ -26,6 +28,7 @@ namespace Borealis
 	enum class AssetType
 	{
 		None,
+		Animation,
 		Audio,
 		Mesh,
 		Shader,
@@ -41,8 +44,8 @@ namespace Borealis
 	class Asset
 	{
 	public:
-		AssetHandle mAssetHandle;
-		AssetType mAssetType;
+		AssetHandle mAssetHandle{};
+		AssetType mAssetType{AssetType::None};
 
 		static AssetType GetAssetTypeFromExtention(std::filesystem::path path);
 		static std::string AssetTypeToString(AssetType type);

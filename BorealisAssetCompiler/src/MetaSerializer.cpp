@@ -21,6 +21,49 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace BorealisAssetCompiler
 {
+	MeshConfig DeserializeMeshConfig(YAML::Node& node)
+	{
+		MeshConfig config;
+
+		config.skinMesh = node["IsSkinnedMesh"].as<bool>();
+
+		return config;
+	}
+
+	AssetConfig DeserializeMetaConfigFile(YAML::Node& node, AssetType type)
+	{
+		AssetConfig config{};
+
+		switch (type)
+		{
+		case AssetType::None:
+			break;
+		case AssetType::Audio:
+			break;
+		case AssetType::Mesh:
+			config = DeserializeMeshConfig(node);
+			break;
+		case AssetType::Shader:
+			break;
+		case AssetType::Texture2D:
+			break;
+		case AssetType::Folder:
+			break;
+		case AssetType::Font:
+			break;
+		case AssetType::Scene:
+			break;
+		case AssetType::Material:
+			break;
+		case AssetType::Prefab:
+			break;
+		default:
+			break;
+		}
+
+		return config;
+	}
+
 	AssetMetaData DeserializeMetaFile(YAML::Node& node, std::filesystem::path PathToAssetFolder)
 	{
 		AssetMetaData metaData;
@@ -28,6 +71,8 @@ namespace BorealisAssetCompiler
 		metaData.name = node["Name"].as<std::string>();
 		metaData.Handle = node["AssetHandle"].as<uint64_t>();
 		metaData.Type = Asset::StringToAssetType(node["AssetType"].as<std::string>());
+		metaData.Config = DeserializeMetaConfigFile(node, metaData.Type);
+
 		std::string str = node["SourcePath"].as<std::string>();
 
 		const std::string pattern = "..\\";
@@ -103,12 +148,82 @@ namespace BorealisAssetCompiler
 		return DeserializeMetaFile(metaRoot, currentPath.parent_path());
 	}
 
+	AssetConfig MetaSerializer::GetDefaultConfig(AssetType type)
+	{
+		AssetConfig assetConfig{};
+
+		switch (type)
+		{
+		case AssetType::None:
+			break;
+		case AssetType::Audio:
+			break;
+		case AssetType::Mesh:
+			assetConfig = MeshConfig{};
+			break;
+		case AssetType::Shader:
+			break;
+		case AssetType::Texture2D:
+			break;
+		case AssetType::Folder:
+			break;
+		case AssetType::Font:
+			break;
+		case AssetType::Scene:
+			break;
+		case AssetType::Material:
+			break;
+		case AssetType::Prefab:
+			break;
+		default:
+			break;
+		}
+
+		return assetConfig;
+	}
+
+	void SerializeMeshConfig(YAML::Emitter& out, MeshConfig const& meshConfig)
+	{
+		out << YAML::Key << "IsSkinnedMesh" << YAML::Value << meshConfig.skinMesh;
+	}
+
+	void SerializeMetaConfigFile(YAML::Emitter& out, AssetType type, AssetConfig const& assetConfig)
+	{
+		switch (type)
+		{
+		case AssetType::None:
+			break;
+		case AssetType::Audio:
+			break;
+		case AssetType::Mesh:
+			SerializeMeshConfig(out, GetConfig<MeshConfig>(assetConfig));
+			break;
+		case AssetType::Shader:
+			break;
+		case AssetType::Texture2D:
+			break;
+		case AssetType::Folder:
+			break;
+		case AssetType::Font:
+			break;
+		case AssetType::Scene:
+			break;
+		case AssetType::Material:
+			break;
+		case AssetType::Prefab:
+			break;
+		default:
+			break;
+		}
+	}
+
 	void SerializeMetaFile(YAML::Emitter& out, AssetMetaData const& assetMetaData, std::filesystem::path PathToAssetFolder)
 	{
 		out << YAML::BeginMap;
 		out << YAML::Key << "Name" << YAML::Value << assetMetaData.name;
 		out << YAML::Key << "AssetHandle" << YAML::Value << assetMetaData.Handle;
 		out << YAML::Key << "AssetType" << YAML::Value << Asset::AssetTypeToString(assetMetaData.Type);
+		SerializeMetaConfigFile(out, assetMetaData.Type, assetMetaData.Config);
 		//out << YAML::Key << "SourcePath" << YAML::Value << assetMetaData.SourcePath.lexically_relative(PathToAssetFolder).string();
 		out << YAML::Key << "SourcePath" << YAML::Value << std::filesystem::relative(assetMetaData.SourcePath, PathToAssetFolder).string();
 		out << YAML::Key << "CachePath" << YAML::Value << std::filesystem::relative(assetMetaData.CachePath, PathToAssetFolder).string();

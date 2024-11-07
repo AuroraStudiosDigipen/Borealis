@@ -13,6 +13,9 @@ prior written consent of DigiPen Institute of Technology is prohibited.
  /******************************************************************************/
 #include <filesystem>
 #include <RuntimeLayer.hpp>
+
+#include <Graphics/RenderGraph/RenderGraph.hpp>
+
 namespace BorealisRuntime
 {
 	void RuntimeLayer::Init()
@@ -62,6 +65,29 @@ namespace BorealisRuntime
 		Borealis::RenderCommand::Clear();
 		Borealis::RenderCommand::SetClearColor({ 0.f, 0.0f, 0.0f, 1 });
 		Borealis::SceneManager::GetActiveScene()->UpdateRuntime(dt);
+		//set render graph config manually for now
+		{
+			Borealis::RenderGraphConfig fconfig;
+			Borealis::RenderPassConfig shadowPass(Borealis::RenderPassType::Shadow, "ShadowPass");
+			shadowPass.AddSinkLinkage("shadowMap", "ShadowMapBuffer");
+			shadowPass.AddSinkLinkage("camera", "RunTimeCamera");
+			fconfig.AddPass(shadowPass);
+
+			Borealis::RenderPassConfig Render3D(Borealis::RenderPassType::Render3D, "Render3D");
+			Render3D.AddSinkLinkage("renderTarget", "RunTimeBuffer");
+			Render3D.AddSinkLinkage("shadowMap", "ShadowPass.shadowMap");
+			Render3D.AddSinkLinkage("camera", "RunTimeCamera");
+			fconfig.AddPass(Render3D);
+
+			Borealis::RenderPassConfig Render2D(Borealis::RenderPassType::Render2D, "Render2D");
+			Render2D.AddSinkLinkage("renderTarget", "Render3D.renderTarget");
+			Render2D.AddSinkLinkage("camera", "RunTimeCamera");
+			fconfig.AddPass(Render2D);
+
+			Borealis::SceneManager::GetActiveScene()->SetRenderGraphConfig(fconfig);
+		}
+		Borealis::SceneManager::GetActiveScene()->UpdateRenderer(dt);
+		//Borealis::SceneManager::GetActiveScene()->GetRunTimeFB()->Blit(0, mRuntimeFrameBuffer->GetProperties());
 	}	
 	void RuntimeLayer::Free()
 	{

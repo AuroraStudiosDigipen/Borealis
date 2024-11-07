@@ -91,7 +91,7 @@ namespace Borealis
 		glBindTexture(TextureTarget(multiSampled), id);
 	}
 
-	void GraphicsUtils::AttachColorTexture(uint32_t id, int samples, unsigned internalformat, unsigned format, uint32_t width, uint32_t height, int index)
+	void GraphicsUtils::AttachColorTexture(uint32_t id, int samples, unsigned internalformat, unsigned format, unsigned type, uint32_t width, uint32_t height, int index)
 	{
 		bool multisampled = samples > 1;
 		if (multisampled)
@@ -100,9 +100,20 @@ namespace Borealis
 		}
 		else
 		{
-			glTexImage2D(GL_TEXTURE_2D, 0, internalformat, width, height, 0, format, GL_UNSIGNED_BYTE, nullptr);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexImage2D(GL_TEXTURE_2D, 0, internalformat, width, height, 0, format, type, nullptr);
+
+			//fix ltr
+			if (internalformat == GL_RED_INTEGER)
+			{
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			}
+			else
+			{
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			}
+			
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -120,12 +131,12 @@ namespace Borealis
 		}
 		else
 		{
+			glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, nullptr);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, nullptr);
 		}
 
 		glFramebufferTexture2D(GL_FRAMEBUFFER, attachmentType, TextureTarget(multisampled), id, 0);
@@ -174,6 +185,26 @@ namespace Borealis
 
 		return glm::normalize(q);
 		
+	}
+
+	void Math::MatrixDecomposition(glm::mat4* transform, glm::vec3* translate, glm::vec3* rotate, glm::vec3* scale)
+	{
+
+		*translate = glm::vec3((*transform)[3]);
+
+		scale->x = glm::length(glm::vec3((*transform)[0]));
+		scale->y = glm::length(glm::vec3((*transform)[1]));
+		scale->z = glm::length(glm::vec3((*transform)[2]));
+
+
+		// Normalize the basis vectors
+		glm::vec3 xAxis = glm::vec3((*transform)[0]) / scale->x;
+		glm::vec3 yAxis = glm::vec3((*transform)[1]) / scale->y;
+		glm::vec3 zAxis = glm::vec3((*transform)[2]) / scale->z;
+
+		glm::quat rotation = glm::quat_cast(glm::mat3(xAxis, yAxis, zAxis));
+		*rotate = glm::degrees(glm::eulerAngles(rotation)); // Convert quaternion to Euler angles
+
 	}
 
 }

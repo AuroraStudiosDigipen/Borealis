@@ -20,6 +20,17 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace Borealis
 {
+	//default 3d material shader
+	static Ref<Shader> s_material3dShader = nullptr;
+	Ref<Shader> Shader::GetDefault3DMaterialShader()
+	{
+		if (!s_material3dShader)
+		{
+			s_material3dShader = Create("engineResources/Shaders/Renderer3D_Material.glsl");
+		}
+		return s_material3dShader;
+	}
+
 	Ref<Shader> Shader::Create(const std::string& filepath)
 	{
 		switch (Renderer::GetAPI())
@@ -41,6 +52,7 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(false, "Unknown RendererAPI");
 		return nullptr;
 	}
+	
 	void ShaderAPI::Add(const Ref<Shader>& shader)
 	{
 		auto& name = shader->GetName();

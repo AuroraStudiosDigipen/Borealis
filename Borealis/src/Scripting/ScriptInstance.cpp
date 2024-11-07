@@ -16,6 +16,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <BorealisPCH.hpp>
 #include <Scripting/ScriptInstance.hpp>
 #include <Scripting/ScriptingUtils.hpp>
+#include <Scripting/ScriptingSystem.hpp>
 #include <mono/metadata/object.h>
 #include <mono/jit/jit.h>
 
@@ -38,6 +39,8 @@ namespace Borealis
 		auto Method = mono_class_get_method_from_name(GetScriptClassUtils("MonoBehaviour")->GetMonoClass(), "SetInstanceID", 1);
 		mono_runtime_invoke(Method, mInstance, params, nullptr);
 	}
+
+
 
 	Ref<ScriptClass> ScriptInstance::GetScriptClass()
 	{
@@ -121,6 +124,11 @@ namespace Borealis
 			return true;
 		}
 		return false;
+	}
+
+	bool ScriptInstance::IsActive()
+	{
+		return ScriptingSystem::GetEnabled(shared_from_this());
 	}
 
 #ifdef _DEB

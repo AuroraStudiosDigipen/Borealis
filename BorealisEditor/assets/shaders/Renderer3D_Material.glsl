@@ -6,6 +6,8 @@ layout(location = 1) in vec3 a_Normal;
 layout(location = 2) in vec2 a_TexCoord;
 layout(location = 3) in vec3 a_Tangent;
 layout(location = 4) in vec3 a_Bitangent;
+layout(location = 5) in ivec4 a_BoneIds;
+layout(location = 6) in vec3 a_Weights;
 
 uniform mat4 u_ModelTransform;
 uniform mat4 u_ViewProjection;
@@ -17,6 +19,10 @@ out vec3 v_Tangent;
 out vec3 v_Bitangent;
 out vec3 v_Normal;
 flat out int v_EntityID;
+
+const int MAX_BONES = 100;
+const int MAX_BONE_INFLUENCE = 4;
+uniform mat4 finalBonesMatrices[MAX_BONES];
 
 void main()
 {
@@ -36,7 +42,22 @@ void main()
     v_Tangent = T;
     v_Bitangent = B;
 
-	gl_Position = u_ViewProjection * vec4(v_FragPos, 1.0);	
+	vec4 totalPosition = vec4(0.0f);
+    for(int i = 0 ; i < MAX_BONE_INFLUENCE ; i++)
+    {
+        if(boneIds[i] == -1) 
+            continue;
+        if(boneIds[i] >=MAX_BONES) 
+        {
+            totalPosition = vec4(pos,1.0f);
+            break;
+        }
+        vec4 localPosition = finalBonesMatrices[boneIds[i]] * vec4(pos,1.0f);
+        totalPosition += localPosition * weights[i];
+        vec3 localNormal = mat3(finalBonesMatrices[boneIds[i]]) * norm;
+   }
+
+	gl_Position = u_ViewProjection * vec4(v_FragPos, 1.0) * totalPostion;	
 	v_EntityID = u_EntityID;
 }
 

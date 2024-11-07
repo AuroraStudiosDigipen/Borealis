@@ -121,9 +121,12 @@ namespace Borealis
             .property("Quadratic", &LightComponent::quadratic)
             .property("Linear", &LightComponent::linear)
             .property("Offset", &LightComponent::offset)
+            .property("CastShadow", &LightComponent::castShadow)
             .property("Type", &LightComponent::type)
             .property("Direction", &LightComponent::direction)
             (metadata("Dependency", "Type"), metadata("Visible for", "Directional"))
+            .property("SpotLightDirection", &LightComponent::spotLightDirection)
+            (metadata("Dependency", "Type"), metadata("Visible for", "Spot"))
             .property("Inner Outer Spot", &LightComponent::InnerOuterSpot)
             (metadata("Dependency", "Type"), metadata("Visible for", "Spot"));
 
@@ -138,20 +141,48 @@ namespace Borealis
             .property("Material", &MeshRendererComponent::Material)
             .property("Cast Shadow", &MeshRendererComponent::castShadow);
 
+        registration::class_<SkinnedMeshRendererComponent>("Skinned Mesh Renderer Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("Skinnned Model", &SkinnedMeshRendererComponent::SkinnnedModel)
+            .property("Material", &SkinnedMeshRendererComponent::Material);
+
+        registration::class_<AnimatorComponent>("Animator Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("Animation", &AnimatorComponent::animation)
+            .property("Animator", &AnimatorComponent::animator);
+
         registration::enumeration<RigidBodyType>("Rigidbody Collider Type")
             (
                 value("Box", RigidBodyType::Box),
-                value("Sphere", RigidBodyType::Circle)
+                value("Sphere", RigidBodyType::Sphere),
+				value("Capsule", RigidBodyType::Capsule)
                 );
 
         registration::class_<RigidBodyComponent>("Rigid Body Component")
             (metadata("Component", true))
             .constructor<>()
-            .property("Is Box", &RigidBodyComponent::isBox)
+            .property("Shape", &RigidBodyComponent::shape)
+
+			.property("Dynamic", &RigidBodyComponent::dynamicBody)
+
             .property("Radius", &RigidBodyComponent::radius)
-            (metadata("Dependency", "Is Box"), metadata("Visible for", "Sphere"))
-            .property("HalfExtent", &RigidBodyComponent::radius)
-            (metadata("Dependency", "Is Box"), metadata("Visible for", "Box"));
+            (metadata("Dependency", "Shape"), metadata("Visible for", "Sphere"))
+
+            .property("Size", &RigidBodyComponent::size)
+            (metadata("Dependency", "Shape"), metadata("Visible for", "Box"))
+            
+            .property("Radius ", &RigidBodyComponent::radius)
+            (metadata("Dependency", "Shape"), metadata("Visible for", "Capsule"))
+            
+            .property("Half Height", &RigidBodyComponent::halfHeight)
+            (metadata("Dependency", "Shape"), metadata("Visible for", "Capsule"))
+            
+            .property("Friction", &RigidBodyComponent::friction)
+            
+            .property("Bounciness", &RigidBodyComponent::bounciness);
+
 
         registration::class_<SpriteRendererComponent>("Sprite Renderer Component")
             .constructor<>()
@@ -172,6 +203,7 @@ namespace Borealis
         registration::class_<TagComponent>("Tag Component")
             (metadata("Component", true))
             .constructor<>()
+            .property("IsActive", &TagComponent::active)
             .property("Tag", &TagComponent::Tag);
 
         registration::class_<TransformComponent>("Transform Component")
@@ -181,7 +213,14 @@ namespace Borealis
             .property("Rotation", &TransformComponent::Rotation)
             .property("Scale", &TransformComponent::Scale)
             (metadata("Min", 1.f))
-            .method("GetTransform", &TransformComponent::GetTransform);
+            .property("ParentID", &TransformComponent::ParentID)
+            (metadata("Hide", true))
+            .property("ChildrenID", &TransformComponent::ChildrenID)
+            (metadata("Hide", true))
+            .method("GetTransform", &TransformComponent::GetTransform)
+            .property("Min Extent", &TransformComponent::minExtent)
+            .property("Max Extent", &TransformComponent::maxExtent);
+            
     }
 
     enum dataTypes
@@ -335,6 +374,8 @@ void Borealis::ComponentRegistry::SetPropertyInternal(const std::string& propert
     RegisterSetPropertyFunction(NativeScriptComponent);
     RegisterSetPropertyFunction(MeshFilterComponent);
     RegisterSetPropertyFunction(MeshRendererComponent);
+    RegisterSetPropertyFunction(SkinnedMeshRendererComponent);
+    RegisterSetPropertyFunction(AnimatorComponent);
     RegisterSetPropertyFunction(BoxColliderComponent);
     RegisterSetPropertyFunction(CapsuleColliderComponent);
     RegisterSetPropertyFunction(RigidBodyComponent);
@@ -348,6 +389,8 @@ void Borealis::ComponentRegistry::SetPropertyInternal(const std::string& propert
     RegisterCopyPropertyFunction(NativeScriptComponent);
     RegisterCopyPropertyFunction(MeshFilterComponent);
     RegisterCopyPropertyFunction(MeshRendererComponent);
+    RegisterCopyPropertyFunction(SkinnedMeshRendererComponent);
+    RegisterCopyPropertyFunction(AnimatorComponent);
     RegisterCopyPropertyFunction(BoxColliderComponent);
     RegisterCopyPropertyFunction(CapsuleColliderComponent);
     RegisterCopyPropertyFunction(RigidBodyComponent);

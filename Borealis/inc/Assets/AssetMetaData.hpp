@@ -19,7 +19,9 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <ctime>
 #include <filesystem>
 #include <string>
+
 #include <Assets/Asset.hpp>
+#include <Assets/AssetConfigs.hpp>
 
 namespace Borealis
 {
@@ -29,6 +31,8 @@ namespace Borealis
 
 		AssetHandle Handle;
 		AssetType Type = AssetType::None;
+
+		AssetConfig Config;
 
 		std::filesystem::path CachePath{};
 		std::filesystem::path SourcePath{};

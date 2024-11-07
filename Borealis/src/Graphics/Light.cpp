@@ -61,6 +61,8 @@ namespace Borealis
 		shader->Set(str.c_str(), lightComponent.specular);
 		str = lightPrefix + ".direction";
 		shader->Set(str.c_str(), lightComponent.direction);
+		str = lightPrefix + ".spotLightDirection";
+		shader->Set(str.c_str(), lightComponent.spotLightDirection);
 		str = lightPrefix + ".innerOuterAngle";
 		shader->Set(str.c_str(), innerOuterSpot);
 		str = lightPrefix + ".linear";
@@ -69,7 +71,9 @@ namespace Borealis
 		shader->Set(str.c_str(), lightComponent.quadratic);
 		str = lightPrefix + ".type";
 		shader->Set(str.c_str(), static_cast<int>(lightComponent.type));
+		str = lightPrefix + ".castShadow";
+		shader->Set(str.c_str(), lightComponent.castShadow);
 
-		shader->Unbind();
+		//shader->Unbind();
 	}
 }

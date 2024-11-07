@@ -205,8 +205,8 @@ namespace Borealis {
 		OrthographicCameraController mCamera;
 		Ref<Texture2D> mTexture;
 		Ref<SubTexture2D> mSubTexture;
-		Ref<FrameBuffer> mViewportFrameBuffer;
-		Ref<FrameBuffer> mRuntimeFrameBuffer;
+		//Ref<FrameBuffer> mViewportFrameBuffer;
+		//Ref<FrameBuffer> mRuntimeFrameBuffer;
 		Ref<Scene> mEditorScene;
 
 		glm::vec2 mViewportSize = { 0.0f, 0.0f };
@@ -233,6 +233,8 @@ namespace Borealis {
 		float mLineThickness = 1.0f;
 
 		AssetImporter mAssetImporter;
+
+		Ref<FrameBuffer> mViewportFrameBuffer;
 	};
 }
 

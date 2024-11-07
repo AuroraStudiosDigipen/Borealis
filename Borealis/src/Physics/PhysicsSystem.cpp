@@ -33,6 +33,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Jolt/Physics/PhysicsSystem.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
+#include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Body/BodyActivationListener.h>
 
@@ -232,6 +233,7 @@ struct PhysicsSystemData
 };
 
 static PhysicsSystemData sData;
+
 namespace Borealis
 {
 void PhysicsSystem::Init()
@@ -303,25 +305,6 @@ void PhysicsSystem::Init()
 	// variant of this. We're going to use the locking version (even though we're not planning to access bodies from multiple threads)
 	sData.body_interface = &sData.mSystem->GetBodyInterface();
 
-	// Next we can create a rigid body to serve as the floor, we make a large box
-	// Create the settings for the collision volume (the shape).
-	// Note that for simple shapes (like boxes) you can also directly construct a BoxShape.
-	BoxShapeSettings floor_shape_settings(Vec3(100.0f, 1.0f, 100.0f));
-	floor_shape_settings.SetEmbedded(); // A ref counted object on the stack (base class RefTarget) should be marked as such to prevent it from being freed when its reference count goes to 0.
-
-	// Create the shape
-	ShapeSettings::ShapeResult floor_shape_result = floor_shape_settings.Create();
-	ShapeRefC floor_shape = floor_shape_result.Get(); // We don't expect an error here, but you can check floor_shape_result for HasError() / GetError()
-
-	// Create the settings for the body itself. Note that here you can also set other properties like the restitution / friction.
-	BodyCreationSettings floor_settings(floor_shape, RVec3(0.0_r, -3.0_r, 0.0_r), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
-
-	// Create the actual rigid body
-	Body* floor = sData.body_interface->CreateBody(floor_settings); // Note that if we run out of bodies this can return nullptr
-
-	// Add it to the world
-	sData.body_interface->AddBody(floor->GetID(), EActivation::DontActivate);
-
 	// Optional step: Before starting the physics simulation you can optimize the broad phase. This improves collision detection performance (it's pointless here because we only have 2 bodies).
 	// You should definitely not call this every frame or when e.g. streaming in a new level section as it is an expensive operation.
 	// Instead insert all new objects in batches instead of 1 at a time to keep the broad phase efficient.
@@ -377,10 +360,132 @@ void PhysicsSystem::Init()
 		delete Factory::sInstance;
 	}
 
-	void PhysicsSystem::addSquareBody(float radius, glm::vec3 position, RigidBodyComponent& rigidbody) {
+	void PhysicsSystem::calculateBoundingVolume(const Model& model, TransformComponent& transform)
+	{
+		glm::vec3 minExtent{}, maxExtent{};
+
+		for (const auto& mesh : model.mMeshes)
+		{
+			for (const auto& vertex : mesh.GetVertices())
+			{
+				// Update min and max extents for each axis
+				minExtent.x = std::min(minExtent.x, vertex.Position.x);
+				minExtent.y = std::min(minExtent.y, vertex.Position.y);
+				minExtent.z = std::min(minExtent.z, vertex.Position.z);
+														   
+				maxExtent.x = std::max(maxExtent.x, vertex.Position.x);
+				maxExtent.y = std::max(maxExtent.y, vertex.Position.y);
+				maxExtent.z = std::max(maxExtent.z, vertex.Position.z);
+			}
+		}
+		minExtent *= transform.Scale * 0.5f;
+		maxExtent *= transform.Scale * 0.5f;
+
+		transform.minExtent = minExtent;
+		transform.maxExtent = maxExtent;
+
+		glm::vec3 boundingVolumeCenter = (minExtent + maxExtent) * 0.5f;
+
+		transform.offset = transform.Translate - boundingVolumeCenter;
+
+		/*cout << "Min Extent: " << minExtent.x << ", " << minExtent.y << ", " << minExtent.z << endl;
+		cout << "Max Extent: " << maxExtent.x << ", " << maxExtent.y << ", " << maxExtent.z << endl;*/
+
+	}
+
+	glm::vec3 PhysicsSystem::calculateBoxSize(glm::vec3 minExtent, glm::vec3 maxExtent)
+	{
+		// Calculate the size of the box
+		return maxExtent - minExtent;
+	}
+
+	float PhysicsSystem::calculateSphereRadius(glm::vec3 minExtent, glm::vec3 maxExtent)
+	{
+		glm::vec3 dimensions = maxExtent - minExtent;
+		return glm::length(dimensions) / 2.0f;
+	}
+
+	std::pair<float, float> PhysicsSystem::calculateCapsuleDimensions(glm::vec3 minExtent, glm::vec3 maxExtent)
+	{
+		glm::vec3 dimensions = maxExtent - minExtent;
+		float radius = glm::length(glm::vec2(dimensions.x, dimensions.z)) / 2.0f;
+		float halfHeight = (dimensions.y - 2 * radius) / 2.0f;
+		return { radius, halfHeight };
+	}
+
+	void PhysicsSystem::addBody(TransformComponent& transform, RigidBodyComponent& rigidbody, MeshFilterComponent& mesh) {
+		ShapeRefC shape;
+		ShapeSettings::ShapeResult shape_result;
+
+		calculateBoundingVolume(*mesh.Model, transform);
+
+		switch (rigidbody.shape) {
+		case RigidBodyType::Box: {
+			// Create box shape settings
+			glm::vec3 size = calculateBoxSize(transform.minExtent, transform.maxExtent);
+			BoxShapeSettings box_shape_settings(Vec3(size.x, size.y, size.z));
+			box_shape_settings.SetEmbedded();
+			shape_result = box_shape_settings.Create();
+			shape = shape_result.Get();
+			break;
+		}
+		case RigidBodyType::Sphere: {
+			// Create sphere shape settings
+			float radius = calculateSphereRadius(transform.minExtent,transform.maxExtent); // Assuming size.x represents the radius for a sphere
+			SphereShapeSettings sphere_shape_settings(radius);
+			sphere_shape_settings.SetEmbedded();
+			shape_result = sphere_shape_settings.Create();
+			shape = shape_result.Get();
+			break;
+		}
+		case RigidBodyType::Capsule: {
+			// Create capsule shape settings
+			float radius = rigidbody.radius;     // Assuming size.x represents the radius for a capsule
+			float halfHeight = rigidbody.halfHeight; // Assuming size.y represents the half height for a capsule
+			CapsuleShapeSettings capsule_shape_settings(radius, halfHeight);
+			capsule_shape_settings.SetEmbedded();
+			shape_result = capsule_shape_settings.Create();
+			shape = shape_result.Get();
+			break;
+		}
+		default:
+			// Handle error for unsupported shape type
+			return;
+		}
+
+		if (!shape) {
+			// Handle error (e.g., failed to create shape)
+			return;
+		}
+
+		// Create the settings for the body itself, including other properties like restitution and friction
+		BodyCreationSettings body_settings(shape, RVec3(transform.Translate.x+transform.offset.x, transform.Translate.y+ transform.offset.y, transform.Translate.z+ transform.offset.z), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
+		body_settings.mFriction = rigidbody.friction;
+		body_settings.mRestitution = rigidbody.bounciness;
+
+		if (rigidbody.dynamicBody) {
+			body_settings.mMotionType = EMotionType::Dynamic;
+			body_settings.mObjectLayer = Layers::MOVING;
+		}
+
+		// Create the actual rigid body
+		Body* body = sData.body_interface->CreateBody(body_settings); // Handle nullptr in a real scenario
+		if (!body) {
+			// Handle error (e.g., failed to create body)
+			return;
+		}
+
+		// Add it to the world
+		sData.body_interface->AddBody(body->GetID(), EActivation::Activate);
+
+		// Store the BodyID in the RigidBodyComponent
+		rigidbody.bodyID = body->GetID().GetIndexAndSequenceNumber();
+	}
+
+	void PhysicsSystem::addSquareBody(glm::vec3 size, glm::vec3 position, RigidBodyComponent& rigidbody) {
 
 		// Create the settings for the collision volume (the shape).
-		BoxShapeSettings box_shape_settings(Vec3(radius, radius, radius)); // Use radius as half extents
+		BoxShapeSettings box_shape_settings(Vec3(size.x, size.y, size.z)); // Use radius as half extents
 
 		// Mark it as embedded (prevent it from being freed when reference count goes to 0)
 		box_shape_settings.SetEmbedded();
@@ -390,8 +495,14 @@ void PhysicsSystem::Init()
 		ShapeRefC box_shape = box_shape_result.Get(); // Check for errors in a real-world scenario
 
 		// Create the settings for the body itself. Note that here you can also set other properties like restitution/friction.
-		BodyCreationSettings box_settings(box_shape, RVec3(position.x, position.y, position.z), Quat::sIdentity(), EMotionType::Dynamic, Layers::MOVING);
-
+		BodyCreationSettings box_settings(box_shape, RVec3(position.x, position.y, position.z), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
+		box_settings.mFriction = rigidbody.friction;
+		box_settings.mRestitution = rigidbody.bounciness;
+		if(rigidbody.dynamicBody)
+		{
+			box_settings.mMotionType = EMotionType::Dynamic;
+			box_settings.mObjectLayer = Layers::MOVING;
+		}
 		// Create the actual rigid body
 		Body* box = sData.body_interface->CreateBody(box_settings); // Make sure to handle potential nullptr errors
 
@@ -416,7 +527,14 @@ void PhysicsSystem::Init()
 		ShapeRefC sphere_shape = sphere_shape_result.Get(); // Check for errors in a real-world scenario
 
 		// Create the settings for the body itself. Note that here you can also set other properties like restitution/friction.
-		BodyCreationSettings sphere_settings(sphere_shape, RVec3(position.x, position.y, position.z), Quat::sIdentity(), EMotionType::Dynamic, Layers::MOVING);
+		BodyCreationSettings sphere_settings(sphere_shape, RVec3(position.x, position.y, position.z), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
+		sphere_settings.mFriction = rigidbody.friction;
+		sphere_settings.mRestitution = rigidbody.bounciness;
+		if (rigidbody.dynamicBody)
+		{
+			sphere_settings.mMotionType = EMotionType::Dynamic;
+			sphere_settings.mObjectLayer = Layers::MOVING;
+		}
 
 		// Create the actual rigid body
 		Body* sphere = sData.body_interface->CreateBody(sphere_settings); // Make sure to handle potential nullptr errors
@@ -426,6 +544,35 @@ void PhysicsSystem::Init()
 
 		// Store the BodyID in the RigidBodyComponent
 		rigidbody.bodyID = sphere->GetID().GetIndexAndSequenceNumber();
+	}
+
+	void PhysicsSystem::addCapsuleBody(float radius, float halfHeight, glm::vec3 position, RigidBodyComponent& rigidbody)
+	{
+		// Create the settings for the collision volume (the shape).
+		CapsuleShapeSettings capsule_shape_settings(radius, halfHeight); // Use radius as half extents
+
+		// Mark it as embedded (prevent it from being freed when reference count goes to 0)
+		capsule_shape_settings.SetEmbedded();
+
+		// Create the shape
+		ShapeSettings::ShapeResult capsule_shape_result = capsule_shape_settings.Create();
+		ShapeRefC capsule_shape = capsule_shape_result.Get(); // Check for errors in a real-world scenario
+
+		// Create the settings for the body itself. Note that here you can also set other properties like restitution/friction.
+		BodyCreationSettings capsule_settings(capsule_shape, RVec3(position.x, position.y, position.z), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
+		if (rigidbody.dynamicBody)
+		{
+			capsule_settings.mMotionType = EMotionType::Dynamic;
+			capsule_settings.mObjectLayer = Layers::MOVING;
+		}
+		// Create the actual rigid body
+		Body* capsule = sData.body_interface->CreateBody(capsule_settings); // Make sure to handle potential nullptr errors
+
+		// Add it to the world
+		sData.body_interface->AddBody(capsule->GetID(), EActivation::Activate);
+
+		// Store the BodyID in the RigidBodyComponent
+		rigidbody.bodyID = capsule->GetID().GetIndexAndSequenceNumber();
 	}
 
 	void PhysicsSystem::UpdateSphereValues(RigidBodyComponent& rigidbody)
@@ -443,9 +590,9 @@ void PhysicsSystem::Init()
 	}
 
 	void PhysicsSystem::UpdateBoxValues(RigidBodyComponent& rigidbody)
-	{
+	{		
 		// Create the settings for the collision volume (the shape).
-		BoxShapeSettings box_shape_settings(Vec3(rigidbody.radius, rigidbody.radius, rigidbody.radius)); // Use radius as half extents
+		BoxShapeSettings box_shape_settings(Vec3(rigidbody.size.x, rigidbody.size.y, rigidbody.size.z)); // Use radius as half extents
 		box_shape_settings.SetEmbedded(); // A ref counted object on the stack (base class RefTarget) should be marked as such to prevent it from being freed when its reference count goes to 0.
 
 		// Create the shape
@@ -455,6 +602,7 @@ void PhysicsSystem::Init()
 		// Create the settings for the body itself. Note that here you can also set other properties like the restitution / friction.
 		sData.body_interface->SetShape(JPH::BodyID(rigidbody.bodyID), box_shape, true, EActivation::Activate);
 	}
+
 	void PhysicsSystem::FreeRigidBody(RigidBodyComponent& rigidbody)
 	{
 		sData.body_interface->RemoveBody(JPH::BodyID(rigidbody.bodyID));

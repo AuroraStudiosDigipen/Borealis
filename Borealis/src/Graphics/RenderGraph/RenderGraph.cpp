@@ -225,7 +225,7 @@ namespace Borealis
 			for (auto& entity : group)
 			{
 				auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
-				lightComponent.offset = transform.Translate;
+				lightComponent.offset = transform.Translate;	
 				lightComponent.spotLightDirection = transform.Rotation;
 				Renderer3D::AddLight(lightComponent);
 
@@ -296,12 +296,13 @@ namespace Borealis
 
 				auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
 
+
 				if (!meshFilter.Model || !meshRenderer.Material) continue;
 
 				Frustum frustum = ComputeFrustum(viewProjMatrix);
 				BoundingSphere modelBoundingSphere = meshFilter.Model->mBoundingSphere;
-
 				modelBoundingSphere.Transform(TransformComponent::GetGlobalTransform(brEntity));
+
 
 				if (CullBoundingSphere(frustum, modelBoundingSphere))
 				{
@@ -313,10 +314,22 @@ namespace Borealis
 
 				Renderer3D::Begin(viewProjMatrix, materialShader);
 
+
 				SetShadowAndLight(renderTarget, shadowMap, materialShader, registryPtr);
 
 				Renderer3D::SetLights(materialShader);
 				Renderer3D::DrawMesh(transform, meshFilter, meshRenderer, materialShader, (int)entity);
+
+				if(Renderer3D::GetGlobalWireFrameMode())
+				{
+					AABB modelAABB = meshFilter.Model->mAABB;
+					modelAABB.Transform(TransformComponent::GetGlobalTransform(brEntity));
+
+					transform.minExtent = modelAABB.minExtent;
+					transform.maxExtent = modelAABB.maxExtent;
+					Renderer3D::DrawCube(transform.Translate, transform.minExtent, transform.maxExtent, { 0.f,1.f,0.f,1.f }, true);
+				}
+
 			}
 		}
 		//skinned mesh pass

@@ -42,6 +42,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include <EditorAssets/SkinnedMeshImporter.hpp>
 #include <Graphics/Animation/Animator.hpp>
+#include <Graphics/Renderer3D.hpp>
 
 #include <EditorAssets/AnimationImporter.hpp>
 #include <RenderGraphEditor/RenderGraphNodeEditor.hpp>
@@ -1175,7 +1176,18 @@ namespace Borealis {
 		{
 			RenderCommand::SetLineThickness(mLineThickness);
 		}
+
+		ImGui::SameLine();
+
+		if (ImGui::Button("Toggle Global WireFrame"))
+		{
+			Renderer3D::SetGlobalWireFrameMode(!Renderer3D::GetGlobalWireFrameMode());
+		}
+
 		ImGui::End();
+
+
+
 	}
 
 }

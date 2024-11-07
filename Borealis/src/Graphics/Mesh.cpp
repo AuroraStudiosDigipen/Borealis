@@ -20,9 +20,6 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace Borealis
 {
-	unsigned int Mesh::QuadVAO = 0;
-	unsigned int Mesh::QuadVBO = 0;
-
 	void BoundingSphere::Transform(glm::mat4 const& transform)
 	{
 		Center = glm::vec3(transform * glm::vec4(Center, 1.0f));
@@ -32,6 +29,38 @@ namespace Borealis
 		float maxScale = std::max({ scaleX, scaleY, scaleZ });
 
 		Radius *= maxScale;
+	}
+
+	void AABB::Transform(glm::mat4 const& transform)
+	{
+		// Define the 8 corners of the original AABB
+		glm::vec3 corners[8] = {
+			minExtent,
+			glm::vec3(minExtent.x, minExtent.y, maxExtent.z),
+			glm::vec3(minExtent.x, maxExtent.y, minExtent.z),
+			glm::vec3(minExtent.x, maxExtent.y, maxExtent.z),
+			glm::vec3(maxExtent.x, minExtent.y, minExtent.z),
+			glm::vec3(maxExtent.x, minExtent.y, maxExtent.z),
+			glm::vec3(maxExtent.x, maxExtent.y, minExtent.z),
+			maxExtent
+		};
+
+		// Transform each corner
+		glm::vec3 transformedMin = glm::vec3(transform * glm::vec4(corners[0], 1.0f));
+		glm::vec3 transformedMax = transformedMin;
+
+		for (int i = 1; i < 8; ++i)
+		{
+			glm::vec3 transformedCorner = glm::vec3(transform * glm::vec4(corners[i], 1.0f));
+
+			// Update min and max extents based on the transformed corner
+			transformedMin = glm::min(transformedMin, transformedCorner);
+			transformedMax = glm::max(transformedMax, transformedCorner);
+		}
+
+		// Update the AABB extents with the transformed min and max
+		minExtent = transformedMin;
+		maxExtent = transformedMax;
 	}
 
 	Mesh::Mesh()// : mVertices(nullptr), mIndices(nullptr), mNormals(nullptr), mTexCoords(nullptr), mVerticesCount(0), mIndicesCount(0), mNormalsCount(0), mTexCoordsCount(0)
@@ -173,9 +202,34 @@ namespace Borealis
 		mBoundingSphere.Radius = radius;
 	}
 
+	void Mesh::GenerateAABB()
+	{
+		AABB aabb{};
+		aabb.minExtent = mVertices[0].Position;
+		aabb.maxExtent = mVertices[0].Position;
+
+		for (Vertex const& vertex : mVertices)
+		{
+			aabb.minExtent.x = std::min(aabb.minExtent.x, vertex.Position.x);
+			aabb.minExtent.y = std::min(aabb.minExtent.y, vertex.Position.y);
+			aabb.minExtent.z = std::min(aabb.minExtent.z, vertex.Position.z);
+
+			aabb.maxExtent.x = std::max(aabb.maxExtent.x, vertex.Position.x);
+			aabb.maxExtent.y = std::max(aabb.maxExtent.y, vertex.Position.y);
+			aabb.maxExtent.z = std::max(aabb.maxExtent.z, vertex.Position.z);
+		}
+
+		mAABB = aabb;
+	}
+
 	BoundingSphere Mesh::GetBoundingSphere()
 	{
 		return mBoundingSphere;
+	}
+
+	AABB Mesh::GetAABB()
+	{
+		return mAABB;
 	}
 
 	void Mesh::DrawQuad()
@@ -218,6 +272,84 @@ namespace Borealis
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glEnable(GL_DEPTH_TEST);
+	}
+
+	void Mesh::DrawCube(glm::vec3 translation, glm::vec3 minExtent, glm::vec3 maxExtent, glm::vec4 color, bool wireframe, Ref<Shader> shader)
+	{
+		if (CubeVAO == 0)
+		{
+			const GLfloat cubeVertices[] = 
+			{
+				// Positions        
+				-0.5f, -0.5f, -0.5f,
+				 0.5f, -0.5f, -0.5f,
+				 0.5f,  0.5f, -0.5f,
+				-0.5f,  0.5f, -0.5f,
+
+				-0.5f, -0.5f,  0.5f,
+				 0.5f, -0.5f,  0.5f,
+				 0.5f,  0.5f,  0.5f,
+				-0.5f,  0.5f,  0.5f
+			};
+
+			const GLuint cubeIndices[] = 
+			{
+				0, 1, 2, 2, 3, 0, // Front face
+				4, 5, 6, 6, 7, 4, // Back face
+				4, 5, 1, 1, 0, 4, // Bottom face
+				3, 2, 6, 6, 7, 3, // Top face
+				4, 0, 3, 3, 7, 4, // Left face
+				5, 1, 2, 2, 6, 5  // Right face
+			};
+
+			glGenVertexArrays(1, &CubeVAO);
+			glGenBuffers(1, &CubeVBO);
+			glGenBuffers(1, &CubeEBO);
+
+			glBindVertexArray(CubeVAO);
+			glBindBuffer(GL_ARRAY_BUFFER, CubeVBO);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
+
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, CubeEBO);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cubeIndices), cubeIndices, GL_STATIC_DRAW);
+
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0); // Vertex positions
+			glEnableVertexAttribArray(0);
+		}
+
+		glBindVertexArray(CubeVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, CubeVBO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, CubeEBO);
+
+		shader->Bind();
+
+		// Pass the model matrix to the shader
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, (maxExtent + minExtent) / 2.0f);
+		//model = glm::translate(model, translation);
+		model = glm::scale(model, maxExtent - minExtent);
+
+		shader->Set("u_ModelTransform", model);
+
+		shader->Set("u_Color", color);
+
+		// Toggle wireframe if requested
+		if (wireframe) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		}
+		else {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		}
+
+		// Draw the cube
+		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+
+		// Reset wireframe mode
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
 
 	std::vector<unsigned int> const& Mesh::GetIndices() const

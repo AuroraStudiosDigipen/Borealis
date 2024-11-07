@@ -52,8 +52,10 @@ namespace Borealis
 		void SaveModel();
 
 		void GenerateRitterBoundingSphere();
+		void GenerateAABB();
 
 		BoundingSphere mBoundingSphere{};
+		AABB mAABB;
 
 		std::vector<Mesh> mMeshes;
 	private:

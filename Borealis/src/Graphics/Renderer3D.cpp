@@ -23,6 +23,7 @@ namespace Borealis
 	struct Renderer3DData
 	{
 		Ref<Shader> mModelShader;
+		Ref<Shader> mCommonShader;
 	};
 
 	static std::unique_ptr<Renderer3DData> s3dData;
@@ -33,6 +34,8 @@ namespace Borealis
 		s3dData =  std::make_unique<Renderer3DData>();
 		//s3dData->mModelShader = Shader::Create("engineResources/Shaders/Renderer3D_Material.glsl");
 		s3dData->mModelShader = Shader::Create("engineResources/Shaders/Renderer3D_Material.glsl");
+
+		s3dData->mCommonShader = Shader::Create("engineResources/Shaders/Renderer3D_Common.glsl");
 	}
 
 
@@ -51,12 +54,13 @@ namespace Borealis
 
 	void Renderer3D::Begin(glm::mat4 viewProj, Ref<Shader> shader)
 	{
-		if(!shader)
-		{
-			s3dData->mModelShader->Bind();
-			s3dData->mModelShader->Set("u_ViewProjection", viewProj);
-		}
-		else
+		s3dData->mModelShader->Bind();
+		s3dData->mModelShader->Set("u_ViewProjection", viewProj);
+
+		s3dData->mCommonShader->Bind();
+		s3dData->mCommonShader->Set("u_ViewProjection", viewProj);
+
+		if(shader)
 		{
 			shader->Bind();
 			shader->Set("u_ViewProjection", viewProj);
@@ -121,9 +125,24 @@ namespace Borealis
 		}
 	}
 
-	void Renderer3D::DrawQuad()
+	void Renderer3D::DrawQuad() //full screen quad
 	{
 		Mesh::DrawQuad();
+	}
+
+	void Renderer3D::DrawCube(glm::vec3 translation, glm::vec3 minExtent, glm::vec3 maxExtent, glm::vec4 color, bool wireframe)
+	{
+		Mesh::DrawCube(translation, minExtent, maxExtent, color, wireframe, s3dData->mCommonShader);
+	}
+
+	void Renderer3D::SetGlobalWireFrameMode(bool wireFrameMode)
+	{
+		mGlobalWireFrame = wireFrameMode;
+	}
+
+	bool Renderer3D::GetGlobalWireFrameMode()
+	{
+		return mGlobalWireFrame;
 	}
 
 }

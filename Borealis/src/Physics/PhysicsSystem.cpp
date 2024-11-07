@@ -233,7 +233,7 @@ struct PhysicsSystemData
 };
 
 static PhysicsSystemData sData;
-unordered_map<unsigned int, UUID> bodyIDMapUUID;
+unordered_map<unsigned int, Borealis::UUID> bodyIDMapUUID;
 
 namespace Borealis
 {
@@ -363,7 +363,7 @@ void PhysicsSystem::Init()
 
 	UUID PhysicsSystem::BodyIDToUUID(unsigned int bodyID)
 	{
-		//return bodyIDMapUUID[bodyID];
+		return bodyIDMapUUID[bodyID];
 	}
 
 	void PhysicsSystem::calculateBoundingVolume(const Model& model, TransformComponent& transform)

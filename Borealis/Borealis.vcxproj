@@ -159,17 +159,15 @@
     <ClInclude Include="inc\AI\BehaviourTree\BehaviourNode.hpp" />
     <ClInclude Include="inc\AI\BehaviourTree\BehaviourTree.hpp" />
     <ClInclude Include="inc\AI\BehaviourTree\Blackboard.hpp" />
-    <ClInclude Include="inc\AI\BehaviourTree\ControlFlow\C_Sequencer.hpp" />
-    <ClInclude Include="inc\AI\BehaviourTree\Decorator\D_Delay.hpp">
+    <ClInclude Include="inc\AI\BehaviourTree\BTreeFactory.hpp">
       <SubType>
       </SubType>
     </ClInclude>
+    <ClInclude Include="inc\AI\BehaviourTree\ControlFlow\C_Sequencer.hpp" />
+    <ClInclude Include="inc\AI\BehaviourTree\Decorator\D_Delay.hpp" />
     <ClInclude Include="inc\AI\BehaviourTree\Leaf\L_CheckMouseClick.hpp" />
     <ClInclude Include="inc\AI\BehaviourTree\Leaf\L_Idle.hpp" />
-    <ClInclude Include="inc\AI\BehaviourTree\NodeHeaderCodeFormat.hpp">
-      <SubType>
-      </SubType>
-    </ClInclude>
+    <ClInclude Include="inc\AI\BehaviourTree\NodeHeaderCodeFormat.hpp" />
     <ClInclude Include="inc\AI\BehaviourTree\NodesDef.hpp" />
     <ClInclude Include="inc\AI\BehaviourTree\RegisterNodes.hpp" />
     <ClInclude Include="inc\AI\BehaviourTree\ScanForNewNodes.hpp" />
@@ -781,17 +779,15 @@
     <ClCompile Include="lib\stb_image\stb_image.cpp" />
     <ClCompile Include="src\AI\BehaviourTree\BehaviourNode.cpp" />
     <ClCompile Include="src\AI\BehaviourTree\BehaviourTree.cpp" />
-    <ClCompile Include="src\AI\BehaviourTree\ControlFlow\C_Sequencer.cpp" />
-    <ClCompile Include="src\AI\BehaviourTree\Decorator\D_Delay.cpp">
+    <ClCompile Include="src\AI\BehaviourTree\BTreeFactory.cpp">
       <SubType>
       </SubType>
     </ClCompile>
+    <ClCompile Include="src\AI\BehaviourTree\ControlFlow\C_Sequencer.cpp" />
+    <ClCompile Include="src\AI\BehaviourTree\Decorator\D_Delay.cpp" />
     <ClCompile Include="src\AI\BehaviourTree\Leaf\L_CheckMouseClick.cpp" />
     <ClCompile Include="src\AI\BehaviourTree\Leaf\L_Idle.cpp" />
-    <ClCompile Include="src\AI\BehaviourTree\NodeHeaderCodeFormat.cpp">
-      <SubType>
-      </SubType>
-    </ClCompile>
+    <ClCompile Include="src\AI\BehaviourTree\NodeHeaderCodeFormat.cpp" />
     <ClCompile Include="src\AI\BehaviourTree\RegisterNodes.cpp" />
     <ClCompile Include="src\AI\BehaviourTree\ScanForNewNodes.cpp" />
     <ClCompile Include="src\Assets\Asset.cpp" />

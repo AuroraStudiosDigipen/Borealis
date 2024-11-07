@@ -57,6 +57,16 @@ namespace Borealis
             return;
 
         ImGui::Begin("Behavior Tree Editor", &m_ShowPanel, ImGuiWindowFlags_NoCollapse);
+        ImGui::Text("Editing Tree: ");
+        ImGui::SameLine();
+        // Optionally, allow the user to edit the tree name
+        static char treeNameTextBuffer[256];
+        strcpy(treeNameTextBuffer, m_TreeName.c_str());
+        if (ImGui::InputText("Tree Name", treeNameTextBuffer, ImGuiInputTextFlags_Multiline,sizeof(treeNameTextBuffer)))
+        {
+            m_TreeName = treeNameTextBuffer;
+        }
+        ImGui::SameLine();
         if (ImGui::Button("New Node"))
         {
             ImGui::OpenPopup("NewNodePopup");
@@ -106,7 +116,8 @@ namespace Borealis
 
             if (ImGui::Button("Open") && selectedIndex >= 0)
             {
-                std::string selectedTree = "assets/BehaviourTrees/" + behaviorTrees[selectedIndex] + ".yaml";
+                std::filesystem::path directoryPath(".");
+                std::string selectedTree = behaviorTrees[selectedIndex] + ".btree";
                 LoadBehaviorTree(selectedTree);
 
                 ImGui::CloseCurrentPopup();
@@ -165,7 +176,51 @@ namespace Borealis
             DeleteSelectedNodes();
             DeleteSelectedLinks();
         }
-      
+        // Static buffer for the tree name input
+        static char treeNameBuffer[256] = "";
+
+        // Check if we need to open the modal
+        if (m_OpenTreeNameModal)
+        {
+            ImGui::OpenPopup("Enter Tree Name");
+
+            // Initialize the buffer with the current tree name
+            strcpy(treeNameBuffer, m_TreeName.c_str());
+
+            m_OpenTreeNameModal = false;
+        }
+
+        // Render the modal
+        if (ImGui::BeginPopupModal("Enter Tree Name", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::Text("Please enter a name for the behavior tree.");
+            ImGui::InputText("##TreeNameInput", treeNameBuffer, IM_ARRAYSIZE(treeNameBuffer));
+
+            // Disable the "OK" button if the name is empty
+            bool nameEntered = strlen(treeNameBuffer) > 0;
+            if (!nameEntered)
+                ImGui::BeginDisabled();
+
+            if (ImGui::Button("OK", ImVec2(120, 0)))
+            {
+                m_TreeName = treeNameBuffer;
+                ImGui::CloseCurrentPopup();
+
+                // Now proceed to save the tree with the new name
+                SaveBehaviorTree(m_TreeFileName);
+            }
+
+            if (!nameEntered)
+                ImGui::EndDisabled();
+
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel", ImVec2(120, 0)))
+            {
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::EndPopup();
+        }
         // Split the window into left and right panes
         static float leftPaneWidth = 200.0f;
         ImGui::BeginChild("LeftPanel", ImVec2(leftPaneWidth, 0), true);
@@ -223,15 +278,6 @@ namespace Borealis
         }
 
         ImGui::End();
-        // Check if the window was closed
-        if (!m_ShowPanel)
-        {
-            // The window was closed by the user
-            // Perform cleanup here
-            //ed::DestroyEditor(m_EditorContext);
-            //m_EditorContext = nullptr;
-        }
-
     }
     
     void BTNodeEditorPanel::AddNewNode(const std::string& nodeName)
@@ -358,14 +404,6 @@ namespace Borealis
             ImGui::PopID();
             ed::EndNode();
             ImVec2 nodeSize = ed::GetNodeSize(node->ID);
-
-            // If the node size is zero, the node might not have been positioned yet
-            if (nodeSize.x == 0.0f && nodeSize.y == 0.0f)
-            {
-                // Convert screen position to canvas position
-                ImVec2 canvasPos = ed::ScreenToCanvas(node->Position);
-                ed::SetNodePosition(node->ID, canvasPos);
-            }
         }
     }
 
@@ -601,65 +639,113 @@ namespace Borealis
         return false;
     }
 
-    void BTNodeEditorPanel::SaveBehaviorTree(const std::string& filepath)
+    void BTNodeEditorPanel::SaveBehaviorTree(const std::string& filename)
     {
-        YAML::Emitter out;
-
-        out << YAML::BeginMap; // Root map
-
-        out << YAML::Key << "BehaviourTreeComponent" << YAML::Value << YAML::BeginMap;
-
-        out << YAML::Key << "BehaviourTree" << YAML::Value << YAML::BeginMap;
-
-        // Tree name
-        out << YAML::Key << "Tree Name" << YAML::Value << m_TreeName;
-
-        // Nodes
-        out << YAML::Key << "Nodes" << YAML::Value << YAML::BeginSeq;
-
-        for (const auto& node : m_Nodes)
+        if (m_TreeName == "Untitled-No-Name-Entered" || m_TreeName.empty())
         {
-            out << YAML::BeginMap;
-            out << YAML::Key << "ID" << YAML::Value << node->ID.Get();
-            out << YAML::Key << "Name" << YAML::Value << node->Name;
-            out << YAML::Key << "Type" << YAML::Value << NodeTypeToString(node->Type);
-
-            // Collect IDs of child nodes if node has outputs
-            std::vector<int> childrenIDs;
-            if (!node->Outputs.empty())
-            {
-                for (const auto& link : m_Links)
-                {
-                    if (link->StartPinID == node->Outputs.front()->ID)
-                    {
-                        auto childNode = FindNodeByInputPinID(link->EndPinID);
-                        if (childNode)
-                        {
-                            childrenIDs.push_back(childNode->ID.Get());
-                        }
-                    }
-                }
-            }
-
-            // Include an empty ChildrenIDs sequence for leaf nodes
-            out << YAML::Key << "ChildrenIDs" << YAML::Value << YAML::BeginSeq;
-            for (int childID : childrenIDs)
-            {
-                out << childID;
-            }
-            out << YAML::EndSeq;
-
-            out << YAML::EndMap;
+            m_OpenTreeNameModal = true;
+            return; // Wait for the user to enter a name
         }
 
-        out << YAML::EndSeq; // End of Nodes
+        YAML::Emitter out;
+        out << YAML::BeginMap;
+
+        out << YAML::Key << "BehaviourTreeComponent" << YAML::Value << YAML::BeginMap;
+        out << YAML::Key << "BehaviourTree" << YAML::Value << YAML::BeginMap;
+        out << YAML::Key << "Tree Name" << YAML::Value << m_TreeName;
+
+        // Build parent-child relationships
+        std::unordered_map<int, std::vector<int>> nodeChildrenMap;
+        std::unordered_set<int> childNodeIds;
+        for (const auto& link : m_Links)
+        {
+            int startPinId = link->StartPinID.Get();
+            int endPinId = link->EndPinID.Get();
+
+            auto startPin = FindPin(ed::PinId(startPinId));
+            auto endPin = FindPin(ed::PinId(endPinId));
+
+            if (startPin && endPin)
+            {
+                int parentNodeId = startPin->Node->ID.Get();
+                int childNodeId = endPin->Node->ID.Get();
+
+                nodeChildrenMap[parentNodeId].push_back(childNodeId);
+                childNodeIds.insert(childNodeId);
+            }
+        }
+
+        // Identify root nodes
+        std::vector<Ref<Node>> rootNodes;
+        for (const auto& node : m_Nodes)
+        {
+            int nodeId = node->ID.Get();
+            if (childNodeIds.find(nodeId) == childNodeIds.end())
+            {
+                rootNodes.push_back(node);
+            }
+        }
+
+        // Assign depths to nodes
+        std::unordered_set<int> visitedNodeIds;
+        std::function<void(Ref<Node>, int)> AssignDepthsRecursive = [&](Ref<Node> node, int depth)
+            {
+                if (!node || visitedNodeIds.count(node->ID.Get()) > 0)
+                    return;
+
+                visitedNodeIds.insert(node->ID.Get());
+                node->Depth = depth;
+
+                int nodeId = node->ID.Get();
+                const auto& childrenIds = nodeChildrenMap[nodeId];
+                for (int childId : childrenIds)
+                {
+                    auto childNode = FindNode(ed::NodeId(childId));
+                    if (childNode)
+                    {
+                        AssignDepthsRecursive(childNode, depth + 1);
+                    }
+                }
+            };
+
+        for (const auto& rootNode : rootNodes)
+        {
+            AssignDepthsRecursive(rootNode, 0);
+        }
+
+        // Serialize nodes
+        out << YAML::Key << "Nodes" << YAML::Value << YAML::BeginSeq;
+        for (const auto& node : m_Nodes)
+        {
+            int nodeId = node->ID.Get();
+            int depth = node->Depth;
+
+            out << YAML::BeginMap;
+            out << YAML::Key << "ID" << YAML::Value << nodeId;
+            out << YAML::Key << "Name" << YAML::Value << node->Name;
+            out << YAML::Key << "Type" << YAML::Value << NodeTypeToString(node->Type);
+            out << YAML::Key << "Depth" << YAML::Value << depth;
+
+            std::vector<int> childrenIDs = nodeChildrenMap[nodeId];
+            out << YAML::Key << "ChildrenIDs" << YAML::Value << childrenIDs;
+
+            // Serialize Position
+            out << YAML::Key << "Position" << YAML::Value << YAML::BeginMap;
+            out << YAML::Key << "x" << YAML::Value << ed::GetNodePosition(node->ID.Get()).x;
+            out << YAML::Key << "y" << YAML::Value << ed::GetNodePosition(node->ID.Get()).y;
+            out << YAML::EndMap;
+
+            out << YAML::EndMap; // End of node
+        }
+        out << YAML::EndSeq; // End of Nodes sequence
 
         out << YAML::EndMap; // End of BehaviourTree
-
         out << YAML::EndMap; // End of BehaviourTreeComponent
 
+        out << YAML::EndMap; // End of YAML document
+
         // Write to file
-        std::ofstream fout(filepath);
+        std::ofstream fout(filename);
         fout << out.c_str();
     }
     void BTNodeEditorPanel::SerializeNode(YAML::Emitter& out, Ref<Node> node, int depth)
@@ -868,13 +954,23 @@ namespace Borealis
     std::vector<std::string> BTNodeEditorPanel::GetAvailableBehaviorTrees()
     {
         std::vector<std::string> behaviorTrees;
-
-        for (const auto& entry : std::filesystem::directory_iterator("assets/BehaviourTrees"))
-        {
-            if (entry.is_regular_file() && entry.path().extension() == ".yaml")
-            {
-                behaviorTrees.push_back(entry.path().stem().string());
+        std::filesystem::path directoryPath(".");
+        try {
+            if (!std::filesystem::exists(directoryPath) || !std::filesystem::is_directory(directoryPath)) {
+                std::cerr << "Directory does not exist or is not a directory: " << directoryPath << std::endl;
+                return behaviorTrees;  // Return empty vector
             }
+
+            for (const auto& entry : std::filesystem::directory_iterator(directoryPath))
+            {
+                if (entry.is_regular_file() && entry.path().extension() == ".btree")
+                {
+                    behaviorTrees.push_back(entry.path().stem().string());
+                }
+            }
+        }
+        catch (const std::filesystem::filesystem_error& e) {
+            std::cerr << "Filesystem error: " << e.what() << std::endl;
         }
 
         return behaviorTrees;
@@ -1028,16 +1124,169 @@ namespace Borealis
         m_NextId = 1;
 
         // Load and parse the YAML file
-        YAML::Node data = YAML::LoadFile(filepath);
+        YAML::Node data;
+        try {
+            data = YAML::LoadFile(filepath);
+        }
+        catch (const YAML::ParserException& e) {
+            std::cerr << "YAML Parsing Error: " << e.what() << std::endl;
+            return;
+        }
+        catch (const std::exception& e) {
+            std::cerr << "Error: " << e.what() << std::endl;
+            return;
+        }
+
+        const YAML::Node& behaviourTreeComponent = data["BehaviourTreeComponent"];
+        if (!behaviourTreeComponent)
+        {
+            std::cerr << "Error: 'BehaviourTreeComponent' not found in the YAML file." << std::endl;
+            return;
+        }
+
+        const YAML::Node& behaviourTreeNode = behaviourTreeComponent["BehaviourTree"];
+        if (!behaviourTreeNode)
+        {
+            std::cerr << "Error: 'BehaviourTree' not found in the YAML file." << std::endl;
+            return;
+        }
 
         // Extract the tree name
-        m_TreeName = data["BehaviourTreeComponent"]["BehaviourTree"]["Tree Name"].as<std::string>();
+        m_TreeName = behaviourTreeNode["Tree Name"].as<std::string>();
 
-        // Extract the nodes
-        YAML::Node nodesNode = data["BehaviourTreeComponent"]["BehaviourTree"]["Nodes"];
+        // Deserialize nodes
+        const YAML::Node& nodesNode = behaviourTreeNode["Nodes"];
+        if (nodesNode && nodesNode.IsSequence())
+        {
+            std::unordered_map<int, Ref<Node>> nodeMap;            // Node ID -> Node object
+            std::unordered_map<int, std::vector<int>> nodeChildrenMap; // Node ID -> List of Child IDs
 
-        // Deserialize the nodes and links
-        DeserializeNodes(nodesNode);
+            int maxNodeId = 0;
+
+            // First pass: Create nodes and collect max node ID
+            for (const auto& nodeData : nodesNode)
+            {
+                int nodeId = nodeData["ID"].as<int>();
+                if (nodeId > maxNodeId)
+                    maxNodeId = nodeId;
+
+                std::string nodeName = nodeData["Name"].as<std::string>();
+                std::string nodeTypeStr = nodeData["Type"].as<std::string>();
+                int depth = nodeData["Depth"].as<int>();
+
+                NodeType nodeType = StringToNodeType(nodeTypeStr);
+
+                // Create the node with the given ID
+                auto node = std::make_shared<Node>(ed::NodeId(nodeId), nodeName, nodeType);
+                node->Depth = depth;
+
+                // Read Position
+                const YAML::Node& positionNode = nodeData["Position"];
+                if (positionNode)
+                {
+                    float x = positionNode["x"].as<float>();
+                    float y = positionNode["y"].as<float>();
+                    node->Position = ImVec2(x, y);
+                }
+                else
+                {
+                    node->Position = ImVec2(0.0f, depth * 150.0f);
+                }
+
+                // Store node in map
+                m_Nodes.push_back(node);
+                nodeMap[nodeId] = node;
+
+                // Store children IDs
+                const YAML::Node& childrenIDsNode = nodeData["ChildrenIDs"];
+                if (childrenIDsNode && childrenIDsNode.IsSequence())
+                {
+                    std::vector<int> childrenIDs;
+                    for (const auto& childIdNode : childrenIDsNode)
+                    {
+                        int childId = childIdNode.as<int>();
+                        childrenIDs.push_back(childId);
+                    }
+                    nodeChildrenMap[nodeId] = childrenIDs;
+                }
+            }
+
+            // **Set m_NextId before initializing pins**
+            m_NextId = maxNodeId + 1;
+
+            // Initialize pins (after m_NextId is updated)
+            for (const auto& [nodeId, node] : nodeMap)
+            {
+                InitializeNodePins(node);
+                ed::SetNodePosition(node->ID, node->Position);
+            }
+
+            // Second pass: Create links based on children IDs
+            for (const auto& [parentId, childrenIds] : nodeChildrenMap)
+            {
+                auto parentNodeIt = nodeMap.find(parentId);
+                if (parentNodeIt == nodeMap.end())
+                {
+                    std::cerr << "Warning: Parent node with ID " << parentId << " not found." << std::endl;
+                    continue;
+                }
+                Ref<Node> parentNode = parentNodeIt->second;
+
+                for (int childId : childrenIds)
+                {
+                    auto childNodeIt = nodeMap.find(childId);
+                    if (childNodeIt == nodeMap.end())
+                    {
+                        std::cerr << "Warning: Child node with ID " << childId << " not found for parent node '" << parentNode->Name << "'." << std::endl;
+                        continue;
+                    }
+                    Ref<Node> childNode = childNodeIt->second;
+
+                    // Create link between output and input pins
+                    if (!parentNode->Outputs.empty() && !childNode->Inputs.empty())
+                    {
+                        auto link = std::make_shared<Link>(ed::LinkId(GetNextId()), parentNode->Outputs.front()->ID, childNode->Inputs.front()->ID);
+                        m_Links.push_back(link);
+                    }
+                }
+            }
+
+            // Update m_NextId after creating pins and links
+            int maxId = m_NextId - 1;
+
+            // Find the maximum pin ID
+            for (const auto& node : m_Nodes)
+            {
+                for (const auto& pin : node->Inputs)
+                {
+                    int pinId = pin->ID.Get();
+                    if (pinId > maxId)
+                        maxId = pinId;
+                }
+                for (const auto& pin : node->Outputs)
+                {
+                    int pinId = pin->ID.Get();
+                    if (pinId > maxId)
+                        maxId = pinId;
+                }
+            }
+
+            // Find the maximum link ID
+            for (const auto& link : m_Links)
+            {
+                int linkId = link->ID.Get();
+                if (linkId > maxId)
+                    maxId = linkId;
+            }
+
+            // Set m_NextId to be greater than the maximum ID found
+            m_NextId = maxId + 1;
+        }
+        else
+        {
+            std::cerr << "Error: 'Nodes' not found or not a sequence in the YAML file." << std::endl;
+            return;
+        }
 
         // Set editing flags
         m_IsEditingExistingTree = true;
@@ -1223,6 +1472,15 @@ namespace Borealis
             // Leaf node, move to next position
             currentX += nodeSpacing;
         }
+    }
+    Ref<Node> BTNodeEditorPanel::FindNode(ed::NodeId id)
+    {
+        for (const auto& node : m_Nodes)
+        {
+            if (node->ID == id)
+                return node;
+        }
+        return nullptr;
     }
 
 }

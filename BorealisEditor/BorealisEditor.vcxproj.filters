@@ -27,6 +27,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="inc\BTNodeEditor.hpp">
+      <Filter>inc</Filter>
+    </ClInclude>
     <ClInclude Include="inc\EditorAssets\AnimationImporter.hpp">
       <Filter>inc\EditorAssets</Filter>
     </ClInclude>
@@ -51,6 +54,9 @@
     <ClInclude Include="inc\EditorLayer.hpp">
       <Filter>inc</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Panels\BTNodeEditorPanel.hpp">
+      <Filter>inc\Panels</Filter>
+    </ClInclude>
     <ClInclude Include="inc\Panels\ContentBrowserPanel.hpp">
       <Filter>inc\Panels</Filter>
     </ClInclude>
@@ -74,6 +80,9 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\BTNodeEditor.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="src\EditorApp.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -100,6 +109,9 @@
     </ClCompile>
     <ClCompile Include="src\EditorLayer.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Panels\BTNodeEditorPanel.cpp">
+      <Filter>src\Panels</Filter>
     </ClCompile>
     <ClCompile Include="src\Panels\ContentBrowserPanel.cpp">
       <Filter>src\Panels</Filter>

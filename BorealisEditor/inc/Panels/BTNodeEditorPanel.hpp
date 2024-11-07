@@ -90,7 +90,9 @@ namespace Borealis
         ImColor Color;
         ImVec2 Size;
         ImVec2 Position;
+        int Depth = 0;
         bool PositionSet = false; // Add this flag
+
         Node(ed::NodeId id, const std::string& name, NodeType type)
             : ID(id), Name(name), Type(type), Color(255, 255, 255), Size(0, 0) {}
         Node(int id, const std::string& name, NodeType type, const ImColor& color)
@@ -159,6 +161,8 @@ namespace Borealis
             float levelSpacing,
             std::unordered_map<int, Ref<Node>>& nodeMap,
             std::unordered_map<int, std::vector<int>>& nodeChildrenMap);
+        Ref<Node> FindNode(ed::NodeId id);
+
     private:
         // Helper functions
         void RenderNodes();
@@ -180,6 +184,7 @@ namespace Borealis
         std::string m_ValidationMessage;
         std::string m_TreeFileName;
         std::string m_NodeCreationMessage;
+        bool m_OpenTreeNameModal;
     };
 }
 

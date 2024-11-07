@@ -60,7 +60,7 @@ namespace Borealis
    * \param position The position of the square body.
    * \param rigidbody The rigid body component of the square body.
    */
-		static void addSquareBody(float halfextent, glm::vec3 position, RigidBodyComponent& rigidbody);
+		static void addSquareBody(glm::vec3 size, glm::vec3 position, RigidBodyComponent& rigidbody);
 
 			/**
 	* \brief Adds a sphere body to the physics system.
@@ -70,6 +70,23 @@ namespace Borealis
 	*/
 		static void addSphereBody(float radius, glm::vec3 position, RigidBodyComponent& rigidbody);
 
+    /**
+    * \brief Adds a capsule body to the physics system.
+    * \param radius The radius of the capsule body.
+    * \param halfHeight The half height of the capsule body.
+    * \param position The position of the capsule body.
+    * \param rigidbody The rigid body component of the capsule body.
+    */
+        static void addCapsuleBody(float radius, float halfHeight, glm::vec3 position, RigidBodyComponent& rigidbody);
+
+
+
+        /**
+        * \brief Adds a body to the physics system.
+        * \param position The position of the body.
+        * \param rigidbody The rigid body component of the body.
+        */
+        static void addBody(TransformComponent& transform, RigidBodyComponent& rigidbody, MeshFilterComponent& mesh);
 
 		/**
    * \brief Updates the sphere values of the specified rigid body.
@@ -84,6 +101,14 @@ namespace Borealis
 		static void UpdateBoxValues(RigidBodyComponent& rigidbody);
 		
 		static void FreeRigidBody(RigidBodyComponent& rigidbody);
+
+		static void calculateBoundingVolume(const Model& model, TransformComponent& transform);
+
+		static glm::vec3 calculateBoxSize(glm::vec3 minExtent, glm::vec3 maxExtent);
+
+		static float calculateSphereRadius(glm::vec3 minExtent, glm::vec3 maxExtent);
+
+		static std::pair<float, float> calculateCapsuleDimensions(glm::vec3 minExtent, glm::vec3 maxExtent);
 
 	};
 

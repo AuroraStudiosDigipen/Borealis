@@ -31,8 +31,10 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/UUID.hpp>
 #include <Audio/Audio.hpp>
 
+
 namespace Borealis
 {
+	class Entity;
 
 	struct IDComponent
 	{
@@ -43,6 +45,7 @@ namespace Borealis
 	};
 	struct TagComponent
 	{
+		bool active = true;
 		std::string Tag;
 
 		TagComponent() = default;
@@ -56,6 +59,11 @@ namespace Borealis
 		glm::vec3 Translate { 0.0f, 0.0f ,0.0f };
 		glm::vec3 Rotation{ 0.0f, 0.0f ,0.0f };
 		glm::vec3 Scale = { 1.0f, 1.0f, 1.0f };
+		glm::vec3 minExtent = { 0.0f, 0.0f, 0.0f };
+		glm::vec3 maxExtent = { 0.0f, 0.0f, 0.0f };
+		glm::vec3 offset = { 0.0f, 0.0f, 0.0f };
+		UUID ParentID = 0;
+		std::unordered_set<UUID> ChildrenID;
 	
 		TransformComponent() = default;
 		TransformComponent(const TransformComponent&) = default;
@@ -70,6 +78,16 @@ namespace Borealis
 
 			return translation * rotation * scale;
 		}
+
+		static glm::mat4 GetGlobalTransform(Entity entity);
+		static glm::vec3 GetGlobalTranslate(Entity entity);
+		static glm::vec3 GetGlobalRotation(Entity entity);
+		static glm::vec3 GetGlobalScale(Entity entity);
+		static void GetGlobalTransformComp(Entity entity, glm::vec3* translate, glm::vec3* rotate, glm::vec3* scale);
+		static void SetGlobalTransform(Entity entity, glm::mat4 transform);
+		static void SetParent(Entity entity, Entity parent);
+		static void ResetParent(Entity entity);
+
 		operator glm::mat4() { return GetTransform(); }
 	};
 
@@ -228,16 +246,20 @@ namespace Borealis
 	enum class RigidBodyType : int
 	{
 		Box,
-		Circle
+		Sphere,
+		Capsule
 	};
+
 	struct RigidBodyComponent
 	{
 
-		RigidBodyType isBox = RigidBodyType::Box;
-		float radius = 1.5f; //radius for circle, side for cube
-
-		
-
+		RigidBodyType shape = RigidBodyType::Box;
+		float radius = 1.5f; //radius for circle
+		glm::vec3 size = { 1.f,1.f,1.f }; //size for box
+		float halfHeight = 1.f; //half height for capsule
+		float friction = 0.5f;
+		float bounciness = 0.5f;
+		bool dynamicBody = false;
 		// not serialised
 		unsigned int bodyID = 0;
 		//glm::vec3 velocity = { 0,0,0 };

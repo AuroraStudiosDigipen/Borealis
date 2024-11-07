@@ -323,7 +323,7 @@ namespace Borealis
 					else if (extension == ".prefab")
 					{
 						// Correct the assignment of payloadName
-						payloadName = "DragPrefab";
+						payloadName = "DragDropEntityItem";
 					}
 					else if (extension == ".mp3" || extension == ".wav")
 					{

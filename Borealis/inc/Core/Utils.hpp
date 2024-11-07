@@ -125,6 +125,7 @@ namespace Borealis
 	{
 		static glm::vec3 QuatToEuler(glm::quat quat, bool radians = false);
 		static glm::quat EulerToQuat(glm::vec3 euler, bool radians = false);
+		static void MatrixDecomposition(glm::mat4* transform, glm::vec3* translate, glm::vec3* rotate, glm::vec3* scale);
 	};
 }
 

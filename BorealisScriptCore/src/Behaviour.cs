@@ -3,6 +3,6 @@ namespace Borealis
 {
     public class Behaviour : Component
     {
-        public bool enabled;
+        public bool enabled = true;
     }
 }

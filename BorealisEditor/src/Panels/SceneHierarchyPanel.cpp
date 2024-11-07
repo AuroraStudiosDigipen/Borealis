@@ -174,6 +174,10 @@ namespace Borealis
 			}
 		}
 
+		if (Property.get_metadata("Hide").is_valid())
+		{
+			return;
+		}
 
 		if (Property.is_enumeration())
 		{
@@ -732,7 +736,11 @@ namespace Borealis
 					{
 
 						Entity entity{ item, mContext.get() };
-						DrawEntityNode(entity);
+						auto transform = entity.GetComponent<TransformComponent>();
+						if (transform.ParentID == 0)
+						{
+							DrawEntityNode(entity);
+						}
 					}
 					ImGui::PushFont(bold);
 					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.1f, 0.1f, 0.1f, 0.4f));
@@ -760,6 +768,7 @@ namespace Borealis
 					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.1f, 0.1f, 0.1f, 0.4f));
 				}
 			}
+
 
 			ImGui::PopFont();
 			ImGui::PopStyleColor();
@@ -864,26 +873,43 @@ namespace Borealis
 		auto& tag = entity.GetComponent<TagComponent>().Tag;
 		ImGuiTreeNodeFlags flags = ((mSelectedEntity == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
 		flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
+		flags |= ImGuiTreeNodeFlags_DefaultOpen;
 		uint64_t entityID = static_cast<uint64_t>((uint32_t)entity);
 		if (entity.HasComponent<PrefabComponent>())
 			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.16f, 0.34f, 0.63f, 1.f));
+
 		bool opened = ImGui::TreeNodeEx((void*)entityID, flags, tag.c_str());
+		if (ImGui::BeginDragDropTarget()) {
+			const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropEntityItem");
+			if (payload) {
+				UUID data = *(const uint64_t*)payload->Data;
+				Entity childEntity = SceneManager::GetActiveScene()->GetEntityByUUID(data);
+				TransformComponent::ResetParent(childEntity);
+				TransformComponent::SetParent(childEntity, entity);
+			}
+			ImGui::EndDragDropTarget();
+		}
+
 		if (entity.HasComponent<PrefabComponent>())
 			ImGui::PopStyleColor();
 
 		//Dragging of items for creation of prefab
 		if (ImGui::BeginDragDropSource())
 		{
-			ImGui::SetDragDropPayload("DragCreatePrefab", (const void*)&entity.GetUUID(), sizeof(UUID));
+			ImGui::SetDragDropPayload("DragDropEntityItem", (const void*)&entity.GetUUID(), sizeof(UUID));
 			
 			ImGui::Text("%s", tag.c_str()); // Display the entity tag as the payload text				
 			ImGui::EndDragDropSource();
 		}
 
-		if (ImGui::IsItemClicked())
+		if (!ImGui::IsMouseDragging(0) && ImGui::IsMouseReleased(0))
 		{
-			mSelectedEntity = entity;
+			if (ImGui::IsItemHovered())
+			{
+				mSelectedEntity = entity;
+			}
 		}
+		
 
 		bool entityDeleted = false;
 		if (ImGui::BeginPopupContextItem())
@@ -903,13 +929,23 @@ namespace Borealis
 			{
 				mContext->DuplicateEntity(mSelectedEntity);
 			}
+			if (ImGui::MenuItem("Unparent Entity"))
+			{
+				TransformComponent::ResetParent(mSelectedEntity);
+			}
 			ImGui::EndPopup();
 		}
 
 		if (opened)
 		{
+			auto transform = entity.GetComponent<TransformComponent>();
+			for (auto child : transform.ChildrenID)
+			{
+				DrawEntityNode(mContext->GetEntityByUUID(child));
+			}
 			ImGui::TreePop();
 		}
+
 
 		if(entityDeleted)
 		{
@@ -949,10 +985,70 @@ namespace Borealis
 
 	
 
-	static void DrawScriptField(Ref<ScriptInstance> component)
+	static void DrawScriptField(Ref<ScriptInstance> component, Ref<Scene> context)
 	{
+
 		for (const auto& [name, field] : component->GetScriptClass()->mFields) // name of script field, script field
 		{
+			if (field.isMonoBehaviour())
+			{
+				MonoObject* Data = component->GetFieldValue<MonoObject*>(name);
+
+				//List of entities
+				auto entityIDList = ScriptingSystem::mEntityScriptMap[field.mFieldClassName()];
+				//List of entity names
+				std::vector<std::string> entityNames;
+				for (auto entity : entityIDList)
+				{
+					entityNames.push_back(context->GetEntityByUUID(entity).GetName());
+				}
+
+				std::string currentEntityName = "";
+				if (Data)
+				{
+					auto currentEntityID = field.GetAttachedID(Data);
+					currentEntityName = SceneManager::GetActiveScene()->GetEntityByUUID(currentEntityID).GetName();
+				}
+
+				if (ImGui::BeginCombo(name.c_str(), currentEntityName.c_str()))
+				{
+					int i = 0;
+					for (auto ID : entityIDList)
+					{
+						bool isSelected = currentEntityName == entityNames[i];
+						if (ImGui::Selectable(entityNames[i].c_str(), isSelected))
+						{
+							currentEntityName = entityNames[i];
+							UUID entityID = ID;
+							Entity entity = SceneManager::GetActiveScene()->GetEntityByUUID(entityID);
+							auto& scriptComponent = entity.GetComponent<ScriptComponent>();
+							auto script = scriptComponent.mScripts.find(field.mFieldClassName());
+							component->SetFieldValue(name, script->second->GetInstance());
+						}
+						if (isSelected)
+						{
+							ImGui::SetItemDefaultFocus();
+						}
+						i++;
+					}
+					ImGui::EndCombo();
+				}
+
+				if (ImGui::BeginDragDropTarget())
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropEntityItem"))
+					{
+						UUID data = *(const uint64_t*)payload->Data;
+						Entity entity = SceneManager::GetActiveScene()->GetEntityByUUID(data);
+						auto& scriptComponent = entity.GetComponent<ScriptComponent>();
+						auto script = scriptComponent.mScripts.find(field.mFieldClassName());
+						component->SetFieldValue(name, script->second->GetInstance());
+					}
+					ImGui::EndDragDropTarget();
+				}
+
+				ImGui::Text(name.c_str());
+			}
 			if (field.mType == ScriptFieldType::Bool)
 			{
 				bool Data = component->GetFieldValue<bool>(name);
@@ -1091,7 +1187,7 @@ namespace Borealis
 			}
 		}
 	}
-	static void DrawScriptComponent(ScriptComponent& component, Entity& entity, bool allowDelete = true)
+	static void DrawScriptComponent(ScriptComponent& component, Entity& entity, Ref<Scene> context, bool allowDelete = true)
 	{
 		for (auto& [name, script] : component.mScripts)
 		{
@@ -1105,6 +1201,14 @@ namespace Borealis
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4,4 });
 				float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
 				ImGui::Separator();
+
+				bool Data = ScriptingSystem::GetEnabled(script);
+				if (ImGui::Checkbox((std::string("##") + name + "enabled").c_str(), &Data))
+				{
+					ScriptingSystem::SetEnabled(script, Data);
+				}
+
+				ImGui::SameLine();
 				open = ImGui::CollapsingHeader(name.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
 				ImGui::PopStyleVar();
 				ImGui::SameLine(ContentRegionAvailable.x - lineHeight * 0.5f); // Align to right (Button)
@@ -1132,11 +1236,12 @@ namespace Borealis
 			if (open)
 			{
 				ImGui::Spacing();
-				DrawScriptField(script);
+				DrawScriptField(script, context);
 			}
 
 			if (deleteComponent)
 			{
+				ScriptingSystem::mEntityScriptMap[name].erase(entity.GetUUID());
 				component.RemoveScript(name);
 				if (component.mScripts.empty())
 				{
@@ -1150,14 +1255,21 @@ namespace Borealis
 	{
 		if (entity.HasComponent<TagComponent>())
 		{
+
 			auto& tag = entity.GetComponent<TagComponent>().Tag;
 			char buffer[256];
 			memset(buffer, 0, sizeof(buffer));
 			strcpy_s(buffer, sizeof(buffer), tag.c_str());
+			ImGui::Checkbox("##Active", &entity.GetComponent<TagComponent>().active);
+			ImGui::SameLine();
 			if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
 			{
 				tag = std::string(buffer);
 			}
+
+			ImGui::SameLine();
+
+			
 		}
 
 		ImGui::SameLine();
@@ -1209,6 +1321,7 @@ namespace Borealis
 						auto scriptInstance = MakeRef<ScriptInstance>(klass);
 						mSelectedEntity.GetComponent<ScriptComponent>().AddScript(name, scriptInstance);
 						scriptInstance->Init(mSelectedEntity.GetUUID());
+						ScriptingSystem::mEntityScriptMap[name].insert(mSelectedEntity.GetUUID());
 						ImGui::CloseCurrentPopup();
 						memset(search_buffer, 0, sizeof(search_buffer));
 					}
@@ -1305,7 +1418,7 @@ namespace Borealis
 
 		if (mSelectedEntity.HasComponent<ScriptComponent>())
 		{
-			DrawScriptComponent(mSelectedEntity.GetComponent<ScriptComponent>(), mSelectedEntity);
+			DrawScriptComponent(mSelectedEntity.GetComponent<ScriptComponent>(), mSelectedEntity, mContext);
 		}
 
 

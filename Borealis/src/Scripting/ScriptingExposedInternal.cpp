@@ -72,7 +72,23 @@ namespace Borealis
 		char* message = mono_string_to_utf8(text);
 		std::string logMessage = message;
 		mono_free(message);
-		BOREALIS_CORE_TRACE(logMessage.c_str());
+		APP_LOG_INFO(logMessage.c_str());
+	}
+
+	void LogError(MonoString* text)
+	{
+		char* message = mono_string_to_utf8(text);
+		std::string logMessage = message;
+		mono_free(message);
+		APP_LOG_ERROR(logMessage.c_str());
+	}
+
+	void LogWarning(MonoString* text)
+	{
+		char* message = mono_string_to_utf8(text);
+		std::string logMessage = message;
+		mono_free(message);
+		APP_LOG_WARN(logMessage.c_str());
 	}
 
 	uint64_t CreateEntity(MonoString* text)

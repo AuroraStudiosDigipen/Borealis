@@ -14,6 +14,12 @@ namespace Borealis
         internal extern static void Log(string text);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void LogWarning(string text);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void LogError(string text);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static ulong CreateEntity(string text);
 
         #region Input
@@ -83,6 +89,35 @@ namespace Borealis
         internal extern static bool ScriptComponent_HasComponent(ulong entityID, Type type);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void ScriptComponent_RemoveComponent(ulong entityID, Type type);
+        #endregion
+
+
+        #region RigidBodyComponent
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void RigidbodyComponent_GetVelocity(ulong id, out Vector3 velocity);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void RigidbodyComponent_SetVelocity(ulong id, ref Vector3 velocity);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void RigidbodyComponent_GetMass(ulong id, out float mass);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void RigidbodyComponent_SetMass(ulong id, ref float mass);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void RigidbodyComponent_GetUseGravity(ulong id, out bool useGravity);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void RigidbodyComponent_SetUseGravity(ulong id, ref bool useGravity);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void RigidbodyComponent_GetIsKinematic(ulong id, out bool isKinematic);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void RigidbodyComponent_SetIsKinematic(ulong id, ref bool isKinematic);
+        
+
         #endregion
     }
 }

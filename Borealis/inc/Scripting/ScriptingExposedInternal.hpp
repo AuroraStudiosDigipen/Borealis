@@ -56,6 +56,8 @@ namespace Borealis
 			Text to log
 	*************************************************************************/
 	void Log(MonoString* text);
+	void LogWarning(MonoString* text);
+	void LogError(MonoString* text);
 
 	void SetActive(bool value, uint64_t* outEntityID);
 

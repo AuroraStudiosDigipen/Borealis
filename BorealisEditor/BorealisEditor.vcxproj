@@ -173,6 +173,10 @@ IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="inc\EditorComponentRegistry.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="inc\EditorAssets\AssetImporter.hpp" />
     <ClInclude Include="inc\EditorAssets\FontImporter.hpp" />
     <ClInclude Include="inc\EditorAssets\MaterialEditor.hpp" />
@@ -180,6 +184,10 @@ IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
     <ClInclude Include="inc\EditorAssets\MetaSerializer.hpp" />
     <ClInclude Include="inc\EditorAssets\SkinnedMeshImporter.hpp" />
     <ClInclude Include="inc\EditorLayer.hpp" />
+    <ClInclude Include="inc\EditorSerialiser.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="inc\Panels\ContentBrowserPanel.hpp" />
     <ClInclude Include="inc\Panels\SceneHierarchyPanel.hpp" />
     <ClInclude Include="inc\Prefab.hpp" />
@@ -195,7 +203,15 @@ IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
     <ClCompile Include="src\EditorAssets\MeshImporter.cpp" />
     <ClCompile Include="src\EditorAssets\MetaSerializer.cpp" />
     <ClCompile Include="src\EditorAssets\SkinnedMeshImporter.cpp" />
+    <ClCompile Include="src\EditorComponentRegistry.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="src\EditorLayer.cpp" />
+    <ClCompile Include="src\EditorSerialiser.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="src\Panels\ContentBrowserPanel.cpp" />
     <ClCompile Include="src\Panels\SceneHierarchyPanel.cpp" />
     <ClCompile Include="src\Prefab.cpp" />

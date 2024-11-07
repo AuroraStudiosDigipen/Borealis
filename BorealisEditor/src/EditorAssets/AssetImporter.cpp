@@ -160,7 +160,7 @@ namespace Borealis
 			AssetMetaData meta;
 			if (!std::filesystem::exists(dupPath.replace_extension(".meta").string()))
 			{
-				meta = MetaFileSerializer::CreateAssetMetaFile(dupPath);
+				meta = MetaFileSerializer::CreateAssetMetaFile(path);
 			}
 			else
 			{

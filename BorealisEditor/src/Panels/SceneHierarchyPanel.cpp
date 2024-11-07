@@ -39,7 +39,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/Project.hpp>
 
 #include "EditorAssets/MaterialEditor.hpp"
-
+#include <EditorSerialiser.hpp>
 
 namespace ImGui
 {
@@ -497,7 +497,7 @@ namespace Borealis
 
 			}
 		}
-
+		return false;
 	}
 
 	template <typename Type>
@@ -627,7 +627,8 @@ namespace Borealis
 						{
 							if (ImGui::MenuItem("Load Scene"))
 							{
-								SceneManager::SaveActiveScene();
+								EditorSerialiser serialiser(mContext);
+								SceneManager::SaveActiveScene(serialiser);
 								SceneManager::SetActiveScene(name);
 								mContext = SceneManager::GetActiveScene();
 								mSelectedEntity = {};

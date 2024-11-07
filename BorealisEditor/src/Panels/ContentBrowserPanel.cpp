@@ -316,10 +316,7 @@ namespace Borealis
 					else if (extension == ".prefab")
 					{
 						payloadName = "DragPrefab";
-						std::string prefabData = itemPath;
-
-						ImGui::SetDragDropPayload("DragPrefab", prefabData.c_str(), prefabData.size() + 1);
-						ImGui::Text("Dragging Prefab: %s", prefabData.c_str());
+						ImGui::SetDragDropPayload("DragPrefab", (const void*)& assetHandle, sizeof(UUID));
 					}
 					else if (extension == ".mp3" || extension == ".wav")
 					{
@@ -379,7 +376,9 @@ namespace Borealis
 				Entity makePrefab(prefab->GetPrefabID(), PrefabManager::GetScenePtr());
 				std::string dir = mCurrDir.string();
 				dir += +"\\" + droppedEntity.GetName() + ".prefab";
-				Serialiser::SerialisePrefab(dir.c_str(), makePrefab);
+
+				Serialiser serialiser(SceneManager::GetActiveScene());
+				serialiser.SerialisePrefab(dir.c_str(), makePrefab);
 				PrefabManager::Register(prefab);
 
 				AssetManager::InsertMetaData(MetaFileSerializer::CreateAssetMetaFile(dir, prefab->GetUUID()));

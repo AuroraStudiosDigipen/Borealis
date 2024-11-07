@@ -43,6 +43,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <AI/BehaviourTree/BehaviourTree.hpp>
 #include <PrefabComponent.hpp>
 
+#include<EditorSerialiser.hpp>
+
 namespace Borealis {
 	EditorLayer::SceneState EditorLayer::mSceneState = EditorLayer::SceneState::Edit;
 #ifndef _DIST
@@ -968,7 +970,8 @@ namespace Borealis {
 			return;
 		}
 		Project::SaveProject();
-		SceneManager::SaveActiveScene();
+		EditorSerialiser serialiser(mEditorScene);
+		SceneManager::SaveActiveScene(serialiser);
 	}
 
 	void EditorLayer::UIToolbar()

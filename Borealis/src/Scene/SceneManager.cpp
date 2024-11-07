@@ -75,11 +75,10 @@ namespace Borealis
 			sceneNames.insert(scene.first);
 		return sceneNames;
     }
-    void SceneManager::SaveActiveScene()
+    void SceneManager::SaveActiveScene(Serialiser& serialiser)
     {
         if (mActiveScene)
         {
-			Serialiser serialiser(mActiveScene);
 			serialiser.SerialiseScene(mSceneLibrary[mActiveScene->GetName()]);
 		}
 		else

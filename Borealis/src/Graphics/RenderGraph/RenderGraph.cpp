@@ -327,7 +327,7 @@ namespace Borealis
 
 					transform.minExtent = modelAABB.minExtent;
 					transform.maxExtent = modelAABB.maxExtent;
-					Renderer3D::DrawCube(transform.Translate, transform.minExtent, transform.maxExtent, { 0.f,1.f,0.f,1.f }, true);
+					Renderer3D::DrawCube(transform.Translate+transform.offset, transform.minExtent, transform.maxExtent, { 0.f,1.f,0.f,1.f }, true);
 				}
 
 			}

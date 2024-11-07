@@ -62,6 +62,7 @@ namespace Borealis
 		glm::vec3 minExtent = { 0.0f, 0.0f, 0.0f };
 		glm::vec3 maxExtent = { 0.0f, 0.0f, 0.0f };
 		glm::vec3 offset = { 0.0f, 0.0f, 0.0f };
+		glm::vec3 temp = { 0.0f, 0.0f, 0.0f };
 		UUID ParentID = 0;
 		std::unordered_set<UUID> ChildrenID;
 	

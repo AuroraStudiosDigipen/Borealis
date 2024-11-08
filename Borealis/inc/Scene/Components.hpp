@@ -378,24 +378,28 @@ namespace Borealis
 
 	struct BehaviourTreeComponent
 	{
-		std::unordered_set<Ref<BehaviourTree>> mBehaviourTrees;
-		void AddTree()
-		{
-			mBehaviourTrees.emplace(Ref<BehaviourTree>());
-		}
-		void AddTree(Ref<BehaviourTree> bt)
-		{
-			mBehaviourTrees.emplace(bt);
-		}
+		//std::unordered_set<Ref<BehaviourTree>> mBehaviourTrees;
+		//void AddTree()
+		//{
+		//	mBehaviourTrees.emplace(Ref<BehaviourTree>());
+		//}
+		//void AddTree(Ref<BehaviourTree> bt)
+		//{
+		//	mBehaviourTrees.emplace(bt);
+		//}
 
-		void Update(float dt)
-		{
-			for (auto& tree : mBehaviourTrees)
-			{
-				tree->Update(dt);
-			}
-		}
+		//void Update(float dt)
+		//{
+		//	for (auto& tree : mBehaviourTrees)
+		//	{
+		//		tree->Update(dt);
+		//	}
+		//}
 
+		Ref<BehaviourTree> mBehaviourTrees;
+
+		BehaviourTreeComponent() = default;
+		BehaviourTreeComponent(const BehaviourTreeComponent&) = default;
 	};
 
 }

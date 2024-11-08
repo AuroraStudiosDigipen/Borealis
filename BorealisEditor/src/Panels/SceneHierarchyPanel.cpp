@@ -473,6 +473,22 @@ namespace Borealis
 			return;
 		}
 
+		if (propType == rttr::type::get<Ref<BehaviourTree>>())
+		{
+			ImGui::Button(propName.c_str());
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropBehaviourTreeItem"))
+				{
+					AssetHandle data = *(const uint64_t*)payload->Data;
+					rttr::variant value(AssetManager::GetAsset<BehaviourTree>(data));
+					Property.set_value(rInstance, value);
+				}
+				ImGui::EndDragDropTarget();
+			}
+			return;
+		}
+
 		if (propType == rttr::type::get<Ref<Audio>>())
 		{
 			ImGui::Button(propName.c_str());

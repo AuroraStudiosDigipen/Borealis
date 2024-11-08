@@ -38,17 +38,17 @@ namespace Borealis
             return instance;
         }
 
-        void LoadBehaviourTrees(const std::string& directory);  
+        void LoadBehaviourTrees(const std::string& directory);  //dont need
         void BuildBehaviourTree(const YAML::Node& behaviourTreeNode, Ref<BehaviourTree>& tree);
         void BuildTreeRecursive(Ref<BehaviourNode> currentNode, const std::unordered_map<int, BTreeFactory::NodeInfo>& nodeMap);
         Ref<BehaviourTree> GetBehaviourTree(const std::string& name);
         const std::unordered_map<std::string, Ref<BehaviourTree>>& GetAllBehaviourTrees() const;
+        Ref< BehaviourTree>  LoadBehaviourTree(const std::string& filepath);
 
     private:
         BTreeFactory() = default;
 
         // Helper function to load a single tree
-        void LoadBehaviourTree(const std::string& filepath);
 
         // Map from tree name to Behaviour tree instance
         std::unordered_map<std::string, Ref<BehaviourTree>> m_BehaviourTrees;

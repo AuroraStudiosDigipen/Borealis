@@ -481,21 +481,22 @@ namespace Borealis
 
 		if (entity.HasComponent<BehaviourTreeComponent>())
 		{
-			out << YAML::Key << "BehaviourTreeComponent";
-			out << YAML::BeginMap;
+			SerializeComponent(out, entity.GetComponent<BehaviourTreeComponent>());
+			//out << YAML::Key << "BehaviourTreeComponent";
+			//out << YAML::BeginMap;
 
-			auto& behaviourTreeComponent = entity.GetComponent<BehaviourTreeComponent>();
-			
-			for (auto& tree : behaviourTreeComponent.mBehaviourTrees)
-			{
-				out << YAML::Key << "BehaviourTree";
-				out << YAML::BeginMap;
-				out << YAML::Key << "Tree Name" << YAML::Value << tree->GetBehaviourTreeName();
-				Serialiser::SerializeBehaviourNode(out, tree->GetRootNode());
-				out << YAML::EndMap;
-			}
+			//auto& behaviourTreeComponent = entity.GetComponent<BehaviourTreeComponent>();
+			//
+			//for (auto& tree : behaviourTreeComponent.mBehaviourTrees)
+			//{
+			//	out << YAML::Key << "BehaviourTree";
+			//	out << YAML::BeginMap;
+			//	out << YAML::Key << "Tree Name" << YAML::Value << tree->GetBehaviourTreeName();
+			//	Serialiser::SerializeBehaviourNode(out, tree->GetRootNode());
+			//	out << YAML::EndMap;
+			//}
 
-			out << YAML::EndMap;
+			//out << YAML::EndMap;
 		}
 
 		if (entity.HasComponent<ScriptComponent>())
@@ -913,41 +914,42 @@ namespace Borealis
 				DeserialiseComponent<CapsuleColliderComponent>(entity, loadedEntity);
 				DeserialiseComponent<RigidBodyComponent>(entity, loadedEntity);
 				DeserialiseComponent<LightComponent>(entity, loadedEntity);
-				auto behaviourTreeComponent = entity["BehaviourTreeComponent"];
+				DeserialiseComponent<BehaviourTreeComponent>(entity, loadedEntity);
+				//auto behaviourTreeComponent = entity["BehaviourTreeComponent"];
 				/*
 					extract the name of tree and root node, then iteritivly build the tree, then call the clone method by createfromname function
 					behaviourNode["name"]
 				*/
-				if (behaviourTreeComponent) 
-				{
-					//BOREALIS_CORE_TRACE("Parsed YAML: {}", behaviourTreeComponent);//used for debugging to see what is being read
-					auto& btc = loadedEntity.AddComponent<BehaviourTreeComponent>();
-					Ref<BehaviourTree> tempTree = MakeRef<BehaviourTree>();
+				//if (behaviourTreeComponent) 
+				//{
+				//	//BOREALIS_CORE_TRACE("Parsed YAML: {}", behaviourTreeComponent);//used for debugging to see what is being read
+				//	auto& btc = loadedEntity.AddComponent<BehaviourTreeComponent>();
+				//	Ref<BehaviourTree> tempTree = MakeRef<BehaviourTree>();
 
-					// Access the BehaviourTree node first
-					auto behaviourTree = behaviourTreeComponent["BehaviourTree"];
+				//	// Access the BehaviourTree node first
+				//	auto behaviourTree = behaviourTreeComponent["BehaviourTree"];
 
-					// Get the root node name and depth
-					std::string treeName = behaviourTree["Tree Name"].as<std::string>();
-					tempTree->SetBehaviourTreeName(treeName);
-					std::string rootName = behaviourTree["name"].as<std::string>();
-					int rootDepth = behaviourTree["depth"].as<int>();
+				//	// Get the root node name and depth
+				//	std::string treeName = behaviourTree["Tree Name"].as<std::string>();
+				//	tempTree->SetBehaviourTreeName(treeName);
+				//	std::string rootName = behaviourTree["name"].as<std::string>();
+				//	int rootDepth = behaviourTree["depth"].as<int>();
 
-					// Create root node using NodeFactory
-					Ref<BehaviourNode> rootNode = Borealis::NodeFactory::CreateNodeByName(rootName);
+				//	// Create root node using NodeFactory
+				//	Ref<BehaviourNode> rootNode = Borealis::NodeFactory::CreateNodeByName(rootName);
 
-					// Set the root node of the tree
-					tempTree->SetRootNode(rootNode); //sets depth to 0 by default
-					BOREALIS_CORE_TRACE("Deserialising BT {}", treeName);
+				//	// Set the root node of the tree
+				//	tempTree->SetRootNode(rootNode); //sets depth to 0 by default
+				//	BOREALIS_CORE_TRACE("Deserialising BT {}", treeName);
 
-					// If the root node has children, parse them recursively
-					if (behaviourTree["children"]) {
-						for (auto childNode : behaviourTree["children"]) {
-							ParseTree(childNode, rootNode, *tempTree, rootDepth);
-						}
-					}
-					btc.AddTree(tempTree);
-				}
+				//	// If the root node has children, parse them recursively
+				//	if (behaviourTree["children"]) {
+				//		for (auto childNode : behaviourTree["children"]) {
+				//			ParseTree(childNode, rootNode, *tempTree, rootDepth);
+				//		}
+				//	}
+				//	btc.AddTree(tempTree);
+				//}
 
 				auto scriptComponent = entity["ScriptComponent"];
 				if (scriptComponent)

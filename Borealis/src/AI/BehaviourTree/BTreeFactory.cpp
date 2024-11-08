@@ -148,7 +148,7 @@ namespace Borealis
         }
     }
 
-    void BTreeFactory::LoadBehaviourTree(const std::string& filepath)
+    Ref< BehaviourTree> BTreeFactory::LoadBehaviourTree(const std::string& filepath)
     {
         // Load and parse the YAML file
         YAML::Node data;
@@ -159,7 +159,7 @@ namespace Borealis
         catch (const YAML::Exception& e)
         {
             std::cerr << "Failed to load behaviour tree from '" << filepath << "': " << e.what() << std::endl;
-            return;
+            return nullptr;
         }
 
         // Extract the BehaviourTreeComponent
@@ -167,7 +167,7 @@ namespace Borealis
         if (!behaviourTreeComponent)
         {
             std::cerr << "Error: 'BehaviourTreeComponent' not found in '" << filepath << "'" << std::endl;
-            return;
+            return nullptr;
         }
 
         // Extract the BehaviourTree node
@@ -175,7 +175,7 @@ namespace Borealis
         if (!behaviourTreeNode)
         {
             std::cerr << "Error: 'BehaviourTree' not found in '" << filepath << "'" << std::endl;
-            return;
+            return nullptr;
         }
 
         // Extract the tree name
@@ -189,6 +189,8 @@ namespace Borealis
 
         // Add the tree to the map
         m_BehaviourTrees[treeName] = tree;
+
+        return tree;
     }
 
     Ref<BehaviourTree> BTreeFactory::GetBehaviourTree(const std::string& name)

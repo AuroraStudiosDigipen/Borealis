@@ -223,6 +223,13 @@ namespace Borealis
 			return true;
 		}
 
+		if (propType == rttr::type::get<UUID>())
+		{
+			UUID data = propValue.get_value<UUID>();
+			out << YAML::Key << propName.to_string() << YAML::Value << (uint64_t)data;
+			return true;
+		}
+
 		if (propType == rttr::type::get<double>())
 		{
 			out << YAML::Key << propName.to_string() << YAML::Value << propValue.to_double();

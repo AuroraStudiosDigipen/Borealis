@@ -29,7 +29,7 @@ namespace Borealis
         BehaviourNode::OnEnter();
     }
 
-    void D_Delay::OnUpdate(float dt)
+    void D_Delay::OnUpdate(float dt, Entity& entity)
     {
         delay -= dt;
 
@@ -37,7 +37,7 @@ namespace Borealis
         {
             Ref<BehaviourNode> child = mChildren.front();
 
-            child->Tick(dt);
+            child->Tick(dt, entity);
         }
     }
 }

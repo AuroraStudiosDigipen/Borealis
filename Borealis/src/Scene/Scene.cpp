@@ -187,7 +187,7 @@ namespace Borealis
 				{
 					continue;
 				}
-				BTview.get<BehaviourTreeComponent>(entity).mBehaviourTrees->Update(dt);
+				BTview.get<BehaviourTreeComponent>(entity).mBehaviourTrees->Update(dt, brEntity);
 			}
 
 

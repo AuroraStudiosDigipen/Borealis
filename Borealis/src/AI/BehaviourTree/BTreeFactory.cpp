@@ -124,29 +124,6 @@ namespace Borealis
             }
         }
     }
-    void BTreeFactory::LoadBehaviourTrees(const std::string& directory)
-    {
-        namespace fs = std::filesystem;
-
-        try
-        {
-            for (const auto& entry : fs::directory_iterator(directory))
-            {
-                if (entry.is_regular_file() && entry.path().extension() == ".btree")
-                {
-                    LoadBehaviourTree(entry.path().string());
-                }
-            }
-        }
-        catch (const fs::filesystem_error& e)
-        {
-            std::cerr << "Filesystem error while loading behaviour trees: " << e.what() << std::endl;
-        }
-        catch (const std::exception& e)
-        {
-            std::cerr << "Exception while loading behaviour trees: " << e.what() << std::endl;
-        }
-    }
 
     Ref< BehaviourTree> BTreeFactory::LoadBehaviourTree(const std::string& filepath)
     {

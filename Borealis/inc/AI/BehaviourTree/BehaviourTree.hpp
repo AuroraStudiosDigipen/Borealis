@@ -22,6 +22,7 @@ namespace Borealis
 {
     // Forward declaration
     class BehaviourNode;
+    class Entity;
 
     class BehaviourTree : public Asset
     {
@@ -64,7 +65,7 @@ namespace Borealis
             \param[in] dt
                 Delta time for updating the nodes.
         *************************************************************************/
-        void Update(float dt);
+        void Update(float dt, Entity& entity);
 
         /*!***********************************************************************
             \brief

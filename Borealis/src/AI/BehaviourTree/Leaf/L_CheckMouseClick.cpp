@@ -18,7 +18,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/LoggerSystem.hpp>
 namespace Borealis
 {
-    void L_CheckMouseClick::OnUpdate(float dt)
+    void L_CheckMouseClick::OnUpdate(float dt, Entity& entity)
     {
 
         if (InputSystem::IsKeyPressed(Key::A))

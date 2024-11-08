@@ -28,11 +28,14 @@ namespace Borealis
         BehaviourNode::OnLeafEnter();
     }
 
-    void L_Idle::OnUpdate(float dt)
+    void L_Idle::OnUpdate(float dt, Entity& entity)
     {
         timer -= dt;
 
-        BOREALIS_CORE_TRACE("Idling now, time is {}", timer);
+        auto& transforms = entity.GetComponent<TransformComponent>();
+        transforms.Translate += glm::vec3(0.1f, 0.f, 0.f);
+
+        BOREALIS_CORE_TRACE("Idling now, time is {} for entity {}", timer, entity.GetUUID());
 
         if (timer < 0.0f)
         {

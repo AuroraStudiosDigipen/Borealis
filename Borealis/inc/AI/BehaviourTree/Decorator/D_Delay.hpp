@@ -27,7 +27,7 @@ namespace Borealis
         float delay;
 
         virtual void OnEnter() override;
-        virtual void OnUpdate(float dt) override;
+        virtual void OnUpdate(float dt, Entity& entity) override;
     };
 }
 

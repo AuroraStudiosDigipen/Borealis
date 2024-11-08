@@ -212,7 +212,7 @@ namespace Borealis
             \param[in] dt
                 The delta time for updating the node.
         *************************************************************************/
-        void Tick(float dt);
+        void Tick(float dt, Entity& entity);
 
         /*!***********************************************************************
             \brief
@@ -242,7 +242,7 @@ namespace Borealis
             \param[in] dt
                 The delta time for updating the node.
         *************************************************************************/
-        virtual void OnUpdate(float dt);
+        virtual void OnUpdate(float dt, Entity& entity);
 
         /*!***********************************************************************
             \brief

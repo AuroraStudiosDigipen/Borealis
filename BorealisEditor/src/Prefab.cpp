@@ -69,7 +69,7 @@ namespace Borealis {
 
             PrefabManager::GetRegistry().get<IDComponent>(mPrefabID).ID = UUID{}; // Reset the UUID
             prefabComponent.mPrefabID = mPrefabID;
-			prefabComponent.mParentID = mPrefabID;
+			prefabComponent.mParentID = GetUUID();
             //All created prefab translate wont follow by default
             prefabComponent.mEditedComponentList.insert("Transform Component:Translate");
         }
@@ -129,7 +129,7 @@ namespace Borealis {
 		auto& prefabComponent = entity->AddComponent<PrefabComponent>();
 		prefabComponent.mPrefabID = mPrefabID;
 
-		prefabComponent.mParentID = mPrefabID;
+		prefabComponent.mParentID = GetUUID();
 
 		// Add all components from the prefab to the new entity
         AddEntityComponent(SpriteRendererComponent);

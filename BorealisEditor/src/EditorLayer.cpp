@@ -278,6 +278,27 @@ namespace Borealis {
 
 					if (ImGui::MenuItem("Open Project...","Ctrl+O")) {
 						LoadProject();
+
+						//Testing load all the prefab children
+						for (auto& item : SceneManager::GetActiveScene()->GetRegistry().view<entt::entity>()) {
+							std::cout << "Prefab Check: " << std::endl;
+
+							Entity entity{ item, SceneManager::GetActiveScene().get() }; // Use GetActiveScene() here
+							if (entity.HasComponent<PrefabComponent>()) {
+								// Retrieve the PrefabComponent
+								auto& prefabComp = entity.GetComponent<PrefabComponent>();
+
+								// Get the parent UUID from the PrefabComponent
+								UUID parentUUID = prefabComp.mParentID;
+
+								// Find the associated prefab by its UUID
+								auto prefab = PrefabManager::GetPrefab(parentUUID);  // Use existing function GetPrefab
+								if (prefab) {
+									// Add the entity as a child to the found prefab
+									prefab->AddChild(MakeRef<Entity>(entity));
+								}
+							}
+						}
 					}
 
 					if (ImGui::MenuItem("Save Project...","Ctrl+S")) {
@@ -474,22 +495,22 @@ namespace Borealis {
 				}
 
 				//Dropping Prefab into Viewport
-				if (ImGui::BeginDragDropTarget())
-				{
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragPrefab"))
-					{
-						std::cout << "DROPPED PREFAB" << std::endl;
-						const char* prefabPath = (const char*)payload->Data;
-						UUID prefabID = AssetImporter::GetAssetHandle(prefabPath);
-						PrefabManager::GetPrefab(prefabID)->InstantiatePrefabInstance(SceneManager::GetActiveScene());
-						//UUID prefabInstanceID = SceneManager::GetActiveScene()->CreateEntityReturnUUID("clone");
-						//SceneManager::GetActiveScene()->DuplicateEntity(PrefabManager::GetPrefab(prefabID);
-						//SceneManager::GetEntity(prefabInstanceID).AddComponent<PrefabComponent>();
-						//SceneManager::GetEntity(prefabInstanceID).AddOrReplaceComponent<SpriteRendererComponent>();
-					}
+				//if (ImGui::BeginDragDropTarget())
+				//{
+				//	if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragPrefab"))
+				//	{
+				//		std::cout << "DROPPED PREFAB" << std::endl;
+				//		const char* prefabPath = (const char*)payload->Data;
+				//		UUID prefabID = AssetImporter::GetAssetHandle(prefabPath);
+				//		PrefabManager::GetPrefab(prefabID)->InstantiatePrefabInstance(SceneManager::GetActiveScene());
+				//		//UUID prefabInstanceID = SceneManager::GetActiveScene()->CreateEntityReturnUUID("clone");
+				//		//SceneManager::GetActiveScene()->DuplicateEntity(PrefabManager::GetPrefab(prefabID);
+				//		//SceneManager::GetEntity(prefabInstanceID).AddComponent<PrefabComponent>();
+				//		//SceneManager::GetEntity(prefabInstanceID).AddOrReplaceComponent<SpriteRendererComponent>();
+				//	}
 
-					ImGui::EndDragDropTarget();
-				}
+				//	ImGui::EndDragDropTarget();
+				//}
 
 				//Create Entities from prefab
 				if (ImGui::BeginDrapDropTargetWindow("DragPrefab"))

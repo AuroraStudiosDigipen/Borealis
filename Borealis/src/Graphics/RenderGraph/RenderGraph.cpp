@@ -224,26 +224,32 @@ namespace Borealis
 			entt::basic_group group = registryPtr->group<>(entt::get<TransformComponent, LightComponent>);
 			for (auto& entity : group)
 			{
+				Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
+				if (!brEntity.IsActive())
+				{
+					continue;
+				}
+
 				auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
-				lightComponent.offset = transform.Translate;	
-				lightComponent.spotLightDirection = transform.Rotation;
+				lightComponent.position = TransformComponent::GetGlobalTranslate(brEntity);
+				lightComponent.direction = TransformComponent::GetGlobalRotation(brEntity);
 				Renderer3D::AddLight(lightComponent);
 
 
 				if (lightComponent.type == LightComponent::Type::Spot)
 				{
-					glm::vec3 upVector = { 0.f,1.f,0.f };
-					glm::mat4 lightView = glm::lookAt(lightComponent.offset, lightComponent.offset +  transform.Rotation, upVector);
-					float fieldOfView = glm::radians(lightComponent.InnerOuterSpot.x * 2.f); // Spotlight cone angle
-					glm::mat4 lightProj = glm::perspective(fieldOfView, 1.f, 20.f, 1000.f);
+					//need to change exact same code below, fix next time
+					glm::vec3 upVector = (glm::abs(lightComponent.direction.y) > 0.99f) ? glm::vec3(0.f, 0.f, 1.f) : glm::vec3(0.f, 1.f, 0.f);
+					glm::mat4 lightView = glm::lookAt(lightComponent.position, lightComponent.position + lightComponent.direction, upVector);
+					float fieldOfView = glm::radians(lightComponent.spotAngle * 2.f); // Spotlight cone angle
+					glm::mat4 lightProj = glm::perspective(fieldOfView, 1.f, 1.f, lightComponent.range); //change in the future
 
 					shader->Set("u_LightViewProjection", lightProj * lightView);
 				}
 				else if (lightComponent.type == LightComponent::Type::Directional)
 				{
 					glm::vec3 upVector = { 0.f,1.f,0.f };
-					glm::mat4 lightView = glm::lookAt(lightComponent.offset, lightComponent.direction, upVector);
-					float fieldOfView = glm::radians(lightComponent.InnerOuterSpot.x * 2.f); // Spotlight cone angle
+					glm::mat4 lightView = glm::lookAt(lightComponent.position, lightComponent.direction, upVector);
 					glm::mat4 lightProj = glm::ortho(-100.f, 100.f, -100.f, 100.f, 0.f, 400.f);
 
 					shader->Set("u_LightViewProjection", lightProj * lightView);
@@ -647,7 +653,8 @@ namespace Borealis
 					continue;
 				}
 				auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
-				lightComponent.offset = TransformComponent::GetGlobalTranslate(brEntity);
+				lightComponent.position = TransformComponent::GetGlobalTranslate(brEntity);
+				lightComponent.direction = TransformComponent::GetGlobalRotation(brEntity);
 				Renderer3D::AddLight(lightComponent);
 			}
 			Renderer3D::SetLights(shader);
@@ -709,19 +716,19 @@ namespace Borealis
 
 				if (lightComponent.type == LightComponent::Type::Spot)
 				{
-					glm::vec3 upVector = { 0.f,1.f,0.f };
-					glm::mat4 lightView = glm::lookAt(lightComponent.offset, lightComponent.offset + transform.Rotation, upVector);
-					float fieldOfView = glm::radians(lightComponent.InnerOuterSpot.x*2.f); // Spotlight cone angle
-					glm::mat4 lightProj = glm::perspective(fieldOfView, 1.f, 20.f, 1000.f);
+					//need to change exact same code on top, fix next time
+					glm::vec3 upVector = (glm::abs(lightComponent.direction.y) > 0.99f) ? glm::vec3(0.f, 0.f, 1.f) : glm::vec3(0.f, 1.f, 0.f);
+					glm::mat4 lightView = glm::lookAt(lightComponent.position, lightComponent.position + lightComponent.direction, upVector);
+					float fieldOfView = glm::radians(lightComponent.spotAngle * 2.f); // Spotlight cone angle
+					glm::mat4 lightProj = glm::perspective(fieldOfView, 1.f, 1.f, lightComponent.range); //change in the future
 
 					shader->Set("u_LightViewProjection", lightProj * lightView);
 				}
 				else if (lightComponent.type == LightComponent::Type::Directional)
 				{
 					glm::vec3 upVector = { 0.f,1.f,0.f };
-					glm::vec3 lightPos = cameraPosition + lightComponent.offset;
-					glm::mat4 lightView = glm::lookAt(lightComponent.offset, lightComponent.direction, upVector);
-					float fieldOfView = glm::radians(lightComponent.InnerOuterSpot.x * 2.f); // Spotlight cone angle
+					glm::vec3 lightPos = cameraPosition + lightComponent.position;
+					glm::mat4 lightView = glm::lookAt(lightComponent.position, lightComponent.direction, upVector);
 					glm::mat4 lightProj = glm::ortho(-100.f, 100.f, -100.f, 100.f, 0.f, 400.f);
 
 					shader->Set("u_LightViewProjection", lightProj * lightView);

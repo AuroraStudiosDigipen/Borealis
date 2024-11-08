@@ -133,16 +133,14 @@ struct Material {
 	bool hasHeightMap;
 };
 
-struct Light {
+struct Light 
+{
 	int type; // 0 = Spotlight, 1 = Directional , 2 = Point
 	vec3 position;
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 specular;
 	vec3 direction;
-	vec3 spotLightDirection;
-
-	//float range;
 	vec2 innerOuterAngle;
 
 	float linear;
@@ -302,7 +300,7 @@ vec3 ComputeSpotLight(Light light, vec3 normal, vec3 viewDir)
     // {
     //     float spec = pow(max(dot(normal, halfwayDir), 0.0), u_Material.shininess * u_Material.smoothness);
 
-    //     float theta = dot(lightDir, normalize(-light.spotLightDirection)); 
+    //     float theta = dot(lightDir, normalize(-light.direction)); 
 
     //     float epsilon = light.innerOuterAngle.x - light.innerOuterAngle.y;
     //     float intensity = clamp((theta - light.innerOuterAngle.y) / epsilon, 0.0, 1.0); 
@@ -343,7 +341,7 @@ vec3 ComputeSpotLight(Light light, vec3 normal, vec3 viewDir)
         float spec = pow(max(dot(normal, halfwayDir), 0.0), u_Material.shininess * u_Material.smoothness);
 
         // Spotlight intensity based on angle
-        float theta = dot(lightDir, normalize(-light.spotLightDirection)); 
+        float theta = dot(lightDir, normalize(-light.direction)); 
         float epsilon = light.innerOuterAngle.x - light.innerOuterAngle.y;
         float intensity = clamp((theta - light.innerOuterAngle.y) / epsilon, 0.0, 1.0); 
 

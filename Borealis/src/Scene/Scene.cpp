@@ -114,7 +114,8 @@ namespace Borealis
 					continue;
 				}
 				auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
-				lightComponent.offset = TransformComponent::GetGlobalTranslate(entityBR);
+				lightComponent.position = TransformComponent::GetGlobalTranslate(entityBR);
+				lightComponent.direction = TransformComponent::GetGlobalRotation(entityBR);	
 				Renderer3D::AddLight(lightComponent);
 			}
 		}

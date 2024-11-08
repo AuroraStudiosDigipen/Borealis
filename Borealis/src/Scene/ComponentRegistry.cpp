@@ -219,7 +219,8 @@ namespace Borealis
             (metadata("Hide", true))
             .method("GetTransform", &TransformComponent::GetTransform)
             .property("Min Extent", &TransformComponent::minExtent)
-            .property("Max Extent", &TransformComponent::maxExtent);
+            .property("Max Extent", &TransformComponent::maxExtent)
+            .property("Offset", &TransformComponent::offset);
             
     }
 

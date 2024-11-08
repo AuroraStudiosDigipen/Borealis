@@ -263,6 +263,7 @@ namespace Borealis
 		bool dynamicBody = false;
 		// not serialised
 		unsigned int bodyID = 0;
+		glm::vec3 modelCenter = { 0,0,0 };
 		//glm::vec3 velocity = { 0,0,0 };
 		//float mass = 1.f;
 		//float drag = 0.f;

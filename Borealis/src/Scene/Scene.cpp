@@ -226,7 +226,7 @@ namespace Borealis
 						continue;
 					}
 					auto [transform, rigidbody] = physicsGroup.get<TransformComponent, RigidBodyComponent>(entity);
-					PhysicsSystem::PushTransform(rigidbody.bodyID, transform);
+					PhysicsSystem::PushTransform(rigidbody, transform, brEntity);
 				}
 
 				PhysicsSystem::Update(dt);
@@ -240,7 +240,7 @@ namespace Borealis
 						continue;
 					}
 					auto [transform, rigidbody] = physicsGroup.get<TransformComponent, RigidBodyComponent>(entity);
-					PhysicsSystem::PullTransform(rigidbody.bodyID, transform);
+					PhysicsSystem::PullTransform(rigidbody, transform, brEntity);
 				}
 				for (auto entity : view)
 				{
@@ -483,6 +483,7 @@ namespace Borealis
 		mRenderGraph.SetFinalSink("BackBuffer", "Render2D.renderTarget"); //do i need it for immediate mode?
 
 		mRenderGraph.Execute(dt);
+
 	}
 
 	Entity Scene::CreateEntity(const std::string& name)

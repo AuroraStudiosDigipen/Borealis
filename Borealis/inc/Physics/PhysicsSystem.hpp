@@ -21,6 +21,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace Borealis
 {
+	class Entity;
 	class PhysicsSystem
 	{
 	public:
@@ -45,14 +46,14 @@ namespace Borealis
    * \param bodyID The ID of the body.
    * \param transform The transform component of the body.
    */
-		static void PushTransform(unsigned int bodyID, TransformComponent& transform);
+		static void PushTransform(RigidBodyComponent& rigidbody, TransformComponent& transform, Entity entity);
 
 		/**
    * \brief Pulls the transform of the specified body from the physics system.
    * \param bodyID The ID of the body.
    * \param transform The transform component of the body.
    */
-		static void PullTransform(unsigned int bodyID, TransformComponent& transform);
+		static void PullTransform(RigidBodyComponent& rigidbody, TransformComponent& transform, Entity& entity);
 
 		/**
    * \brief Adds a square body to the physics system.
@@ -102,7 +103,7 @@ namespace Borealis
 		
 		static void FreeRigidBody(RigidBodyComponent& rigidbody);
 
-		static void calculateBoundingVolume(const Model& model, TransformComponent& transform);
+		static void calculateBoundingVolume(const Model& model, TransformComponent& transform, RigidBodyComponent& rigidbody);
 
 		static glm::vec3 calculateBoxSize(glm::vec3 minExtent, glm::vec3 maxExtent);
 

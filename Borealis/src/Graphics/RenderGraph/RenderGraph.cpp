@@ -510,6 +510,27 @@ namespace Borealis
 				Renderer2D::DrawString(text.text, text.font, TransformComponent::GetGlobalTransform(brEntity), (int)entity);
 			}
 		}
+		{
+			auto group = registryPtr->group<>(entt::get<TransformComponent, RigidBodyComponent>);			
+			for (auto& entity : group)
+			{
+				Entity entityBR = { entity, SceneManager::GetActiveScene().get() };
+				if (!entityBR.IsActive())
+				{
+					continue;
+				}
+				auto [transform, rigidbody] = group.get<TransformComponent, RigidBodyComponent>(entity);
+				auto entityTransform = TransformComponent::GetGlobalTransform(entityBR);
+				auto entityCenter = TransformComponent::GetGlobalTranslate(entityBR);
+
+				auto actualCenter = entityTransform * glm::vec4(rigidbody.modelCenter, 1.f);
+				auto actualVec3Center = glm::vec3(actualCenter.x, actualCenter.y, actualCenter.z);
+
+				Renderer2D::DrawBox(actualVec3Center - rigidbody.size, actualVec3Center + rigidbody.size, { 1.f, 0.f, 0.f, 1.f });
+
+			}
+		}
+
 		Renderer2D::End();
 
 		for (auto sink : sinkList)

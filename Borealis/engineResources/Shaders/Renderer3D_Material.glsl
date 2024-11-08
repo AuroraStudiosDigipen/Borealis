@@ -283,41 +283,81 @@ vec3 ComputePointLight(Light light, vec3 normal, vec3 viewDir)
 
 vec3 ComputeSpotLight(Light light, vec3 normal, vec3 viewDir)
 {
-	vec3 lightDir = normalize(light.position - v_FragPos);
+	// vec3 lightDir = normalize(light.position - v_FragPos);
 
+	// float distance = length(light.position - v_FragPos);
+    // float attenuation = 1.0 / (1.0 + light.linear * distance + light.quadratic * distance * distance); 
+
+	// // ambient
+	// vec3 ambient = light.ambient * GetAlbedoColor().rgb;
+	// vec3 color = ambient;
+	// float metallic = GetMetallic();
+	// vec3 emission = GetEmission();
+
+	// vec3 halfwayDir = normalize(lightDir + viewDir);
+
+    // float diff = max(dot(normal, lightDir), 0.0);
+
+    // if (diff > 0.0)
+    // {
+    //     float spec = pow(max(dot(normal, halfwayDir), 0.0), u_Material.shininess * u_Material.smoothness);
+
+    //     float theta = dot(lightDir, normalize(-light.spotLightDirection)); 
+
+    //     float epsilon = light.innerOuterAngle.x - light.innerOuterAngle.y;
+    //     float intensity = clamp((theta - light.innerOuterAngle.y) / epsilon, 0.0, 1.0); 
+
+    //     vec3 diffuse = light.diffuse * diff * (1.0 - metallic);
+    //     vec3 specular = light.specular * spec * GetSpecular() * metallic;
+
+	// 	ambient *= intensity * attenuation;
+	// 	diffuse *= intensity * attenuation;
+	// 	specular *= intensity * attenuation;
+
+	// 	//temp
+	// 	float shadowFactor = GetShadowFactor();
+
+    //     color = ambient + shadowFactor * (diffuse + specular + emission);
+    // }
+
+	// return color;
+
+	vec3 lightDir = normalize(light.position - v_FragPos);
 	float distance = length(light.position - v_FragPos);
+
+	// Distance attenuation
     float attenuation = 1.0 / (1.0 + light.linear * distance + light.quadratic * distance * distance); 
 
-	// ambient
-	vec3 ambient = light.ambient * GetAlbedoColor().rgb;
+	// Ambient lighting - reduce its intensity slightly to prevent excessive brightness in shadows
+	vec3 ambient = light.ambient * GetAlbedoColor().rgb * 0.2; 
 	vec3 color = ambient;
 	float metallic = GetMetallic();
 	vec3 emission = GetEmission();
 
 	vec3 halfwayDir = normalize(lightDir + viewDir);
-
-    float diff = max(dot(normal, lightDir), 0.0);
+	float diff = max(dot(normal, lightDir), 0.0);
 
     if (diff > 0.0)
     {
+        // Specular calculation
         float spec = pow(max(dot(normal, halfwayDir), 0.0), u_Material.shininess * u_Material.smoothness);
 
+        // Spotlight intensity based on angle
         float theta = dot(lightDir, normalize(-light.spotLightDirection)); 
-
         float epsilon = light.innerOuterAngle.x - light.innerOuterAngle.y;
         float intensity = clamp((theta - light.innerOuterAngle.y) / epsilon, 0.0, 1.0); 
 
+        // Diffuse and specular terms
         vec3 diffuse = light.diffuse * diff * (1.0 - metallic);
         vec3 specular = light.specular * spec * GetSpecular() * metallic;
 
-		ambient *= intensity * attenuation;
-		diffuse *= intensity * attenuation;
-		specular *= intensity * attenuation;
+        // Apply spotlight intensity and distance attenuation to diffuse and specular only
+        diffuse *= intensity * attenuation;
+        specular *= intensity * attenuation;
 
-		//temp
+		// Apply shadow factor to diffuse, specular, and emission
 		float shadowFactor = GetShadowFactor();
-
-        color = ambient + shadowFactor * (diffuse + specular + emission);
+        color += shadowFactor * (diffuse + specular + emission);
     }
 
 	return color;

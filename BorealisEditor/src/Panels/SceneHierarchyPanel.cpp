@@ -156,9 +156,18 @@ namespace Borealis
 		return output;
 	}
 
+	std::vector<std::string> SplitString(const std::string& str, char delimiter) {
+		std::vector<std::string> tokens;
+		std::stringstream ss(str);
+		std::string token;
+		while (std::getline(ss, token, delimiter)) {
+			tokens.push_back(token);
+		}
+		return tokens;
+	}
+
 	static void DrawProperty(rttr::property& Property, ReflectionInstance& rInstance)
 	{
-
 		auto propType = Property.get_type();
 		auto propName = Property.get_name().to_string();
 		auto name = propName;
@@ -167,8 +176,17 @@ namespace Borealis
 		{
 			auto dependencyVariable = Property.get_metadata("Dependency").get_value<std::string>(); //Is Box
 			auto dependencyValue = Property.get_metadata("Visible for").get_value<std::string>(); // Box
+
+			auto dependencyValues = SplitString(dependencyValue, ',');
+
 			auto dependencyProperty = rInstance.get_type().get_property(dependencyVariable);
-			if (dependencyProperty.get_enumeration().name_to_value(dependencyValue) != dependencyProperty.get_value(rInstance))
+			auto currentValue = dependencyProperty.get_value(rInstance);
+
+			bool isVisible = std::any_of(dependencyValues.begin(), dependencyValues.end(), [&dependencyProperty, &currentValue](const std::string& value) {
+				return dependencyProperty.get_enumeration().name_to_value(value) == currentValue;
+				});
+
+			if (!isVisible) 
 			{
 				return;
 			}

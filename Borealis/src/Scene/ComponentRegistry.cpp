@@ -124,11 +124,16 @@ namespace Borealis
             .property("CastShadow", &LightComponent::castShadow)
             .property("Type", &LightComponent::type)
             .property("Direction", &LightComponent::direction)
-            (metadata("Dependency", "Type"), metadata("Visible for", "Directional"))
-            .property("SpotLightDirection", &LightComponent::spotLightDirection)
-            (metadata("Dependency", "Type"), metadata("Visible for", "Spot"))
+            (metadata("Dependency", "Type"), metadata("Visible for", "Directional,Spot"))
             .property("Inner Outer Spot", &LightComponent::InnerOuterSpot)
             (metadata("Dependency", "Type"), metadata("Visible for", "Spot"));
+
+        //registration::class_<LightComponent>("Light Component")
+        //    (metadata("Component", true))
+        //    .constructor<>()
+        //    .property("Type", &LightComponent::type)
+        //    .property("Range", &LightComponent::range)
+        //    (metadata("Dependency", "Type"), metadata("Visible for", "Point"))
 
         registration::class_<MeshFilterComponent>("Mesh Filter Component")
             (metadata("Component", true))

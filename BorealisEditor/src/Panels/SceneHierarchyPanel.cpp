@@ -512,7 +512,7 @@ namespace Borealis
 			if (entity.HasComponent<PrefabComponent>() && isEdited)
 			{
 				auto& prefabComp = entity.GetComponent<PrefabComponent>();
-				prefabComp.mEditedComponentList.insert(Property.get_name().to_string());
+				prefabComp.mEditedComponentList.insert(rInstance.get_type().get_name().to_string() + ":" + Property.get_name().to_string());
 			}
 		}
 		return isEdited;

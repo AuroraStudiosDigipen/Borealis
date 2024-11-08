@@ -26,14 +26,6 @@ namespace Borealis
 			{
 				std::cout << "Prefab UUID: " << uuid << std::endl;
 
-				//if (prefab->HasComponent<TransformComponent>())
-				//{
-				//	std::cout << "  - HAS TransformComponent" << std::endl;
-				//}
-				//if (prefab->HasComponent<SpriteRendererComponent>())
-				//{
-				//	std::cout << "  - HAS SpriteRendererComponent" << std::endl;
-				//}
 			}
 		}
 

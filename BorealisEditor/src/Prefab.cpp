@@ -69,6 +69,9 @@ namespace Borealis {
 
             PrefabManager::GetRegistry().get<IDComponent>(mPrefabID).ID = UUID{}; // Reset the UUID
             prefabComponent.mPrefabID = mPrefabID;
+			prefabComponent.mParentID = mPrefabID;
+            //All created prefab translate wont follow by default
+            prefabComponent.mEditedComponentList.insert("Transform Component:Translate");
         }
         mPrefabID = entity.GetComponent<PrefabComponent>().mPrefabID;
 		// Add all components to prefab manager ECS
@@ -79,7 +82,7 @@ namespace Borealis {
         // Create a new entity in the scene
         Entity newEntity = scene->CreateEntity("InstantiatedPrefab");
 
-		newEntity.AddOrReplaceComponent<PrefabComponent>().mParentID = GetUUID();
+		//newEntity.AddOrReplaceComponent<PrefabComponent>().mParentID = GetUUID();
 
         // Copy all components from the prefab to the new entity
         if (HasComponent<SpriteRendererComponent>()) {
@@ -126,6 +129,7 @@ namespace Borealis {
 		auto& prefabComponent = entity->AddComponent<PrefabComponent>();
 		prefabComponent.mPrefabID = mPrefabID;
 
+		prefabComponent.mParentID = mPrefabID;
 
 		// Add all components from the prefab to the new entity
         AddEntityComponent(SpriteRendererComponent);
@@ -149,7 +153,8 @@ namespace Borealis {
 
             auto& prefabComp = child->GetComponent<PrefabComponent>();
 
-            prefabComp.mEditedComponentList.insert("Translate");
+            //Temp fix
+            prefabComp.mEditedComponentList.insert("Transform Component:Translate");
             //template <typename Component>
 			//UpdateComponent<Component>(child, prefabComp);
             UpdateComponent<TransformComponent>(child);
@@ -180,8 +185,9 @@ namespace Borealis {
 
         rttr::instance srcInstance(src);
         rttr::instance dstInstance(dst);
+		std::string componentName = dstInstance.get_type().get_name().to_string();
         auto properties = dstInstance.get_type().get_properties();
-
+       
         // Retrieve the PrefabComponent to check edited properties
         if (!child->HasComponent<PrefabComponent>())
             return;
@@ -192,8 +198,8 @@ namespace Borealis {
             // Skip updating if the property has been edited
             if (prop.is_valid() && prop.get_value(srcInstance).is_valid())
             {
-                const std::string propName = prop.get_name().to_string();
-                if (prefabComp.mEditedComponentList.find(propName) == prefabComp.mEditedComponentList.end())
+                const std::string fullComponentName = componentName + ":" + prop.get_name().to_string();
+                if (prefabComp.mEditedComponentList.find(fullComponentName) == prefabComp.mEditedComponentList.end())
                 {
                     // Update only if the property was not edited
                     prop.set_value(dstInstance, prop.get_value(srcInstance));

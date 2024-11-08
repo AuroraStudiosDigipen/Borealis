@@ -632,6 +632,28 @@ namespace Borealis
 								SceneManager::SetActiveScene(name, serialiser);
 								mContext = SceneManager::GetActiveScene();
 								mSelectedEntity = {};
+
+								//Testing load all the prefab children
+								//PrefabManager::ClearAllPrefabChildren(); //Might not be needed
+								for (auto& item : mContext->mRegistry.view<entt::entity>())
+								{
+
+									Entity entity{ item, mContext.get() };
+									if (entity.HasComponent<PrefabComponent>()) {
+										// Retrieve the PrefabComponent
+										auto& prefabComp = entity.GetComponent<PrefabComponent>();
+
+										// Get the parent UUID from the PrefabComponent
+										UUID parentUUID = prefabComp.mParentID;
+
+										// Find the associated prefab by its UUID
+										auto prefab = PrefabManager::GetPrefab(parentUUID);  // Use existing function GetPrefab
+										if (prefab) {
+											// Add the entity as a child to the found prefab
+											prefab->AddChild(MakeRef<Entity>(entity));
+										}
+									}
+								}
 							}
 						}
 						ImGui::EndPopup();

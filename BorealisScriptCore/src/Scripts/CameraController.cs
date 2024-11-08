@@ -39,6 +39,9 @@ namespace Borealis
             {
                 transform.position += new Vector3(0, -speed, 0);
             }
+
+            Debug.Log(Input.GetAxis("Vertical"));
+            Debug.Log(Input.GetAxis("Horizontal"));
         }
 
     }

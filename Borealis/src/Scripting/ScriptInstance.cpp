@@ -126,6 +126,82 @@ namespace Borealis
 		return false;
 	}
 
+	void ScriptInstance::ReplaceFieldValue(ScriptInstance* otherInstance, const std::string& name)
+	{
+		const auto& fields = mScriptClass->mFields;
+		auto it = fields.find(name);
+		if (it == fields.end())
+		{
+			BOREALIS_CORE_ERROR("Field {0} not found in class {1}", name, mScriptClass->GetKlassName());
+			return;
+		}
+
+		const auto& otherFields = mScriptClass->mFields;
+		auto it2 = otherFields.find(name);
+		if (it == otherFields.end())
+		{
+			BOREALIS_CORE_ERROR("Field {0} not found in class {1}", name, otherInstance->GetScriptClass()->GetKlassName());
+			return;
+		}
+
+		if (it->second.mMonoFieldType != otherFields.at(name).mMonoFieldType)
+		{
+			BOREALIS_CORE_ERROR("Field {0} in class {1} is not the same type as field {0} in class {1}", name, mScriptClass->GetKlassName(), name, otherInstance->GetScriptClass()->GetKlassName());
+			return;
+		}
+
+
+		const ScriptField& field = it->second;
+
+		auto fieldType = mono_field_get_type(field.mMonoFieldType);
+
+		if (mono_type_is_reference(fieldType)) 
+		{
+			MonoObject* value_from_instance2 = mono_field_get_value_object(mono_get_root_domain(),it2->second.mMonoFieldType , otherInstance->GetInstance());
+			// Set the value into the first instance (reference type)
+			mono_field_set_value(mInstance, it->second.mMonoFieldType, value_from_instance2);
+		}
+		else
+		{
+			if (field.mType == ScriptFieldType::Char)
+			{
+				char value = otherInstance->GetFieldValue<char>(name);
+				mono_field_set_value(mInstance, field.mMonoFieldType, &value);
+			}
+			else if (field.mType == ScriptFieldType::Int)
+			{
+				int value = otherInstance->GetFieldValue<int>(name);
+				mono_field_set_value(mInstance, field.mMonoFieldType, &value);
+			}
+			else if (field.mType == ScriptFieldType::Float)
+			{
+				float value = otherInstance->GetFieldValue<float>(name);
+				mono_field_set_value(mInstance, field.mMonoFieldType, &value);
+			}
+			else if (field.mType == ScriptFieldType::Double)
+			{
+				double value = otherInstance->GetFieldValue<double>(name);
+				mono_field_set_value(mInstance, field.mMonoFieldType, &value);
+			}
+			else if (field.mType == ScriptFieldType::Bool)
+			{
+				bool value = otherInstance->GetFieldValue<bool>(name);
+				mono_field_set_value(mInstance, field.mMonoFieldType, &value);
+			}
+			else if (field.mType == ScriptFieldType::String)
+			{
+				std::string value = otherInstance->GetFieldValue<std::string>(name);
+				MonoString* str = mono_string_new(mono_domain_get(), value.c_str());
+				mono_field_set_value(mInstance, field.mMonoFieldType, str);
+			}
+			else
+			{
+				BOREALIS_CORE_ERROR("Field {0} in class {1} is not a supported type", name, mScriptClass->GetKlassName());
+			}
+			
+		}
+	}
+
 	bool ScriptInstance::IsActive()
 	{
 		return ScriptingSystem::GetEnabled(shared_from_this());
@@ -189,6 +265,7 @@ namespace Borealis
 	DefineMonoBehaviourMethod(OnJointBreak);
 	DefineMonoBehaviourMethod(OnAnimatorMove);
 	DefineMonoBehaviourMethod(OnAnimatorIK);
+	
 }// End of namespace Borealis
 
 

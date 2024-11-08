@@ -79,11 +79,25 @@ namespace Borealis
 
 		static void ResetScroll() { ScrollY = 0; }
 
+		static float GetMouseDeltaX();
+
+		static float GetMouseDeltaY();
+
+		static float GetMouseDeltaXRaw();
+
+		static float GetMouseDeltaYRaw();
+
 	private:
 
 		static double ScrollY;
 		static uint16_t KeyCurrentState[349];
 		static uint16_t KeyPrevState[349];
+
+		static float mouseDeltaX;
+		static float mouseDeltaY;
+
+		static std::pair<float, float> mouseCurrPos;
+		static std::pair<float, float> mousePrevPos;
 	};
 
 } // End of namespace Borealis

@@ -119,6 +119,7 @@ namespace Borealis
 	*************************************************************************/
 	glm::vec3 Input_GetMouseScrollDelta();
 
+
 	/*!***********************************************************************
 		\brief
 			Checks if a key is pressed
@@ -179,6 +180,10 @@ namespace Borealis
 	*************************************************************************/
 	bool Input_GetMouseUp(int key);
 
+	float Input_GetAxis(MonoString* axis);
+
+	float Input_GetAxisRaw(MonoString* axis);
+
 	/*!***********************************************************************
 		\brief
 			Get translation of translation component
@@ -238,6 +243,21 @@ namespace Borealis
 			Pointer to the scale
 	*************************************************************************/
 	void TransformComponent_SetScale(UUID uuid, glm::vec3* scale);
+
+	void RigidbodyComponent_AddForce(UUID uuid, glm::vec3* force);
+
+	void RigidbodyComponent_AddImpulse(UUID uuid, glm::vec3* force);
+
+	void RigidbodyComponent_AddTorque(UUID uuid, glm::vec3* force);
+
+	void RigidbodyComponent_GetLinearVelocity(UUID uuid, glm::vec3* velocity);
+	void RigidbodyComponent_SetLinearVelocity(UUID uuid, glm::vec3* velocity);
+	void RigidbodyComponent_GetAngularVelocity(UUID uuid, glm::vec3* velocity);
+	void RigidbodyComponent_SetAngularVelocity(UUID uuid, glm::vec3* velocity);
+	void RigidbodyComponent_GetPosition(UUID uuid, glm::vec3* velocity);
+	void RigidbodyComponent_SetPosition(UUID uuid, glm::vec3* velocity);
+	void RigidbodyComponent_GetRotation(UUID uuid, glm::vec3* velocity);
+	void RigidbodyComponent_SetRotation(UUID uuid, glm::vec3* velocity);
 
 	/*!***********************************************************************
 		\brief

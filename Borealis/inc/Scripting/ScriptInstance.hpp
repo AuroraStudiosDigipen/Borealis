@@ -145,6 +145,8 @@ namespace Borealis
 			}
 		}
 
+		void ReplaceFieldValue(ScriptInstance* otherInstance, const std::string& name);
+
 		// MonoBehaviour Interface
 		void Awake();
 		void Start();

@@ -407,6 +407,64 @@ void PhysicsSystem::Init()
 		return { radius, halfHeight };
 	}
 
+	void PhysicsSystem::AddForce(unsigned int bodyID, glm::vec3 force)
+	{
+		sData.body_interface->AddForce((BodyID)bodyID, JPH::RVec3(force.x, force.y, force.z));
+	}
+
+	void PhysicsSystem::AddTorque(unsigned int bodyID, glm::vec3 torque)
+	{
+		sData.body_interface->AddTorque((BodyID)bodyID, JPH::RVec3(torque.x, torque.y, torque.z));
+	}
+
+	void PhysicsSystem::AddImpulse(unsigned int bodyID, glm::vec3 impulse)
+	{
+		sData.body_interface->AddImpulse((BodyID)bodyID, JPH::RVec3(impulse.x, impulse.y, impulse.z));
+	}
+
+	glm::vec3 PhysicsSystem::GetLinearVelocity(unsigned int bodyID)
+	{
+		auto data = sData.body_interface->GetLinearVelocity((BodyID)bodyID);
+		return { data.GetX(), data.GetY(), data.GetZ() };
+	}
+
+	glm::vec3 PhysicsSystem::GetAngularVelocity(unsigned int bodyID)
+	{
+		auto data = sData.body_interface->GetAngularVelocity((BodyID)bodyID);
+		return { data.GetX(), data.GetY(), data.GetZ() };
+	}
+
+	void PhysicsSystem::SetLinearVelocity(unsigned int bodyID, glm::vec3 velocity)
+	{
+		sData.body_interface->SetLinearVelocity((BodyID)bodyID, JPH::RVec3(velocity.x, velocity.y, velocity.z));
+	}
+
+	void PhysicsSystem::SetAngularVelocity(unsigned int bodyID, glm::vec3 velocity)
+	{
+		sData.body_interface->SetAngularVelocity((BodyID)bodyID, JPH::RVec3(velocity.x, velocity.y, velocity.z));
+	}
+
+	glm::vec3 PhysicsSystem::GetPosition(unsigned int bodyID)
+	{
+		auto Data = sData.body_interface->GetPosition((BodyID)bodyID);
+		return { Data.GetX(), Data.GetY(), Data.GetZ() };
+	}
+
+	void PhysicsSystem::SetPosition(unsigned int bodyID, glm::vec3 position)
+	{
+		sData.body_interface->SetPosition((BodyID)bodyID, JPH::RVec3(position.x, position.y, position.z), EActivation::Activate);
+	}
+
+	glm::vec3 PhysicsSystem::GetRotation(unsigned int bodyID)
+	{
+		auto Data = sData.body_interface->GetRotation((BodyID)bodyID);
+		return { Data.GetX(), Data.GetY(), Data.GetZ() };
+	}
+
+	void PhysicsSystem::SetRotation(unsigned int bodyID, glm::vec3 rotation)
+	{
+	}
+
 	void PhysicsSystem::addBody(TransformComponent& transform, RigidBodyComponent& rigidbody, MeshFilterComponent& mesh) {
 		ShapeRefC shape;
 		ShapeSettings::ShapeResult shape_result;

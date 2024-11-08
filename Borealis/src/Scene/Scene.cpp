@@ -660,7 +660,7 @@ namespace Borealis
 				auto scriptKlass = srcIT->second->GetScriptClass();
 				for (auto property : scriptKlass->mFields)
 				{
-					dstIT->second->SetFieldValue(property.first, srcIT->second->GetFieldValue<MonoObject*>(property.first));
+					dstIT->second->ReplaceFieldValue(srcIT->second.get(), property.first);
 				}
 			}
 

@@ -48,6 +48,8 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(Input_GetMouse);
 		BOREALIS_ADD_INTERNAL_CALL(Input_GetMouseDown);
 		BOREALIS_ADD_INTERNAL_CALL(Input_GetMouseUp);
+		BOREALIS_ADD_INTERNAL_CALL(Input_GetAxis);
+		BOREALIS_ADD_INTERNAL_CALL(Input_GetAxisRaw);
 
 		BOREALIS_ADD_INTERNAL_CALL(TransformComponent_GetTranslation);
 		BOREALIS_ADD_INTERNAL_CALL(TransformComponent_SetTranslation);
@@ -58,6 +60,10 @@ namespace Borealis
 
 		BOREALIS_ADD_INTERNAL_CALL(SpriteRendererComponent_GetColor);
 		BOREALIS_ADD_INTERNAL_CALL(SpriteRendererComponent_SetColor);
+
+		BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_AddForce);
+		BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_AddTorque);
+		BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_AddImpulse);
 
 		BOREALIS_ADD_INTERNAL_CALL(ScriptComponent_AddComponent);
 		BOREALIS_ADD_INTERNAL_CALL(ScriptComponent_RemoveComponent);
@@ -204,6 +210,7 @@ namespace Borealis
 	{
 		return { 0.f, InputSystem::GetScroll() , 0.f};
 	}
+
 	bool Input_GetKey(int key)
 	{
 		return InputSystem::IsKeyPressed(key);
@@ -227,6 +234,36 @@ namespace Borealis
 	bool Input_GetMouseUp(int key)
 	{
 		return InputSystem::IsMouseButtonReleased(key);
+	}
+	float Input_GetAxis(MonoString* axis)
+	{
+		char* message = mono_string_to_utf8(axis);
+		std::string axisString = message;
+		
+		if (axisString == "Horizontal")
+		{
+			return InputSystem::GetMouseDeltaX();
+		}
+		else if (axisString == "Vertical")
+		{
+			return InputSystem::GetMouseDeltaY();
+		}
+		return 0;
+	}
+	float Input_GetAxisRaw(MonoString* axis)
+	{
+		char* message = mono_string_to_utf8(axis);
+		std::string axisString = message;
+
+		if (axisString == "Horizontal")
+		{
+			return InputSystem::GetMouseDeltaXRaw();
+		}
+		else if (axisString == "Vertical")
+		{
+			return InputSystem::GetMouseDeltaYRaw();
+		}
+		return 0;
 	}
 	void TransformComponent_GetTranslation(UUID uuid, glm::vec3* outTranslation)
 	{
@@ -276,6 +313,105 @@ namespace Borealis
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		entity.GetComponent<TransformComponent>().Scale = *scale;
+	}
+	void RigidbodyComponent_AddForce(UUID uuid, glm::vec3* force)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		PhysicsSystem::AddForce(entity.GetComponent<RigidBodyComponent>().bodyID, *force);
+
+	}
+	void RigidbodyComponent_AddImpulse(UUID uuid, glm::vec3* force)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		auto& rb = entity.GetComponent<RigidBodyComponent>();
+		PhysicsSystem::AddForce(entity.GetComponent<RigidBodyComponent>().bodyID, *force);
+	}
+	void RigidbodyComponent_AddTorque(UUID uuid, glm::vec3* force)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		auto& rb = entity.GetComponent<RigidBodyComponent>();
+		PhysicsSystem::AddForce(entity.GetComponent<RigidBodyComponent>().bodyID, *force);
+	}
+	void RigidbodyComponent_GetLinearVelocity(UUID uuid, glm::vec3* velocity)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		auto& rb = entity.GetComponent<RigidBodyComponent>();
+		*velocity = PhysicsSystem::GetLinearVelocity(entity.GetComponent<RigidBodyComponent>().bodyID);
+	}
+	void RigidbodyComponent_SetLinearVelocity(UUID uuid, glm::vec3* velocity)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		auto& rb = entity.GetComponent<RigidBodyComponent>();
+		PhysicsSystem::SetLinearVelocity(entity.GetComponent<RigidBodyComponent>().bodyID, *velocity);
+	}
+	void RigidbodyComponent_GetAngularVelocity(UUID uuid, glm::vec3* velocity)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		auto& rb = entity.GetComponent<RigidBodyComponent>();
+		*velocity = PhysicsSystem::GetAngularVelocity(entity.GetComponent<RigidBodyComponent>().bodyID);
+	}
+	void RigidbodyComponent_SetAngularVelocity(UUID uuid, glm::vec3* velocity)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		auto& rb = entity.GetComponent<RigidBodyComponent>();
+		PhysicsSystem::SetAngularVelocity(entity.GetComponent<RigidBodyComponent>().bodyID, *velocity);
+	}
+	void RigidbodyComponent_GetPosition(UUID uuid, glm::vec3* position)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		auto& rb = entity.GetComponent<RigidBodyComponent>();
+		*position = PhysicsSystem::GetPosition(entity.GetComponent<RigidBodyComponent>().bodyID);
+	}
+	void RigidbodyComponent_SetPosition(UUID uuid, glm::vec3* position)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		auto& rb = entity.GetComponent<RigidBodyComponent>();
+		PhysicsSystem::SetPosition(entity.GetComponent<RigidBodyComponent>().bodyID, *position);
+	}
+	void RigidbodyComponent_GetRotation(UUID uuid, glm::vec3* rotation)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		auto& rb = entity.GetComponent<RigidBodyComponent>();
+		*rotation = PhysicsSystem::GetRotation(entity.GetComponent<RigidBodyComponent>().bodyID);
+	}
+	void RigidbodyComponent_SetRotation(UUID uuid, glm::vec3* rotation)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		auto& rb = entity.GetComponent<RigidBodyComponent>();
+		PhysicsSystem::SetRotation(entity.GetComponent<RigidBodyComponent>().bodyID, *rotation);
 	}
 	void SpriteRendererComponent_GetColor(UUID uuid, glm::vec4* outColor)
 	{

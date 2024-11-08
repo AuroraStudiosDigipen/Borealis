@@ -185,6 +185,7 @@
     <ClInclude Include="inc\Core\LoggerSystem.hpp" />
     <ClInclude Include="inc\Core\Project.hpp" />
     <ClInclude Include="inc\Core\ProjectInfo.hpp" />
+    <ClInclude Include="inc\Core\TagList.hpp" />
     <ClInclude Include="inc\Core\UUID.hpp" />
     <ClInclude Include="inc\Core\Utils.hpp" />
     <ClInclude Include="inc\Core\WindowManager.hpp" />
@@ -790,6 +791,7 @@
     <ClCompile Include="src\Core\LayerSystem.cpp" />
     <ClCompile Include="src\Core\LoggerSystem.cpp" />
     <ClCompile Include="src\Core\Project.cpp" />
+    <ClCompile Include="src\Core\TagList.cpp" />
     <ClCompile Include="src\Core\UUID.cpp" />
     <ClCompile Include="src\Core\Utils.cpp" />
     <ClCompile Include="src\Core\WindowManager.cpp" />
@@ -836,10 +838,7 @@
     <ClCompile Include="src\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="src\Physics\PhysicsSystem.cpp" />
     <ClCompile Include="src\Scene\ComponentRegistry.cpp" />
-    <ClCompile Include="src\Scene\Components\Components.cpp">
-      <SubType>
-      </SubType>
-    </ClCompile>
+    <ClCompile Include="src\Scene\Components\Components.cpp" />
     <ClCompile Include="src\Scene\Entity.cpp" />
     <ClCompile Include="src\Scene\OrthographicCameraController.cpp" />
     <ClCompile Include="src\Scene\Scene.cpp" />

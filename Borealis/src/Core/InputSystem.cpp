@@ -24,6 +24,10 @@ namespace Borealis
 	uint16_t InputSystem::KeyCurrentState[349];
 	uint16_t InputSystem::KeyPrevState[349];
 	double InputSystem::ScrollY = 0;
+	float InputSystem::mouseDeltaY = 0;
+	float InputSystem::mouseDeltaX = 0;
+	std::pair<float, float> InputSystem::mouseCurrPos = { 0,0 };
+	std::pair < float, float> InputSystem::mousePrevPos = { 0,0 };
 
 	static std::vector<uint16_t> KeysToPoll
 	{
@@ -173,6 +177,7 @@ namespace Borealis
 	{
 		std::memset(KeyCurrentState, 0, sizeof(KeyCurrentState));
 		std::memset(KeyPrevState, 0, sizeof(KeyPrevState));
+		mouseCurrPos = GetMousePos();
 	}
 
 	bool InputSystem::IsKeyPressed(int key)
@@ -249,6 +254,55 @@ namespace Borealis
 			{
 				KeyCurrentState[mouse] = false;
 			}
+		}
+
+		mousePrevPos = mouseCurrPos;
+		mouseCurrPos = GetMousePos();
+	}
+	float InputSystem::GetMouseDeltaX()
+	{
+		mouseDeltaX = mouseCurrPos.first - mousePrevPos.first;
+		int width = 0, height = 0;
+		glfwGetWindowSize(static_cast<GLFWwindow*>(ApplicationManager::Get().GetWindow()->GetNativeWindow()), &width, &height);
+		return mouseDeltaX/width;
+	}
+	float InputSystem::GetMouseDeltaY()
+	{
+		mouseDeltaY = mouseCurrPos.second - mousePrevPos.second;
+		int width = 0, height = 0;
+		glfwGetWindowSize(static_cast<GLFWwindow*>(ApplicationManager::Get().GetWindow()->GetNativeWindow()), &width, &height);
+		return mouseDeltaY/height;
+	}
+	float InputSystem::GetMouseDeltaXRaw()
+	{
+		auto result = mouseCurrPos.first - mousePrevPos.first;
+		if (result >= 5)
+		{
+			return 1;
+		}
+		else if (result <= -5)
+		{
+			return -1;
+		}
+		else
+		{
+			return 0.0f;
+		}
+	}
+	float InputSystem::GetMouseDeltaYRaw()
+	{
+		auto result = mouseCurrPos.second - mousePrevPos.second;
+		if (result >= 5)
+		{
+			return 1;
+		}
+		else if (result <= -5)
+		{
+			return -1;
+		}
+		else
+		{
+			return 0.0f;
 		}
 	}
 } // End of namespace Borealis

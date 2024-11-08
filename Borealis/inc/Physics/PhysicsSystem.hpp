@@ -110,6 +110,21 @@ namespace Borealis
 
 		static std::pair<float, float> calculateCapsuleDimensions(glm::vec3 minExtent, glm::vec3 maxExtent);
 
+		static void AddForce(unsigned int bodyID, glm::vec3 force);
+
+		static void AddTorque(unsigned int bodyID, glm::vec3 torque);
+
+		static void AddImpulse(unsigned int bodyID, glm::vec3 impulse);
+
+		static glm::vec3 GetLinearVelocity(unsigned int bodyID);
+		static glm::vec3 GetAngularVelocity(unsigned int bodyID);
+		static void SetLinearVelocity(unsigned int bodyID, glm::vec3 velocity);
+		static void SetAngularVelocity(unsigned int bodyID, glm::vec3 velocity);
+		static glm::vec3 GetPosition(unsigned int bodyID);
+		static void SetPosition(unsigned int bodyID, glm::vec3 position);
+		static glm::vec3 GetRotation(unsigned int bodyID);
+		static void SetRotation(unsigned int bodyID, glm::vec3 rotation);
+
 	};
 
 }

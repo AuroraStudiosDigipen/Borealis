@@ -310,7 +310,7 @@ namespace Borealis
 
 				if (CullBoundingSphere(frustum, modelBoundingSphere))
 				{
-					BOREALIS_CORE_INFO("Culling entity {}", (int)entity);
+					//BOREALIS_CORE_INFO("Culling entity {}", (int)entity);
 					continue;
 				}
 

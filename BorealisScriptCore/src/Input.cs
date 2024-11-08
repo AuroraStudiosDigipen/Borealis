@@ -36,6 +36,15 @@
             }
         }
 
+        public static float GetAxis(string axisName)
+        {
+            return InternalCalls.Input_GetAxis(axisName);
+        }
+        public static float GetAxisRaw(string axisName)
+        {
+            return InternalCalls.Input_GetAxisRaw(axisName);
+        }
+
         public static bool GetKey(KeyCode key)
         {
             return InternalCalls.Input_GetKey((int)key);

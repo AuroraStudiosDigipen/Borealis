@@ -44,6 +44,10 @@ namespace Borealis
         internal extern static bool Input_GetMouseDown(int mouse);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static bool Input_GetMouseUp(int mouse);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static float Input_GetAxis(string axis);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static float Input_GetAxisRaw(string axis);
 
         #endregion
 
@@ -94,10 +98,28 @@ namespace Borealis
 
         #region RigidBodyComponent
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void RigidbodyComponent_GetVelocity(ulong id, out Vector3 velocity);
+        internal extern static void RigidbodyComponent_GetLinearVelocity(ulong id, out Vector3 velocity);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void RigidbodyComponent_SetVelocity(ulong id, ref Vector3 velocity);
+        internal extern static void RigidbodyComponent_SetLinearVelocity(ulong id, ref Vector3 velocity);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void RigidbodyComponent_GetAngularVelocity(ulong id, out Vector3 velocity);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void RigidbodyComponent_SetAngularVelocity(ulong id, ref Vector3 velocity);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void RigidbodyComponent_GetPosition(ulong id, out Vector3 velocity);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void RigidbodyComponent_SetPosition(ulong id, ref Vector3 velocity);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void RigidbodyComponent_GetRotation(ulong id, out Vector3 velocity);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void RigidbodyComponent_SetRotation(ulong id, ref Vector3 velocity);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void RigidbodyComponent_GetMass(ulong id, out float mass);
@@ -116,7 +138,16 @@ namespace Borealis
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void RigidbodyComponent_SetIsKinematic(ulong id, ref bool isKinematic);
-        
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void RigidbodyComponent_AddForce(ulong id, ref Vector3 force);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void RigidbodyComponent_AddTorque(ulong id, ref Vector3 force);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void RigidbodyComponent_AddImpulse(ulong id, ref Vector3 force);
+
 
         #endregion
     }

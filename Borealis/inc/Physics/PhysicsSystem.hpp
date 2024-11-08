@@ -21,6 +21,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace Borealis
 {
+	using CollisionPair = std::pair<UUID, UUID>;
+
 	class Entity;
 	class PhysicsSystem
 	{
@@ -112,6 +114,10 @@ namespace Borealis
 		static std::pair<float, float> calculateCapsuleDimensions(glm::vec3 minExtent, glm::vec3 maxExtent);
 
 		static UUID BodyIDToUUID(unsigned int bodyID);
+
+		static std::queue<CollisionPair>& GetCollisionEnterQueue();
+		static std::queue<CollisionPair>& GetCollisionPersistQueue();
+		static std::queue<CollisionPair>& GetCollisionExitQueue();
 	};
 
 }

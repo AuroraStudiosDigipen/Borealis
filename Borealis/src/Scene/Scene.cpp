@@ -242,6 +242,26 @@ namespace Borealis
 					auto [transform, rigidbody] = physicsGroup.get<TransformComponent, RigidBodyComponent>(entity);
 					PhysicsSystem::PullTransform(rigidbody, transform, brEntity);
 				}
+
+	/*			for (auto& collisionPair : PhysicsSystem::GetCollisionPairEnter())
+				{
+					Entity entity1 = GetEntityByUUID(collisionPair.first);
+					Entity entity2 = GetEntityByUUID(collisionPair.second);
+					auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
+					auto& scriptComponent2 = entity2.GetComponent<ScriptComponent>();
+					for (auto& [name, script] : scriptComponent1.mScripts)
+					{
+
+							script->OnCollisionEnter(entity2);
+						
+					}
+					for (auto& [name, script] : scriptComponent2.mScripts)
+					{
+							script->OnCollisionEnter(entity1);
+					}
+				}*/
+
+
 				for (auto entity : view)
 				{
 					Entity brEntity{ entity, this };

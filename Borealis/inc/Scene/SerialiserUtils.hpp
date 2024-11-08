@@ -411,6 +411,12 @@ namespace Borealis
 				return true;
 			}
 
+			if (propType == rttr::type::get<UUID>())
+			{
+				prop.set_value(instance, UUID(propData.as<uint64_t>()));
+				return true;
+			}
+
 			if (propType == rttr::type::get<std::unordered_set<std::string>>())
 			{
 				std::unordered_set<std::string> strings;

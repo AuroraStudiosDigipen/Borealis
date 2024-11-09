@@ -206,13 +206,54 @@ namespace Borealis
 
 	Render3D::Render3D(std::string name) : EntityPass(name)
 	{
-		shader = shadow_shader;
+		shader = nullptr;
+	}
+
+	void SetShadowAndLight(Ref<RenderTargetSource> renderTarget, Ref<RenderTargetSource> shadowMap, Ref<Shader> shader,  entt::registry* registryPtr)
+	{
+		if (shadowMap)
+		{
+			shadowMap->BindDepthBuffer(0);
+			shader->Set("u_ShadowMap", 0);
+		}
+
+		shader->Set("shadowPass", false);
+		renderTarget->Bind();
+		//add light to light engine and shadow pass
+		{
+			entt::basic_group group = registryPtr->group<>(entt::get<TransformComponent, LightComponent>);
+			for (auto& entity : group)
+			{
+				auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
+				lightComponent.offset = transform.Translate;	
+				lightComponent.spotLightDirection = transform.Rotation;
+				Renderer3D::AddLight(lightComponent);
+
+
+				if (lightComponent.type == LightComponent::Type::Spot)
+				{
+					glm::vec3 upVector = { 0.f,1.f,0.f };
+					glm::mat4 lightView = glm::lookAt(lightComponent.offset, lightComponent.offset +  transform.Rotation, upVector);
+					float fieldOfView = glm::radians(lightComponent.InnerOuterSpot.x * 2.f); // Spotlight cone angle
+					glm::mat4 lightProj = glm::perspective(fieldOfView, 1.f, 20.f, 1000.f);
+
+					shader->Set("u_LightViewProjection", lightProj * lightView);
+				}
+				else if (lightComponent.type == LightComponent::Type::Directional)
+				{
+					glm::vec3 upVector = { 0.f,1.f,0.f };
+					glm::mat4 lightView = glm::lookAt(lightComponent.offset, lightComponent.direction, upVector);
+					float fieldOfView = glm::radians(lightComponent.InnerOuterSpot.x * 2.f); // Spotlight cone angle
+					glm::mat4 lightProj = glm::ortho(-100.f, 100.f, -100.f, 100.f, 0.f, 400.f);
+
+					shader->Set("u_LightViewProjection", lightProj * lightView);
+				}
+			}
+		}
 	}
 	
 	void Render3D::Execute(float dt)
 	{
-		if (shader) shader->Bind();
-		
 		glm::mat4 viewProjMatrix{};
 		bool editor{};
 
@@ -225,7 +266,6 @@ namespace Borealis
 			{
 				viewProjMatrix = std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj();
 				editor = std::dynamic_pointer_cast<CameraSource>(sink->source)->editor;
-				Renderer3D::Begin(viewProjMatrix, shader);
 			}
 
 			if (sink->source->sourceType == RenderSourceType::RenderTargetColor)
@@ -243,51 +283,6 @@ namespace Borealis
 			}
 		}
 
-		if (shadowMap)
-		{
-			shadowMap->BindDepthBuffer(0);
-			shader->Set("u_ShadowMap", 0);
-		}
-
-		shader->Set("shadowPass", false);
-		renderTarget->Bind();
-		//add light to light engine and shadow pass
-		{
-			entt::basic_group group = registryPtr->group<>(entt::get<TransformComponent, LightComponent>);
-			for (auto& entity : group)
-			{
-				Entity brEntity = { entity, SceneManager::GetActiveScene().get()};
-				if (!brEntity.IsActive())
-				{
-					continue;
-				}
-
-
-				auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
-				lightComponent.offset = TransformComponent::GetGlobalTranslate(brEntity);
-				Renderer3D::AddLight(lightComponent);
-
-
-				if (lightComponent.type == LightComponent::Type::Spot)
-				{
-					glm::vec3 upVector = { 0.f,1.f,0.f };
-					glm::mat4 lightView = glm::lookAt(lightComponent.offset, lightComponent.offset + lightComponent.spotLightDirection, upVector);
-					float fieldOfView = glm::radians(lightComponent.InnerOuterSpot.x * 2.f); // Spotlight cone angle
-					glm::mat4 lightProj = glm::perspective(fieldOfView, 1.f, 20.f, 1000.f);
-
-					shader->Set("u_LightViewProjection", lightProj * lightView);
-				}
-				else if (lightComponent.type == LightComponent::Type::Directional)
-				{
-					glm::vec3 upVector = { 0.f,1.f,0.f };
-					glm::mat4 lightView = glm::lookAt(lightComponent.offset, lightComponent.direction, upVector);
-					float fieldOfView = glm::radians(lightComponent.InnerOuterSpot.x * 2.f); // Spotlight cone angle
-					glm::mat4 lightProj = glm::ortho(-100.f, 100.f, -100.f, 100.f, 0.f, 400.f);
-
-					shader->Set("u_LightViewProjection", lightProj * lightView);
-				}
-			}
-		}
 		//mesh pass
 		{
 			auto group = registryPtr->group<>(entt::get<TransformComponent, MeshFilterComponent, MeshRendererComponent>);
@@ -300,13 +295,14 @@ namespace Borealis
 				}
 
 				auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
-				
-				if (!meshFilter.Model) continue;
+
+
+				if (!meshFilter.Model || !meshRenderer.Material) continue;
 
 				Frustum frustum = ComputeFrustum(viewProjMatrix);
 				BoundingSphere modelBoundingSphere = meshFilter.Model->mBoundingSphere;
-
 				modelBoundingSphere.Transform(TransformComponent::GetGlobalTransform(brEntity));
+
 
 				if (CullBoundingSphere(frustum, modelBoundingSphere))
 				{
@@ -314,8 +310,26 @@ namespace Borealis
 					continue;
 				}
 
-				Renderer3D::SetLights(shader);
-				Renderer3D::DrawMesh(TransformComponent::GetGlobalTransform(brEntity), meshFilter, meshRenderer, shader, (int)entity);
+				Ref<Shader> materialShader = meshRenderer.Material->GetShader();
+
+				Renderer3D::Begin(viewProjMatrix, materialShader);
+
+
+				SetShadowAndLight(renderTarget, shadowMap, materialShader, registryPtr);
+
+				Renderer3D::SetLights(materialShader);
+				Renderer3D::DrawMesh(transform, meshFilter, meshRenderer, materialShader, (int)entity);
+
+				if(Renderer3D::GetGlobalWireFrameMode())
+				{
+					AABB modelAABB = meshFilter.Model->mAABB;
+					modelAABB.Transform(TransformComponent::GetGlobalTransform(brEntity));
+
+					transform.minExtent = modelAABB.minExtent;
+					transform.maxExtent = modelAABB.maxExtent;
+					Renderer3D::DrawCube(transform.Translate, transform.minExtent, transform.maxExtent, { 0.f,1.f,0.f,1.f }, true);
+				}
+
 			}
 		}
 		//skinned mesh pass
@@ -331,12 +345,18 @@ namespace Borealis
 
 				auto [transform, skinnedMesh] = group.get<TransformComponent, SkinnedMeshRendererComponent>(entity);
 
-				if (!skinnedMesh.SkinnnedModel) continue;
+				if (!skinnedMesh.SkinnnedModel || !skinnedMesh.Material) continue;
 
-				shader->Bind();
-				shader->Set("u_HasAnimation", false);
+				Ref<Shader> materialShader = skinnedMesh.Material->GetShader();
 
-				if(registryPtr->storage<AnimatorComponent>().contains(entity))
+				Renderer3D::Begin(viewProjMatrix, materialShader);
+
+				materialShader->Bind();
+				materialShader->Set("u_HasAnimation", false);
+
+				SetShadowAndLight(renderTarget, shadowMap, materialShader, registryPtr);
+
+				if (registryPtr->storage<AnimatorComponent>().contains(entity))
 				{
 					AnimatorComponent& animatorComponent = registryPtr->get<AnimatorComponent>(entity);
 
@@ -352,12 +372,12 @@ namespace Borealis
 
 						if (skinnedMesh.SkinnnedModel->mAnimation)
 						{
-							shader->Set("u_HasAnimation", true);
+							materialShader->Set("u_HasAnimation", true);
 							auto transforms = animatorComponent.animator.GetFinalBoneMatrices();
 							for (int i = 0; i < transforms.size(); ++i)
 							{
 								std::string str = "u_FinalBonesMatrices[" + std::to_string(i) + "]";
-								shader->Set(str.c_str(), transforms[i]);
+								materialShader->Set(str.c_str(), transforms[i]);
 							}
 						}
 					}
@@ -374,17 +394,57 @@ namespace Borealis
 				//}
 
 				//Renderer3D::SetLights(shader);
-				shader->Bind();
-				Renderer3D::SetLights(shader);
-				Renderer3D::DrawSkinnedMesh(TransformComponent::GetGlobalTransform(brEntity), skinnedMesh, shader, (int)entity);
-				shader->Unbind();
+				materialShader->Bind();
+				Renderer3D::SetLights(materialShader);
+				Renderer3D::DrawSkinnedMesh(transform, skinnedMesh, materialShader, (int)entity);
+				materialShader->Unbind();
 			}
 		}
+
+
+
+		//if (shadowMap)
+		//{
+		//	shadowMap->BindDepthBuffer(0);
+		//	shader->Set("u_ShadowMap", 0);
+		//}
+
+		//shader->Set("shadowPass", false);
+		//renderTarget->Bind();
+		////add light to light engine and shadow pass
+		//{
+		//	entt::basic_group group = registryPtr->group<>(entt::get<TransformComponent, LightComponent>);
+		//	for (auto& entity : group)
+		//	{
+		//		auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
+		//		lightComponent.offset = transform.Translate;
+		//		Renderer3D::AddLight(lightComponent);
+
+
+		//		if (lightComponent.type == LightComponent::Type::Spot)
+		//		{
+		//			glm::vec3 upVector = { 0.f,1.f,0.f };
+		//			glm::mat4 lightView = glm::lookAt(lightComponent.offset, lightComponent.offset + lightComponent.spotLightDirection, upVector);
+		//			float fieldOfView = glm::radians(lightComponent.InnerOuterSpot.x * 2.f); // Spotlight cone angle
+		//			glm::mat4 lightProj = glm::perspective(fieldOfView, 1.f, 20.f, 1000.f);
+
+		//			shader->Set("u_LightViewProjection", lightProj * lightView);
+		//		}
+		//		else if (lightComponent.type == LightComponent::Type::Directional)
+		//		{
+		//			glm::vec3 upVector = { 0.f,1.f,0.f };
+		//			glm::mat4 lightView = glm::lookAt(lightComponent.offset, lightComponent.direction, upVector);
+		//			float fieldOfView = glm::radians(lightComponent.InnerOuterSpot.x * 2.f); // Spotlight cone angle
+		//			glm::mat4 lightProj = glm::ortho(-100.f, 100.f, -100.f, 100.f, 0.f, 400.f);
+
+		//			shader->Set("u_LightViewProjection", lightProj * lightView);
+		//		}
+		//	}
+		//}
+		
 		Renderer3D::End();
 
 		renderTarget->Unbind();
-
-		if (shader) shader->Unbind();
 	}
 
 	void Render2D::Execute(float dt)
@@ -450,6 +510,27 @@ namespace Borealis
 				Renderer2D::DrawString(text.text, text.font, TransformComponent::GetGlobalTransform(brEntity), (int)entity);
 			}
 		}
+		{
+			auto group = registryPtr->group<>(entt::get<TransformComponent, RigidBodyComponent>);			
+			for (auto& entity : group)
+			{
+				Entity entityBR = { entity, SceneManager::GetActiveScene().get() };
+				if (!entityBR.IsActive())
+				{
+					continue;
+				}
+				auto [transform, rigidbody] = group.get<TransformComponent, RigidBodyComponent>(entity);
+				auto entityTransform = TransformComponent::GetGlobalTransform(entityBR);
+				auto entityCenter = TransformComponent::GetGlobalTranslate(entityBR);
+
+				auto actualCenter = entityTransform * glm::vec4(rigidbody.modelCenter, 1.f);
+				auto actualVec3Center = glm::vec3(actualCenter.x, actualCenter.y, actualCenter.z);
+
+				Renderer2D::DrawBox(actualVec3Center - rigidbody.size, actualVec3Center + rigidbody.size, { 1.f, 0.f, 0.f, 1.f });
+
+			}
+		}
+
 		Renderer2D::End();
 
 		for (auto sink : sinkList)
@@ -650,9 +731,9 @@ namespace Borealis
 				if (lightComponent.type == LightComponent::Type::Spot)
 				{
 					glm::vec3 upVector = { 0.f,1.f,0.f };
-					glm::mat4 lightView = glm::lookAt(lightComponent.offset, lightComponent.offset + lightComponent.spotLightDirection, upVector);
+					glm::mat4 lightView = glm::lookAt(lightComponent.offset, lightComponent.offset + transform.Rotation, upVector);
 					float fieldOfView = glm::radians(lightComponent.InnerOuterSpot.x*2.f); // Spotlight cone angle
-					glm::mat4 lightProj = glm::perspective(fieldOfView, 1.f, 0.3f, 1000.f);
+					glm::mat4 lightProj = glm::perspective(fieldOfView, 1.f, 20.f, 1000.f);
 
 					shader->Set("u_LightViewProjection", lightProj * lightView);
 				}

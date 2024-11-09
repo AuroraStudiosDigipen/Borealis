@@ -16,6 +16,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #define MESH_HPP
 #include <vector>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <Graphics/Shader.hpp>
 
@@ -39,6 +40,14 @@ namespace Borealis
 	{
 		glm::vec3 Center;
 		float Radius;
+
+		void Transform(glm::mat4 const& transform);
+	};
+
+	struct AABB
+	{
+		glm::vec3 minExtent;
+		glm::vec3 maxExtent;
 
 		void Transform(glm::mat4 const& transform);
 	};
@@ -98,11 +107,15 @@ namespace Borealis
 
 		void GenerateRitterBoundingSphere();
 
+		void GenerateAABB();
+
 		BoundingSphere GetBoundingSphere();
+
+		AABB GetAABB();
 
 		static void DrawQuad();
 
-
+		static void DrawCube(glm::vec3 translation, glm::vec3 minExtent, glm::vec3 maxExtent, glm::vec4 color, bool wireframe, Ref<Shader> shader);
 
 		/*!***********************************************************************
 			\brief
@@ -132,10 +145,12 @@ namespace Borealis
 		unsigned int VAO, VBO, EBO;
 
 		BoundingSphere mBoundingSphere;
+		AABB mAABB;
 
 		void ComputeTangents();
 
-		static unsigned int QuadVAO, QuadVBO;
+		inline static unsigned int QuadVAO = 0, QuadVBO = 0;
+		inline static unsigned int CubeVAO = 0, CubeVBO = 0, CubeEBO = 0;
 
 	}; // class Mesh
 } // namespace Borealis

@@ -147,7 +147,7 @@ namespace Borealis
 		entt::registry* registryPtr;
 	};
 
-	class Render3D : public EntityPass
+	class Render3D : public EntityPass //should use shader from material
 	{
 	public:
 		Render3D(std::string name);
@@ -161,7 +161,7 @@ namespace Borealis
 		void Execute(float dt) override;
 	};
 
-	class GeometryPass : public EntityPass
+	class GeometryPass : public EntityPass //should use shader from material
 	{
 	public:
 		GeometryPass(std::string name);

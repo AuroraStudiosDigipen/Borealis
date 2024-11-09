@@ -60,6 +60,7 @@ namespace Borealis
 
 		static void DrawString(const std::string& string, Ref<Font> font, const glm::mat4& transform, int entityID, float size = 1.f, glm::vec4 colour = {1.f,1.f,1.f,1.f});
 		static void DrawString(TextComponent& text, TransformComponent& trans, int entityID);
+		static void DrawBox(const glm::vec3& pMin, const glm::vec3& pMax, const glm::vec4& colour);
 
 		struct Statistics
 		{

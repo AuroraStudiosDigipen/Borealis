@@ -217,7 +217,11 @@ namespace Borealis
             (metadata("Hide", true))
             .property("ChildrenID", &TransformComponent::ChildrenID)
             (metadata("Hide", true))
-            .method("GetTransform", &TransformComponent::GetTransform);
+            .method("GetTransform", &TransformComponent::GetTransform)
+            .property("Min Extent", &TransformComponent::minExtent)
+            .property("Max Extent", &TransformComponent::maxExtent)
+            .property("Offset", &TransformComponent::offset);
+            
     }
 
     enum dataTypes

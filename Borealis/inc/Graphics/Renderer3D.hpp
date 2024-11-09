@@ -78,7 +78,13 @@ namespace Borealis
 		static void DrawSkinnedMesh(const glm::mat4& transform, const SkinnedMeshRendererComponent & skinnedMeshRenderer, Ref<Shader> shader, int entityID = -1);
 
 		static void DrawQuad();
+
+		static void DrawCube(glm::vec3 translation, glm::vec3 minExtent, glm::vec3 maxExtent, glm::vec4 color, bool wireframe = false);
+	
+		static void SetGlobalWireFrameMode(bool wireFrameMode);
+		static bool GetGlobalWireFrameMode();
 	private:
+		inline static bool mGlobalWireFrame = false;
 		static LightEngine mLightEngine;
 	};
 }

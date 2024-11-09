@@ -53,9 +53,11 @@ namespace Borealis
 			mesh.SetupMesh();
 
 			mesh.GenerateRitterBoundingSphere();
+			mesh.GenerateAABB();
 		}
 
 		GenerateRitterBoundingSphere();
+		GenerateAABB();
 
 		inFile.close();
 	}
@@ -120,6 +122,32 @@ namespace Borealis
 		}
 
 		mBoundingSphere = modelSphere;
+	}
+
+	void Model::GenerateAABB()
+	{
+		if (mMeshes.empty()) return;
+
+		AABB aabb = mMeshes[0].GetAABB();
+
+		// Expand the AABB to include each mesh's AABB
+		for (size_t i = 1; i < mMeshes.size(); ++i)
+		{
+			const AABB& meshAABB = mMeshes[i].GetAABB();
+
+			// Update min extent
+			aabb.minExtent.x = std::min(aabb.minExtent.x, meshAABB.minExtent.x);
+			aabb.minExtent.y = std::min(aabb.minExtent.y, meshAABB.minExtent.y);
+			aabb.minExtent.z = std::min(aabb.minExtent.z, meshAABB.minExtent.z);
+
+			// Update max extent
+			aabb.maxExtent.x = std::max(aabb.maxExtent.x, meshAABB.maxExtent.x);
+			aabb.maxExtent.y = std::max(aabb.maxExtent.y, meshAABB.maxExtent.y);
+			aabb.maxExtent.z = std::max(aabb.maxExtent.z, meshAABB.maxExtent.z);
+		}
+
+		// Now `aabb` represents the AABB that encloses all meshes in the model
+		mAABB = aabb;
 	}
 
 	

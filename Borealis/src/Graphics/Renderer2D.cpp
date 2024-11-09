@@ -432,6 +432,31 @@ namespace Borealis
 		sData->LineVertexCount += 2;
 	}
 
+	void Renderer2D::DrawBox(const glm::vec3& pMin, const glm::vec3& pMax, const glm::vec4& colour)
+	{
+		glm::vec3 p1{ pMin.x, pMin.y, pMin.z };
+		glm::vec3 p2{ pMax.x, pMin.y, pMin.z };
+		glm::vec3 p3{ pMax.x, pMax.y, pMin.z };
+		glm::vec3 p4{ pMin.x, pMax.y, pMin.z };
+		glm::vec3 p5{ pMin.x, pMin.y, pMax.z };
+		glm::vec3 p6{ pMax.x, pMin.y, pMax.z };
+		glm::vec3 p7{ pMax.x, pMax.y, pMax.z };
+		glm::vec3 p8{ pMin.x, pMax.y, pMax.z };
+
+		DrawLine(p1, p2, colour);
+		DrawLine(p2, p3, colour);
+		DrawLine(p3, p4, colour);
+		DrawLine(p4, p1, colour);
+		DrawLine(p5, p6, colour);
+		DrawLine(p6, p7, colour);
+		DrawLine(p7, p8, colour);
+		DrawLine(p8, p5, colour);
+		DrawLine(p1, p5, colour);
+		DrawLine(p2, p6, colour);
+		DrawLine(p3, p7, colour);
+		DrawLine(p4, p8, colour);
+	}
+
 	void Renderer2D::DrawRotatedQuad(const glm::vec2& position, const float& rotation, const glm::vec2& size, const glm::vec4& colour)
 	{
 		DrawRotatedQuad({ position.x,position.y,0 }, rotation, size, colour);

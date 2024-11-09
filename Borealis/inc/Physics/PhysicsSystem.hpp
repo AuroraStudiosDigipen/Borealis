@@ -21,6 +21,9 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace Borealis
 {
+	using CollisionPair = std::pair<UUID, UUID>;
+
+	class Entity;
 	class PhysicsSystem
 	{
 	public:
@@ -45,14 +48,14 @@ namespace Borealis
    * \param bodyID The ID of the body.
    * \param transform The transform component of the body.
    */
-		static void PushTransform(unsigned int bodyID, TransformComponent& transform);
+		static void PushTransform(RigidBodyComponent& rigidbody, TransformComponent& transform, Entity entity);
 
 		/**
    * \brief Pulls the transform of the specified body from the physics system.
    * \param bodyID The ID of the body.
    * \param transform The transform component of the body.
    */
-		static void PullTransform(unsigned int bodyID, TransformComponent& transform);
+		static void PullTransform(RigidBodyComponent& rigidbody, TransformComponent& transform, Entity& entity);
 
 		/**
    * \brief Adds a square body to the physics system.
@@ -86,7 +89,7 @@ namespace Borealis
         * \param position The position of the body.
         * \param rigidbody The rigid body component of the body.
         */
-        static void addBody(TransformComponent& transform, RigidBodyComponent& rigidbody, MeshFilterComponent& mesh);
+        static void addBody(TransformComponent& transform, RigidBodyComponent& rigidbody, MeshFilterComponent& mesh, UUID entityID);
 
 		/**
    * \brief Updates the sphere values of the specified rigid body.
@@ -100,9 +103,11 @@ namespace Borealis
 	*/
 		static void UpdateBoxValues(RigidBodyComponent& rigidbody);
 		
+		static void EndScene();
+
 		static void FreeRigidBody(RigidBodyComponent& rigidbody);
 
-		static std::pair<glm::vec3,glm::vec3> calculateBoundingVolume(const Model& model, const TransformComponent& transform);
+		static void calculateBoundingVolume(const Model& model, TransformComponent& transform, RigidBodyComponent& rigidbody);
 
 		static glm::vec3 calculateBoxSize(glm::vec3 minExtent, glm::vec3 maxExtent);
 
@@ -125,6 +130,11 @@ namespace Borealis
 		static glm::vec3 GetRotation(unsigned int bodyID);
 		static void SetRotation(unsigned int bodyID, glm::vec3 rotation);
 
+		static UUID BodyIDToUUID(unsigned int bodyID);
+
+		static std::queue<CollisionPair>& GetCollisionEnterQueue();
+		static std::queue<CollisionPair>& GetCollisionPersistQueue();
+		static std::queue<CollisionPair>& GetCollisionExitQueue();
 	};
 
 }

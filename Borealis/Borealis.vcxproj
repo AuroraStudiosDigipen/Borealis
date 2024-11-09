@@ -210,6 +210,7 @@
     <ClInclude Include="inc\Graphics\Light.hpp" />
     <ClInclude Include="inc\Graphics\LightEngine.hpp" />
     <ClInclude Include="inc\Graphics\Material.hpp" />
+    <ClInclude Include="inc\Graphics\MaterialInstance.hpp" />
     <ClInclude Include="inc\Graphics\Mesh.hpp" />
     <ClInclude Include="inc\Graphics\Model.hpp" />
     <ClInclude Include="inc\Graphics\OpenGL\BufferOpenGLImpl.hpp" />

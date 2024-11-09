@@ -70,6 +70,8 @@ namespace Borealis
 		*************************************************************************/
 		static Ref<Shader> Create(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc);
 
+		static Ref<Shader> GetDefault3DMaterialShader();
+
 		/*!***********************************************************************
 			\brief
 				Set the Uniforms of the Shader: Different overloads for different

@@ -23,6 +23,9 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Physics/PhysicsSystem.hpp>
 #include <Core/Utils.hpp>
 #include <Jolt/Jolt.h>
+#include <Scene/Entity.hpp>
+#include <Scene/SceneManager.hpp>
+
 
 // Jolt includes
 #include <Jolt/RegisterTypes.h>
@@ -36,6 +39,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Body/BodyActivationListener.h>
+#include <Jolt/Physics/Collision/Shape/RotatedTranslatedShape.h>
 
 
 JPH_SUPPRESS_WARNINGS
@@ -172,34 +176,6 @@ public:
 	}
 };
 
-// An example contact listener
-class MyContactListener : public ContactListener
-{
-public:
-	// See: ContactListener
-	virtual ValidateResult	OnContactValidate(const Body& inBody1, const Body& inBody2, RVec3Arg inBaseOffset, const CollideShapeResult& inCollisionResult) override
-	{
-		//cout << "Contact validate callback" << endl;
-
-		// Allows you to ignore a contact before it is created (using layers to not make objects collide is cheaper!)
-		return ValidateResult::AcceptAllContactsForThisBodyPair;
-	}
-
-	virtual void			OnContactAdded(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings) override
-	{
-		//cout << "A contact was added" << endl;
-	}
-
-	virtual void			OnContactPersisted(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings) override
-	{
-		//cout << "A contact was persisted" << endl;
-	}
-
-	virtual void			OnContactRemoved(const SubShapeIDPair& inSubShapePair) override
-	{
-		//cout << "A contact was removed" << endl;
-	}
-};
 
 // An example activation listener
 class MyBodyActivationListener : public BodyActivationListener
@@ -216,26 +192,81 @@ public:
 	}
 };
 
-struct PhysicsSystemData
-{
-	JPH::PhysicsSystem* mSystem;
-	JPH::TempAllocatorImpl* temp_allocator;
-	JPH::JobSystemThreadPool* job_system;
-	JPH::BodyInterface* body_interface;
-	BPLayerInterfaceImpl* broad_phase_layer_interface;
-	ObjectVsBroadPhaseLayerFilterImpl* object_vs_broadphase_layer_filter;
-	ObjectLayerPairFilterImpl* object_vs_object_layer_filter;
-	MyContactListener* contact_listener;
-	MyBodyActivationListener* body_activation_listener;
-	JPH::BodyID object1_id;
-	JPH::BodyID object2_id;
-
-};
-
-static PhysicsSystemData sData;
-
 namespace Borealis
 {
+	// An example contact listener
+	class MyContactListener : public ContactListener
+	{
+	public:
+		// See: ContactListener
+		virtual ValidateResult	OnContactValidate(const Body& inBody1, const Body& inBody2, RVec3Arg inBaseOffset, const CollideShapeResult& inCollisionResult) override
+		{
+			//cout << "Contact validate callback" << endl;
+
+			// Allows you to ignore a contact before it is created (using layers to not make objects collide is cheaper!)
+			return ValidateResult::AcceptAllContactsForThisBodyPair;
+		}
+
+		virtual void OnContactAdded(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings) override;
+
+		virtual void OnContactPersisted(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings) override;
+
+		virtual void OnContactRemoved(const SubShapeIDPair& inSubShapePair) override;
+	};
+
+	struct PhysicsSystemData
+	{
+		JPH::PhysicsSystem* mSystem;
+		JPH::TempAllocatorImpl* temp_allocator;
+		JPH::JobSystemThreadPool* job_system;
+		JPH::BodyInterface* body_interface;
+		BPLayerInterfaceImpl* broad_phase_layer_interface;
+		ObjectVsBroadPhaseLayerFilterImpl* object_vs_broadphase_layer_filter;
+		ObjectLayerPairFilterImpl* object_vs_object_layer_filter;
+		MyContactListener* contact_listener;
+		MyBodyActivationListener* body_activation_listener;
+		std::queue<CollisionPair> onCollisionPairAddedQueue;
+		std::queue<CollisionPair> onCollisionPairRemovedQueue;
+		std::queue<CollisionPair> onCollisionPairPersistedQueue;
+	};
+
+	static PhysicsSystemData sData;
+	static unordered_map<unsigned int, Borealis::UUID> bodyIDMapUUID;
+
+	void MyContactListener::OnContactAdded(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings)
+	{
+		sData.onCollisionPairAddedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
+	}
+
+	void MyContactListener::OnContactPersisted(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings)
+	{
+		sData.onCollisionPairPersistedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
+	}
+
+	void MyContactListener::OnContactRemoved(const SubShapeIDPair& inSubShapePair)
+	{
+		sData.onCollisionPairRemovedQueue.push({ PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody1ID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody2ID().GetIndexAndSequenceNumber())});
+	}
+
+	std::queue<CollisionPair>& PhysicsSystem::GetCollisionEnterQueue() {return sData.onCollisionPairAddedQueue; }
+	std::queue<CollisionPair>& PhysicsSystem::GetCollisionPersistQueue() { return sData.onCollisionPairPersistedQueue; }
+	std::queue<CollisionPair>& PhysicsSystem::GetCollisionExitQueue() { return sData.onCollisionPairRemovedQueue; }
+
+	void PhysicsSystem::EndScene()
+	{
+		while (!sData.onCollisionPairAddedQueue.empty())
+		{
+			sData.onCollisionPairAddedQueue.pop();
+		}
+		while (!sData.onCollisionPairPersistedQueue.empty())
+		{
+			sData.onCollisionPairPersistedQueue.pop();
+		}
+		while (!sData.onCollisionPairRemovedQueue.empty())
+		{
+			sData.onCollisionPairRemovedQueue.pop();
+		}
+	}
 void PhysicsSystem::Init()
 {
 	sData.broad_phase_layer_interface = new BPLayerInterfaceImpl();
@@ -311,10 +342,14 @@ void PhysicsSystem::Init()
 	sData.mSystem->OptimizeBroadPhase();
 }
 
-	void PhysicsSystem::PushTransform(unsigned int bodyID, TransformComponent& transform)
+	void PhysicsSystem::PushTransform(RigidBodyComponent& rigidbody, TransformComponent& transform, Entity entity)
 	{
+		auto entityTransform = TransformComponent::GetGlobalTransform(entity);
+		auto modelCenter = rigidbody.modelCenter;
+		auto actualCenterVec4 = entityTransform * glm::vec4(modelCenter, 1.0f);
+		auto actualCenter = glm::vec3(actualCenterVec4.x, actualCenterVec4.y, actualCenterVec4.z);
 		// Convert position (glm::vec3 to Jolt's RVec3)
-		JPH::RVec3 newPosition = JPH::RVec3(transform.Translate.x, transform.Translate.y, transform.Translate.z);
+		JPH::RVec3 newPosition = JPH::RVec3(actualCenter.x, actualCenter.y, actualCenter.z);
 
 		// Convert Euler angles (vec3) to quaternion (quat)
 		glm::quat rotation = glm::quat(glm::radians(transform.Rotation));  // Assuming Rotation is in degrees
@@ -323,22 +358,32 @@ void PhysicsSystem::Init()
 		JPH::Quat newRotation = JPH::Quat(rotation.x, rotation.y, rotation.z, rotation.w);
 
 		// Set position and rotation in the physics system
-		sData.body_interface->SetPosition((BodyID)bodyID, newPosition, EActivation::Activate);
-		sData.body_interface->SetRotation((BodyID)bodyID, newRotation, EActivation::Activate);
+		sData.body_interface->SetPosition((BodyID)rigidbody.bodyID, newPosition, EActivation::Activate);
+		sData.body_interface->SetRotation((BodyID)rigidbody.bodyID, newRotation, EActivation::Activate);
 	}
 
-	void PhysicsSystem::PullTransform(unsigned int bodyID, TransformComponent& transform)
+	void PhysicsSystem::PullTransform(RigidBodyComponent& rigidbody, TransformComponent& transform, Entity& entity)
 	{
 		// Get position from the physics system (JPH::RVec3 to glm::vec3)
-		JPH::RVec3 newPosition = sData.body_interface->GetPosition((BodyID)bodyID);
-		transform.Translate = glm::vec3(newPosition.GetX(), newPosition.GetY(), newPosition.GetZ());
+		JPH::RVec3 newPosition = sData.body_interface->GetPosition((BodyID)rigidbody.bodyID);
 
+		transform.Translate = glm::vec3(newPosition.GetX(), newPosition.GetY(), newPosition.GetZ()) - rigidbody.modelCenter;
+		
 		// Get rotation from the physics system (JPH::Quat to glm::quat)
-		JPH::Quat newRotation = sData.body_interface->GetRotation((BodyID)bodyID);
+		JPH::Quat newRotation = sData.body_interface->GetRotation((BodyID)rigidbody.bodyID);
 		glm::quat rotation = glm::quat(newRotation.GetW(), newRotation.GetX(), newRotation.GetY(), newRotation.GetZ());
 
 		// Convert quaternion to Euler angles (quat to vec3) in degrees
 		transform.Rotation = glm::degrees(glm::eulerAngles(rotation));  // Euler angles in degrees
+
+
+		//TODO
+		/*if (transform.ParentID != 0)
+		{
+			auto parentEntity = SceneManager::GetEntityByUUID(transform.ParentID);
+			auto parentTransform = TransformComponent::GetGlobalTransform(parentEntity);
+			auto localTransform = glm::inverse(parentTransform) * glm::vec4(transform.transform);
+		}*/
 	}
 
 	void PhysicsSystem::Update(float dt)
@@ -360,7 +405,12 @@ void PhysicsSystem::Init()
 		delete Factory::sInstance;
 	}
 
-	std::pair<glm::vec3, glm::vec3> PhysicsSystem::calculateBoundingVolume(const Model& model, const TransformComponent& transform)
+	UUID PhysicsSystem::BodyIDToUUID(unsigned int bodyID)
+	{
+		return bodyIDMapUUID[bodyID];
+	}
+
+	void PhysicsSystem::calculateBoundingVolume(const Model& model, TransformComponent& transform, RigidBodyComponent& rigidbody)
 	{
 		glm::vec3 minExtent{}, maxExtent{};
 
@@ -381,10 +431,16 @@ void PhysicsSystem::Init()
 		minExtent *= transform.Scale;
 		maxExtent *= transform.Scale;
 
-		cout << "Min Extent: " << minExtent.x << ", " << minExtent.y << ", " << minExtent.z << endl;
-		cout << "Max Extent: " << maxExtent.x << ", " << maxExtent.y << ", " << maxExtent.z << endl;
+		glm::vec3 boundingVolumeCenter = (minExtent + maxExtent) * 0.5f;
+		rigidbody.modelCenter = boundingVolumeCenter;
 
-		return { minExtent/2.f, maxExtent/2.f };
+		transform.offset = transform.Translate - boundingVolumeCenter;
+
+		transform.minExtent = minExtent;
+		transform.maxExtent = maxExtent;
+
+		/*cout << "Min Extent: " << minExtent.x << ", " << minExtent.y << ", " << minExtent.z << endl;
+		cout << "Max Extent: " << maxExtent.x << ", " << maxExtent.y << ", " << maxExtent.z << endl;*/
 	}
 
 	glm::vec3 PhysicsSystem::calculateBoxSize(glm::vec3 minExtent, glm::vec3 maxExtent)
@@ -465,17 +521,19 @@ void PhysicsSystem::Init()
 	{
 	}
 
-	void PhysicsSystem::addBody(TransformComponent& transform, RigidBodyComponent& rigidbody, MeshFilterComponent& mesh) {
+	void PhysicsSystem::addBody(TransformComponent& transform, RigidBodyComponent& rigidbody, MeshFilterComponent& mesh, UUID entityID) {
 		ShapeRefC shape;
 		ShapeSettings::ShapeResult shape_result;
 
-		// Calculate the bounding volume of the mesh
-		auto[minExtent1, maxExtent1] = calculateBoundingVolume(*mesh.Model, transform);
+		bodyIDMapUUID[rigidbody.bodyID] = entityID;
+
+		calculateBoundingVolume(*mesh.Model, transform, rigidbody);
 
 		switch (rigidbody.shape) {
 		case RigidBodyType::Box: {
 			// Create box shape settings
-			glm::vec3 size = calculateBoxSize(minExtent1, maxExtent1);
+			glm::vec3 size = calculateBoxSize(transform.minExtent, transform.maxExtent) * 0.5f;
+			rigidbody.size = size;
 			BoxShapeSettings box_shape_settings(Vec3(size.x, size.y, size.z));
 			box_shape_settings.SetEmbedded();
 			shape_result = box_shape_settings.Create();
@@ -484,7 +542,7 @@ void PhysicsSystem::Init()
 		}
 		case RigidBodyType::Sphere: {
 			// Create sphere shape settings
-			float radius = calculateSphereRadius(minExtent1,maxExtent1); // Assuming size.x represents the radius for a sphere
+			float radius = calculateSphereRadius(transform.minExtent,transform.maxExtent); // Assuming size.x represents the radius for a sphere
 			SphereShapeSettings sphere_shape_settings(radius);
 			sphere_shape_settings.SetEmbedded();
 			shape_result = sphere_shape_settings.Create();
@@ -659,5 +717,6 @@ void PhysicsSystem::Init()
 	void PhysicsSystem::FreeRigidBody(RigidBodyComponent& rigidbody)
 	{
 		sData.body_interface->RemoveBody(JPH::BodyID(rigidbody.bodyID));
+		bodyIDMapUUID.erase(rigidbody.bodyID);
 	}
 }

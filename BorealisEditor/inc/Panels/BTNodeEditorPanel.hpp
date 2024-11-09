@@ -406,7 +406,6 @@ namespace Borealis
         bool m_IsEditingExistingTree = false; 
         std::string m_ValidationMessage;
         std::string m_TreeFileName = "Untitled-No-Name-Entered";
-        std::string m_NodeCreationMessage;
         bool m_OpenTreeNameModal;
     };
 }

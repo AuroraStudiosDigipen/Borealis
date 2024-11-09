@@ -21,7 +21,8 @@
     <OutputPath>..\BorealisEditor\Resources\Scripts\Core\</OutputPath>
     <BaseIntermediateOutputPath>..\BorealisEditor\Resources\Scripts\Core\Intermediate\Debug\BorealisScriptCore\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
-    <DefineConstants></DefineConstants>
+    <DefineConstants>
+    </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -33,7 +34,8 @@
     <OutputPath>..\BorealisEditor\Resources\Scripts\Core\</OutputPath>
     <BaseIntermediateOutputPath>..\BorealisEditor\Resources\Scripts\Core\Intermediate\Release\BorealisScriptCore\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
-    <DefineConstants></DefineConstants>
+    <DefineConstants>
+    </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -45,7 +47,8 @@
     <OutputPath>..\BorealisEditor\Resources\Scripts\Core\</OutputPath>
     <BaseIntermediateOutputPath>..\BorealisEditor\Resources\Scripts\Core\Intermediate\Distribution\BorealisScriptCore\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
-    <DefineConstants></DefineConstants>
+    <DefineConstants>
+    </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -144,6 +147,7 @@
     <Compile Include="src\Components\Rigidbody.cs" />
     <Compile Include="src\Components\SpriteRenderer.cs" />
     <Compile Include="src\Components\Transform.cs" />
+    <Compile Include="src\Cursor.cs" />
     <Compile Include="src\Debug.cs" />
     <Compile Include="src\GameObject.cs" />
     <Compile Include="src\Input.cs" />
@@ -158,11 +162,17 @@
     <Compile Include="src\Math\Vector4.cs" />
     <Compile Include="src\MonoBehaviour.cs" />
     <Compile Include="src\Object.cs" />
+    <Compile Include="src\Physics.cs" />
+    <Compile Include="src\Ray.cs" />
     <Compile Include="src\RoslynCompiler.cs" />
     <Compile Include="src\Scripts\CameraController.cs" />
     <Compile Include="src\Scripts\FieldScript.cs" />
     <Compile Include="src\Scripts\MoodSwitching.cs" />
     <Compile Include="src\Scripts\NestedScript.cs" />
+    <Compile Include="src\Scripts\CameraOcclusion.cs" />
+    <Compile Include="src\Scripts\ThirdPersonCamera.cs" />
+    <Compile Include="src\Scripts\ThirdPersonController.cs" />
+    <Compile Include="src\Time.cs" />
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>

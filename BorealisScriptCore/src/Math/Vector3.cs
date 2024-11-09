@@ -19,7 +19,7 @@ namespace Borealis
         public static Vector3 one => new Vector3(1, 1, 1);
         public static Vector3 positiveInfinity => new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
         public static Vector3 right => new Vector3(1, 0, 0);
-        public static Vector3 up = new Vector3(0, 1, 0);
+        public static Vector3 up => new Vector3(0, 1, 0);
         public static Vector3 zero => new Vector3(0, 0, 0);
 
 
@@ -281,6 +281,11 @@ namespace Borealis
         public static Vector3 operator /(Vector3 a, float d)
         {
             return new Vector3(a.x / d, a.y / d, a.z / d);
+        }
+
+        public static Vector3 operator -(Vector3 a)
+        {
+            return new Vector3(-a.x, -a.y, -a.z);
         }
 
         public static bool operator ==(Vector3 lhs, Vector3 rhs)

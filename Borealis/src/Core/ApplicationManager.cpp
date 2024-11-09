@@ -24,6 +24,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scripting/ScriptingSystem.hpp>
 #include <AI/BehaviourTree/RegisterNodes.hpp>
 #include <Physics/PhysicsSystem.hpp>
+#include <Core/TimeManager.hpp>
 
 namespace Borealis
 {
@@ -90,7 +91,7 @@ namespace Borealis
 			ULONGLONG deltaTime = currentTickCount - prevTickCount;
 			prevTickCount = currentTickCount;
 
-			float g_dt = static_cast<float>(deltaTime) / 1000.0f;
+			TimeManager::SetDeltaTime(static_cast<float>(deltaTime) / 1000.0f);
 
 			if (!mIsMinimized)
 			{
@@ -98,7 +99,7 @@ namespace Borealis
 				{
 					PROFILE_SCOPE("LayerStack Updates");
 					for (Layer* layer : mLayerSystem)
-						layer->UpdateFn(g_dt);
+						layer->UpdateFn(TimeManager::GetDeltaTime());
 				}
 
 
@@ -106,7 +107,7 @@ namespace Borealis
 				{
 					PROFILE_SCOPE("LayerStack ImGuiRender");
 					for (Layer* layer : mLayerSystem)
-						layer->ImGuiRender(g_dt);
+						layer->ImGuiRender(TimeManager::GetDeltaTime());
 				}
 				mImGuiLayer->EndFrame();
 			}

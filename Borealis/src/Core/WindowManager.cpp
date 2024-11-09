@@ -97,6 +97,24 @@ namespace Borealis
 		return mData.mIsVSync;
 	}
 
+	bool WindowManager::GetCursorVisibility()
+	{
+		int cursorMode = glfwGetInputMode((GLFWwindow*)mWindow, GLFW_CURSOR);
+		return cursorMode == GLFW_CURSOR_NORMAL;
+	}
+
+	void WindowManager::SetCursorVisibility(bool visible)
+	{
+		if (visible)
+		{
+			glfwSetInputMode((GLFWwindow*)mWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		}
+		else
+		{
+			glfwSetInputMode((GLFWwindow*)mWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		}
+	}
+
 	/*!***********************************************************************
 		\brief
 			Initializes the window

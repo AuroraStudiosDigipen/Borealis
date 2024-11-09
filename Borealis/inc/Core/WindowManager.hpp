@@ -125,6 +125,10 @@ namespace Borealis
 		*************************************************************************/
 		void* GetNativeWindow() const { return mWindow; }
 
+		bool GetCursorVisibility();
+
+		void SetCursorVisibility(bool visible);
+
 	private:
 		/*!***********************************************************************
 			\brief

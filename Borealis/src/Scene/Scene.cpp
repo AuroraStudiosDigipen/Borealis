@@ -448,9 +448,10 @@ namespace Borealis
 
 				if (camera.Primary)
 				{
+					Entity brEntity { entity, this };
 					//camera.Camera.SetCameraType(SceneCamera::CameraType::Perspective);
 					mainCamera = &camera.Camera;
-					mainCameratransform = transform;
+					mainCameratransform = TransformComponent::GetGlobalTransform(brEntity);
 					break;
 				}
 			}

@@ -11,6 +11,12 @@ namespace Borealis
         internal extern static ulong GenerateUUID();
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static ulong[] GetAllUUIDs();
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool HasMask(ulong ID);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void Log(string text);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
@@ -21,6 +27,11 @@ namespace Borealis
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static ulong CreateEntity(string text);
+        
+        #region Time
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static float Time_GetDeltaTime();
+        #endregion
 
         #region Input
 
@@ -49,6 +60,13 @@ namespace Borealis
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static float Input_GetAxisRaw(string axis);
 
+        #endregion
+
+        #region Cursor
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void Cursor_GetVisibility(out bool axis);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void Cursor_SetVisibility(ref bool axis);
         #endregion
 
         #region GameObject

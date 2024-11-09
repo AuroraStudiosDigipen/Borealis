@@ -103,6 +103,8 @@ namespace Borealis
 	*************************************************************************/
 	bool Entity_HasComponent(uint64_t entityID, MonoReflectionType* reflectionType);
 
+	float Time_GetDeltaTime();
+
 	/*!***********************************************************************
 		\brief
 			Gets the mouse position
@@ -183,6 +185,9 @@ namespace Borealis
 	float Input_GetAxis(MonoString* axis);
 
 	float Input_GetAxisRaw(MonoString* axis);
+
+	void Cursor_GetVisibility(bool* outVisibility);
+	void Cursor_SetVisibility(bool* visibility);
 
 	/*!***********************************************************************
 		\brief

@@ -17,6 +17,19 @@ namespace Borealis
         {
             InstanceID = id;
         }
+        public Vector3 Size
+        {
+            get
+            {
+                //InternalCalls.RigidbodyComponent_GetSize(GetInstanceID(), out Vector3 size);
+                return new Vector3();
+            }
+            set
+            {
+               // InternalCalls.RigidbodyComponent_SetSize(GetInstanceID(), ref value);
+            }
+        }
+
         public Vector3 linearVelocity
         {
             get

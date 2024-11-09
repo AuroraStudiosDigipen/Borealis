@@ -20,6 +20,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/UUID.hpp>
 #include <Core/LoggerSystem.hpp>
 #include <Core/InputSystem.hpp>
+#include <Core/ApplicationManager.hpp>
+#include <Core/TimeManager.hpp>
 
 
 namespace Borealis
@@ -40,6 +42,8 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(Entity_HasComponent);
 		BOREALIS_ADD_INTERNAL_CALL(Entity_RemoveComponent);
 
+		BOREALIS_ADD_INTERNAL_CALL(Time_GetDeltaTime);
+
 		BOREALIS_ADD_INTERNAL_CALL(Input_GetMousePosition);
 		BOREALIS_ADD_INTERNAL_CALL(Input_GetMouseScrollDelta);
 		BOREALIS_ADD_INTERNAL_CALL(Input_GetKey);
@@ -50,6 +54,9 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(Input_GetMouseUp);
 		BOREALIS_ADD_INTERNAL_CALL(Input_GetAxis);
 		BOREALIS_ADD_INTERNAL_CALL(Input_GetAxisRaw);
+
+		BOREALIS_ADD_INTERNAL_CALL(Cursor_GetVisibility);
+		BOREALIS_ADD_INTERNAL_CALL(Cursor_SetVisibility);
 
 		BOREALIS_ADD_INTERNAL_CALL(TransformComponent_GetTranslation);
 		BOREALIS_ADD_INTERNAL_CALL(TransformComponent_SetTranslation);
@@ -111,6 +118,11 @@ namespace Borealis
 		{
 			entity.GetComponent<TagComponent>().active = value;
 		}
+	}
+
+	float Time_GetDeltaTime()
+	{
+		return TimeManager::GetDeltaTime();
 	}
 
 	void Entity_RemoveComponent(uint64_t entityID, MonoReflectionType* reflectionType)
@@ -264,6 +276,14 @@ namespace Borealis
 			return InputSystem::GetMouseDeltaYRaw();
 		}
 		return 0;
+	}
+	void Cursor_GetVisibility(bool* outVisibility)
+	{
+		*outVisibility = ApplicationManager::Get().GetWindow()->GetCursorVisibility();
+	}
+	void Cursor_SetVisibility(bool* visibility)
+	{
+		ApplicationManager::Get().GetWindow()->SetCursorVisibility(*visibility);
 	}
 	void TransformComponent_GetTranslation(UUID uuid, glm::vec3* outTranslation)
 	{

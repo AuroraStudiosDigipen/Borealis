@@ -186,6 +186,10 @@
     <ClInclude Include="inc\Core\Project.hpp" />
     <ClInclude Include="inc\Core\ProjectInfo.hpp" />
     <ClInclude Include="inc\Core\TagList.hpp" />
+    <ClInclude Include="inc\Core\TimeManager.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="inc\Core\UUID.hpp" />
     <ClInclude Include="inc\Core\Utils.hpp" />
     <ClInclude Include="inc\Core\WindowManager.hpp" />
@@ -767,6 +771,7 @@
     <ClInclude Include="lib\xproperty\include\xproperty\xproperty_config.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="inc\Core\TimeManager.cpp" />
     <ClCompile Include="lib\imGuizmo\imGuizmo.cpp">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>

@@ -108,6 +108,10 @@ namespace Borealis
 
 		inline static void DisableDepthTest() { sRendererAPI->DisableDepthTest(); }
 
+		inline static void EnableBackFaceCull() { sRendererAPI->EnableBackFaceCull(); }
+
+		inline static void EnableFrontFaceCull() { sRendererAPI->EnableFrontFaceCull(); }
+
 		inline static void IgnoreNextError() { sRendererAPI->IgnoreNextError(); }
 		inline static unsigned GetError(std::string const& errorMsg) { return sRendererAPI->GetError(errorMsg); }
 	private:

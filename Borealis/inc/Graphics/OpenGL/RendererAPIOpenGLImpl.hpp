@@ -106,6 +106,9 @@ namespace Borealis
 
 		void DisableDepthTest() override;
 
+		void EnableBackFaceCull() override;
+			
+		void EnableFrontFaceCull() override;
 		void IgnoreNextError() override;
 
 		unsigned GetError(std::string const& errorMsg) override;

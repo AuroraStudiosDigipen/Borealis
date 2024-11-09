@@ -199,7 +199,7 @@ vec3 GetEmission()
 	return u_Material.hasEmissionMap ? texture(u_Material.emissionMap, GetTexCoord()).rgb : u_Material.emissionColor.rgb;
 }
 
-float GetShadowFactor()
+float GetShadowFactor(vec3 lightDir, vec3 normal)
 {
 	vec3 projCoord = v_LightPos.xyz / v_LightPos.w;
 	vec2 UVCoord;
@@ -209,7 +209,8 @@ float GetShadowFactor()
 
 	float depth = texture(u_ShadowMap, UVCoord).x;
 
-	float bias = 0.0025;
+	float diffuseFactor = dot(normal, -lightDir);
+	float bias = 0.0025;//mix(0.0025f, 0.00f, diffuseFactor);
 
 	if(depth + bias < z)
 	{
@@ -242,7 +243,7 @@ vec3 ComputeDirectionalLight(Light light, vec3 normal, vec3 viewDir)
         vec3 specular = light.specular * spec * GetSpecular() * metallic; 
 
 		//temp
-		float shadowFactor = GetShadowFactor();
+		float shadowFactor = GetShadowFactor(lightDir, normal);
 
         color = ambient + shadowFactor * (diffuse + specular + emission);
     }
@@ -354,7 +355,7 @@ vec3 ComputeSpotLight(Light light, vec3 normal, vec3 viewDir)
         specular *= intensity * attenuation;
 
 		// Apply shadow factor to diffuse, specular, and emission
-		float shadowFactor = GetShadowFactor();
+		float shadowFactor = GetShadowFactor(lightDir, normal);
         color += shadowFactor * (diffuse + specular + emission);
     }
 

@@ -209,7 +209,7 @@ namespace Borealis
 		shader = nullptr;
 	}
 
-	void SetShadowAndLight(Ref<RenderTargetSource> renderTarget, Ref<RenderTargetSource> shadowMap, Ref<Shader> shader,  entt::registry* registryPtr)
+	void SetShadowAndLight(Ref<RenderTargetSource> renderTarget, Ref<RenderTargetSource> shadowMap, Ref<Shader> shader,  entt::registry* registryPtr, Frustum const& frustum)
 	{
 		if (shadowMap)
 		{
@@ -231,8 +231,6 @@ namespace Borealis
 				}
 
 				auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
-				lightComponent.position = TransformComponent::GetGlobalTranslate(brEntity);
-				lightComponent.direction = TransformComponent::GetGlobalRotation(brEntity);
 				Renderer3D::AddLight(lightComponent);
 
 
@@ -250,7 +248,14 @@ namespace Borealis
 				{
 					glm::vec3 upVector = { 0.f,1.f,0.f };
 					glm::mat4 lightView = glm::lookAt(lightComponent.position, lightComponent.direction, upVector);
-					glm::mat4 lightProj = glm::ortho(-100.f, 100.f, -100.f, 100.f, 0.f, 400.f);
+
+					FrustumCorners frustumCorners = GetCorners(frustum); //corners are either off or camera frustum too big
+					FrustumCorners lightSpaceFrustumCorners = frustumCorners;
+					lightSpaceFrustumCorners.Transform(lightView);
+					AABB aabb = lightSpaceFrustumCorners.GetAABB();
+
+					glm::mat4 lightProj = glm::ortho(-40.f, 40.f, -40.f, 40.f, 0.f, 400.f);
+					//glm::mat4 lightProj = glm::ortho(aabb.minExtent.x, aabb.maxExtent.x, aabb.minExtent.y, aabb.maxExtent.y, aabb.minExtent.z, aabb.maxExtent.y);
 
 					shader->Set("u_LightViewProjection", lightProj * lightView);
 				}
@@ -312,7 +317,7 @@ namespace Borealis
 
 				if (CullBoundingSphere(frustum, modelBoundingSphere))
 				{
-					BOREALIS_CORE_INFO("Culling entity {}", (int)entity);
+					//BOREALIS_CORE_INFO("Culling entity {}", (int)entity);
 					continue;
 				}
 
@@ -321,7 +326,7 @@ namespace Borealis
 				Renderer3D::Begin(viewProjMatrix, materialShader);
 
 
-				SetShadowAndLight(renderTarget, shadowMap, materialShader, registryPtr);
+				SetShadowAndLight(renderTarget, shadowMap, materialShader, registryPtr, frustum);
 
 				Renderer3D::SetLights(materialShader);
 				Renderer3D::DrawMesh(transform, meshFilter, meshRenderer, materialShader, (int)entity);
@@ -353,6 +358,8 @@ namespace Borealis
 
 				if (!skinnedMesh.SkinnnedModel || !skinnedMesh.Material) continue;
 
+				Frustum frustum = ComputeFrustum(viewProjMatrix);
+
 				Ref<Shader> materialShader = skinnedMesh.Material->GetShader();
 
 				Renderer3D::Begin(viewProjMatrix, materialShader);
@@ -360,7 +367,7 @@ namespace Borealis
 				materialShader->Bind();
 				materialShader->Set("u_HasAnimation", false);
 
-				SetShadowAndLight(renderTarget, shadowMap, materialShader, registryPtr);
+				SetShadowAndLight(renderTarget, shadowMap, materialShader, registryPtr, frustum);
 
 				if (registryPtr->storage<AnimatorComponent>().contains(entity))
 				{
@@ -678,7 +685,9 @@ namespace Borealis
 		shader->Bind();
 		shader->Set("shadowPass", true);
 
-		glm::mat4 viewProjMatrix;
+		RenderCommand::EnableFrontFaceCull();
+
+		glm::mat4 viewProjMatrix{};
 		Ref<FrameBuffer> shadowMap = nullptr;
 		glm::vec3 cameraPosition{};
 		for (auto sink : sinkList)
@@ -712,6 +721,8 @@ namespace Borealis
 				{
 					continue;
 				}
+				lightComponent.position = TransformComponent::GetGlobalTranslate(brEntity);
+				lightComponent.direction = TransformComponent::GetGlobalRotation(brEntity);
 				if (!lightComponent.castShadow) continue;
 
 				if (lightComponent.type == LightComponent::Type::Spot)
@@ -729,7 +740,15 @@ namespace Borealis
 					glm::vec3 upVector = { 0.f,1.f,0.f };
 					glm::vec3 lightPos = cameraPosition + lightComponent.position;
 					glm::mat4 lightView = glm::lookAt(lightComponent.position, lightComponent.direction, upVector);
-					glm::mat4 lightProj = glm::ortho(-100.f, 100.f, -100.f, 100.f, 0.f, 400.f);
+
+					Frustum frustum = ComputeFrustum(viewProjMatrix);
+					FrustumCorners frustumCorners = GetCorners(frustum); // corners are off prob
+					FrustumCorners lightSpaceFrustumCorners = frustumCorners;
+					lightSpaceFrustumCorners.Transform(lightView);
+					AABB aabb = lightSpaceFrustumCorners.GetAABB();
+
+					glm::mat4 lightProj = glm::ortho(-40.f, 40.f, -40.f, 40.f, 0.f, 400.f);
+					//glm::mat4 lightProj = glm::ortho(aabb.minExtent.x, aabb.maxExtent.x, aabb.minExtent.y, aabb.maxExtent.y, aabb.minExtent.z, aabb.maxExtent.y);
 
 					shader->Set("u_LightViewProjection", lightProj * lightView);
 				}
@@ -750,6 +769,8 @@ namespace Borealis
 				}
 			}
 		}
+
+		RenderCommand::EnableBackFaceCull();
 
 		if (shadowMap)
 			shadowMap->Unbind();

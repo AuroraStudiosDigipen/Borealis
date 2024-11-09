@@ -79,6 +79,16 @@ namespace Borealis
 		glDisable(GL_DEPTH_TEST);
 	}
 
+	void OpenGLRendererAPI::EnableBackFaceCull()
+	{
+		glCullFace(GL_BACK);
+	}
+
+	void OpenGLRendererAPI::EnableFrontFaceCull()
+	{
+		glCullFace(GL_FRONT);
+	}
+
 	void OpenGLRendererAPI::IgnoreNextError()
 	{
 		ignoreNextError = true;
@@ -92,7 +102,9 @@ namespace Borealis
 			ignoreNextError = false;
 		else
 		{
-			BOREALIS_CORE_ASSERT(err == GL_NO_ERROR, errorMsg);
+			if (err != GL_NO_ERROR)
+				BOREALIS_CORE_WARN("Error with opengl no: {}", err);
+			//BOREALIS_CORE_ASSERT(err == GL_NO_ERROR, errorMsg);
 		}
 
 		return err;

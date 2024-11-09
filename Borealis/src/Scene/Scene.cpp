@@ -375,7 +375,7 @@ namespace Borealis
 			};
 			mGFrameBuffer = FrameBuffer::Create(propsGBuffer);
 
-			FrameBufferProperties propsShadowMapBuffer{ 2024, 2024,false };
+			FrameBufferProperties propsShadowMapBuffer{ 2024, 2024, false };
 			propsShadowMapBuffer.Attachments = { FramebufferTextureFormat::Depth };
 			mShadowMapBuffer = FrameBuffer::Create(propsShadowMapBuffer);
 		}

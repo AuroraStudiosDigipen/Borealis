@@ -60,6 +60,9 @@
     <ClInclude Include="inc\ResourceManager.hpp">
       <Filter>inc</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Panels\AudioMixerPanel.hpp">
+      <Filter>inc\Panels</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\EditorApp.cpp">
@@ -100,6 +103,9 @@
     </ClCompile>
     <ClCompile Include="src\ResourceManager.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Panels\AudioMixerPanel.cpp">
+      <Filter>src\Panels</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

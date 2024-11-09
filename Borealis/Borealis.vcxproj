@@ -161,7 +161,6 @@
     <ClInclude Include="inc\AI\BehaviourTree\BehaviourTree.hpp" />
     <ClInclude Include="inc\AI\BehaviourTree\Blackboard.hpp" />
     <ClInclude Include="inc\AI\BehaviourTree\ControlFlow\C_Sequencer.hpp" />
-    <ClInclude Include="inc\AI\BehaviourTree\ControlFlow\C_test.hpp" />
     <ClInclude Include="inc\AI\BehaviourTree\Decorator\D_Delay.hpp" />
     <ClInclude Include="inc\AI\BehaviourTree\Leaf\L_CheckMouseClick.hpp" />
     <ClInclude Include="inc\AI\BehaviourTree\Leaf\L_Idle.hpp" />
@@ -780,7 +779,6 @@
     <ClCompile Include="src\AI\BehaviourTree\BehaviourNode.cpp" />
     <ClCompile Include="src\AI\BehaviourTree\BehaviourTree.cpp" />
     <ClCompile Include="src\AI\BehaviourTree\ControlFlow\C_Sequencer.cpp" />
-    <ClCompile Include="src\AI\BehaviourTree\ControlFlow\C_test.cpp" />
     <ClCompile Include="src\AI\BehaviourTree\Decorator\D_Delay.cpp" />
     <ClCompile Include="src\AI\BehaviourTree\Leaf\L_CheckMouseClick.cpp" />
     <ClCompile Include="src\AI\BehaviourTree\Leaf\L_Idle.cpp" />

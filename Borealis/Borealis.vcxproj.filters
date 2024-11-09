@@ -199,9 +199,6 @@
     <ClInclude Include="inc\AI\BehaviourTree\ControlFlow\C_Sequencer.hpp">
       <Filter>inc\AI\BehaviourTree\ControlFlow</Filter>
     </ClInclude>
-    <ClInclude Include="inc\AI\BehaviourTree\ControlFlow\C_test.hpp">
-      <Filter>inc\AI\BehaviourTree\ControlFlow</Filter>
-    </ClInclude>
     <ClInclude Include="inc\AI\BehaviourTree\Decorator\D_Delay.hpp">
       <Filter>inc\AI\BehaviourTree\Decorator</Filter>
     </ClInclude>
@@ -2044,9 +2041,6 @@
       <Filter>src\AI\BehaviourTree</Filter>
     </ClCompile>
     <ClCompile Include="src\AI\BehaviourTree\ControlFlow\C_Sequencer.cpp">
-      <Filter>src\AI\BehaviourTree\ControlFlow</Filter>
-    </ClCompile>
-    <ClCompile Include="src\AI\BehaviourTree\ControlFlow\C_test.cpp">
       <Filter>src\AI\BehaviourTree\ControlFlow</Filter>
     </ClCompile>
     <ClCompile Include="src\AI\BehaviourTree\Decorator\D_Delay.cpp">

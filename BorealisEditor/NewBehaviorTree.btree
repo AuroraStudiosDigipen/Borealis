@@ -1,89 +1,32 @@
 BehaviourTreeComponent:
   BehaviourTree:
-    Tree Name: TestingTree
+    Tree Name: NewBehaviorTree
     Nodes:
-      - ID: 1
-        Name: C_Sequencer
-        Type: ControlFlow
-        Depth: 2
-        ChildrenIDs:
-          - 4
-          - 34
-          - 32
-          - 28
-          - 30
-        Position:
-          x: -150
-          y: -171
-      - ID: 4
-        Name: D_Delay
-        Type: Decorator
-        Depth: 3
-        ChildrenIDs:
-          - 7
-        Position:
-          x: 4
-          y: 111
-      - ID: 7
-        Name: L_Idle
-        Type: Leaf
-        Depth: 4
-        ChildrenIDs:
-          []
-        Position:
-          x: 26
-          y: 229
       - ID: 11
         Name: C_Sequencer
         Type: ControlFlow
         Depth: 0
         ChildrenIDs:
-          - 14
+          - 32
+          - 58
         Position:
-          x: -150
+          x: -124
           y: -353
-      - ID: 14
-        Name: D_Delay
-        Type: Decorator
-        Depth: 1
-        ChildrenIDs:
-          - 1
-        Position:
-          x: -12
-          y: -299
-      - ID: 28
-        Name: L_Idle
-        Type: Leaf
-        Depth: 3
-        ChildrenIDs:
-          []
-        Position:
-          x: 0
-          y: 0
-      - ID: 30
-        Name: L_CheckMouseClick
-        Type: Leaf
-        Depth: 3
-        ChildrenIDs:
-          []
-        Position:
-          x: 266
-          y: -43
       - ID: 32
         Name: L_Idle
         Type: Leaf
-        Depth: 3
+        Depth: 1
         ChildrenIDs:
           []
         Position:
-          x: -182
-          y: -11
-      - ID: 34
-        Name: L_CheckMouseClick
+          x: -294
+          y: -59
+      - ID: 58
+        Name: L_RotatingMotion
         Type: Leaf
-        Depth: 3
+        Depth: 1
         ChildrenIDs:
           []
         Position:
-          x: -406
+          x: -6
           y: -43

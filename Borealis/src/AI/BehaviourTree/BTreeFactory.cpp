@@ -76,7 +76,7 @@ namespace Borealis
 
         // Set the root node of the behavior tree
         tree->SetRootNode(rootNode);
-        m_BehaviourTrees.emplace(tree->GetBehaviourTreeName(), tree);
+        //m_BehaviourTrees.emplace(tree->GetBehaviourTreeName(), tree);
     }
     void BTreeFactory::BuildTreeRecursive(Ref<BehaviourNode> currentNode, const std::unordered_map<int, BTreeFactory::NodeInfo>& nodeMap)
     {
@@ -160,12 +160,13 @@ namespace Borealis
 
         // Create a new BehaviourTree instance
         Ref<BehaviourTree> tree = std::make_shared<BehaviourTree>();
+        std::cout << "Created BehaviourTree at address: " << tree.get() << std::endl;
         tree->SetBehaviourTreeName(treeName);
         // Build the behaviour tree structure
         BuildBehaviourTree(behaviourTreeNode, tree);
 
         // Add the tree to the map
-        m_BehaviourTrees[treeName] = tree;
+        //m_BehaviourTrees[treeName] = tree;
 
         return tree;
     }
@@ -188,5 +189,50 @@ namespace Borealis
     {
         return m_BehaviourTrees;
     }
+    Ref<BehaviourNode> BTreeFactory::CloneNodeRecursive(const Ref<BehaviourNode>& originalNode)
+    {
+        // Create a new node using NodeFactory
+        std::string nodeName = originalNode->GetName();
+        Ref<BehaviourNode> newNode = NodeFactory::CreateNodeByName(nodeName);
+
+        if (!newNode)
+        {
+            std::cerr << "Error: Could not clone node '" << nodeName << "'." << std::endl;
+            return nullptr;
+        }
+
+        // Copy necessary properties from the original node to the new node
+        // Assuming you have methods to get and set properties
+        //newNode->SetPropertiesFrom(originalNode);
+
+        // Recursively clone and add child nodes
+        for (const auto& child : originalNode->GetChildrenNodes())
+        {
+            Ref<BehaviourNode> clonedChild = CloneNodeRecursive(child);
+            if (clonedChild)
+            {
+                newNode->AddChild(clonedChild);
+            }
+        }
+
+        return newNode;
+    }
+    // BTreeFactory.cpp
+    Ref<BehaviourTree> BTreeFactory::CloneBehaviourTree(const Ref<BehaviourTree>& originalTree)
+    {
+        // Create a new BehaviourTree instance
+        Ref<BehaviourTree> newTree = std::make_shared<BehaviourTree>();
+        newTree->SetBehaviourTreeName(originalTree->GetBehaviourTreeName());
+
+        // Clone the root node and its subtree
+        if (originalTree->GetRootNode())
+        {
+            Ref<BehaviourNode> clonedRootNode = CloneNodeRecursive(originalTree->GetRootNode());
+            newTree->SetRootNode(clonedRootNode);
+        }
+
+        return newTree;
+    }
+
 }
 

@@ -208,6 +208,9 @@
     <ClInclude Include="inc\AI\BehaviourTree\Leaf\L_Idle.hpp">
       <Filter>inc\AI\BehaviourTree\Leaf</Filter>
     </ClInclude>
+    <ClInclude Include="inc\AI\BehaviourTree\Leaf\L_RotatingMotion.hpp">
+      <Filter>inc\AI\BehaviourTree\Leaf</Filter>
+    </ClInclude>
     <ClInclude Include="inc\AI\BehaviourTree\NodeHeaderCodeFormat.hpp">
       <Filter>inc\AI\BehaviourTree</Filter>
     </ClInclude>
@@ -2047,6 +2050,9 @@
       <Filter>src\AI\BehaviourTree\Leaf</Filter>
     </ClCompile>
     <ClCompile Include="src\AI\BehaviourTree\Leaf\L_Idle.cpp">
+      <Filter>src\AI\BehaviourTree\Leaf</Filter>
+    </ClCompile>
+    <ClCompile Include="src\AI\BehaviourTree\Leaf\L_RotatingMotion.cpp">
       <Filter>src\AI\BehaviourTree\Leaf</Filter>
     </ClCompile>
     <ClCompile Include="src\AI\BehaviourTree\NodeHeaderCodeFormat.cpp">

@@ -43,8 +43,9 @@ namespace Borealis
         Ref<BehaviourTree> GetBehaviourTree(const std::string& name);
         const std::unordered_map<std::string, Ref<BehaviourTree>>& GetAllBehaviourTrees() const;
         Ref< BehaviourTree>  LoadBehaviourTree(const std::string& filepath);
-
+        Ref<BehaviourTree> CloneBehaviourTree(const Ref<BehaviourTree>& originalTree);
     private:
+        Ref<BehaviourNode> CloneNodeRecursive(const Ref<BehaviourNode>& originalNode);
         BTreeFactory() = default;
 
         // Helper function to load a single tree

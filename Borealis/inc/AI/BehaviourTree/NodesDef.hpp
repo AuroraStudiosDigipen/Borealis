@@ -18,18 +18,22 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <AI/BehaviourTree/RegisterNodes.hpp>
 // Include all the nodes here
 #include <AI/BehaviourTree/ControlFlow/C_Sequencer.hpp>
-#include <AI/BehaviourTree/Leaf/L_Idle.hpp>
+
 #include<AI/BehaviourTree/Decorator/D_Delay.hpp>
+
+#include <AI/BehaviourTree/Leaf/L_Idle.hpp>
 #include <AI/BehaviourTree/Leaf/L_CheckMouseClick.hpp>
+#include <AI/BehaviourTree/Leaf/L_RotatingMotion.hpp>
 namespace Borealis
 {
 #ifndef REGISTER_ALL_NODES
 	// Macro definitions to register nodes dynamically, add "\" at the end of non-last lines
 #define REGISTER_ALL_NODES \
-	REGISTER_CONTROLFLOW(C_Sequencer) \
-	REGISTER_DECORATOR(D_Delay) \
-	REGISTER_LEAF(L_Idle) \
-	REGISTER_LEAF(L_CheckMouseClick)
+		REGISTER_CONTROLFLOW(C_Sequencer) \
+		REGISTER_DECORATOR(D_Delay) \
+		REGISTER_LEAF(L_Idle) \
+		REGISTER_LEAF(L_CheckMouseClick)\
+		REGISTER_LEAF(L_RotatingMotion)
 
 #endif
 }

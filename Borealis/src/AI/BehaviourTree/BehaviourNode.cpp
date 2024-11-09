@@ -278,5 +278,8 @@ namespace Borealis
         SetResult(NodeResult::FAILURE);
     }
 
-
+    std::vector<Ref<BehaviourNode>> BehaviourNode::GetChildrenNodes() const
+    {
+        return mChildren;
+    }
 }

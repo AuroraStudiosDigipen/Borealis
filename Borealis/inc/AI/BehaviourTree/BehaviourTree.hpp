@@ -28,6 +28,8 @@ namespace Borealis
     {
     public:
         BehaviourTree();
+        BehaviourTree(const BehaviourTree& other);
+
         ~BehaviourTree();
 
         /*!***********************************************************************
@@ -56,7 +58,7 @@ namespace Borealis
             \return
                 A reference to the root node.
         *************************************************************************/
-        Ref<BehaviourNode> GetRootNode();
+        Ref<BehaviourNode> GetRootNode() const;
 
         /*!***********************************************************************
             \brief

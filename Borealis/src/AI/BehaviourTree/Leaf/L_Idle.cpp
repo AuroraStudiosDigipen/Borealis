@@ -13,7 +13,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
  /******************************************************************************/
 
 #include <BorealisPCH.hpp>
-#include "AI//BehaviourTree/Leaf/L_Idle.hpp"
+#include "AI/BehaviourTree/Leaf/L_Idle.hpp"
 #include <Core/InputSystem.hpp>
 #include <Core/KeyCodes.hpp>
 #include <Core/LoggerSystem.hpp>
@@ -30,16 +30,11 @@ namespace Borealis
 
     void L_Idle::OnUpdate(float dt, Entity& entity)
     {
-        timer -= dt;
-
-        auto& transforms = entity.GetComponent<TransformComponent>();
-        transforms.Translate += glm::vec3(0.1f, 0.f, 0.f);
-
-        BOREALIS_CORE_TRACE("Idling now, time is {} for entity {}", timer, entity.GetUUID());
+        timer -= dt;    
 
         if (timer < 0.0f)
         {
-            BOREALIS_CORE_TRACE("Idling completed");
+            BOREALIS_CORE_TRACE("Idling completed for entity {}", entity.GetName());
             OnSuccess();
         }
 

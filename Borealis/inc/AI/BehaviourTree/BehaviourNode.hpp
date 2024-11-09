@@ -56,6 +56,8 @@ namespace Borealis
     public:
         BehaviourNode() = default;
 
+        std::vector<Ref<BehaviourNode>> GetChildrenNodes() const;
+
         /*!***********************************************************************
             \brief
                 Gets the type of the node.
@@ -261,7 +263,6 @@ namespace Borealis
                 Marks the node as failed and exits execution.
         *************************************************************************/
         void OnFailure();
-
     protected:
         WeakRef<BehaviourNode> mParent;  // Parent node reference
         std::vector<Ref<BehaviourNode>> mChildren;  // Child nodes

@@ -38,7 +38,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/Project.hpp>
 
 #include "EditorAssets/MaterialEditor.hpp"
-
+#include <AI/BehaviourTree/BTreeFactory.hpp>
 
 namespace ImGui
 {
@@ -481,7 +481,9 @@ namespace Borealis
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropBehaviourTreeItem"))
 				{
 					AssetHandle data = *(const uint64_t*)payload->Data;
-					rttr::variant value(AssetManager::GetAsset<BehaviourTree>(data));
+					Ref<BehaviourTree> originalTree = AssetManager::GetAsset<BehaviourTree>(data);
+					Ref<BehaviourTree> clonedTree = BTreeFactory::Instance().CloneBehaviourTree(originalTree);
+					rttr::variant value(clonedTree);
 					Property.set_value(rInstance, value);
 				}
 				ImGui::EndDragDropTarget();

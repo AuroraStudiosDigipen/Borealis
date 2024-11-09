@@ -57,15 +57,7 @@ namespace Borealis
             return;
 
         ImGui::Begin("Behavior Tree Editor", &m_ShowPanel, ImGuiWindowFlags_NoCollapse);
-        ImGui::Text("Editing Tree: ");
-        ImGui::SameLine();
-        // Optionally, allow the user to edit the tree name
-        static char treeNameTextBuffer[256];
-        strcpy(treeNameTextBuffer, m_TreeName.c_str());
-        if (ImGui::InputText("Tree Name", treeNameTextBuffer, ImGuiInputTextFlags_Multiline,sizeof(treeNameTextBuffer)))
-        {
-            m_TreeName = treeNameTextBuffer;
-        }
+        ImGui::Text("Editing Tree: %s", m_TreeFileName.c_str());
         ImGui::SameLine();
         if (ImGui::Button("New Node"))
         {
@@ -77,7 +69,7 @@ namespace Borealis
             static int selectedNodeType = 0; // 0: Leaf, 1: Decorator
             static char nodeName[128] = "";
 
-            const char* nodeTypes[] = { "Leaf", "Decorator" };
+            const char* nodeTypes[] = { "Control FLow", "Decorator", "Leaf"};
             ImGui::Text("Select Node Type:");
             ImGui::Combo("##NodeType", &selectedNodeType, nodeTypes, IM_ARRAYSIZE(nodeTypes));
 
@@ -145,14 +137,25 @@ namespace Borealis
 
         if (ImGui::BeginPopup("SaveBehaviorTreePopup"))
         {
-            static char fileName[128] = "NewBehaviorTree";
-            ImGui::InputText("File Name", fileName, IM_ARRAYSIZE(fileName));
+            // Ensure buffer is large enough to handle input
+            char buffer[256];
+            std::strncpy(buffer, m_TreeFileName.c_str(), sizeof(buffer));
+            buffer[sizeof(buffer) - 1] = '\0'; // Null-terminate
+
+            // Display the input field with m_TreeFileName as the label
+            std::string label = "Editing: " + m_TreeFileName;
+            if (ImGui::InputText(label.c_str(), buffer, sizeof(buffer)))
+            {
+                // Update m_TreeFileName if the user makes a change
+                m_TreeFileName = buffer;
+            }
+
 
             if (ImGui::Button("Save"))
             {
                 
                 std::string savePath = Project::GetAssetsPath();
-                std::string fullPath = savePath + fileName + ".btree";
+                std::string fullPath = savePath + m_TreeFileName + ".btree";
                 SaveBehaviorTree(fullPath);
                 ImGui::CloseCurrentPopup();
             }
@@ -185,7 +188,7 @@ namespace Borealis
             ImGui::OpenPopup("Enter Tree Name");
 
             // Initialize the buffer with the current tree name
-            strcpy(treeNameBuffer, m_TreeName.c_str());
+            strcpy(treeNameBuffer, m_TreeFileName.c_str());
 
             m_OpenTreeNameModal = false;
         }
@@ -203,7 +206,7 @@ namespace Borealis
 
             if (ImGui::Button("OK", ImVec2(120, 0)))
             {
-                m_TreeName = treeNameBuffer;
+                m_TreeFileName = treeNameBuffer;
                 ImGui::CloseCurrentPopup();
 
                 // Now proceed to save the tree with the new name
@@ -641,7 +644,7 @@ namespace Borealis
 
     void BTNodeEditorPanel::SaveBehaviorTree(const std::string& filename)
     {
-        if (m_TreeName == "Untitled-No-Name-Entered" || m_TreeName.empty())
+        if (m_TreeFileName == "Untitled-No-Name-Entered" || m_TreeFileName.empty())
         {
             m_OpenTreeNameModal = true;
             return; // Wait for the user to enter a name
@@ -652,7 +655,7 @@ namespace Borealis
 
         out << YAML::Key << "BehaviourTreeComponent" << YAML::Value << YAML::BeginMap;
         out << YAML::Key << "BehaviourTree" << YAML::Value << YAML::BeginMap;
-        out << YAML::Key << "Tree Name" << YAML::Value << m_TreeName;
+        out << YAML::Key << "Tree Name" << YAML::Value << m_TreeFileName;
 
         // Build parent-child relationships
         std::unordered_map<int, std::vector<int>> nodeChildrenMap;
@@ -957,7 +960,7 @@ namespace Borealis
         std::filesystem::path directoryPath(".");
         try {
             if (!std::filesystem::exists(directoryPath) || !std::filesystem::is_directory(directoryPath)) {
-                std::cerr << "Directory does not exist or is not a directory: " << directoryPath << std::endl;
+                BOREALIS_CORE_ERROR("Directory does not exist or is not a directory: {}", directoryPath);
                 return behaviorTrees;  // Return empty vector
             }
 
@@ -970,7 +973,7 @@ namespace Borealis
             }
         }
         catch (const std::filesystem::filesystem_error& e) {
-            std::cerr << "Filesystem error: " << e.what() << std::endl;
+            BOREALIS_CORE_ERROR("Filesystem error: {}", e.what());
         }
 
         return behaviorTrees;
@@ -1129,30 +1132,21 @@ namespace Borealis
             data = YAML::LoadFile(filepath);
         }
         catch (const YAML::ParserException& e) {
-            std::cerr << "YAML Parsing Error: " << e.what() << std::endl;
-            return;
-        }
-        catch (const std::exception& e) {
-            std::cerr << "Error: " << e.what() << std::endl;
+            BOREALIS_CORE_ERROR("YAML Parsing Error: {}", e.what());
             return;
         }
 
         const YAML::Node& behaviourTreeComponent = data["BehaviourTreeComponent"];
         if (!behaviourTreeComponent)
         {
-            std::cerr << "Error: 'BehaviourTreeComponent' not found in the YAML file." << std::endl;
+            BOREALIS_CORE_ERROR("Error: 'BehaviourTreeComponent' not found in the YAML file.");
             return;
         }
 
         const YAML::Node& behaviourTreeNode = behaviourTreeComponent["BehaviourTree"];
-        if (!behaviourTreeNode)
-        {
-            std::cerr << "Error: 'BehaviourTree' not found in the YAML file." << std::endl;
-            return;
-        }
 
         // Extract the tree name
-        m_TreeName = behaviourTreeNode["Tree Name"].as<std::string>();
+        m_TreeFileName = behaviourTreeNode["Tree Name"].as<std::string>();
 
         // Deserialize nodes
         const YAML::Node& nodesNode = behaviourTreeNode["Nodes"];
@@ -1227,7 +1221,7 @@ namespace Borealis
                 auto parentNodeIt = nodeMap.find(parentId);
                 if (parentNodeIt == nodeMap.end())
                 {
-                    std::cerr << "Warning: Parent node with ID " << parentId << " not found." << std::endl;
+                    BOREALIS_CORE_ERROR("Warning: Parent node with ID {} not found.", parentId);
                     continue;
                 }
                 Ref<Node> parentNode = parentNodeIt->second;
@@ -1237,7 +1231,7 @@ namespace Borealis
                     auto childNodeIt = nodeMap.find(childId);
                     if (childNodeIt == nodeMap.end())
                     {
-                        std::cerr << "Warning: Child node with ID " << childId << " not found for parent node '" << parentNode->Name << "'." << std::endl;
+                        BOREALIS_CORE_ERROR("Warning: Child node with ID {} not found for parent node {}." , childId , parentNode->Name);
                         continue;
                     }
                     Ref<Node> childNode = childNodeIt->second;
@@ -1284,7 +1278,7 @@ namespace Borealis
         }
         else
         {
-            std::cerr << "Error: 'Nodes' not found or not a sequence in the YAML file." << std::endl;
+            BOREALIS_CORE_ERROR("Error: 'Nodes' not found or not a sequence in the YAML file.");
             return;
         }
 
@@ -1413,7 +1407,7 @@ namespace Borealis
 
         default:
             // Unknown types may have no pins, or you could choose a default configuration
-            std::cerr << "Unknown node type: " << static_cast<int>(node->Type) << std::endl;
+            BOREALIS_CORE_ERROR("Unknown node type: {}",static_cast<int>(node->Type));
             break;
         }
     }

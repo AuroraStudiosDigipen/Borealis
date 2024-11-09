@@ -164,6 +164,7 @@
     <ClInclude Include="inc\AI\BehaviourTree\Decorator\D_Delay.hpp" />
     <ClInclude Include="inc\AI\BehaviourTree\Leaf\L_CheckMouseClick.hpp" />
     <ClInclude Include="inc\AI\BehaviourTree\Leaf\L_Idle.hpp" />
+    <ClInclude Include="inc\AI\BehaviourTree\Leaf\L_RotatingMotion.hpp" />
     <ClInclude Include="inc\AI\BehaviourTree\NodeHeaderCodeFormat.hpp" />
     <ClInclude Include="inc\AI\BehaviourTree\NodesDef.hpp" />
     <ClInclude Include="inc\AI\BehaviourTree\RegisterNodes.hpp" />
@@ -781,6 +782,7 @@
     <ClCompile Include="src\AI\BehaviourTree\Decorator\D_Delay.cpp" />
     <ClCompile Include="src\AI\BehaviourTree\Leaf\L_CheckMouseClick.cpp" />
     <ClCompile Include="src\AI\BehaviourTree\Leaf\L_Idle.cpp" />
+    <ClCompile Include="src\AI\BehaviourTree\Leaf\L_RotatingMotion.cpp" />
     <ClCompile Include="src\AI\BehaviourTree\NodeHeaderCodeFormat.cpp" />
     <ClCompile Include="src\AI\BehaviourTree\RegisterNodes.cpp" />
     <ClCompile Include="src\AI\BehaviourTree\ScanForNewNodes.cpp" />

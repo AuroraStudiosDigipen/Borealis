@@ -22,19 +22,6 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace Borealis
 {
-    static inline ImRect ImGui_GetItemRect()
-    {
-        return ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
-    }
-    static inline ImRect ImRect_Expanded(const ImRect& rect, float x, float y)
-    {
-        auto result = rect;
-        result.Min.x -= x;
-        result.Min.y -= y;
-        result.Max.x += x;
-        result.Max.y += y;
-        return result;
-    }
     // Alias for node editor namespace
     namespace ed = ax::NodeEditor;
     // Enumeration for pin types
@@ -179,10 +166,10 @@ namespace Borealis
         std::vector<std::shared_ptr<Link>> m_Links;
         int m_NextId;
         std::vector<std::pair<Ref<Node>, ImVec2>> m_NewNodes;
-        std::string m_TreeName = "Untitled-No-Name-Entered";
+        std::string m_TreeName;
         bool m_IsEditingExistingTree = false; 
         std::string m_ValidationMessage;
-        std::string m_TreeFileName;
+        std::string m_TreeFileName = "Untitled-No-Name-Entered";
         std::string m_NodeCreationMessage;
         bool m_OpenTreeNameModal;
     };

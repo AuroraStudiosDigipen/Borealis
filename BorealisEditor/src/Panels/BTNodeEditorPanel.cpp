@@ -1027,30 +1027,30 @@ namespace Borealis
             NodeHeaderCodeFormat::WriteToFile(headerFilePath, headerCode);
             NodeHeaderCodeFormat::WriteToFile(sourceFilePath, sourceCode);
 
-            // Convert to absolute paths
-            std::filesystem::path headerAbsolutePath = std::filesystem::absolute(headerFilePath);
-            std::filesystem::path sourceAbsolutePath = std::filesystem::absolute(sourceFilePath);
-            // Ensure files exist
-            if (!std::filesystem::exists(headerAbsolutePath) || !std::filesystem::exists(sourceAbsolutePath))
-            {
-                BOREALIS_CORE_ERROR("One or both files do not exist.");
-                return;
-            }
+            //// Convert to absolute paths
+            //std::filesystem::path headerAbsolutePath = std::filesystem::absolute(headerFilePath);
+            //std::filesystem::path sourceAbsolutePath = std::filesystem::absolute(sourceFilePath);
+            //// Ensure files exist
+            //if (!std::filesystem::exists(headerAbsolutePath) || !std::filesystem::exists(sourceAbsolutePath))
+            //{
+            //    BOREALIS_CORE_ERROR("One or both files do not exist.");
+            //    return;
+            //}
 
-            // Open the files using ShellExecuteA
-            HINSTANCE hRes;
+            //// Open the files using ShellExecuteA
+            //HINSTANCE hRes;
 
-            hRes = ShellExecuteA(NULL, "open", headerAbsolutePath.string().c_str(), NULL, NULL, SW_SHOWMAXIMIZED);
-            if ((int)hRes <= 32)
-            {
-                BOREALIS_CORE_ERROR("Failed to open header file.Error code : {}", (int)hRes);
-            }
+            //hRes = ShellExecuteA(NULL, "open", headerAbsolutePath.string().c_str(), NULL, NULL, SW_SHOWMAXIMIZED);
+            //if ((int)hRes <= 32)
+            //{
+            //    BOREALIS_CORE_ERROR("Failed to open header file.Error code : {}", (int)hRes);
+            //}
 
-            hRes = ShellExecuteA(NULL, "open", sourceAbsolutePath.string().c_str(), NULL, NULL, SW_SHOWMAXIMIZED);
-            if ((int)hRes <= 32)
-            {
-                BOREALIS_CORE_ERROR("Failed to open source file.Error code : {}", (int)hRes);
-            }
+            //hRes = ShellExecuteA(NULL, "open", sourceAbsolutePath.string().c_str(), NULL, NULL, SW_SHOWMAXIMIZED);
+            //if ((int)hRes <= 32)
+            //{
+            //    BOREALIS_CORE_ERROR("Failed to open source file.Error code : {}", (int)hRes);
+            //}
 
             m_NodeCreationMessage = "Node " + className + " created successfully.";
         }

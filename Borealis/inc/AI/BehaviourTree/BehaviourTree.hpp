@@ -28,7 +28,7 @@ namespace Borealis
     {
     public:
         BehaviourTree();
-        BehaviourTree(const BehaviourTree& other);
+
 
         ~BehaviourTree();
 

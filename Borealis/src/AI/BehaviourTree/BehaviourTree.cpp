@@ -20,11 +20,7 @@ namespace Borealis
 {
     BehaviourTree::BehaviourTree() : mRootNode(nullptr), mTreeName("")
     {}
-    BehaviourTree::BehaviourTree(const BehaviourTree& other)
-    {
-        mTreeName = other.GetBehaviourTreeName();
-        mRootNode = other.GetRootNode();
-    }
+
     BehaviourTree::~BehaviourTree(){}
     void BehaviourTree::Update(float dt, Entity& entity)
     {

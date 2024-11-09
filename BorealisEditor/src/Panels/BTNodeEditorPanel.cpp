@@ -1027,8 +1027,30 @@ namespace Borealis
             NodeHeaderCodeFormat::WriteToFile(headerFilePath, headerCode);
             NodeHeaderCodeFormat::WriteToFile(sourceFilePath, sourceCode);
 
-            // Register the new node in NodeFactory
-            //NodeFactory::RegisterNodePrototype(className,MakeRef<BehaviourNode>(className));
+            // Convert to absolute paths
+            std::filesystem::path headerAbsolutePath = std::filesystem::absolute(headerFilePath);
+            std::filesystem::path sourceAbsolutePath = std::filesystem::absolute(sourceFilePath);
+            // Ensure files exist
+            if (!std::filesystem::exists(headerAbsolutePath) || !std::filesystem::exists(sourceAbsolutePath))
+            {
+                BOREALIS_CORE_ERROR("One or both files do not exist.");
+                return;
+            }
+
+            // Open the files using ShellExecuteA
+            HINSTANCE hRes;
+
+            hRes = ShellExecuteA(NULL, "open", headerAbsolutePath.string().c_str(), NULL, NULL, SW_SHOWMAXIMIZED);
+            if ((int)hRes <= 32)
+            {
+                BOREALIS_CORE_ERROR("Failed to open header file.Error code : {}", (int)hRes);
+            }
+
+            hRes = ShellExecuteA(NULL, "open", sourceAbsolutePath.string().c_str(), NULL, NULL, SW_SHOWMAXIMIZED);
+            if ((int)hRes <= 32)
+            {
+                BOREALIS_CORE_ERROR("Failed to open source file.Error code : {}", (int)hRes);
+            }
 
             m_NodeCreationMessage = "Node " + className + " created successfully.";
         }
@@ -1107,16 +1129,6 @@ namespace Borealis
             {
                 rootNodes.push_back(node);
             }
-        }
-
-        // Assign positions based on depth
-        const float levelSpacing = 300.0f; // Vertical spacing between levels
-        const float nodeSpacing = 300.0f;  // Horizontal spacing between nodes
-        float currentX = 0.0f;             // Starting X position
-
-        for (auto& rootNode : rootNodes)
-        {
-            AssignPositionsRecursive(rootNode, 0, currentX, nodeSpacing, levelSpacing, nodeMap, nodeChildrenMap);
         }
     }
     void BTNodeEditorPanel::LoadBehaviorTree(const std::string& filepath)
@@ -1422,50 +1434,6 @@ namespace Borealis
             return NodeType::LEAF;
         else
             return NodeType::UNKNOWN;
-    }
-
-    void BTNodeEditorPanel::AssignPositionsRecursive(
-        Ref<Node> node,
-        int depth,
-        float& currentX,
-        float nodeSpacing,
-        float levelSpacing,
-        std::unordered_map<int, Ref<Node>>& nodeMap,
-        std::unordered_map<int, std::vector<int>>& nodeChildrenMap)
-    {
-        if (!node)
-            return;
-
-        // Set node position
-        node->Position = ImVec2(currentX, depth * levelSpacing);
-        // Save the starting X position for this node's children
-        float startX = currentX;
-
-        // Get the children of this node
-        const auto& childIds = nodeChildrenMap[node->ID.Get()];
-        int childCount = static_cast<int>(childIds.size());
-
-        // If the node has children, process them
-        if (childCount > 0)
-        {
-            // For centering the parent node over its children
-            float childrenXSum = 0.0f;
-
-            for (int childId : childIds)
-            {
-                auto childNode = nodeMap[childId];
-                AssignPositionsRecursive(childNode, depth + 1, currentX, nodeSpacing, levelSpacing, nodeMap, nodeChildrenMap);
-                childrenXSum += childNode->Position.x;
-            }
-
-            // Center this node over its children
-            node->Position.x = childrenXSum / childCount;
-        }
-        else
-        {
-            // Leaf node, move to next position
-            currentX += nodeSpacing;
-        }
     }
     Ref<Node> BTNodeEditorPanel::FindNode(ed::NodeId id)
     {

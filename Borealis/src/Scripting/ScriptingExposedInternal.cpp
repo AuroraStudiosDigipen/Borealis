@@ -75,6 +75,7 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_AddForce);
 		BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_AddTorque);
 		BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_AddImpulse);
+		BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_Move);
 
 		BOREALIS_ADD_INTERNAL_CALL(ScriptComponent_AddComponent);
 		BOREALIS_ADD_INTERNAL_CALL(ScriptComponent_RemoveComponent);
@@ -399,6 +400,15 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		auto& rb = entity.GetComponent<RigidBodyComponent>();
 		PhysicsSystem::AddForce(entity.GetComponent<RigidBodyComponent>().bodyID, *force);
+	}
+	void RigidbodyComponent_Move(UUID uuid, glm::vec3* vec)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		auto& rb = entity.GetComponent<RigidBodyComponent>();
+		PhysicsSystem::move(rb, *vec);
 	}
 	void RigidbodyComponent_GetLinearVelocity(UUID uuid, glm::vec3* velocity)
 	{

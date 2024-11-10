@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
 using System.Runtime.CompilerServices;
 
 namespace Borealis
@@ -34,6 +35,10 @@ namespace Borealis
         virtual public void OnJointBreak() { }
         virtual public void OnAnimatorMove() { }
         virtual public void OnAnimatorIK() { }
+
+        virtual public void OnCollisionEnter(ulong entityID) { }
+        virtual public void OnCollisionExit(ulong entityID) { }
+        virtual public void OnCollisionStay(ulong entityID) { }
 
         private void SetInstanceID(ulong id)
         {

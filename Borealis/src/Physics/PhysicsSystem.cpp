@@ -237,17 +237,17 @@ namespace Borealis
 
 	void MyContactListener::OnContactAdded(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings)
 	{
-		sData.onCollisionPairAddedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
+		//sData.onCollisionPairAddedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
 	}
 
 	void MyContactListener::OnContactPersisted(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings)
 	{
-		sData.onCollisionPairPersistedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
+		//sData.onCollisionPairPersistedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
 	}
 
 	void MyContactListener::OnContactRemoved(const SubShapeIDPair& inSubShapePair)
 	{
-		sData.onCollisionPairRemovedQueue.push({ PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody1ID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody2ID().GetIndexAndSequenceNumber())});
+		//sData.onCollisionPairRemovedQueue.push({ PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody1ID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody2ID().GetIndexAndSequenceNumber())});
 	}
 
 	std::queue<CollisionPair>& PhysicsSystem::GetCollisionEnterQueue() {return sData.onCollisionPairAddedQueue; }
@@ -397,8 +397,16 @@ void PhysicsSystem::Init()
 		{
 			auto parentEntity = SceneManager::GetActiveScene()->GetEntityByUUID(transform.ParentID);
 			auto parentTransform = TransformComponent::GetGlobalTransform(parentEntity);
-			auto localTransform = newTransform * glm::inverse(parentTransform);
-			Math::MatrixDecomposition(&localTransform, &transform.Translate, &transform.Rotation, &transform.Scale);
+			if (parentEntity.HasComponent<ScriptComponent>() && parentEntity.GetComponent<ScriptComponent>().HasScript("ThirdPersonController"))
+			{
+				auto& tc = parentEntity.GetComponent<TransformComponent>();
+				Math::MatrixDecomposition(&newTransform, &tc.Translate, &tc.Rotation, &tc.Scale);
+			}
+			else
+			{
+				auto localTransform = newTransform * glm::inverse(parentTransform);
+				Math::MatrixDecomposition(&localTransform, &transform.Translate, &transform.Rotation, &transform.Scale);
+			}
 
 		}
 
@@ -554,13 +562,10 @@ void PhysicsSystem::Init()
 	void PhysicsSystem::move(RigidBodyComponent& rigidbody, glm::vec3 motion)
 	{
 		// Get the current position of the body
-		JPH::RVec3 position = sData.body_interface->GetPosition((BodyID)rigidbody.bodyID);
-
-		// Add the motion to the position
-		position += JPH::RVec3(motion.x, motion.y, motion.z);
+		JPH::RVec3 JoltMotion = JPH::RVec3(motion.x, motion.y, motion.z);
 
 		// Set the new position
-		sData.body_interface->SetPosition((BodyID)rigidbody.bodyID, position, EActivation::Activate);
+		sData.body_interface->SetLinearVelocity((BodyID)rigidbody.bodyID, JoltMotion);
 	}
 
 	void PhysicsSystem::addBody(TransformComponent& transform, RigidBodyComponent& rigidbody, MeshFilterComponent& mesh, UUID entityID) {

@@ -261,6 +261,8 @@ namespace Borealis
 
 	void RigidbodyComponent_AddTorque(UUID uuid, glm::vec3* force);
 
+	void RigidbodyComponent_Move(UUID uuid, glm::vec3* vec);
+
 	void RigidbodyComponent_GetLinearVelocity(UUID uuid, glm::vec3* velocity);
 	void RigidbodyComponent_SetLinearVelocity(UUID uuid, glm::vec3* velocity);
 	void RigidbodyComponent_GetAngularVelocity(UUID uuid, glm::vec3* velocity);

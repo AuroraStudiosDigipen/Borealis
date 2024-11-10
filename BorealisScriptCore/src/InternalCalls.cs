@@ -175,6 +175,8 @@ namespace Borealis
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void RigidbodyComponent_AddImpulse(ulong id, ref Vector3 force);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void RigidbodyComponent_Move(ulong id, ref Vector3 vec);
 
 
         #endregion

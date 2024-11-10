@@ -13,6 +13,10 @@ namespace Borealis
     public class Rigidbody : Component
     {
         //public int childCount;
+
+        public Rigidbody()
+        {
+        }
         internal Rigidbody(ulong id)
         {
             InstanceID = id;
@@ -136,9 +140,9 @@ namespace Borealis
             InternalCalls.RigidbodyComponent_AddTorque(GetInstanceID(), ref torque);
         }
 
-        public void Move(Vector3 position, Quaternion rotation)
+        public void Move(Vector3 vec)
         {
-
+            InternalCalls.RigidbodyComponent_Move(GetInstanceID(), ref vec);
         }
 
         public void MovePosition(Vector3 position)

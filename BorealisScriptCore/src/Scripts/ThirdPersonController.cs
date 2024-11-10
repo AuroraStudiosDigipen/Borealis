@@ -13,14 +13,14 @@ public class ThirdPersonController : MonoBehaviour
     public GameObject CamPitchPivot;
     public GameObject PlayerModel;
 
-
+    private Rigidbody rb;
     private Vector3 VerticalVelocity;
     private bool IsMoving = false;
 
     // Start is called before the first frame update
     public override void Start()
     {
-
+        rb = new Rigidbody(PlayerModel.GetInstanceID());
     }
 
     // Update is called once per frame
@@ -54,26 +54,40 @@ public class ThirdPersonController : MonoBehaviour
             PlayerModel.transform.forward = CamYawPivot.transform.forward;
         }
 
-        //Handle Gravity 
-        if (VerticalVelocity == Vector3.zero)
-        {
-            //Small gravity applied when character is grounded to ensure grounded flag stays active
-            VerticalVelocity = Vector3.down * 0.5f;
+        ////Handle Gravity 
+        //if (VerticalVelocity == Vector3.zero)
+        //{
+        //    //Small gravity applied when character is grounded to ensure grounded flag stays active
+        //    VerticalVelocity = Vector3.down * 0.5f;
 
-            //Jump
-            if (Input.GetKeyDown(KeyCode.Space))
-                VerticalVelocity = Vector3.up * JumpSpeed;
-        }
-        else
-        {
-            //Increase gravity for every frame we're not contacting the ground
-            VerticalVelocity += Vector3.down * Gravity * Time.deltaTime;
-        }
+        //    //Jump
+        //    if (Input.GetKeyDown(KeyCode.Space))
+        //        VerticalVelocity = Vector3.up * JumpSpeed;
+        //}
+        //else
+        //{
+        //    //Increase gravity for every frame we're not contacting the ground
+        //    VerticalVelocity += Vector3.down * Gravity * Time.deltaTime;
+        //}
 
-        //Apply Gravity
-        dir += VerticalVelocity;
+        ////Apply Gravity
+        //dir += VerticalVelocity;
 
         //Apply movement
-        //CC.Move(dir * MoveSpeed * Time.deltaTime);
+        rb.Move(dir * MoveSpeed * Time.deltaTime);
     }
+
+    //public override void OnCollisionEnter(ulong id)
+    //{
+    //    GameObject obj = new GameObject(id);
+
+    //    VerticalVelocity = Vector3.zero;
+    //}
+
+    //public override void OnCollisionStay(ulong id)
+    //{
+    //    GameObject obj = new GameObject(id);
+
+    //    VerticalVelocity = Vector3.zero;
+    //}
 }

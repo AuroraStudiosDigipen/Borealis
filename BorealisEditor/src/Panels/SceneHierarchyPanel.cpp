@@ -210,6 +210,7 @@ namespace Borealis
 			}
 			auto currentEnum = Property.get_value(rInstance);
 			auto currentEnumString = Property.get_enumeration().value_to_name(currentEnum);
+			bool isTrue = false;
 
 			if (ImGui::BeginCombo((name + "##" + propName).c_str(), currentEnumString.to_string().c_str()))
 			{
@@ -220,7 +221,7 @@ namespace Borealis
 					if (ImGui::Selectable(enumName.to_string().c_str(), isSelected))
 					{
 						Property.set_value(rInstance, enumValue);
-						return true;
+						isTrue = true;
 					}
 					if (isSelected)
 					{
@@ -229,7 +230,7 @@ namespace Borealis
 				}
 				ImGui::EndCombo();
 			}
-			return false;
+			return isTrue;
 		}
 
 		if (propType == rttr::type::get<bool>())

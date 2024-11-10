@@ -72,6 +72,9 @@
     <ClInclude Include="inc\ResourceManager.hpp">
       <Filter>inc</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Panels\ConsolePanel.hpp">
+      <Filter>inc\Panels</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\EditorApp.cpp">
@@ -118,6 +121,9 @@
     </ClCompile>
     <ClCompile Include="src\ResourceManager.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Panels\ConsolePanel.cpp">
+      <Filter>src\Panels</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

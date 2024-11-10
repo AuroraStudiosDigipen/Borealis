@@ -28,6 +28,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <thread>
 #include <glm/glm.hpp>
 
+#include <unordered_map>
+
 namespace Borealis
 {
 
@@ -132,12 +134,45 @@ namespace Borealis
 		***********************************************************/
 		static uint32_t vec4ToColor(const glm::vec4& color);
 
+		static void logInfo(const char* message);
+		static void logWarning(const char* message);
+		static void logError(const char* message);
+
 	private:
 		// Disable copying
 		TracyProfiler(const TracyProfiler&) = delete;
 		TracyProfiler& operator=(const TracyProfiler&) = delete;
+
+		static size_t totalAllocatedMemory;
 	};
 
+	class Timer {
+	public:
+		Timer(std::string name) : mTime(std::chrono::high_resolution_clock::now()), mName(name){}
+		~Timer();
+		
+	private:
+		std::chrono::time_point<std::chrono::high_resolution_clock> mTime;
+		std::string mName;
+	};
+
+	class MemoryTracker {
+	public:
+		MemoryTracker(const std::string& name)
+			: m_name(name), m_memoryAllocated(0) {}
+
+		void TrackAllocation(void* ptr, size_t size);
+
+		void TrackDeallocation(void* ptr);
+
+		void PlotMemory();
+
+	private:
+		std::string m_name;
+		size_t m_memoryAllocated;
+
+		std::unordered_map<void*, size_t> m_allocations;
+	};
 
 }
 

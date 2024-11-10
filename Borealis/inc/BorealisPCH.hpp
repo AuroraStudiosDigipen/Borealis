@@ -42,5 +42,6 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <initializer_list>
 
 #include <Debugging/Profiler.hpp>
+#include <Debugging/Console.hpp>
 
 #endif

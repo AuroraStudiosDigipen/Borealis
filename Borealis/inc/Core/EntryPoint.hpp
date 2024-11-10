@@ -17,6 +17,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/ApplicationManager.hpp>
 #include <Core/LoggerSystem.hpp>
 #include <Debugging/Profiler.hpp>
+#include <Debugging/Console.hpp>
 
 	int main(int argc, char** argv)
 	{

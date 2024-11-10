@@ -1,6 +1,6 @@
 /******************************************************************************/
 /*!
-\file		Profiler.hpp
+\file		Profiler.cpp
 \author 	Liu Chengrong
 \par    	email: chengrong.liu\@digipen.edu
 \date   	July 10, 2024
@@ -18,13 +18,17 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <common/TracySystem.hpp>
 #include <cstring>  
 
+
 //Tracy Profiler (https://github.com/wolfpld/tracy)
 
 namespace Borealis
 {
+    size_t Borealis::TracyProfiler::totalAllocatedMemory = 0;
+
     // Records a custom plot value in Tracy with a given plot name.
     void TracyProfiler::recordPlot(const char* plotName, float value) {
         TracyPlot(plotName, value); 
+        
     }
 
     // Logs a message in Tracy profiler.
@@ -41,6 +45,10 @@ namespace Borealis
     // Tracks a memory allocation in Tracy profiler.
     void TracyProfiler::trackAllocation(void* ptr, size_t size) {
         TracyAlloc(ptr, size);  // Track memory allocation in Tracy
+
+        totalAllocatedMemory += size;
+
+        recordPlot("testing", totalAllocatedMemory);
     }
 
     // Tracks a memory free operation in Tracy profiler.
@@ -104,4 +112,48 @@ namespace Borealis
         // Pack color as 0xAARRGGBB
         return (a << 24) | (r << 16) | (g << 8) | b;
     }
+
+    void TracyProfiler::logInfo(const char* message)
+    {
+        size_t messageLength = strlen(message);
+        TracyMessageC(message, messageLength,0x00FFFFFF);
+    }
+    void TracyProfiler::logWarning(const char* message)
+    {
+        size_t messageLength = strlen(message);
+        TracyMessageC(message, messageLength, 0x00FFFF00);
+    }
+    void TracyProfiler::logError(const char* message)
+    {
+        size_t messageLength = strlen(message);
+        TracyMessageC(message, messageLength, 0x00FF0000);
+    }
+
+    Timer::~Timer()
+    {
+        double time_run = std::chrono::duration<double, std::milli>((std::chrono::high_resolution_clock::now() - mTime)).count();
+        TracyPlot(mName.c_str(), time_run);
+    }
+
+    void MemoryTracker::TrackAllocation(void* ptr, size_t size) {
+        m_memoryAllocated += size;
+        m_allocations[ptr] = size; // Store size for accurate deallocation tracking
+        TracyAlloc(ptr, size); // Pass actual size
+    }
+
+    void MemoryTracker::TrackDeallocation(void* ptr) {
+        auto it = m_allocations.find(ptr);
+        if (it != m_allocations.end()) {
+            m_memoryAllocated -= it->second;
+            TracyFree(ptr);
+            m_allocations.erase(it); // Remove entry after deallocation
+        }
+    }
+
+    void MemoryTracker::PlotMemory() {
+        TracyPlot(("Memory Usage: " + m_name).c_str(), static_cast<double>(m_memoryAllocated));
+    }
+
+
+
 }

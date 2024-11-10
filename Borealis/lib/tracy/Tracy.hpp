@@ -126,9 +126,9 @@
 
 #include <string.h>
 
-#include "../tracy/client/TracyLock.hpp"
-#include "../tracy/client/TracyProfiler.hpp"
-#include "../tracy/client/TracyScoped.hpp"
+#include "client/TracyLock.hpp"
+#include "client/TracyProfiler.hpp"
+#include "client/TracyScoped.hpp"
 
 #define TracyNoop tracy::ProfilerAvailable()
 

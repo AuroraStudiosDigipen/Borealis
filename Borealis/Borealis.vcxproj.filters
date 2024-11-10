@@ -280,6 +280,9 @@
     <ClInclude Include="inc\Core\WindowManager.hpp">
       <Filter>inc\Core</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Debugging\Console.hpp">
+      <Filter>inc\Debugging</Filter>
+    </ClInclude>
     <ClInclude Include="inc\Debugging\Profiler.hpp">
       <Filter>inc\Debugging</Filter>
     </ClInclude>
@@ -2011,7 +2014,6 @@
     <ClInclude Include="lib\xproperty\include\xproperty\xproperty_config.hpp">
       <Filter>lib\xproperty\include\xproperty</Filter>
     </ClInclude>
-    <ClInclude Include="inc\Debugging\Console.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lib\imGuizmo\imGuizmo.cpp">
@@ -2088,6 +2090,9 @@
     </ClCompile>
     <ClCompile Include="src\Core\WindowManager.cpp">
       <Filter>src\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Debugging\Console.cpp">
+      <Filter>src\Debugging</Filter>
     </ClCompile>
     <ClCompile Include="src\Debugging\Profiler.cpp">
       <Filter>src\Debugging</Filter>
@@ -2257,6 +2262,5 @@
     <ClCompile Include="src\Scripting\ScriptingUtils.cpp">
       <Filter>src\Scripting</Filter>
     </ClCompile>
-    <ClCompile Include="src\Debugging\Console.cpp" />
   </ItemGroup>
 </Project>

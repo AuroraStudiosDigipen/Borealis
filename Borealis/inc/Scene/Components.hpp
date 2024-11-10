@@ -251,10 +251,18 @@ namespace Borealis
 		Capsule
 	};
 
+	enum class MovementType : int
+	{
+		Static,
+		Dynamic,
+		Kinematic
+	};
+
 	struct RigidBodyComponent
 	{
 
 		RigidBodyType shape = RigidBodyType::Box;
+		MovementType movement = MovementType::Static;
 		float radius = 1.5f; //radius for circle
 		glm::vec3 size = { 1.f,1.f,1.f }; //size for box
 		float halfHeight = 1.f; //half height for capsule

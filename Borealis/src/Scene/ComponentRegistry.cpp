@@ -160,10 +160,19 @@ namespace Borealis
 				value("Capsule", RigidBodyType::Capsule)
                 );
 
+		registration::enumeration<MovementType>("Rigidbody Movement Type")
+			(
+				value("Static", MovementType::Static),
+				value("Dynamic", MovementType::Dynamic),
+				value("Kinematic", MovementType::Kinematic)
+				);
+
         registration::class_<RigidBodyComponent>("Rigid Body Component")
             (metadata("Component", true))
             .constructor<>()
             .property("Shape", &RigidBodyComponent::shape)
+
+			.property("Movement", &RigidBodyComponent::movement)
 
 			.property("Dynamic", &RigidBodyComponent::dynamicBody)
 

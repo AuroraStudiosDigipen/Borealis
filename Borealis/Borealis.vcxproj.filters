@@ -445,6 +445,9 @@
     <ClInclude Include="inc\Scene\Serialiser.hpp">
       <Filter>inc\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Scene\SerialiserUtils.hpp">
+      <Filter>inc\Scene</Filter>
+    </ClInclude>
     <ClInclude Include="inc\Scripting\ScriptClass.hpp">
       <Filter>inc\Scripting</Filter>
     </ClInclude>
@@ -2014,7 +2017,6 @@
     <ClInclude Include="lib\xproperty\include\xproperty\xproperty_config.hpp">
       <Filter>lib\xproperty\include\xproperty</Filter>
     </ClInclude>
-    <ClInclude Include="inc\Scene\SerialiserUtils.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lib\imGuizmo\imGuizmo.cpp">
@@ -2245,6 +2247,9 @@
     <ClCompile Include="src\Scene\Serialiser.cpp">
       <Filter>src\Scene</Filter>
     </ClCompile>
+    <ClCompile Include="src\Scene\SerialiserUtils.cpp">
+      <Filter>src\Scene</Filter>
+    </ClCompile>
     <ClCompile Include="src\Scripting\ScriptClass.cpp">
       <Filter>src\Scripting</Filter>
     </ClCompile>
@@ -2263,6 +2268,5 @@
     <ClCompile Include="src\Scripting\ScriptingUtils.cpp">
       <Filter>src\Scripting</Filter>
     </ClCompile>
-    <ClCompile Include="src\Scene\SerialiserUtils.cpp" />
   </ItemGroup>
 </Project>

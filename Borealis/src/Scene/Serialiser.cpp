@@ -28,8 +28,18 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scripting/ScriptInstance.hpp>
 #include <Scripting/ScriptField.hpp>
 #include <Scripting/ScriptingSystem.hpp>
+#include <Scripting/ScriptingUtils.hpp>
 namespace Borealis
 {
+
+	struct ScriptInitialData
+	{
+		Ref<ScriptInstance> scriptInstance;
+		UUID targetUUID;
+		std::string scriptFieldName;
+	};
+	static std::queue<ScriptInitialData> scriptQueue;
+
 	void Serialiser::ParseTree(YAML::Node& node, Ref<BehaviourNode> parentNode, BehaviourTree& tree, int parentDepth)
 	{
 		// Extract the node name and depth
@@ -471,6 +481,22 @@ namespace Borealis
 						const YAML::Node& fieldData = field.second;
 						fieldData["Type"].as<std::string>();
 
+						if (fieldData["Type"].as<std::string>() == "GameObject")
+						{
+							uint64_t data = fieldData["Data"].as<uint64_t>();
+							MonoObject* field = nullptr;
+							InitGameObject(field, data);
+							scriptInstance->SetFieldValue(fieldName, field);
+							continue;
+						}
+
+						if (fieldData["Type"].as<std::string>() == "MonoBehaviour")
+						{
+							uint64_t data = fieldData["Data"].as<uint64_t>();
+							scriptQueue.push({ scriptInstance, data, fieldName });
+							continue;
+						}
+
 						if (fieldData["Type"].as<std::string>() == "Bool")
 						{
 							bool data = fieldData["Data"].as<bool>();
@@ -604,20 +630,11 @@ namespace Borealis
 		auto entities = data["Entities"];
 		if (entities)
 		{
-			struct ScriptInitialData
-			{
-				Ref<ScriptInstance> scriptInstance;
-				UUID targetUUID;
-				std::string scriptFieldName;
-			};
-			std::queue<ScriptInitialData> scriptQueue;
 			for (auto entity : entities)
 			{
 				uint64_t uuid = entity["EntityID"].as<uint64_t>(); // UUID
 				mScene->mEntityMap[uuid] = DeserialiseEntity(entity, mScene->GetRegistry(), *reinterpret_cast<UUID*>(&uuid));
 				Entity entity2(mScene->mEntityMap[uuid], mScene.get());
-				auto testID = entity2.GetUUID();
-				std::cout << testID;
 			}
 			while (!scriptQueue.empty())
 			{

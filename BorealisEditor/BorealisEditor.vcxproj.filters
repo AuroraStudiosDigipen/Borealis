@@ -48,7 +48,13 @@
     <ClInclude Include="inc\EditorAssets\SkinnedMeshImporter.hpp">
       <Filter>inc\EditorAssets</Filter>
     </ClInclude>
+    <ClInclude Include="inc\EditorComponentRegistry.hpp">
+      <Filter>inc</Filter>
+    </ClInclude>
     <ClInclude Include="inc\EditorLayer.hpp">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\EditorSerialiser.hpp">
       <Filter>inc</Filter>
     </ClInclude>
     <ClInclude Include="inc\Panels\ConsolePanel.hpp">
@@ -75,8 +81,6 @@
     <ClInclude Include="inc\ResourceManager.hpp">
       <Filter>inc</Filter>
     </ClInclude>
-    <ClInclude Include="inc\EditorSerialiser.hpp" />
-    <ClInclude Include="inc\EditorComponentRegistry.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\EditorApp.cpp">
@@ -103,7 +107,13 @@
     <ClCompile Include="src\EditorAssets\SkinnedMeshImporter.cpp">
       <Filter>src\EditorAssets</Filter>
     </ClCompile>
+    <ClCompile Include="src\EditorComponentRegistry.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="src\EditorLayer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\EditorSerialiser.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\Panels\ConsolePanel.cpp">
@@ -127,7 +137,5 @@
     <ClCompile Include="src\ResourceManager.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\EditorSerialiser.cpp" />
-    <ClCompile Include="src\EditorComponentRegistry.cpp" />
   </ItemGroup>
 </Project>

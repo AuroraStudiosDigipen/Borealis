@@ -178,7 +178,7 @@ namespace Borealis
 
 		if (Property.get_metadata("Hide").is_valid())
 		{
-			return;
+			return false;
 		}
 
 		if (Property.is_enumeration())
@@ -441,7 +441,7 @@ namespace Borealis
 				{
 					AssetHandle data = *(const uint64_t*)payload->Data;
 					MeshConfig config = GetConfig<MeshConfig>(AssetManager::GetMetaData(data).Config);
-					if (!config.skinMesh) return;
+					if (!config.skinMesh) return false;
 					rttr::variant value(AssetManager::GetAsset<SkinnedModel>(data));
 					Property.set_value(rInstance, value);
 				}
@@ -618,8 +618,9 @@ namespace Borealis
 	}
 
 	template<> //temp until idk
-	static void DrawComponentLayout<MeshRendererComponent>(const std::string& name, Entity entity, bool allowDelete)
+	static bool DrawComponentLayout<MeshRendererComponent>(const std::string& name, Entity entity, bool allowDelete)
 	{
+		bool isEdited = false;
 		if (entity.HasComponent<MeshRendererComponent>())
 		{
 			ImGui::Spacing();
@@ -648,6 +649,7 @@ namespace Borealis
 					if (ImGui::MenuItem("Remove Component"))
 					{
 						deleteComponent = true;
+						isEdited = true;
 					}
 
 					ImGui::EndPopup();
@@ -661,7 +663,7 @@ namespace Borealis
 			if (open)
 			{
 				ImGui::Spacing();
-				DrawComponent(component);
+				isEdited = DrawComponent(component, entity) ? true : isEdited;
 			}
 
 			if (deleteComponent)
@@ -678,11 +680,13 @@ namespace Borealis
 				MaterialEditor::RenderProperties(component.Material);
 			}
 		}
+		return isEdited;
 	}
 
 	template<> //temp until idk
-	static void DrawComponentLayout<SkinnedMeshRendererComponent>(const std::string& name, Entity entity, bool allowDelete)
+	static bool DrawComponentLayout<SkinnedMeshRendererComponent>(const std::string& name, Entity entity, bool allowDelete)
 	{
+		bool isEdited = false;
 		if (entity.HasComponent<SkinnedMeshRendererComponent>())
 		{
 			ImGui::Spacing();
@@ -711,6 +715,7 @@ namespace Borealis
 					if (ImGui::MenuItem("Remove Component"))
 					{
 						deleteComponent = true;
+						isEdited = true;
 					}
 
 					ImGui::EndPopup();
@@ -724,7 +729,7 @@ namespace Borealis
 			if (open)
 			{
 				ImGui::Spacing();
-				DrawComponent(component);
+				isEdited = DrawComponent(component, entity) ? true : isEdited;
 			}
 
 			if (deleteComponent)
@@ -741,6 +746,7 @@ namespace Borealis
 				MaterialEditor::RenderProperties(component.Material);
 			}
 		}
+		return isEdited;
 	}
 
 
@@ -1162,7 +1168,7 @@ namespace Borealis
 				std::vector<std::string> entityNames;
 				for (auto entity : entityIDList)
 				{
-					entityNames.push_back(context->GetEntityByUUID(entity).GetName());
+					entityNames.push_back(SceneManager::GetActiveScene()->GetEntityByUUID(entity).GetName());
 				}
 
 				std::string currentEntityName = "";
@@ -1496,6 +1502,8 @@ namespace Borealis
 			isEdited = SearchBar<BehaviourTreeComponent	>(search_text, entity, "Behaviour Tree", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<AudioSourceComponent		>(search_text, entity, "Audio Source", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<AudioListenerComponent	>(search_text, entity, "Audio Listener", search_buffer) ? true : isEdited;
+			isEdited = SearchBar<SkinnedMeshRendererComponent	>(search_text, entity, "Skinned Mesh Renderer", search_buffer) ? true : isEdited;
+
 
 			// scripts
 			for (auto [name, klass] : ScriptingSystem::mScriptClasses)
@@ -1533,6 +1541,7 @@ namespace Borealis
 		isEdited = DrawComponentLayout<BehaviourTreeComponent>("Behaviour Tree", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<AudioSourceComponent>("Audio Source", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<AudioListenerComponent>("Audio Listener", entity) ? true : isEdited;
+		isEdited = DrawComponentLayout<SkinnedMeshRendererComponent>("Skinned Mesh Renderer", entity) ? true : isEdited;
 
 
 		/*DrawComponent<CameraComponent>("Camera", mSelectedEntity, [](auto& cameraComponent)

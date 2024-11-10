@@ -30,6 +30,7 @@ namespace Borealis
     void L_RotatingMotion::OnUpdate(float dt, Entity& entity)
     {
         float speed = 2.0f;
+        if (dt == 0.0f) dt = 0.016f;  // Default to roughly 60 FPS
 
         // Access the entity's transform component
         auto& transforms = entity.GetComponent<TransformComponent>();

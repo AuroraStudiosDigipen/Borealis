@@ -169,7 +169,7 @@ namespace Borealis
 		return tokens;
 	}
 
-	static void DrawProperty(rttr::property& Property, ReflectionInstance& rInstance)
+	static bool DrawProperty(rttr::property& Property, ReflectionInstance& rInstance)
 	{
 		auto propType = Property.get_type();
 		auto propName = Property.get_name().to_string();

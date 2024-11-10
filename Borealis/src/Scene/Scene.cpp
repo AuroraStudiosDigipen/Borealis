@@ -232,7 +232,7 @@ namespace Borealis
 						AudioEngine::StopChannel(audio.channelID);
 						audio.isPlaying = false;
 						Vector3 pos = { transform.Translate.x,transform.Translate.y,transform.Translate.z };
-						audio.channelID = Borealis::AudioEngine::PlayAudio(audio, pos, audio.Volume, audio.isMute, audio.isLoop);
+						audio.channelID = Borealis::AudioEngine::PlayAudio(audio, pos, audio.Volume, audio.isMute, audio.isLoop, 0);
 						//audio.channelID = Borealis::AudioEngine::PlayAudio(audio.audio->AudioPath, {}, audio.Volume, audio.isMute, audio.isLoop);
 					}
 				}

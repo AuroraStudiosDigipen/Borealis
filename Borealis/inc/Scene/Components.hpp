@@ -311,6 +311,7 @@ namespace Borealis
 	
 	struct AudioSourceComponent
 	{
+		std::string groupName;
 		bool isLoop = false;
 		bool isMute = false;
 		bool isPlaying = false;

@@ -19,6 +19,9 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <string>
 #include <imgui.h>
 #include <Audio/AudioEngine.hpp>
+#include <Scene/scene.hpp>
+#include <Scene/Entity.hpp>
+#include <Core/core.hpp>
 
 namespace Borealis
 {
@@ -59,8 +62,10 @@ namespace Borealis
         void SetGroupVolume(const std::string& groupName, float volume);
 
         // Data
+
         std::unordered_map<std::string, GroupData> mAudioGroups; /*!< Map of audio group names to GroupData */
         float mMasterVolume = 1.0f; /*!< Master volume level (0.0 to 1.0) */
+        //int mDefaultGroupId;
     };
 }
 

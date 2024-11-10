@@ -22,7 +22,6 @@ namespace Borealis
         // Initialize some default audio groups
         AddAudioGroup("Music");
         AddAudioGroup("SFX");
-        AddAudioGroup("Dialogue");
     }
 
     void AudioMixerPanel::ImGuiRender()
@@ -37,7 +36,7 @@ namespace Borealis
 
         ImGui::Separator();
 
-        // Render each audio group
+        // Render each audio group and control its volume
         for (auto& [groupName, groupData] : mAudioGroups)
         {
             float& volume = groupData.volume;
@@ -46,6 +45,26 @@ namespace Borealis
                 SetGroupVolume(groupName, volume);
             }
         }
+
+        //// Add group assignment for each AudioSourceComponent
+        //for (auto& entity : mRegistry.view<AudioSourceComponent>())
+        //{
+        //    auto& audioSource = mRegistry.get<AudioSourceComponent>(entity);
+        //    
+        //    // Create dropdown for selecting the group
+        //    if (ImGui::BeginCombo("Select Group", audioSource.groupName.c_str()))
+        //    {
+        //        for (auto& [groupName, groupData] : mAudioGroups)
+        //        {
+        //            bool isSelected = (groupName == audioSource.groupName);
+        //            if (ImGui::Selectable(groupName.c_str(), isSelected))
+        //            {
+        //                audioSource.groupName = groupName;  // Assign the selected group to the audio source
+        //            }
+        //        }
+        //        ImGui::EndCombo();
+        //    }
+        //}
 
         // Add group button
         static char newGroupName[32] = "";
@@ -63,7 +82,7 @@ namespace Borealis
     {
         if (mAudioGroups.find(groupName) == mAudioGroups.end())
         {
-            int groupId = AudioEngine::CreateGroup(groupName);
+            int groupId = (groupName == "Music") ? 0 : AudioEngine::CreateGroup(groupName);  // Set group ID to 0 for "Music"
             mAudioGroups[groupName] = { groupId, 1.0f }; // Store group ID and default volume
         }
     }

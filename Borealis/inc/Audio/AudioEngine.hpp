@@ -1,17 +1,3 @@
-/******************************************************************************/
-/*!
-\file		AudioEngine.hpp
-\author 	Valerie Koh
-\par    	email: v.koh@digipen.edu
-\date   	September 11, 2024
-\brief		Declares the AudioEngine class for handling audio functionality
-
-Copyright (C) 2023 DigiPen Institute of Technology.
-Reproduction or disclosure of this file or its contents without the
-prior written consent of DigiPen Institute of Technology is prohibited.
-*/
-/******************************************************************************/
-
 #ifndef _AUDIO_ENGINE_H_
 #define _AUDIO_ENGINE_H_
 
@@ -222,6 +208,18 @@ namespace Borealis
             The volume level for the group in linear scale (0.0 - 1.0).
         *************************************************************************/
         static void SetGroupVolume(int groupId, float fVolumedB);
+
+        /*!***********************************************************************
+        \brief
+            Retrieves the default audio group ID.
+        \return
+            The ID of the default audio group.
+        *************************************************************************/
+        static int GetDefaultGroupId();
+
+        static int GetGroupIdForAudio(FMOD::Sound* fmodSound);
+
+        static int mDefaultGroupI; /*!< The default audio group ID */
 
     private:
         static std::map<int, float> mGroupVolumes; /*!< Map of group IDs and their volume levels */

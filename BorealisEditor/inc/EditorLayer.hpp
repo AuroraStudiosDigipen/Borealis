@@ -19,6 +19,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Borealis.hpp>
 #include <Panels/SceneHierarchyPanel.hpp>
 #include <Panels/ContentBrowserPanel.hpp>
+#include <Panels/AudioMixerPanel.hpp>
 #include <Graphics/EditorCamera.hpp>
 #include <EditorAssets/AssetImporter.hpp>
 namespace Borealis {
@@ -226,6 +227,7 @@ namespace Borealis {
 		EditorCamera mEditorCamera;
 		SceneHierarchyPanel SCPanel;
 		ContentBrowserPanel CBPanel;
+		AudioMixerPanel AMPanel;
 		bool mLightMode = true;
 
 		float mLineThickness = 1.0f;

@@ -34,6 +34,9 @@ namespace Borealis
 
         ChannelMap mChannels;
         ChannelGroupMap mChannelGroups;
+        typedef std::map<FMOD::Sound*, int> AudioGroupMap;
+        AudioGroupMap mAudioGroupMap;
+
     };
 
     static FMOD_VECTOR VectorToFmod(const Vector3& vPosition)
@@ -94,6 +97,7 @@ namespace Borealis
     }
 
     Implementation* sgpImplementation = nullptr;
+    int AudioEngine::mNextGroupId = 0;
 
     void AudioEngine::Init()
     {
@@ -149,7 +153,7 @@ namespace Borealis
             if (currMode & FMOD_3D)
             {
                 FMOD_VECTOR fmodPosition = VectorToFmod(vPosition);
-                FMOD_VECTOR fmodVelocity = { 0.0f, 0.0f, 0.0f };  // Set velocity if the sound is moving
+                FMOD_VECTOR fmodVelocity = { 0.0f, 0.0f, 0.0f };
 
                 // Set the 3D attributes for the sound
                 ErrorCheck(pChannel->set3DAttributes(&fmodPosition, &fmodVelocity));
@@ -170,6 +174,9 @@ namespace Borealis
                     FMOD::ChannelGroup* pGroup = itGroup->second;
                     ErrorCheck(pChannel->setChannelGroup(pGroup));
                 }
+
+                // Record the group for this audio
+                sgpImplementation->mAudioGroupMap[fmodSound] = groupId;
             }
 
             sgpImplementation->mChannels[nChannelId] = pChannel;
@@ -177,6 +184,7 @@ namespace Borealis
 
         return nChannelId;
     }
+
 
 
     bool AudioEngine::isSoundPlaying(int nChannelId)
@@ -263,30 +271,55 @@ namespace Borealis
 
     void AudioEngine::SetMasterVolume(float fVolumedB)
     {
+        // Convert from dB to linear volume
         float volume = dbToVolume(fVolumedB);
-        for (auto& channelPair : sgpImplementation->mChannels)
-        {
-            ErrorCheck(channelPair.second->setVolume(volume));
-        }
+
+        // Get the master channel group from the system
+        FMOD::ChannelGroup* masterGroup = nullptr;
+        ErrorCheck(sgpImplementation->mpSystem->getMasterChannelGroup(&masterGroup));
+
+        // Set the volume for the master channel group
+        ErrorCheck(masterGroup->setVolume(volume));
     }
+
 
     int AudioEngine::CreateGroup(const std::string& groupName)
     {
         FMOD::ChannelGroup* pGroup = nullptr;
         ErrorCheck(sgpImplementation->mpSystem->createChannelGroup(groupName.c_str(), &pGroup));
 
-        int groupId = sgpImplementation->mnNextChannelId++;
+        int groupId = mNextGroupId++;  // Use the static variable to generate unique group IDs
         sgpImplementation->mChannelGroups[groupId] = pGroup;
 
         return groupId;
     }
 
+
     void AudioEngine::SetGroupVolume(int groupId, float fVolumedB)
     {
+        // Find the channel group in the map using groupId
         auto it = sgpImplementation->mChannelGroups.find(groupId);
         if (it != sgpImplementation->mChannelGroups.end())
         {
+            // Set the volume for this channel group, converting from dB to linear scale
             ErrorCheck(it->second->setVolume(dbToVolume(fVolumedB)));
         }
+        else
+        {
+            // Handle the case where the groupId doesn't exist (optional logging or error handling)
+            std::cerr << "Error: Group ID " << groupId << " not found." << std::endl;
+        }
+    }
+
+    int AudioEngine::GetGroupIdForAudio(FMOD::Sound* fmodSound)
+    {
+        auto it = sgpImplementation->mAudioGroupMap.find(fmodSound);
+        if (it != sgpImplementation->mAudioGroupMap.end())
+        {
+            return it->second;  // Return the group ID
+        }
+
+        // If no group is found, return -1 or handle the case accordingly
+        return -1;
     }
 }

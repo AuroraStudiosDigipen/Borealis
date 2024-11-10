@@ -17,6 +17,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Audio/Audio.hpp>
 #include "Audio/AudioEngine.hpp"
 #include <Scene/Components.hpp>
+#include <Audio/AudioGroup.hpp>
 
 namespace Borealis
 {
@@ -166,17 +167,15 @@ namespace Borealis
             ErrorCheck(pChannel->setMode(bLoop ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF));
 
             // Assign the channel to the specified group using setChannelGroup
-            if (groupId != -1)
+            if (audio.group != AudioGroup::Master) // For now, assign all to Master
             {
+                int groupId = static_cast<int>(audio.group);  // Convert enum to integer
                 auto itGroup = sgpImplementation->mChannelGroups.find(groupId);
                 if (itGroup != sgpImplementation->mChannelGroups.end())
                 {
                     FMOD::ChannelGroup* pGroup = itGroup->second;
                     ErrorCheck(pChannel->setChannelGroup(pGroup));
                 }
-
-                // Record the group for this audio
-                sgpImplementation->mAudioGroupMap[fmodSound] = groupId;
             }
 
             sgpImplementation->mChannels[nChannelId] = pChannel;
@@ -184,6 +183,7 @@ namespace Borealis
 
         return nChannelId;
     }
+
 
 
 

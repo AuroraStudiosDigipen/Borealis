@@ -172,6 +172,7 @@
     <ClInclude Include="inc\Assets\IAssetManager.hpp" />
     <ClInclude Include="inc\Audio\Audio.hpp" />
     <ClInclude Include="inc\Audio\AudioEngine.hpp" />
+    <ClInclude Include="inc\Audio\AudioGroup.hpp" />
     <ClInclude Include="inc\BorealisPCH.hpp" />
     <ClInclude Include="inc\Core\ApplicationManager.hpp" />
     <ClInclude Include="inc\Core\Core.hpp" />

@@ -456,6 +456,18 @@ void PhysicsSystem::Init()
 		return { radius, halfHeight };
 	}
 
+	void PhysicsSystem::move(RigidBodyComponent& rigidbody, glm::vec3 motion)
+	{
+		// Get the current position of the body
+		JPH::RVec3 position = sData.body_interface->GetPosition((BodyID)rigidbody.bodyID);
+
+		// Add the motion to the position
+		position += JPH::RVec3(motion.x, motion.y, motion.z);
+
+		// Set the new position
+		sData.body_interface->SetPosition((BodyID)rigidbody.bodyID, position, EActivation::Activate);
+	}
+
 	void PhysicsSystem::addBody(TransformComponent& transform, RigidBodyComponent& rigidbody, MeshFilterComponent& mesh, UUID entityID) {
 		ShapeRefC shape;
 		ShapeSettings::ShapeResult shape_result;

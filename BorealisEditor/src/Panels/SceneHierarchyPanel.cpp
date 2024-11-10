@@ -513,10 +513,11 @@ namespace Borealis
 					Ref<BehaviourTree> clonedTree = BTreeFactory::Instance().CloneBehaviourTree(originalTree);
 					rttr::variant value(clonedTree);
 					Property.set_value(rInstance, value);
+					return true;
 				}
 				ImGui::EndDragDropTarget();
 			}
-			return;
+			return false;
 		}
 
 		if (propType == rttr::type::get<Ref<Audio>>())

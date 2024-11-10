@@ -173,6 +173,7 @@ IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="inc\BTNodeEditor.hpp" />
     <ClInclude Include="inc\EditorAssets\AnimationImporter.hpp" />
     <ClInclude Include="inc\EditorAssets\AssetImporter.hpp" />
     <ClInclude Include="inc\EditorAssets\FontImporter.hpp" />
@@ -183,6 +184,7 @@ IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
     <ClInclude Include="inc\EditorComponentRegistry.hpp" />
     <ClInclude Include="inc\EditorLayer.hpp" />
     <ClInclude Include="inc\EditorSerialiser.hpp" />
+    <ClInclude Include="inc\Panels\BTNodeEditorPanel.hpp" />
     <ClInclude Include="inc\Panels\ConsolePanel.hpp" />
     <ClInclude Include="inc\Panels\ContentBrowserPanel.hpp" />
     <ClInclude Include="inc\Panels\SceneHierarchyPanel.hpp" />
@@ -193,6 +195,7 @@ IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
     <ClInclude Include="inc\ResourceManager.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\BTNodeEditor.cpp" />
     <ClCompile Include="src\EditorApp.cpp" />
     <ClCompile Include="src\EditorAssets\AnimationImporter.cpp" />
     <ClCompile Include="src\EditorAssets\AssetImporter.cpp" />
@@ -204,6 +207,7 @@ IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
     <ClCompile Include="src\EditorComponentRegistry.cpp" />
     <ClCompile Include="src\EditorLayer.cpp" />
     <ClCompile Include="src\EditorSerialiser.cpp" />
+    <ClCompile Include="src\Panels\BTNodeEditorPanel.cpp" />
     <ClCompile Include="src\Panels\ConsolePanel.cpp" />
     <ClCompile Include="src\Panels\ContentBrowserPanel.cpp" />
     <ClCompile Include="src\Panels\SceneHierarchyPanel.cpp" />

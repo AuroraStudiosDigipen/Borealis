@@ -425,41 +425,41 @@ namespace Borealis
 		DeserialiseComponent<LightComponent>(entity, BorealisEntity);
 
 		DeserialiseAbstractItems(entity, BorealisEntity);
-		auto behaviourTreeComponent = entity["BehaviourTreeComponent"];
+		//auto behaviourTreeComponent = entity["BehaviourTreeComponent"];
 		/*
 			extract the name of tree and root node, then iteritivly build the tree, then call the clone method by createfromname function
 			behaviourNode["name"]
 		*/
-		if (behaviourTreeComponent)
-		{
-			//BOREALIS_CORE_TRACE("Parsed YAML: {}", behaviourTreeComponent);//used for debugging to see what is being read
-			auto& btc = BorealisEntity.AddComponent<BehaviourTreeComponent>();
-			Ref<BehaviourTree> tempTree = MakeRef<BehaviourTree>();
+		//if (behaviourTreeComponent)
+		//{
+		//	//BOREALIS_CORE_TRACE("Parsed YAML: {}", behaviourTreeComponent);//used for debugging to see what is being read
+		//	auto& btc = BorealisEntity.AddComponent<BehaviourTreeComponent>();
+		//	Ref<BehaviourTree> tempTree = MakeRef<BehaviourTree>();
 
-			// Access the BehaviourTree node first
-			auto behaviourTree = behaviourTreeComponent["BehaviourTree"];
+		//	// Access the BehaviourTree node first
+		//	auto behaviourTree = behaviourTreeComponent["BehaviourTree"];
 
-			// Get the root node name and depth
-			std::string treeName = behaviourTree["Tree Name"].as<std::string>();
-			tempTree->SetBehaviourTreeName(treeName);
-			std::string rootName = behaviourTree["name"].as<std::string>();
-			int rootDepth = behaviourTree["depth"].as<int>();
+		//	// Get the root node name and depth
+		//	std::string treeName = behaviourTree["Tree Name"].as<std::string>();
+		//	tempTree->SetBehaviourTreeName(treeName);
+		//	std::string rootName = behaviourTree["name"].as<std::string>();
+		//	int rootDepth = behaviourTree["depth"].as<int>();
 
-			// Create root node using NodeFactory
-			Ref<BehaviourNode> rootNode = Borealis::NodeFactory::CreateNodeByName(rootName);
+		//	// Create root node using NodeFactory
+		//	Ref<BehaviourNode> rootNode = Borealis::NodeFactory::CreateNodeByName(rootName);
 
-			// Set the root node of the tree
-			tempTree->SetRootNode(rootNode); //sets depth to 0 by default
-			BOREALIS_CORE_TRACE("Deserialising BT {}", treeName);
+		//	// Set the root node of the tree
+		//	tempTree->SetRootNode(rootNode); //sets depth to 0 by default
+		//	BOREALIS_CORE_TRACE("Deserialising BT {}", treeName);
 
-			// If the root node has children, parse them recursively
-			if (behaviourTree["children"]) {
-				for (auto childNode : behaviourTree["children"]) {
-					ParseTree(childNode, rootNode, *tempTree, rootDepth);
-				}
-			}
-			btc.AddTree(tempTree);
-		}
+		//	// If the root node has children, parse them recursively
+		//	if (behaviourTree["children"]) {
+		//		for (auto childNode : behaviourTree["children"]) {
+		//			ParseTree(childNode, rootNode, *tempTree, rootDepth);
+		//		}
+		//	}
+		//	btc.mBehaviourTrees->
+		//}
 
 		auto scriptComponent = entity["ScriptComponent"];
 		if (scriptComponent)

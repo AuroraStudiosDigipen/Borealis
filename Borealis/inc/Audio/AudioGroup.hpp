@@ -1,3 +1,16 @@
+/******************************************************************************/
+/*!
+\file		AudioMixerPanel.cpp
+\author 	Valerie Koh
+\par    	email: v.koh@digipen.edu
+\date   	November 11, 2024
+\brief		Declares the AudioGroup enum to represent different audio groups 
+
+Copyright (C) 2023 DigiPen Institute of Technology.
+Reproduction or disclosure of this file or its contents without the
+prior written consent of DigiPen Institute of Technology is prohibited.
+*/
+/******************************************************************************/
 #pragma once
 #include <Core/Core.hpp>
 #include <Assets/Asset.hpp>

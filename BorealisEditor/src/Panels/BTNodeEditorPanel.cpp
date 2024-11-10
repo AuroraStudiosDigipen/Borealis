@@ -251,6 +251,12 @@ namespace Borealis
         // Handle new links and deletions
         HandleNewLinks();
 
+        if (m_ShouldNavigateToContent)
+        {
+            ed::NavigateToContent();
+            m_ShouldNavigateToContent = false;  // Reset flag after navigating
+        }
+
         ed::End();
         //ed::SetCurrentEditor(nullptr);
 
@@ -299,8 +305,6 @@ namespace Borealis
         // Create a new node
         int nodeId = GetNextId();
         auto newNode = std::make_shared<Node>(nodeId, nodeName, nodeType, nodeColor);
-        // Set the node position
-        newNode->Size = ImVec2(0, 0);
 
         // Initialize pins based on the node category
         std::string prefix = nodeName.substr(0, 2);
@@ -356,7 +360,7 @@ namespace Borealis
             }
             // Leaf nodes do not have output pins
         }
-            
+        m_ShouldNavigateToContent = true;  // Set flag to focus on new content
         // Add the new node to the list of nodes
         m_Nodes.push_back(newNode);
 
@@ -396,6 +400,7 @@ namespace Borealis
             ed::EndNode();
             ImVec2 nodeSize = ed::GetNodeSize(node->ID);
         }
+
     }
 
     void BTNodeEditorPanel::RenderLinks()
@@ -1290,6 +1295,7 @@ namespace Borealis
         }
 
         // Set editing flags
+        m_ShouldNavigateToContent = true;  // Set flag to focus on content after load
         m_IsEditingExistingTree = true;
         m_TreeFileName = std::filesystem::path(filepath).stem().string();
     }

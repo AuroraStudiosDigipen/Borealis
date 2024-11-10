@@ -407,6 +407,7 @@ namespace Borealis
         std::string m_ValidationMessage;
         std::string m_TreeFileName = "Untitled-No-Name-Entered";
         bool m_OpenTreeNameModal;
+        bool m_ShouldNavigateToContent;
     };
 }
 

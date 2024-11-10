@@ -75,6 +75,8 @@
     <ClInclude Include="inc\ResourceManager.hpp">
       <Filter>inc</Filter>
     </ClInclude>
+    <ClInclude Include="inc\EditorSerialiser.hpp" />
+    <ClInclude Include="inc\EditorComponentRegistry.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\EditorApp.cpp">
@@ -125,5 +127,7 @@
     <ClCompile Include="src\ResourceManager.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\EditorSerialiser.cpp" />
+    <ClCompile Include="src\EditorComponentRegistry.cpp" />
   </ItemGroup>
 </Project>

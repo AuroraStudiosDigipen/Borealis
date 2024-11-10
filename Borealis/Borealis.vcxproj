@@ -245,6 +245,10 @@
     <ClInclude Include="inc\Scene\SceneManager.hpp" />
     <ClInclude Include="inc\Scene\ScriptEntity.hpp" />
     <ClInclude Include="inc\Scene\Serialiser.hpp" />
+    <ClInclude Include="inc\Scene\SerialiserUtils.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="inc\Scripting\ScriptClass.hpp" />
     <ClInclude Include="inc\Scripting\ScriptField.hpp" />
     <ClInclude Include="inc\Scripting\ScriptInstance.hpp" />
@@ -850,6 +854,10 @@
     <ClCompile Include="src\Scene\SceneCamera.cpp" />
     <ClCompile Include="src\Scene\SceneManager.cpp" />
     <ClCompile Include="src\Scene\Serialiser.cpp" />
+    <ClCompile Include="src\Scene\SerialiserUtils.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="src\Scripting\ScriptClass.cpp" />
     <ClCompile Include="src\Scripting\ScriptField.cpp" />
     <ClCompile Include="src\Scripting\ScriptInstance.cpp" />

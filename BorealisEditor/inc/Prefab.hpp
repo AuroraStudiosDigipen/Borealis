@@ -36,7 +36,7 @@ namespace Borealis
 	class Prefab
 	{
 	public:
-
+		Prefab() = default;
 		Prefab(UUID id);
 		Prefab(Entity entity);
 
@@ -45,6 +45,7 @@ namespace Borealis
 		//void AddComponent(const T& component) {
 		//	mComponents[typeid(T)] = std::make_any<T>(component);
 		//}
+		Entity InstantiatePrefabInstance(Ref<Scene> scene);
 
 		// Retrieve a component from the prefab
 		template <typename T>
@@ -81,6 +82,10 @@ namespace Borealis
 	private:
 		entt::entity mPrefabID;
 		std::unordered_set<Ref<Entity>> mChildren;
+
+		//templated UpdateComponent helper function
+		template <typename ComponentType>
+		void UpdateComponent(Ref<Entity> child);
 	};
 
 }

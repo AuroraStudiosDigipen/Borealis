@@ -14,7 +14,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #ifndef PREFABCOMPONENT_HPP
 #define PREFABCOMPONENT_HPP
-
+#include <Core/UUID.hpp>
 #include <unordered_set>
 #include <typeindex>
 #include "entt.hpp"
@@ -24,6 +24,7 @@ namespace Borealis
 	struct PrefabComponent
 	{
 		entt::entity mPrefabID;
+		UUID mParentID;
 		std::unordered_set<std::string> mEditedComponentList;
 
 	};

@@ -19,6 +19,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scene/Entity.hpp>
 #include <Core/core.hpp>
 
+#include <Prefab.hpp>
+
 namespace Borealis {
 	class SceneHierarchyPanel
 	{
@@ -82,9 +84,10 @@ namespace Borealis {
 			\param[in] entity
 				The entity to be drawn
 		*************************************************************************/	
-		void DrawComponents(Entity entity);
+		bool DrawComponents(Entity entity);
 		Ref<Scene> mContext;
 		Entity mSelectedEntity;
+		Entity mSelectedPrefab;
 	};
 }
 

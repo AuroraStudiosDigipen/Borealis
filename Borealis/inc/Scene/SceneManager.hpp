@@ -17,6 +17,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <unordered_map>
 #include <unordered_set>
 #include <Scene/Scene.hpp>
+#include <Scene/Serialiser.hpp>
 #include <Scene/Entity.hpp>
 namespace Borealis
 {
@@ -49,7 +50,7 @@ namespace Borealis
 			\param[in] sceneName
 				The name of the scene
 		*************************************************************************/
-		static void RemoveScene(std::string sceneName);
+		static void RemoveScene(std::string sceneName, Serialiser& serialiser);
 
 		/*!***********************************************************************
 			\brief
@@ -57,7 +58,7 @@ namespace Borealis
 			\param[in] sceneName
 				The name of the scene in the scene library
 		*************************************************************************/
-		static void SetActiveScene(std::string sceneName);
+		static void SetActiveScene(std::string sceneName, Serialiser& serialiser);
 
 		/*!***********************************************************************
 			\brief
@@ -111,7 +112,7 @@ namespace Borealis
 			\brief
 				Saves the active scene
 		*************************************************************************/
-		static void SaveActiveScene();
+		static void SaveActiveScene(Serialiser& serialiser);
 	private:
 		static Ref<Scene> mActiveScene;
 		static std::unordered_map<std::string, std::string> mSceneLibrary; // Key: Scene Name, Value: Scene Path

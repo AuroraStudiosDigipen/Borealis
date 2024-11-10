@@ -17,6 +17,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <imgui.h>
 #include <Scene/ReflectionInstance.hpp>
 #include <Scene/Serialiser.hpp>
+#include <Scene/SerialiserUtils.hpp>
 #include <Scene/Entity.hpp>
 #include <Scene/Components.hpp>
 #include <AI/BehaviourTree/BehaviourNode.hpp>
@@ -27,117 +28,6 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scripting/ScriptInstance.hpp>
 #include <Scripting/ScriptField.hpp>
 #include <Scripting/ScriptingSystem.hpp>
-#include <Scripting/ScriptingUtils.hpp>
-namespace YAML
-{
-	template<>
-	struct convert<glm::vec2>
-	{
-		static Node encode(const glm::vec2& rhs)
-		{
-			Node node;
-			node.push_back(rhs.x);
-			node.push_back(rhs.y);
-			return node;
-		}
-
-		static bool decode(const Node& node, glm::vec2& rhs)
-		{
-			if (!node.IsSequence() || node.size() != 2)
-			{
-				return false;
-			}
-
-			rhs.x = node[0].as<float>();
-			rhs.y = node[1].as<float>();
-			return true;
-		}
-	};
-
-
-
-	template<>
-	struct convert<glm::vec3>
-	{
-		static Node encode(const glm::vec3& rhs)
-		{
-			Node node;
-			node.push_back(rhs.x);
-			node.push_back(rhs.y);
-			node.push_back(rhs.z);
-			return node;
-		}
-
-		static bool decode(const Node& node, glm::vec3& rhs)
-		{
-			if (!node.IsSequence() || node.size() != 3)
-			{
-				return false;
-			}
-
-			rhs.x = node[0].as<float>();
-			rhs.y = node[1].as<float>();
-			rhs.z = node[2].as<float>();
-			return true;
-		}
-	};
-
-	template<>
-	struct convert<glm::vec4>
-	{
-		static Node encode(const glm::vec4& rhs)
-		{
-			Node node;
-			node.push_back(rhs.x);
-			node.push_back(rhs.y);
-			node.push_back(rhs.z);
-			node.push_back(rhs.w);
-			return node;
-		}
-
-		static bool decode(const Node& node, glm::vec4& rhs)
-		{
-			if (!node.IsSequence() || node.size() != 4)
-			{
-				return false;
-			}
-
-			rhs.x = node[0].as<float>();
-			rhs.y = node[1].as<float>();
-			rhs.z = node[2].as<float>();
-			rhs.w = node[3].as<float>();
-			return true;
-		}
-	};
-
-	template<>
-	struct convert<ImVec4>
-	{
-		static Node encode(const ImVec4& rhs)
-		{
-			Node node;
-			node.push_back(rhs.x);
-			node.push_back(rhs.y);
-			node.push_back(rhs.z);
-			node.push_back(rhs.w);
-			return node;
-		}
-
-		static bool decode(const Node& node, ImVec4& rhs)
-		{
-			if (!node.IsSequence() || node.size() != 4)
-			{
-				return false;
-			}
-
-			rhs.x = node[0].as<float>();
-			rhs.y = node[1].as<float>();
-			rhs.z = node[2].as<float>();
-			rhs.w = node[3].as<float>();
-			return true;
-		}
-	};
-}
 namespace Borealis
 {
 	void Serialiser::ParseTree(YAML::Node& node, Ref<BehaviourNode> parentNode, BehaviourTree& tree, int parentDepth)
@@ -164,36 +54,6 @@ namespace Borealis
 				ParseTree(childNode, currentNode, tree, depth);
 			}
 		}
-	}
-
-	// Overrides:
-	YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec2& vec)
-	{
-		out << YAML::Flow;
-		out << YAML::BeginSeq << vec.x << vec.y << YAML::EndSeq;
-		return out;
-	}
-
-	YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec3& vec)
-	{
-		out << YAML::Flow;
-		out << YAML::BeginSeq << vec.x << vec.y << vec.z << YAML::EndSeq;
-		return out;
-	}
-
-	YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec4& vec)
-	{
-		out << YAML::Flow;
-		out << YAML::BeginSeq << vec.x << vec.y << vec.z << vec.w << YAML::EndSeq;
-		return out;
-	}
-
-
-	YAML::Emitter& operator<<(YAML::Emitter& out, const ImVec4& vec)
-	{
-		out << YAML::Flow;
-		out << YAML::BeginSeq << vec.x << vec.y << vec.z << vec.w << YAML::EndSeq;
-		return out;
 	}
 
 	void SerializeTexture(YAML::Emitter& out, Ref<Texture2D> texture)
@@ -223,180 +83,7 @@ namespace Borealis
 		return true;
 	}
 
-	static bool SerializeProperty(YAML::Emitter& out, rttr::property& prop, const rttr::instance& instance)
-	{
-		auto propType = prop.get_type();
-		auto propName = prop.get_name();
-		auto propValue = prop.get_value(instance);
-
-		if (propType.is_enumeration())
-		{
-			out << YAML::Key << propName.to_string() << YAML::Value << propType.get_enumeration().value_to_name(propValue).to_string();
-			return true;
-		}
-
-		if (propType == rttr::type::get<int>())
-		{
-			out << YAML::Key << propName.to_string() << YAML::Value << propValue.to_int();
-			return true;
-		}
-
-		if (propType == rttr::type::get<float>())
-		{
-			out << YAML::Key << propName.to_string() << YAML::Value << propValue.to_float();
-			return true;
-		}
-
-		if (propType == rttr::type::get<bool>())
-		{
-			out << YAML::Key << propName.to_string() << YAML::Value << propValue.to_bool();
-			return true;
-		}
-
-		if (propType == rttr::type::get<std::string>())
-		{
-			out << YAML::Key << propName.to_string() << YAML::Value << propValue.to_string();
-			return true;
-		}
-
-		if (propType == rttr::type::get<unsigned char>())
-		{
-			out << YAML::Key << propName.to_string() << YAML::Value << (unsigned)propValue.to_uint8();
-			return true;
-		}
-
-		if (propType == rttr::type::get<char>())
-		{
-			out << YAML::Key << propName.to_string() << YAML::Value << (int)propValue.to_int8();
-			return true;
-		}
-
-		if (propType == rttr::type::get<unsigned short>())
-		{
-			out << YAML::Key << propName.to_string() << YAML::Value << (unsigned)propValue.to_uint16();
-			return true;
-		}
-
-		if (propType == rttr::type::get<short>())
-		{
-			out << YAML::Key << propName.to_string() << YAML::Value << (int)propValue.to_int16();
-			return true;
-		}
-
-		if (propType == rttr::type::get<unsigned>())
-		{
-			out << YAML::Key << propName.to_string() << YAML::Value << propValue.to_uint32();
-			return true;
-		}
-
-		if (propType == rttr::type::get<long long>())
-		{
-			out << YAML::Key << propName.to_string() << YAML::Value << propValue.to_int64();
-			return true;
-		}
-
-		if (propType == rttr::type::get<unsigned long long>())
-		{
-			out << YAML::Key << propName.to_string() << YAML::Value  << propValue.to_uint64();
-			return true;
-		}
-
-		if (propType == rttr::type::get<double>())
-		{
-			out << YAML::Key << propName.to_string() << YAML::Value << propValue.to_double();
-			return true;
-		}
-
-		if (propType == rttr::type::get<glm::vec2>())
-		{
-			out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<glm::vec2>();
-			return true;
-		}
-
-		if (propType == rttr::type::get<glm::vec3>())
-		{
-			out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<glm::vec3>();
-			return true;
-		}
-
-		if (propType == rttr::type::get<glm::vec4>())
-		{
-			out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<glm::vec4>();
-			return true;
-		}
-
-		if (propType == rttr::type::get<std::unordered_set<UUID>>())
-		{
-			out << YAML::Key << propName.to_string() << YAML::BeginMap;
-			std::unordered_set<UUID> uuidList = propValue.get_value<std::unordered_set<UUID>>();
-			for (auto id : uuidList)
-			{
-				out << YAML::Key << "UUID" << YAML::Value << id;
-			}
-			out << YAML::EndMap;
-			return true;
-		}
-
-		if (propType == rttr::type::get<UUID>())
-		{
-			out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<UUID>();
-			return true;
-		}
-
-
-		if (propType.get_wrapped_type().is_valid())
-		{
-			auto wrappedType = propType.get_wrapped_type();
-			if (wrappedType.is_derived_from<Asset>())
-			{
-				if (propType == rttr::type::get<Ref<Material>>())
-				{
-					out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<Ref<Material>>()->mAssetHandle;
-					return true;
-				}
-				if (propType == rttr::type::get<Ref<Model>>())
-				{
-					out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<Ref<Model>>()->mAssetHandle;
-					return true;
-				}
-				if (propType == rttr::type::get<Ref<SkinnedModel>>())
-				{
-					out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<Ref<SkinnedModel>>()->mAssetHandle;
-					return true;
-				}
-			}
-		}
-
-		if (propType.is_class() && propType.is_valid()) // all custom classes
-		{
-			out << YAML::Key << propName.to_string() << YAML::BeginMap;
-			auto properties = propType.get_properties();
-			for (auto nestedProperty : properties)
-			{
-				SerializeProperty(out, nestedProperty, prop.get_value(instance));
-			}
-			out << YAML::EndMap;
-			return true;
-		}
-
-		return false;
-	}
-
-	template <typename Component>
-	static void SerializeComponent(YAML::Emitter& out, Component& component)
-	{
-		ReflectionInstance rInstance(component);
-		out << YAML::Key << rInstance.get_type().get_name().to_string();
-		out << YAML::BeginMap;
-		auto properties = rInstance.get_type().get_properties();
-		for (auto prop : properties)
-		{
-			SerializeProperty(out, prop, rInstance);
-		}
-		out << YAML::EndMap;
-	}
-
-	static void SerializeEntity(YAML::Emitter& out, Entity& entity)
+	void Serialiser::SerializeEntity(YAML::Emitter& out, Entity& entity)
 	{
 		out << YAML::BeginMap;
 		out << YAML::Key << "EntityID" << YAML::Value << entity.GetComponent<IDComponent>().ID;
@@ -671,6 +358,7 @@ namespace Borealis
 			out << YAML::EndMap;
 		}
 
+		SerialiseAbstractItems(out, entity);
 
 		out << YAML::EndMap;
 	}
@@ -707,202 +395,193 @@ namespace Borealis
 	}
 
 
-	static bool DeserialiseProperty(YAML::Node data, rttr::property& prop, rttr::instance& instance)
+	entt::entity Serialiser::DeserialiseEntity(YAML::detail::iterator_value& entity, entt::registry& registry, UUID& uuid)
 	{
-		auto propName = prop.get_name();
-		auto propData = data[propName.to_string().c_str()]; // entity["TransformComponent"]["Translate"]
-		auto propType = prop.get_type();
-		if (propData)
+
+		auto loadedEntity = registry.create();
+		auto BorealisEntity = Entity(loadedEntity, mScene.get());
+		BorealisEntity.AddComponent<IDComponent>(uuid);
+		std::cout << BorealisEntity.GetUUID();
+
+		DeserialiseComponent<TagComponent>(entity, BorealisEntity);
+		DeserialiseComponent<TransformComponent>(entity, BorealisEntity);
+		DeserialiseComponent<SpriteRendererComponent>(entity, BorealisEntity);
+		DeserialiseComponent<CircleRendererComponent>(entity, BorealisEntity);
+		DeserialiseComponent<CameraComponent>(entity, BorealisEntity);
+		DeserialiseComponent<MeshFilterComponent>(entity, BorealisEntity);
+		DeserialiseComponent<MeshRendererComponent>(entity, BorealisEntity);
+		DeserialiseComponent<BoxColliderComponent>(entity, BorealisEntity);
+		DeserialiseComponent<CapsuleColliderComponent>(entity, BorealisEntity);
+		DeserialiseComponent<RigidBodyComponent>(entity, BorealisEntity);
+		DeserialiseComponent<LightComponent>(entity, BorealisEntity);
+
+		DeserialiseAbstractItems(entity, BorealisEntity);
+		auto behaviourTreeComponent = entity["BehaviourTreeComponent"];
+		/*
+			extract the name of tree and root node, then iteritivly build the tree, then call the clone method by createfromname function
+			behaviourNode["name"]
+		*/
+		if (behaviourTreeComponent)
 		{
-			if (propType.is_enumeration())
-			{
-				auto datastr = propData.as<std::string>();
-				prop.set_value(instance, propType.get_enumeration().name_to_value(propData.as<std::string>()));
-				return true;
-			}
-			if (propType == rttr::type::get<int>())
-			{
-				prop.set_value(instance, propData.as<int>());
-				return true;
-			}
+			//BOREALIS_CORE_TRACE("Parsed YAML: {}", behaviourTreeComponent);//used for debugging to see what is being read
+			auto& btc = BorealisEntity.AddComponent<BehaviourTreeComponent>();
+			Ref<BehaviourTree> tempTree = MakeRef<BehaviourTree>();
 
-			if (propType == rttr::type::get<float>())
-			{
-				prop.set_value(instance, propData.as<float>());
-				return true;
-			}
+			// Access the BehaviourTree node first
+			auto behaviourTree = behaviourTreeComponent["BehaviourTree"];
 
-			if (propType == rttr::type::get<bool>())
-			{
-				prop.set_value(instance, propData.as<bool>());
-				return true;
-			}
+			// Get the root node name and depth
+			std::string treeName = behaviourTree["Tree Name"].as<std::string>();
+			tempTree->SetBehaviourTreeName(treeName);
+			std::string rootName = behaviourTree["name"].as<std::string>();
+			int rootDepth = behaviourTree["depth"].as<int>();
 
-			if (propType == rttr::type::get<std::string>())
-			{
-				prop.set_value(instance, propData.as<std::string>());
-				return true;
-			}
+			// Create root node using NodeFactory
+			Ref<BehaviourNode> rootNode = Borealis::NodeFactory::CreateNodeByName(rootName);
 
-			if (propType == rttr::type::get<unsigned char>())
-			{
-				prop.set_value(instance, propData.as<unsigned char>());
-				return true;
-			}
+			// Set the root node of the tree
+			tempTree->SetRootNode(rootNode); //sets depth to 0 by default
+			BOREALIS_CORE_TRACE("Deserialising BT {}", treeName);
 
-			if (propType == rttr::type::get<char>())
-			{
-				prop.set_value(instance, propData.as<char>());
-				return true;
-			}
-
-			if (propType == rttr::type::get<unsigned short>())
-			{
-				prop.set_value(instance, propData.as<unsigned short>());
-				return true;
-			}
-
-			if (propType == rttr::type::get<short>())
-			{
-				prop.set_value(instance, propData.as<short>());
-				return true;
-			}
-
-			if (propType == rttr::type::get<unsigned>())
-			{
-				prop.set_value(instance, propData.as<unsigned>());
-				return true;
-			}
-
-			if (propType == rttr::type::get<long long>())
-			{
-				prop.set_value(instance, propData.as<long long>());
-				return true;
-			}
-
-			if (propType == rttr::type::get<unsigned long long>())
-			{
-				prop.set_value(instance, propData.as<unsigned long long>());
-				return true;
-			}
-
-			if (propType == rttr::type::get<double>())
-			{
-				prop.set_value(instance, propData.as<double>());
-				return true;
-			}
-
-			if (propType == rttr::type::get<glm::vec2>())
-			{
-				prop.set_value(instance, propData.as<glm::vec2>());
-				return true;
-			}
-
-			if (propType == rttr::type::get<glm::vec3>())
-			{
-				prop.set_value(instance, propData.as<glm::vec3>());
-				return true;
-			}
-
-			if (propType == rttr::type::get<glm::vec4>())
-			{
-				prop.set_value(instance, propData.as<glm::vec4>());
-				return true;
-			}
-
-			if (propType == rttr::type::get<UUID>())
-			{
-				UUID uuid = propData.as<uint64_t>();
-				prop.set_value(instance, uuid);
-				return true;
-			}
-
-			if (propType == rttr::type::get<std::unordered_set<UUID>>())
-			{
-				std::unordered_set<UUID> uuidList;
-				for (const auto& it : propData) {
-					auto value = it.second; // Get the value
-					UUID uuid = value.as<uint64_t>();
-					uuidList.insert(uuid);
+			// If the root node has children, parse them recursively
+			if (behaviourTree["children"]) {
+				for (auto childNode : behaviourTree["children"]) {
+					ParseTree(childNode, rootNode, *tempTree, rootDepth);
 				}
-				prop.set_value(instance, uuidList);
 			}
+			btc.AddTree(tempTree);
+		}
 
-			if (propType == rttr::type::get<Ref<Model>>())
+		auto scriptComponent = entity["ScriptComponent"];
+		if (scriptComponent)
+		{
+			auto& sc = BorealisEntity.AddComponent<ScriptComponent>();
+			for (const auto& script : scriptComponent)
 			{
-				auto asset = AssetManager::GetAsset<Model>(propData.as<uint64_t>());
-				prop.set_value(instance, rttr::variant(asset));
-				return true;
-			}
+				std::string scriptName = script.first.as<std::string>();
+				auto scriptInstance = MakeRef<ScriptInstance>(ScriptingSystem::GetScriptClass(scriptName));
+				scriptInstance->Init(BorealisEntity.GetUUID()); // Initialise the script instance (set the entity reference
+				sc.AddScript(scriptName, scriptInstance);
 
-			if (propType == rttr::type::get<Ref<SkinnedModel>>())
-			{
-				prop.set_value(instance, rttr::variant(AssetManager::GetAsset<SkinnedModel>(propData.as<uint64_t>())));
-				return true;
-			}
+				const YAML::Node& fields = script.second;
+				if (fields) {
+					for (const auto& field : fields) {
+						// Each field will have a name and a corresponding node
+						std::string fieldName = field.first.as<std::string>();
+						const YAML::Node& fieldData = field.second;
+						fieldData["Type"].as<std::string>();
 
-			if (propType == rttr::type::get<Ref<Material>>())
-			{
-				prop.set_value(instance, rttr::variant(AssetManager::GetAsset<Material>(propData.as<uint64_t>())));
-				return true;
-			}
+						if (fieldData["Type"].as<std::string>() == "Bool")
+						{
+							bool data = fieldData["Data"].as<bool>();
+							scriptInstance->SetFieldValue(fieldName, &data);
+							continue;
+						}
 
-			if (propType == rttr::type::get<Ref<Animation>>())
-			{
-				prop.set_value(instance, rttr::variant(AssetManager::GetAsset<Animation>(propData.as<uint64_t>())));
-				return true;
-			}
+						if (fieldData["Type"].as<std::string>() == "Float")
+						{
+							float data = fieldData["Data"].as<float>();
+							scriptInstance->SetFieldValue(fieldName, &data);
+							continue;
+						}
 
-			if (propType.is_class() && propType.is_valid()) // all custom classes
-			{
-				auto properties = propType.get_properties();
-				rttr::variant oldVariant = prop.get_value(instance);
-				rttr::instance oldInstance(oldVariant);
-				if (oldInstance.is_valid())
-				{
-					for (auto nestedProperty : properties)
-					{
-						DeserialiseProperty(data[propName.to_string()], nestedProperty, oldInstance);
+						if (fieldData["Type"].as<std::string>() == "Int")
+						{
+							int data = fieldData["Data"].as<int>();
+							scriptInstance->SetFieldValue(fieldName, &data);
+							continue;
+						}
+
+						if (fieldData["Type"].as<std::string>() == "String")
+						{
+							std::string data = fieldData["Data"].as<std::string>();
+							scriptInstance->SetFieldValue(fieldName, &data);
+							continue;
+						}
+
+						if (fieldData["Type"].as<std::string>() == "Vector2")
+						{
+							glm::vec2 data = fieldData["Data"].as<glm::vec2>();
+							scriptInstance->SetFieldValue(fieldName, &data);
+							continue;
+						}
+
+						if (fieldData["Type"].as<std::string>() == "Vector3")
+						{
+							glm::vec3 data = fieldData["Data"].as<glm::vec3>();
+							scriptInstance->SetFieldValue(fieldName, &data);
+							continue;
+						}
+
+						if (fieldData["Type"].as<std::string>() == "Vector4")
+						{
+							glm::vec4 data = fieldData["Data"].as<glm::vec4>();
+							scriptInstance->SetFieldValue(fieldName, &data);
+							continue;
+						}
+
+						if (fieldData["Type"].as<std::string>() == "UChar")
+						{
+							unsigned char data = static_cast<unsigned char>(fieldData["Data"].as<unsigned>());
+							scriptInstance->SetFieldValue(fieldName, &data);
+							continue;
+						}
+
+						if (fieldData["Type"].as<std::string>() == "Char")
+						{
+							char data = fieldData["Data"].as<char>();
+							scriptInstance->SetFieldValue(fieldName, &data);
+							continue;
+						}
+
+						if (fieldData["Type"].as<std::string>() == "UShort")
+						{
+							unsigned short data = fieldData["Data"].as<unsigned short>();
+							scriptInstance->SetFieldValue(fieldName, &data);
+							continue;
+						}
+
+						if (fieldData["Type"].as<std::string>() == "Short")
+						{
+							short data = fieldData["Data"].as<short>();
+							scriptInstance->SetFieldValue(fieldName, &data);
+							continue;
+						}
+
+						if (fieldData["Type"].as<std::string>() == "UInt")
+						{
+							unsigned data = fieldData["Data"].as<unsigned>();
+							scriptInstance->SetFieldValue(fieldName, &data);
+							continue;
+						}
+
+						if (fieldData["Type"].as<std::string>() == "Long")
+						{
+							long long data = fieldData["Data"].as<long long>();
+							scriptInstance->SetFieldValue(fieldName, &data);
+							continue;
+						}
+
+						if (fieldData["Type"].as<std::string>() == "ULong")
+						{
+							unsigned long long data = fieldData["Data"].as<unsigned long long>();
+							scriptInstance->SetFieldValue(fieldName, &data);
+							continue;
+						}
+
+						if (fieldData["Type"].as<std::string>() == "Double")
+						{
+							double data = fieldData["Data"].as<double>();
+							scriptInstance->SetFieldValue(fieldName, &data);
+							continue;
+						}
+
 					}
-
-					prop.set_value(instance, oldVariant);
 				}
-				return true;
-			}
-
-			// other types
-		}
-
-		return false;
-	}
-
-	template <typename Component>
-	static bool DeserialiseComponent(YAML::detail::iterator_value& data, Entity& entity)
-	{
-		auto type = rttr::type::get<Component>();
-		auto componentName = type.get_name().to_string();
-		auto componentData = data[componentName];  //entity["TransformComponent"]
-
-		if (componentData)
-		{
-			if (!entity.HasComponent<Component>())
-			{
-				entity.AddComponent<Component>();
-			}
-			auto& component = entity.GetComponent<Component>();
-			ReflectionInstance rInstance(component);
-
-			auto properties = rInstance.get_type().get_properties();
-			for (auto prop : properties)
-			{
-				DeserialiseProperty(componentData, prop, rInstance);
 			}
 		}
-
-		return true;
+		return loadedEntity;
 	}
-
-
 
 	bool Serialiser::DeserialiseScene(const std::string& filepath)
 	{
@@ -935,201 +614,10 @@ namespace Borealis
 			for (auto entity : entities)
 			{
 				uint64_t uuid = entity["EntityID"].as<uint64_t>(); // UUID
-				Entity loadedEntity = mScene->CreateEntityWithUUID("", uuid);
-
-				DeserialiseComponent<TagComponent>(entity, loadedEntity);
-				DeserialiseComponent<TransformComponent>(entity, loadedEntity);
-				DeserialiseComponent<SpriteRendererComponent>(entity, loadedEntity);
-				DeserialiseComponent<CircleRendererComponent>(entity, loadedEntity);
-				DeserialiseComponent<CameraComponent>(entity, loadedEntity);
-				DeserialiseComponent<MeshFilterComponent>(entity, loadedEntity);
-				DeserialiseComponent<MeshRendererComponent>(entity, loadedEntity);
-				DeserialiseComponent<SkinnedMeshRendererComponent>(entity, loadedEntity);
-				DeserialiseComponent<AnimatorComponent>(entity, loadedEntity);
-				DeserialiseComponent<BoxColliderComponent>(entity, loadedEntity);
-				DeserialiseComponent<CapsuleColliderComponent>(entity, loadedEntity);
-				DeserialiseComponent<RigidBodyComponent>(entity, loadedEntity);
-				DeserialiseComponent<LightComponent>(entity, loadedEntity);
-				auto behaviourTreeComponent = entity["BehaviourTreeComponent"];
-				/*
-					extract the name of tree and root node, then iteritivly build the tree, then call the clone method by createfromname function
-					behaviourNode["name"]
-				*/
-				if (behaviourTreeComponent) 
-				{
-					//BOREALIS_CORE_TRACE("Parsed YAML: {}", behaviourTreeComponent);//used for debugging to see what is being read
-					auto& btc = loadedEntity.AddComponent<BehaviourTreeComponent>();
-					Ref<BehaviourTree> tempTree = MakeRef<BehaviourTree>();
-
-					// Access the BehaviourTree node first
-					auto behaviourTree = behaviourTreeComponent["BehaviourTree"];
-
-					// Get the root node name and depth
-					std::string treeName = behaviourTree["Tree Name"].as<std::string>();
-					tempTree->SetBehaviourTreeName(treeName);
-					std::string rootName = behaviourTree["name"].as<std::string>();
-					int rootDepth = behaviourTree["depth"].as<int>();
-
-					// Create root node using NodeFactory
-					Ref<BehaviourNode> rootNode = Borealis::NodeFactory::CreateNodeByName(rootName);
-
-					// Set the root node of the tree
-					tempTree->SetRootNode(rootNode); //sets depth to 0 by default
-					BOREALIS_CORE_TRACE("Deserialising BT {}", treeName);
-
-					// If the root node has children, parse them recursively
-					if (behaviourTree["children"]) {
-						for (auto childNode : behaviourTree["children"]) {
-							ParseTree(childNode, rootNode, *tempTree, rootDepth);
-						}
-					}
-					btc.AddTree(tempTree);
-				}
-
-				auto scriptComponent = entity["ScriptComponent"];
-				if (scriptComponent)
-				{
-					auto& sc = loadedEntity.AddComponent<ScriptComponent>();
-					for (const auto& script : scriptComponent)
-					{
-						std::string scriptName = script.first.as<std::string>();
-						auto scriptInstance = MakeRef<ScriptInstance>(ScriptingSystem::GetScriptClass(scriptName));
-						scriptInstance->Init(loadedEntity.GetUUID()); // Initialise the script instance (set the entity reference
-						sc.AddScript(scriptName, scriptInstance);
-
-						const YAML::Node& fields = script.second;
-						if (fields) {
-							for (const auto& field : fields) {
-								// Each field will have a name and a corresponding node
-								std::string fieldName = field.first.as<std::string>();
-								const YAML::Node& fieldData = field.second;
-								fieldData["Type"].as<std::string>();
-
-								if (fieldData["Type"].as<std::string>() == "GameObject")
-								{
-									uint64_t data = fieldData["Data"].as<uint64_t>();
-									MonoObject* field = nullptr;
-									InitGameObject(field, data);
-									scriptInstance->SetFieldValue(fieldName, field);
-									continue;
-								}
-
-								if (fieldData["Type"].as<std::string>() == "MonoBehaviour")
-								{
-									uint64_t data = fieldData["Data"].as<uint64_t>();
-									scriptQueue.push({scriptInstance, data, fieldName });
-									continue;
-								}
-
-								if (fieldData["Type"].as<std::string>() == "Bool")
-								{
-									bool data = fieldData["Data"].as<bool>();
-									scriptInstance->SetFieldValue(fieldName, &data);
-									continue;
-								}
-
-								if (fieldData["Type"].as<std::string>() == "Float")
-								{
-									float data = fieldData["Data"].as<float>();
-									scriptInstance->SetFieldValue(fieldName, &data);
-									continue;
-								}
-
-								if (fieldData["Type"].as<std::string>() == "Int")
-								{
-									int data = fieldData["Data"].as<int>();
-									scriptInstance->SetFieldValue(fieldName, &data);
-									continue;
-								}
-
-								if (fieldData["Type"].as<std::string>() == "String")
-								{
-									std::string data = fieldData["Data"].as<std::string>();
-									scriptInstance->SetFieldValue(fieldName, &data);
-									continue;
-								}
-
-								if (fieldData["Type"].as<std::string>() == "Vector2")
-								{
-									glm::vec2 data = fieldData["Data"].as<glm::vec2>();
-									scriptInstance->SetFieldValue(fieldName, &data);
-									continue;
-								}
-
-								if (fieldData["Type"].as<std::string>() == "Vector3")
-								{
-									glm::vec3 data = fieldData["Data"].as<glm::vec3>();
-									scriptInstance->SetFieldValue(fieldName, &data);
-									continue;
-								}
-
-								if (fieldData["Type"].as<std::string>() == "Vector4")
-								{
-									glm::vec4 data = fieldData["Data"].as<glm::vec4>();
-									scriptInstance->SetFieldValue(fieldName, &data);
-									continue;
-								}
-
-								if (fieldData["Type"].as<std::string>() == "UChar")
-								{
-									unsigned char data = static_cast<unsigned char>(fieldData["Data"].as<unsigned>());
-									scriptInstance->SetFieldValue(fieldName, &data);
-									continue;
-								}
-
-								if (fieldData["Type"].as<std::string>() == "Char")
-								{
-									char data = fieldData["Data"].as<char>();
-									scriptInstance->SetFieldValue(fieldName, &data);
-									continue;
-								}
-
-								if (fieldData["Type"].as<std::string>() == "UShort")
-								{
-									unsigned short data = fieldData["Data"].as<unsigned short>();
-									scriptInstance->SetFieldValue(fieldName, &data);
-									continue;
-								}
-
-								if (fieldData["Type"].as<std::string>() == "Short")
-								{
-									short data = fieldData["Data"].as<short>();
-									scriptInstance->SetFieldValue(fieldName, &data);
-									continue;
-								}
-
-								if (fieldData["Type"].as<std::string>() == "UInt")
-								{
-									unsigned data = fieldData["Data"].as<unsigned>();
-									scriptInstance->SetFieldValue(fieldName, &data);
-									continue;
-								}
-
-								if (fieldData["Type"].as<std::string>() == "Long")
-								{
-									long long data = fieldData["Data"].as<long long>();
-									scriptInstance->SetFieldValue(fieldName, &data);
-									continue;
-								}
-
-								if (fieldData["Type"].as<std::string>() == "ULong")
-								{
-									unsigned long long data = fieldData["Data"].as<unsigned long long>();
-									scriptInstance->SetFieldValue(fieldName, &data);
-									continue;
-								}
-
-								if (fieldData["Type"].as<std::string>() == "Double")
-								{
-									double data = fieldData["Data"].as<double>();
-									scriptInstance->SetFieldValue(fieldName, &data);
-									continue;
-								}
-
-							}
-						}
-					}
-				}
+				mScene->mEntityMap[uuid] = DeserialiseEntity(entity, mScene->GetRegistry(), *reinterpret_cast<UUID*>(&uuid));
+				Entity entity2(mScene->mEntityMap[uuid], mScene.get());
+				auto testID = entity2.GetUUID();
+				std::cout << testID;
 			}
 			while (!scriptQueue.empty())
 			{
@@ -1145,11 +633,22 @@ namespace Borealis
 		return true;
 	}
 
+	void Serialiser::operator()(const Ref<Scene>& scene)
+	{
+		mScene = scene;
+	}
+
 	void Serialiser::SerialisePrefab(const std::string& filepath, Entity entity)
 	{
 		YAML::Emitter out;
-	
+		out << YAML::BeginMap
+			<< YAML::Key << "Scene" << YAML::Value << "Prefab"
+			<< YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
+
 		SerializeEntity(out, entity);
+
+		out << YAML::EndSeq
+			<< YAML::EndMap;
 
 		// Create directory if doesnt exist
 		std::filesystem::path fileSystemPaths = filepath;

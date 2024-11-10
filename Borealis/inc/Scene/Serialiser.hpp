@@ -16,11 +16,15 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #define SERIALISER_HPP
 #include <Core/Core.hpp>
 #include <Scene/Scene.hpp>
-#include <yaml-cpp/yaml.h>
 
 namespace YAML
 {
 	class Emitter;
+	class Node;
+	namespace detail
+	{
+		struct iterator_value;
+	}
 }
 namespace Borealis
 {
@@ -49,14 +53,21 @@ namespace Borealis
 
 		/*!***********************************************************************
 			\brief
-				Deserialises the scene from a YAML file
+				
+				s the scene from a YAML file
 			\param[in] filepath
 				The path to the file to be deserialised
 			\return
 				True if the deserialisation was successful, false otherwise
 		*************************************************************************/
 		bool DeserialiseScene(const std::string& filepath);
-		static void SerialisePrefab(const std::string& filepath, Entity entity);
+
+		virtual void SerialiseAbstractItems(YAML::Emitter& out, Entity& entity) {};
+		virtual void DeserialiseAbstractItems(YAML::detail::iterator_value& data, Entity& entity) {};
+
+		virtual void operator() (const Ref<Scene>& scene);
+
+		void SerialisePrefab(const std::string& filepath, Entity entity);
 
 		/*!***********************************************************************
 			\brief
@@ -85,8 +96,12 @@ namespace Borealis
 				True if the serialisation was successful, false otherwise
 		*************************************************************************/
 		static bool SerializeBehaviourNode(YAML::Emitter& out, const Ref<BehaviourNode> node);
-		
+
+		entt::entity DeserialiseEntity(YAML::detail::iterator_value& node, entt::registry& registry, UUID& uuid);
+
 	private:
+
+		void SerializeEntity(YAML::Emitter& out, Entity& entity);
 		/*!***********************************************************************
 			\brief
 				Recursively parses the YAML node to construct the behavior tree.

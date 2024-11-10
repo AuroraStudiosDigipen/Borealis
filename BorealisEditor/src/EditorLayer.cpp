@@ -14,6 +14,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <ImGuizmo.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -26,6 +27,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scripting/ScriptInstance.hpp>
 #include <EditorLayer.hpp>
 #include <Prefab.hpp>
+#include <PrefabManager.hpp>
 //	#include <Project/Project.hpp>
 #include "Audio/AudioEngine.hpp"
 #include <ResourceManager.hpp>
@@ -39,6 +41,32 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 //#include <Assets/FontImporter.hpp>
 #include <AI/BehaviourTree/RegisterNodes.hpp>
 #include <AI/BehaviourTree/BehaviourTree.hpp>
+#include <PrefabComponent.hpp>
+
+#include<EditorSerialiser.hpp>
+
+namespace ImGui
+{
+	static bool BeginDrapDropTargetWindow(const char* payload_type)
+	{
+		using namespace ImGui;
+		ImRect inner_rect = GetCurrentWindow()->InnerRect;
+		if (BeginDragDropTargetCustom(inner_rect, GetID("##WindowBgArea")))
+			if (const ImGuiPayload* payload = AcceptDragDropPayload(payload_type, ImGuiDragDropFlags_AcceptBeforeDelivery | ImGuiDragDropFlags_AcceptNoDrawDefaultRect))
+			{
+				if (payload->IsPreview())
+				{
+					ImDrawList* draw_list = GetForegroundDrawList();
+					draw_list->AddRectFilled(inner_rect.Min, inner_rect.Max, GetColorU32(ImGuiCol_DragDropTarget, 0.05f));
+					draw_list->AddRect(inner_rect.Min, inner_rect.Max, GetColorU32(ImGuiCol_DragDropTarget), 0.0f, 0, 2.0f);
+				}
+				if (payload->IsDelivery())
+					return true;
+				EndDragDropTarget();
+			}
+		return false;
+	}
+}
 
 #include <EditorAssets/SkinnedMeshImporter.hpp>
 #include <Graphics/Animation/Animator.hpp>
@@ -75,7 +103,8 @@ namespace Borealis {
 
 		mEditorScene = MakeRef<Scene>();
 		SceneManager::AddScene(mEditorScene->GetName(), mEditorScene->GetScenePath());
-		SceneManager::SetActiveScene(mEditorScene->GetName());
+		EditorSerialiser serialiser(nullptr);
+		SceneManager::SetActiveScene(mEditorScene->GetName(), serialiser);
 		mEditorScene = SceneManager::GetActiveScene();
 
 		SCPanel.SetContext(SceneManager::GetActiveScene());
@@ -335,6 +364,27 @@ namespace Borealis {
 
 					if (ImGui::MenuItem("Open Project...","Ctrl+O")) {
 						LoadProject();
+
+						//Testing load all the prefab children
+						for (auto& item : SceneManager::GetActiveScene()->GetRegistry().view<entt::entity>()) {
+							std::cout << "Prefab Check: " << std::endl;
+
+							Entity entity{ item, SceneManager::GetActiveScene().get() }; // Use GetActiveScene() here
+							if (entity.HasComponent<PrefabComponent>()) {
+								// Retrieve the PrefabComponent
+								auto& prefabComp = entity.GetComponent<PrefabComponent>();
+
+								// Get the parent UUID from the PrefabComponent
+								UUID parentUUID = prefabComp.mParentID;
+
+								// Find the associated prefab by its UUID
+								auto prefab = PrefabManager::GetPrefab(parentUUID);  // Use existing function GetPrefab
+								if (prefab) {
+									// Add the entity as a child to the found prefab
+									prefab->AddChild(MakeRef<Entity>(entity));
+								}
+							}
+						}
 					}
 
 					if (ImGui::MenuItem("Save Project...","Ctrl+S")) {
@@ -345,7 +395,6 @@ namespace Borealis {
 					{
 						BuildProject();
 					}
-					
 
 					if (ImGui::MenuItem("Quit", "Ctrl+Q")) { ApplicationManager::Get().Close(); }
 					ImGui::EndMenu();
@@ -493,6 +542,8 @@ namespace Borealis {
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0,0 });
 			ImGui::Begin("Viewport");
 
+				PrefabManager::ShowAllPrefabs();
+
 				mViewportFocused = ImGui::IsWindowFocused();
 				mViewportHovered = ImGui::IsWindowHovered();
 				// True when viewport not focused or not hovered
@@ -534,6 +585,36 @@ namespace Borealis {
 					ImGui::EndDragDropTarget();
 				}
 
+				//Dropping Prefab into Viewport
+				//if (ImGui::BeginDragDropTarget())
+				//{
+				//	if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragPrefab"))
+				//	{
+				//		std::cout << "DROPPED PREFAB" << std::endl;
+				//		const char* prefabPath = (const char*)payload->Data;
+				//		UUID prefabID = AssetImporter::GetAssetHandle(prefabPath);
+				//		PrefabManager::GetPrefab(prefabID)->InstantiatePrefabInstance(SceneManager::GetActiveScene());
+				//		//UUID prefabInstanceID = SceneManager::GetActiveScene()->CreateEntityReturnUUID("clone");
+				//		//SceneManager::GetActiveScene()->DuplicateEntity(PrefabManager::GetPrefab(prefabID);
+				//		//SceneManager::GetEntity(prefabInstanceID).AddComponent<PrefabComponent>();
+				//		//SceneManager::GetEntity(prefabInstanceID).AddOrReplaceComponent<SpriteRendererComponent>();
+				//	}
+
+				//	ImGui::EndDragDropTarget();
+				//}
+
+				//Create Entities from prefab
+				if (ImGui::BeginDrapDropTargetWindow("DragPrefab"))
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragPrefab"))
+					{
+						AssetHandle data = *(const uint64_t*)payload->Data;
+						Ref<Prefab> prefab = PrefabManager::GetPrefab(data);
+						prefab->CreateChild(SceneManager::GetActiveScene());
+
+					}
+					ImGui::EndDragDropTarget();
+				}
 
 				auto windowSize = ImGui::GetWindowSize();
 				ImVec2 minBound = ImGui::GetWindowPos();
@@ -630,6 +711,7 @@ namespace Borealis {
 
 			ImGui::PopStyleVar();
 			UIToolbar();
+
 		ImGui::End(); // Of Dockspace
 	}
 
@@ -821,7 +903,7 @@ namespace Borealis {
 			mEditorScene->ResizeViewport((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
 			SCPanel.SetContext(mEditorScene);
 
-			Serialiser serialiser(mEditorScene);
+			EditorSerialiser serialiser(mEditorScene);
 			serialiser.DeserialiseScene(filepath);
 
 			SceneManager::GetActiveScene() = mEditorScene;
@@ -846,7 +928,8 @@ namespace Borealis {
 			std::string fileName = filepath.substr(filepath.find_last_of("/\\") + 1);
 			fileName = fileName.substr(0, fileName.find_last_of("."));
 			AddScene(fileName, filepath);
-			SceneManager::SetActiveScene(fileName);
+			EditorSerialiser serialiser(nullptr);
+			SceneManager::SetActiveScene(fileName, serialiser);
 
 			DeserialiseEditorScene();
 		}
@@ -942,7 +1025,8 @@ namespace Borealis {
 		SCPanel.SetSelectedEntity({});
 		std::string tmpName = SceneManager::GetActiveScene()->GetName();
 		SceneManager::SetActiveScene(mEditorScene);
-		SceneManager::RemoveScene(tmpName);
+		EditorSerialiser serialiser(nullptr);
+		SceneManager::RemoveScene(tmpName, serialiser);
 		SCPanel.SetContext(SceneManager::GetActiveScene());
 
 		auto view = SceneManager::GetActiveScene()->GetRegistry().view<CameraComponent>();
@@ -973,7 +1057,8 @@ namespace Borealis {
 
 	void EditorLayer::RemoveScene(std::string sceneName)
 	{
-		SceneManager::RemoveScene(sceneName);
+		EditorSerialiser serialiser(nullptr);
+		SceneManager::RemoveScene(sceneName, serialiser);
 	}
 
 	void EditorLayer::DeserialiseEditorScene()
@@ -999,7 +1084,8 @@ namespace Borealis {
 			if (Project::SetProjectPath(filepath.c_str(), activeSceneName))
 			{
 				mAssetImporter.LoadRegistry(Project::GetProjectInfo());
-				SceneManager::SetActiveScene(activeSceneName);
+				EditorSerialiser serialiser(nullptr);
+				SceneManager::SetActiveScene(activeSceneName, serialiser);
 
 				for (auto [handle,meta] : Project::GetEditorAssetsManager()->GetAssetRegistry())
 				{
@@ -1046,7 +1132,8 @@ namespace Borealis {
 			// Create default empty scene
 			SceneManager::ClearSceneLibrary();
 			SceneManager::CreateScene("untitled", assetsPath);
-			SceneManager::SetActiveScene("untitled");
+			EditorSerialiser serialiser(nullptr);
+			SceneManager::SetActiveScene("untitled", serialiser);
 
 			CBPanel.SetCurrDir(assetsPath);
 			EditorLayer::DeserialiseEditorScene();
@@ -1067,7 +1154,8 @@ namespace Borealis {
 			return;
 		}
 		Project::SaveProject();
-		SceneManager::SaveActiveScene();
+		EditorSerialiser serialiser(mEditorScene);
+		SceneManager::SaveActiveScene(serialiser);
 	}
 
 	void EditorLayer::UIToolbar()

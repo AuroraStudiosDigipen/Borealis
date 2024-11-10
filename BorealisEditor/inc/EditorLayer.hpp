@@ -21,6 +21,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Panels/ContentBrowserPanel.hpp>
 #include <Panels/ConsolePanel.hpp>
 #include <Panels/BTNodeEditorPanel.hpp>
+#include <Panels/AudioMixerPanel.hpp>
 #include <Graphics/EditorCamera.hpp>
 #include <EditorAssets/AssetImporter.hpp>
 namespace Borealis {
@@ -230,6 +231,7 @@ namespace Borealis {
 		ContentBrowserPanel CBPanel;
 		ConsolePanel CSPanel;
 		BTNodeEditorPanel BTNEPanel;
+		AudioMixerPanel AMPanel;
 		bool mLightMode = true;
 
 		float mLineThickness = 1.0f;

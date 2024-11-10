@@ -543,6 +543,7 @@ namespace Borealis {
 			SCPanel.ImGuiRender();
 			CBPanel.ImGuiRender();
 			CSPanel.ImGuiRender();
+			AMPanel.ImGuiRender();
 			
 			BTNEPanel.ImGuiRender();
 

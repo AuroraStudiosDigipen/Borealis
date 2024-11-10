@@ -1,17 +1,3 @@
-/******************************************************************************/
-/*!
-\file		AudioEngine.hpp
-\author 	Valerie Koh
-\par    	email: v.koh@digipen.edu
-\date   	September 11, 2024
-\brief		Declares the AudioEngine class for handling audio functionality
-
-Copyright (C) 2023 DigiPen Institute of Technology.
-Reproduction or disclosure of this file or its contents without the
-prior written consent of DigiPen Institute of Technology is prohibited.
-*/
-/******************************************************************************/
-
 #ifndef _AUDIO_ENGINE_H_
 #define _AUDIO_ENGINE_H_
 
@@ -91,7 +77,7 @@ namespace Borealis
 
         /*!***********************************************************************
         \brief
-            Plays an audio file at the specified position.
+            Plays an audio file at the specified position, assigned to a group.
         \param strSoundName
             The name of the sound file.
         \param vPosition
@@ -102,10 +88,13 @@ namespace Borealis
             Whether the sound should be muted.
         \param bLoop
             Whether the sound should loop.
+        \param groupId
+            The ID of the audio group.
         \return
             The ID of the channel where the sound is played.
         *************************************************************************/
-        static int PlayAudio(const AudioSourceComponent& audio, const Vector3& vPosition = Vector3{ 0, 0, 0 }, float fVolumedB = 5.0f, bool bMute = false, bool bLoop = false);
+        static int PlayAudio(const AudioSourceComponent& audio, const Vector3& vPosition = Vector3{ 0, 0, 0 }, float fVolumedB = 5.0f, bool bMute = false, bool bLoop = false, int groupId = -1);
+
         /*!***********************************************************************
         \brief
             Checks if a sound is playing on the specified channel.
@@ -162,6 +151,18 @@ namespace Borealis
 
         /*!***********************************************************************
         \brief
+            Sets the position of the listener in 3D space.
+        \param position
+            The 3D position of the listener.
+        \param forward
+            The forward orientation vector.
+        \param up
+            The upward orientation vector.
+        *************************************************************************/
+        void SetListenerPosition(const Vector3& position, const Vector3& forward, const Vector3& up);
+
+        /*!***********************************************************************
+        \brief
             Converts a decibel value to a linear volume scale.
         \param db
             The decibel value to convert.
@@ -179,6 +180,52 @@ namespace Borealis
             The decibel value.
         *************************************************************************/
         static float VolumeTodb(float volume);
+
+        /*!***********************************************************************
+        \brief
+            Sets the master volume for the entire audio engine.
+        \param volume
+            The master volume level in linear scale (0.0 - 1.0).
+        *************************************************************************/
+        static void SetMasterVolume(float fVolumedB);
+
+        /*!***********************************************************************
+        \brief
+            Creates a new audio group that can manage multiple sounds collectively.
+        \param groupName
+            The name of the audio group to create.
+        \return
+            The ID of the created audio group.
+        *************************************************************************/
+        static int CreateGroup(const std::string& groupName);
+
+        /*!***********************************************************************
+        \brief
+            Sets the volume for a specific audio group.
+        \param groupId
+            The ID of the audio group.
+        \param volume
+            The volume level for the group in linear scale (0.0 - 1.0).
+        *************************************************************************/
+        static void SetGroupVolume(int groupId, float fVolumedB);
+
+        /*!***********************************************************************
+        \brief
+            Retrieves the default audio group ID.
+        \return
+            The ID of the default audio group.
+        *************************************************************************/
+        static int GetDefaultGroupId();
+
+        static int GetGroupIdForAudio(FMOD::Sound* fmodSound);
+
+        static int mDefaultGroupI; /*!< The default audio group ID */
+
+    private:
+        static std::map<int, float> mGroupVolumes; /*!< Map of group IDs and their volume levels */
+        static std::map<int, std::vector<int>> mGroupChannels; /*!< Map of group IDs and the channels assigned to them */
+        static int mNextGroupId; /*!< Counter for creating unique group IDs */
     };
 } // End of namespace Borealis
+
 #endif

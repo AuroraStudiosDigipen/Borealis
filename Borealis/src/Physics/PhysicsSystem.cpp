@@ -40,6 +40,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Body/BodyActivationListener.h>
 #include <Jolt/Physics/Collision/Shape/RotatedTranslatedShape.h>
+#include <Jolt/Physics/Character/Character.h>
+#include <Jolt/Physics/Character/CharacterBase.h>
 
 
 JPH_SUPPRESS_WARNINGS
@@ -475,14 +477,20 @@ void PhysicsSystem::Init()
 	float PhysicsSystem::calculateSphereRadius(glm::vec3 minExtent, glm::vec3 maxExtent)
 	{
 		glm::vec3 dimensions = maxExtent - minExtent;
-		return glm::length(dimensions) / 2.0f;
+		return (glm::length(dimensions) * 0.5f);
 	}
 
 	std::pair<float, float> PhysicsSystem::calculateCapsuleDimensions(glm::vec3 minExtent, glm::vec3 maxExtent)
 	{
-		glm::vec3 dimensions = maxExtent - minExtent;
-		float radius = glm::length(glm::vec2(dimensions.x, dimensions.z)) / 2.0f;
-		float halfHeight = (dimensions.y - 2 * radius) / 2.0f;
+		// Calculate the extents of the bounding box
+		glm::vec3 extent = maxExtent - minExtent;
+
+		// Radius is half of the smallest width in the X or Z dimensions
+		float radius = 0.5f * std::min(extent.x, extent.z);
+
+		// Half-height is half of the height (Y dimension), minus the radius
+		float halfHeight = 0.5f * extent.y - radius;
+
 		return { radius, halfHeight };
 	}
 
@@ -543,6 +551,17 @@ void PhysicsSystem::Init()
 	void PhysicsSystem::SetRotation(unsigned int bodyID, glm::vec3 rotation)
 	{
 	}
+	void PhysicsSystem::move(RigidBodyComponent& rigidbody, glm::vec3 motion)
+	{
+		// Get the current position of the body
+		JPH::RVec3 position = sData.body_interface->GetPosition((BodyID)rigidbody.bodyID);
+
+		// Add the motion to the position
+		position += JPH::RVec3(motion.x, motion.y, motion.z);
+
+		// Set the new position
+		sData.body_interface->SetPosition((BodyID)rigidbody.bodyID, position, EActivation::Activate);
+	}
 
 	void PhysicsSystem::addBody(TransformComponent& transform, RigidBodyComponent& rigidbody, MeshFilterComponent& mesh, UUID entityID) {
 		ShapeRefC shape;
@@ -573,8 +592,7 @@ void PhysicsSystem::Init()
 		}
 		case RigidBodyType::Capsule: {
 			// Create capsule shape settings
-			float radius = rigidbody.radius;     // Assuming size.x represents the radius for a capsule
-			float halfHeight = rigidbody.halfHeight; // Assuming size.y represents the half height for a capsule
+			auto [radius, halfHeight] = calculateCapsuleDimensions(rigidbody.minExtent, rigidbody.maxExtent);
 			CapsuleShapeSettings capsule_shape_settings(radius, halfHeight);
 			capsule_shape_settings.SetEmbedded();
 			shape_result = capsule_shape_settings.Create();
@@ -593,10 +611,8 @@ void PhysicsSystem::Init()
 
 		// Create the settings for the body itself, including other properties like restitution and friction
 		BodyCreationSettings body_settings(shape, RVec3(transform.Translate.x, transform.Translate.y, transform.Translate.z), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
-		body_settings.mFriction = rigidbody.friction;
-		body_settings.mRestitution = rigidbody.bounciness;
 
-		if (rigidbody.dynamicBody) {
+		if (rigidbody.movement == MovementType::Dynamic) {
 			body_settings.mMotionType = EMotionType::Dynamic;
 			body_settings.mObjectLayer = Layers::MOVING;
 		}
@@ -605,6 +621,15 @@ void PhysicsSystem::Init()
 			body_settings.mMotionType = EMotionType::Static;
 			body_settings.mObjectLayer = Layers::NON_MOVING;
 		}
+
+		if (rigidbody.movement == MovementType::Kinematic)
+		{
+			body_settings.mMotionType = EMotionType::Kinematic;
+			body_settings.mObjectLayer = Layers::MOVING;
+		}
+
+		body_settings.mFriction = rigidbody.friction;
+		body_settings.mRestitution = rigidbody.bounciness;
 
 		// Create the actual rigid body
 		Body* body = sData.body_interface->CreateBody(body_settings); // Handle nullptr in a real scenario

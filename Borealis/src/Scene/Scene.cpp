@@ -228,6 +228,10 @@ namespace Borealis
 					}
 					auto [transform, rigidbody] = physicsGroup.get<TransformComponent, RigidBodyComponent>(entity);
 					PhysicsSystem::PushTransform(rigidbody, transform, brEntity);
+
+					//Example move usage
+					/*if(rigidbody.movement == MovementType::Kinematic)
+					PhysicsSystem::move(rigidbody, glm::vec3(0.01f, 0.0f, 0.0f));*/
 				}
 
 				PhysicsSystem::Update(dt);

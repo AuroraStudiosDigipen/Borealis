@@ -153,24 +153,33 @@ namespace Borealis
 				value("Capsule", RigidBodyType::Capsule)
                 );
 
+		registration::enumeration<MovementType>("Rigidbody Movement Type")
+			(
+				value("Static", MovementType::Static),
+				value("Dynamic", MovementType::Dynamic),
+				value("Kinematic", MovementType::Kinematic)
+				);
+
         registration::class_<RigidBodyComponent>("Rigid Body Component")
             (metadata("Component", true))
             .constructor<>()
             .property("Shape", &RigidBodyComponent::shape)
 
-			.property("Dynamic", &RigidBodyComponent::dynamicBody)
+			.property("Movement", &RigidBodyComponent::movement)
 
-            .property("Radius", &RigidBodyComponent::radius)
-            (metadata("Dependency", "Shape"), metadata("Visible for", "Sphere"))
+			//.property("Dynamic", &RigidBodyComponent::dynamicBody)
 
-            .property("Size", &RigidBodyComponent::size)
-            (metadata("Dependency", "Shape"), metadata("Visible for", "Box"))
-            
-            .property("Radius ", &RigidBodyComponent::radius)
-            (metadata("Dependency", "Shape"), metadata("Visible for", "Capsule"))
-            
-            .property("Half Height", &RigidBodyComponent::halfHeight)
-            (metadata("Dependency", "Shape"), metadata("Visible for", "Capsule"))
+            //.property("Radius", &RigidBodyComponent::radius)
+            //(metadata("Dependency", "Shape"), metadata("Visible for", "Sphere"))
+
+            //.property("Size", &RigidBodyComponent::size)
+            //(metadata("Dependency", "Shape"), metadata("Visible for", "Box"))
+            //
+            //.property("Radius ", &RigidBodyComponent::radius)
+            //(metadata("Dependency", "Shape"), metadata("Visible for", "Capsule"))
+            //
+            //.property("Half Height", &RigidBodyComponent::halfHeight)
+            //(metadata("Dependency", "Shape"), metadata("Visible for", "Capsule"))
             
             .property("Friction", &RigidBodyComponent::friction)
             

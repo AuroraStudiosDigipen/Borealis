@@ -174,19 +174,19 @@ namespace Borealis
 
 			.property("Movement", &RigidBodyComponent::movement)
 
-			.property("Dynamic", &RigidBodyComponent::dynamicBody)
+			//.property("Dynamic", &RigidBodyComponent::dynamicBody)
 
-            .property("Radius", &RigidBodyComponent::radius)
-            (metadata("Dependency", "Shape"), metadata("Visible for", "Sphere"))
+            //.property("Radius", &RigidBodyComponent::radius)
+            //(metadata("Dependency", "Shape"), metadata("Visible for", "Sphere"))
 
-            .property("Size", &RigidBodyComponent::size)
-            (metadata("Dependency", "Shape"), metadata("Visible for", "Box"))
-            
-            .property("Radius ", &RigidBodyComponent::radius)
-            (metadata("Dependency", "Shape"), metadata("Visible for", "Capsule"))
-            
-            .property("Half Height", &RigidBodyComponent::halfHeight)
-            (metadata("Dependency", "Shape"), metadata("Visible for", "Capsule"))
+            //.property("Size", &RigidBodyComponent::size)
+            //(metadata("Dependency", "Shape"), metadata("Visible for", "Box"))
+            //
+            //.property("Radius ", &RigidBodyComponent::radius)
+            //(metadata("Dependency", "Shape"), metadata("Visible for", "Capsule"))
+            //
+            //.property("Half Height", &RigidBodyComponent::halfHeight)
+            //(metadata("Dependency", "Shape"), metadata("Visible for", "Capsule"))
             
             .property("Friction", &RigidBodyComponent::friction)
             

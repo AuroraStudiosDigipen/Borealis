@@ -437,14 +437,20 @@ void PhysicsSystem::Init()
 	float PhysicsSystem::calculateSphereRadius(glm::vec3 minExtent, glm::vec3 maxExtent)
 	{
 		glm::vec3 dimensions = maxExtent - minExtent;
-		return glm::length(dimensions) / 2.0f;
+		return (glm::length(dimensions) * 0.5f);
 	}
 
 	std::pair<float, float> PhysicsSystem::calculateCapsuleDimensions(glm::vec3 minExtent, glm::vec3 maxExtent)
 	{
-		glm::vec3 dimensions = maxExtent - minExtent;
-		float radius = glm::length(glm::vec2(dimensions.x, dimensions.z)) / 2.0f;
-		float halfHeight = (dimensions.y - 2 * radius) / 2.0f;
+		// Calculate the extents of the bounding box
+		glm::vec3 extent = maxExtent - minExtent;
+
+		// Radius is half of the smallest width in the X or Z dimensions
+		float radius = 0.5f * std::min(extent.x, extent.z);
+
+		// Half-height is half of the height (Y dimension), minus the radius
+		float halfHeight = 0.5f * extent.y - radius;
+
 		return { radius, halfHeight };
 	}
 
@@ -469,7 +475,7 @@ void PhysicsSystem::Init()
 		}
 		case RigidBodyType::Sphere: {
 			// Create sphere shape settings
-			float radius = calculateSphereRadius(transform.minExtent,transform.maxExtent); // Assuming size.x represents the radius for a sphere
+			float radius = calculateSphereRadius(transform.minExtent,transform.maxExtent);
 			SphereShapeSettings sphere_shape_settings(radius);
 			sphere_shape_settings.SetEmbedded();
 			shape_result = sphere_shape_settings.Create();
@@ -478,8 +484,7 @@ void PhysicsSystem::Init()
 		}
 		case RigidBodyType::Capsule: {
 			// Create capsule shape settings
-			float radius = rigidbody.radius;     // Assuming size.x represents the radius for a capsule
-			float halfHeight = rigidbody.halfHeight; // Assuming size.y represents the half height for a capsule
+			auto [radius, halfHeight] = calculateCapsuleDimensions(transform.minExtent, transform.maxExtent);
 			CapsuleShapeSettings capsule_shape_settings(radius, halfHeight);
 			capsule_shape_settings.SetEmbedded();
 			shape_result = capsule_shape_settings.Create();
@@ -498,13 +503,20 @@ void PhysicsSystem::Init()
 
 		// Create the settings for the body itself, including other properties like restitution and friction
 		BodyCreationSettings body_settings(shape, RVec3(transform.Translate.x, transform.Translate.y, transform.Translate.z), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
-		body_settings.mFriction = rigidbody.friction;
-		body_settings.mRestitution = rigidbody.bounciness;
 
-		if (rigidbody.dynamicBody) {
+		if (rigidbody.movement == MovementType::Dynamic) {
 			body_settings.mMotionType = EMotionType::Dynamic;
 			body_settings.mObjectLayer = Layers::MOVING;
 		}
+
+		if (rigidbody.movement == MovementType::Kinematic)
+		{
+			body_settings.mMotionType = EMotionType::Kinematic;
+			body_settings.mObjectLayer = Layers::MOVING;
+		}
+
+		body_settings.mFriction = rigidbody.friction;
+		body_settings.mRestitution = rigidbody.bounciness;
 
 		// Create the actual rigid body
 		Body* body = sData.body_interface->CreateBody(body_settings); // Handle nullptr in a real scenario

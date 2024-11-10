@@ -30,7 +30,7 @@ public class ThirdPersonController : MonoBehaviour
         Vector3 dir = Vector3.zero;
 
         //Handle Movement Input
-        if (Input.GetKey(KeyCode.W))
+        if (Input.GetKey(KeyCode.S))
           {
             dir += CamYawPivot.transform.forward;
         }
@@ -38,7 +38,7 @@ public class ThirdPersonController : MonoBehaviour
         if (Input.GetKey(KeyCode.A))
             dir -= CamYawPivot.transform.right;
 
-        if (Input.GetKey(KeyCode.S))
+        if (Input.GetKey(KeyCode.W))
             dir -= CamYawPivot.transform.forward;
 
         if (Input.GetKey(KeyCode.D))

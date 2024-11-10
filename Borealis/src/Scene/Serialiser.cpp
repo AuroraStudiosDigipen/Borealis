@@ -410,7 +410,6 @@ namespace Borealis
 		auto loadedEntity = registry.create();
 		auto BorealisEntity = Entity(loadedEntity, mScene.get());
 		BorealisEntity.AddComponent<IDComponent>(uuid);
-		std::cout << BorealisEntity.GetUUID();
 
 		DeserialiseComponent<TagComponent>(entity, BorealisEntity);
 		DeserialiseComponent<TransformComponent>(entity, BorealisEntity);
@@ -423,6 +422,10 @@ namespace Borealis
 		DeserialiseComponent<CapsuleColliderComponent>(entity, BorealisEntity);
 		DeserialiseComponent<RigidBodyComponent>(entity, BorealisEntity);
 		DeserialiseComponent<LightComponent>(entity, BorealisEntity);
+		DeserialiseComponent<AudioSourceComponent>(entity, BorealisEntity);
+		DeserialiseComponent<AudioListenerComponent>(entity, BorealisEntity);
+		DeserialiseComponent<TextComponent>(entity, BorealisEntity);
+		DeserialiseComponent<SkinnedMeshRendererComponent>(entity, BorealisEntity);
 
 		DeserialiseAbstractItems(entity, BorealisEntity);
 		//auto behaviourTreeComponent = entity["BehaviourTreeComponent"];

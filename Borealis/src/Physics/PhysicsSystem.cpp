@@ -41,6 +41,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Jolt/Physics/Body/BodyActivationListener.h>
 #include <Jolt/Physics/Collision/Shape/RotatedTranslatedShape.h>
 #include <Jolt/Physics/Character/Character.h>
+#include <Jolt/Physics/Character/CharacterBase.h>
 
 
 JPH_SUPPRESS_WARNINGS

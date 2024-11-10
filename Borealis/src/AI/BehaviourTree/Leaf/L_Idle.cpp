@@ -13,7 +13,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
  /******************************************************************************/
 
 #include <BorealisPCH.hpp>
-#include "AI//BehaviourTree/Leaf/L_Idle.hpp"
+#include "AI/BehaviourTree/Leaf/L_Idle.hpp"
 #include <Core/InputSystem.hpp>
 #include <Core/KeyCodes.hpp>
 #include <Core/LoggerSystem.hpp>
@@ -28,15 +28,13 @@ namespace Borealis
         BehaviourNode::OnLeafEnter();
     }
 
-    void L_Idle::OnUpdate(float dt)
+    void L_Idle::OnUpdate(float dt, Entity& entity)
     {
-        timer -= dt;
-
-        BOREALIS_CORE_TRACE("Idling now, time is {}", timer);
+        timer -= dt;    
 
         if (timer < 0.0f)
         {
-            BOREALIS_CORE_TRACE("Idling completed");
+            BOREALIS_CORE_TRACE("Idling completed for entity {}", entity.GetName());
             OnSuccess();
         }
 

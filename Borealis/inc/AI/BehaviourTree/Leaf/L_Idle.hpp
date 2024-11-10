@@ -44,7 +44,7 @@ namespace Borealis
             \param[in] dt
             	The delta time for the update.
          *************************************************************************/
-        virtual void OnUpdate(float dt) override;
+        virtual void OnUpdate(float dt, Entity& entity) override;
     };
 }
 

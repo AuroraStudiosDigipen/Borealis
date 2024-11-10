@@ -334,6 +334,10 @@ namespace Borealis
 					{
 						payloadName = "DragDropMaterialItem";
 					}
+					else if (extension == ".btree")
+					{
+						payloadName = "DragDropBehaviourTreeItem";
+					}
 				}
 
 				ImGui::SetDragDropPayload(payloadName.c_str(), &assetHandle, sizeof(AssetHandle), ImGuiCond_Once);

@@ -20,6 +20,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Panels/SceneHierarchyPanel.hpp>
 #include <Panels/ContentBrowserPanel.hpp>
 #include <Panels/ConsolePanel.hpp>
+#include <Panels/BTNodeEditorPanel.hpp>
 #include <Graphics/EditorCamera.hpp>
 #include <EditorAssets/AssetImporter.hpp>
 namespace Borealis {
@@ -228,6 +229,7 @@ namespace Borealis {
 		SceneHierarchyPanel SCPanel;
 		ContentBrowserPanel CBPanel;
 		ConsolePanel CSPanel;
+		BTNodeEditorPanel BTNEPanel;
 		bool mLightMode = true;
 
 		float mLineThickness = 1.0f;

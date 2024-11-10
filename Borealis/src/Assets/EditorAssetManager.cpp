@@ -22,6 +22,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/Material.hpp>
 #include <Graphics/Texture.hpp>
 #include <Graphics/Model.hpp>
+#include <AI/BehaviourTree/BTreeFactory.hpp>
 
 
 namespace Borealis
@@ -215,6 +216,9 @@ namespace Borealis
 			break;
 		case AssetType::Mesh:
 			asset = GetModel(metaData.Config, metaData.CachePath.string());
+			break;
+		case AssetType::BehaviourTree:
+			asset = BTreeFactory::Instance().LoadBehaviourTree(metaData.SourcePath.string());
 			break;
 		default:
 			break;

@@ -15,14 +15,16 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include "AI/BehaviourTree/BehaviourNode.hpp"
 #include "AI/BehaviourTree/BehaviourTree.hpp"
 #include "Core/LoggerSystem.hpp"
+#include <Scene/Entity.hpp>
 namespace Borealis
 {
     BehaviourTree::BehaviourTree() : mRootNode(nullptr), mTreeName("")
     {}
+
     BehaviourTree::~BehaviourTree(){}
-    void BehaviourTree::Update(float dt)
+    void BehaviourTree::Update(float dt, Entity& entity)
     {
-        mRootNode->Tick(dt);
+        mRootNode->Tick(dt,entity);
 
         // if the root node is complete in any way, restart it
         if (mRootNode->IsRunning() == false)
@@ -85,21 +87,17 @@ namespace Borealis
         root->SetDepth(0);
         mRootNode = root;
     } 
-    Ref<BehaviourNode> BehaviourTree::GetRootNode() 
+    Ref<BehaviourNode> BehaviourTree::GetRootNode() const 
     {
         return mRootNode;
     }
     void BehaviourTree::SetBehaviourTreeName(std::string&& name)
     {
         mTreeName = name;
-        BOREALIS_CORE_TRACE("Name of tree set to {}",mTreeName);
-
     }
     void BehaviourTree::SetBehaviourTreeName(std::string& name)
     {
         mTreeName = name;
-        BOREALIS_CORE_TRACE("Name of tree set to {}", mTreeName);
-
     }
     std::string BehaviourTree::GetBehaviourTreeName() const
     {

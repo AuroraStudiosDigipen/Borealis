@@ -24,12 +24,12 @@ namespace Borealis
         BehaviourNode::OnEnter();
     }
 
-    void C_Sequencer::OnUpdate(float dt)
+    void C_Sequencer::OnUpdate(float dt, Entity& entity)
     {
         // if any child fails, the node fails
         // if all children succeed, the node succeeds
         Ref<BehaviourNode> currentNode = mChildren[currentIndex];
-        currentNode->Tick(dt);
+        currentNode->Tick(dt, entity);
 
         if (currentNode->HasFailed() == true)
         {

@@ -18,14 +18,14 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/LoggerSystem.hpp>
 namespace Borealis
 {
-    void L_CheckMouseClick::OnUpdate(float dt)
+    void L_CheckMouseClick::OnUpdate(float dt, Entity& entity)
     {
 
         if (InputSystem::IsKeyPressed(Key::A))
         {
             // grab the current mouse pos
             //const auto& mousePos = InputHandler::get_mouse_position();
-
+           
             //// we want to know where on the ground the mouse was clicked
             //const auto& plane = terrain->get_terrain_plane();
 

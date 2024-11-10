@@ -35,6 +35,8 @@ namespace Borealis
 		if (extension == ".mp3")	return AssetType::Audio;
 		if (extension == ".wav")	return AssetType::Audio;
 		if (extension == ".prefab")	return AssetType::Prefab;
+		if (extension == ".btree")	return AssetType::BehaviourTree;
+
 
 		return AssetType::None;
 	}
@@ -43,17 +45,19 @@ namespace Borealis
 	{
 		switch (type)
 		{
-		case AssetType::None:		return "AssetType::None";
-		case AssetType::Audio:		return "AssetType::Audio";
-		case AssetType::Animation:	return "AssetType::Animation";
-		case AssetType::Mesh:		return "AssetType::Mesh";
-		case AssetType::Shader:		return "AssetType::Shader";
-		case AssetType::Texture2D:	return "AssetType::Texture2D";
-		case AssetType::Folder:		return "AssetType::Folder";
-		case AssetType::Font:		return "AssetType::Font";
-		case AssetType::Scene:		return "AssetType::Scene";
-		case AssetType::Material:	return "AssetType::Material";
-		case AssetType::Prefab:		return "AssetType::Prefab";
+		case AssetType::None:			return "AssetType::None";
+		case AssetType::Audio:			return "AssetType::Audio";
+		case AssetType::Animation:		return "AssetType::Animation";
+		case AssetType::Mesh:			return "AssetType::Mesh";
+		case AssetType::Shader:			return "AssetType::Shader";
+		case AssetType::Texture2D:		return "AssetType::Texture2D";
+		case AssetType::Folder:			return "AssetType::Folder";
+		case AssetType::Font:			return "AssetType::Font";
+		case AssetType::Scene:			return "AssetType::Scene";
+		case AssetType::Material:		return "AssetType::Material";
+		case AssetType::Prefab:			return "AssetType::Prefab";
+		case AssetType::BehaviourTree:	return "AssetType::BehaviourTree";
+
 		}
 
 		return "AssetType::<Invalid>";
@@ -72,6 +76,8 @@ namespace Borealis
 		if (type == "AssetType::Scene")			return AssetType::Scene;
 		if (type == "AssetType::Material")		return AssetType::Material;
 		if (type == "AssetType::Prefab")		return AssetType::Prefab;
+		if (type == "AssetType::BehaviourTree")	return AssetType::BehaviourTree;
+
 		return AssetType::None;
 	}
 }

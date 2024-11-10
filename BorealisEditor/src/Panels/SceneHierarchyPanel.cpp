@@ -41,6 +41,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include "EditorAssets/MaterialEditor.hpp"
 #include <EditorSerialiser.hpp>
+#include <AI/BehaviourTree/BTreeFactory.hpp>
 
 namespace ImGui
 {
@@ -498,6 +499,24 @@ namespace Borealis
 				ImGui::EndDragDropTarget();
 			}
 			return false;
+		}
+
+		if (propType == rttr::type::get<Ref<BehaviourTree>>())
+		{
+			ImGui::Button(propName.c_str());
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropBehaviourTreeItem"))
+				{
+					AssetHandle data = *(const uint64_t*)payload->Data;
+					Ref<BehaviourTree> originalTree = AssetManager::GetAsset<BehaviourTree>(data);
+					Ref<BehaviourTree> clonedTree = BTreeFactory::Instance().CloneBehaviourTree(originalTree);
+					rttr::variant value(clonedTree);
+					Property.set_value(rInstance, value);
+				}
+				ImGui::EndDragDropTarget();
+			}
+			return;
 		}
 
 		if (propType == rttr::type::get<Ref<Audio>>())

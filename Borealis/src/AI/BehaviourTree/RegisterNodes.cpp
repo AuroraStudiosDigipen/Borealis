@@ -105,5 +105,10 @@ namespace Borealis
 
         return NodeType::UNKNOWN;  // Return INVALID if the prefix doesn't match any known type
     }
+    std::unordered_map<std::string, Ref<BehaviourNode>> NodeFactory::GetNodePrototypes()
+    {
+        return sNodePrototypes;
+    }
+
 }
 

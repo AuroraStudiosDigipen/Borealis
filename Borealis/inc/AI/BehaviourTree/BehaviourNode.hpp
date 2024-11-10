@@ -19,6 +19,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <vector>
 #include <Core/Core.hpp>
 
+#include <Scene/Entity.hpp>
+
 namespace Borealis
 {
     class Serialiser; // Forward declaration
@@ -27,6 +29,7 @@ namespace Borealis
         CONTROLFLOW,
         DECORATOR,
         LEAF,
+        ROOT,
         UNKNOWN
     };
 
@@ -53,6 +56,8 @@ namespace Borealis
     public:
         BehaviourNode() = default;
 
+        std::vector<Ref<BehaviourNode>> GetChildrenNodes() const;
+
         /*!***********************************************************************
             \brief
                 Gets the type of the node.
@@ -67,7 +72,7 @@ namespace Borealis
            \param[in] depth
                The depth to set.
        *************************************************************************/
-        void SetDepth(int depth);
+        void SetDepth(unsigned int depth);
 
         /*!***********************************************************************
             \brief
@@ -209,7 +214,7 @@ namespace Borealis
             \param[in] dt
                 The delta time for updating the node.
         *************************************************************************/
-        void Tick(float dt);
+        void Tick(float dt, Entity& entity);
 
         /*!***********************************************************************
             \brief
@@ -239,7 +244,7 @@ namespace Borealis
             \param[in] dt
                 The delta time for updating the node.
         *************************************************************************/
-        virtual void OnUpdate(float dt);
+        virtual void OnUpdate(float dt, Entity& entity);
 
         /*!***********************************************************************
             \brief
@@ -258,12 +263,11 @@ namespace Borealis
                 Marks the node as failed and exits execution.
         *************************************************************************/
         void OnFailure();
-
     protected:
         WeakRef<BehaviourNode> mParent;  // Parent node reference
         std::vector<Ref<BehaviourNode>> mChildren;  // Child nodes
     private:
-        int mDepth;  // Depth of the node in the behavior tree
+        unsigned int mDepth;  // Depth of the node in the behavior tree
 
         // Node type, status, and result
         NodeType mNodeType;

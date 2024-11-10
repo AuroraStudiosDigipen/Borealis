@@ -15,16 +15,21 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include <string>
 #include <Core/Core.hpp>
+#include <Assets/Asset.hpp>
+#include <AI/BehaviourTree/Blackboard.hpp>
 
 namespace Borealis
 {
     // Forward declaration
     class BehaviourNode;
+    class Entity;
 
-    class BehaviourTree
+    class BehaviourTree : public Asset
     {
     public:
         BehaviourTree();
+
+
         ~BehaviourTree();
 
         /*!***********************************************************************
@@ -53,7 +58,7 @@ namespace Borealis
             \return
                 A reference to the root node.
         *************************************************************************/
-        Ref<BehaviourNode> GetRootNode();
+        Ref<BehaviourNode> GetRootNode() const;
 
         /*!***********************************************************************
             \brief
@@ -62,7 +67,7 @@ namespace Borealis
             \param[in] dt
                 Delta time for updating the nodes.
         *************************************************************************/
-        void Update(float dt);
+        void Update(float dt, Entity& entity);
 
         /*!***********************************************************************
             \brief
@@ -93,6 +98,7 @@ namespace Borealis
         Ref<BehaviourNode> mRootNode;  // The root node of the behavior tree
         Ref<BehaviourNode> mPreviousNode;  // Keeps track of the previously added node
         std::string mTreeName;  // Name of the behavior tree
+        Ref<Blackboard> mBlackboard;
     };
 }
 

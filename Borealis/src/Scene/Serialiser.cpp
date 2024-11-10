@@ -48,12 +48,10 @@ namespace Borealis
 
 		// Create the node using NodeFactory based on its name
 		Ref<BehaviourNode> currentNode = Borealis::NodeFactory::CreateNodeByName(nodeName);
-		currentNode->SetDepth(depth); // Assuming setDepth is implemented in BehaviourNode
+		currentNode->SetDepth(depth);
 
 		// Add the current node to the tree
 		tree.AddNode(parentNode, currentNode, depth);
-
-		BOREALIS_CORE_TRACE("Deserialising node: {} at depth {}", nodeName, depth);
 
 		// Process children if they exist
 		if (node["children"])
@@ -180,21 +178,22 @@ namespace Borealis
 
 		if (entity.HasComponent<BehaviourTreeComponent>())
 		{
-			out << YAML::Key << "BehaviourTreeComponent";
-			out << YAML::BeginMap;
+			SerializeComponent(out, entity.GetComponent<BehaviourTreeComponent>());
+			//out << YAML::Key << "BehaviourTreeComponent";
+			//out << YAML::BeginMap;
 
-			auto& behaviourTreeComponent = entity.GetComponent<BehaviourTreeComponent>();
-			
-			for (auto& tree : behaviourTreeComponent.mBehaviourTrees)
-			{
-				out << YAML::Key << "BehaviourTree";
-				out << YAML::BeginMap;
-				out << YAML::Key << "Tree Name" << YAML::Value << tree->GetBehaviourTreeName();
-				Serialiser::SerializeBehaviourNode(out, tree->GetRootNode());
-				out << YAML::EndMap;
-			}
+			//auto& behaviourTreeComponent = entity.GetComponent<BehaviourTreeComponent>();
+			//
+			//for (auto& tree : behaviourTreeComponent.mBehaviourTrees)
+			//{
+			//	out << YAML::Key << "BehaviourTree";
+			//	out << YAML::BeginMap;
+			//	out << YAML::Key << "Tree Name" << YAML::Value << tree->GetBehaviourTreeName();
+			//	Serialiser::SerializeBehaviourNode(out, tree->GetRootNode());
+			//	out << YAML::EndMap;
+			//}
 
-			out << YAML::EndMap;
+			//out << YAML::EndMap;
 		}
 
 		if (entity.HasComponent<ScriptComponent>())

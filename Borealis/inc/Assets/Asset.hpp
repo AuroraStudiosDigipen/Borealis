@@ -37,7 +37,8 @@ namespace Borealis
 		Font,
 		Scene,
 		Material,
-		Prefab
+		Prefab,
+		BehaviourTree
 	};
 
 	class Asset
@@ -53,5 +54,6 @@ namespace Borealis
 		RTTR_ENABLE()
 	};
 }
+
 
 #endif

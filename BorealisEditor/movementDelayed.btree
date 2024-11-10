@@ -1,0 +1,32 @@
+BehaviourTreeComponent:
+  BehaviourTree:
+    Tree Name: NewBehaviorTree
+    Nodes:
+      - ID: 11
+        Name: C_Sequencer
+        Type: ControlFlow
+        Depth: 0
+        ChildrenIDs:
+          - 32
+          - 58
+        Position:
+          x: -124
+          y: -353
+      - ID: 32
+        Name: L_Idle
+        Type: Leaf
+        Depth: 1
+        ChildrenIDs:
+          []
+        Position:
+          x: -294
+          y: -59
+      - ID: 58
+        Name: L_RotatingMotion
+        Type: Leaf
+        Depth: 1
+        ChildrenIDs:
+          []
+        Position:
+          x: -6
+          y: -43

@@ -50,7 +50,7 @@ namespace Borealis
         @brief Sets the depth of the node.
         @param depth The depth to be set.
     */
-    void BehaviourNode::SetDepth(int depth) 
+    void BehaviourNode::SetDepth(unsigned int depth) 
     {
         mDepth = depth;
     }
@@ -71,7 +71,6 @@ namespace Borealis
     void BehaviourNode::SetName(const std::string& setName)
     {
         mName = setName;
-        BOREALIS_CORE_TRACE("Name of node set to {}", mName);
     }
 
     /*
@@ -206,7 +205,7 @@ namespace Borealis
         @brief Updates the node based on its current status.
         @param dt The delta time for updating the node.
     */
-    void BehaviourNode::Tick(float dt)
+    void BehaviourNode::Tick(float dt, Entity& entity)
     {
         if (mStatus == NodeStatus::READY)
         {
@@ -215,7 +214,7 @@ namespace Borealis
 
         if (mStatus == NodeStatus::RUNNING)
         {
-            OnUpdate(dt);
+            OnUpdate(dt, entity);
         }
 
         if (mStatus == NodeStatus::EXITING)
@@ -248,7 +247,7 @@ namespace Borealis
         @brief Handles the node's update logic.
         @param dt The delta time (not used in base logic).
     */
-    void BehaviourNode::OnUpdate(float)
+    void BehaviourNode::OnUpdate(float, Entity& entity)
     {
         // No base logic implemented
     }
@@ -279,5 +278,8 @@ namespace Borealis
         SetResult(NodeResult::FAILURE);
     }
 
-
+    std::vector<Ref<BehaviourNode>> BehaviourNode::GetChildrenNodes() const
+    {
+        return mChildren;
+    }
 }

@@ -372,7 +372,7 @@ void PhysicsSystem::Init()
 		glm::quat rotation = glm::quat(newRotation.GetW(), newRotation.GetX(), newRotation.GetY(), newRotation.GetZ());
 		// Convert quaternion to Euler angles (quat to vec3) in degrees
 		glm::vec3 newRotate = glm::degrees(glm::eulerAngles(rotation));  // Euler angles in degrees
-		glm::vec3 newScale = transform.Scale;
+		glm::vec3 newScale = TransformComponent::GetGlobalScale(entity);
 
 		glm::mat4 rotationMatrix = glm::mat4(glm::quat(glm::radians(newRotate)));
 		glm::mat4 translationMatrix = glm::mat4(1.f);
@@ -382,10 +382,23 @@ void PhysicsSystem::Init()
 
 		newTranslate -= glm::vec3(offsetCenter.x, offsetCenter.y, offsetCenter.z);
 
+		glm::mat4 newTransform = glm::translate(glm::mat4(1.0f), newTranslate) * rotationMatrix * scaleMatrix;
 
-		transform.Translate = newTranslate;
-		transform.Rotation = newRotate;
-		transform.Scale = newScale;
+
+		if(transform.ParentID == 0)
+		{
+			transform.Translate = newTranslate;
+			transform.Rotation = newRotate;
+			transform.Scale = newScale;
+		}
+		else
+		{
+			auto parentEntity = SceneManager::GetActiveScene()->GetEntityByUUID(transform.ParentID);
+			auto parentTransform = TransformComponent::GetGlobalTransform(parentEntity);
+			auto localTransform = newTransform * glm::inverse(parentTransform);
+			Math::MatrixDecomposition(&localTransform, &transform.Translate, &transform.Rotation, &transform.Scale);
+
+		}
 
 		//TODO
 		/*if (transform.ParentID != 0)

@@ -281,7 +281,6 @@ namespace Borealis {
 
 						//Testing load all the prefab children
 						for (auto& item : SceneManager::GetActiveScene()->GetRegistry().view<entt::entity>()) {
-							std::cout << "Prefab Check: " << std::endl;
 
 							Entity entity{ item, SceneManager::GetActiveScene().get() }; // Use GetActiveScene() here
 							if (entity.HasComponent<PrefabComponent>()) {
@@ -454,8 +453,6 @@ namespace Borealis {
 			
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0,0 });
 			ImGui::Begin("Viewport");
-
-				PrefabManager::ShowAllPrefabs();
 
 				mViewportFocused = ImGui::IsWindowFocused();
 				mViewportHovered = ImGui::IsWindowHovered();

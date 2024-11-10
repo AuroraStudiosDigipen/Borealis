@@ -53,7 +53,7 @@ namespace Borealis
 			if (data["EntityID"])
 			{
 				uint64_t uuid = data["EntityID"].as<uint64_t>();
-				std::cout << "Extracted EntityID (UUID): " << uuid << std::endl;
+				//std::cout << "Extracted EntityID (UUID): " << uuid << std::endl;
 
 				// Return the extracted UUID
 				return UUID(uuid);
@@ -88,7 +88,7 @@ namespace Borealis
 			if (data["EntityID"])
 			{
 				uint64_t uuid = data["EntityID"].as<uint64_t>();
-				std::cout << "Extracted EntityID (UUID): " << uuid << std::endl;
+				//std::cout << "Extracted EntityID (UUID): " << uuid << std::endl;
 
 				// Return the extracted UUID
 				return UUID(uuid);

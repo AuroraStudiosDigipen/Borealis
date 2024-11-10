@@ -14,8 +14,8 @@ public class Trampoline : MonoBehaviour
             if (playerTransform != null)
             {
                 // Get the Rigidbody component from the parent (Player)
-                Rigidbody rb = playerTransform.GetComponent<Rigidbody>();
-
+                //Rigidbody rb = playerTransform.GetComponent<Rigidbody>();
+                Rigidbody rb = new Rigidbody(GetInstanceID());
                 if (rb != null)
                 {
                     Vector3 bounce = Vector3.up * bounceForce;

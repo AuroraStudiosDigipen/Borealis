@@ -948,7 +948,12 @@ namespace Borealis
 			auto transform = entity.GetComponent<TransformComponent>();
 			for (auto child : transform.ChildrenID)
 			{
-				DrawEntityNode(mContext->GetEntityByUUID(child));
+				// check if child exists
+				auto Entity = mContext->GetEntityByUUID(child);
+				if (Entity.IsValid())
+				{
+					DrawEntityNode(Entity);
+				}
 			}
 			ImGui::TreePop();
 		}

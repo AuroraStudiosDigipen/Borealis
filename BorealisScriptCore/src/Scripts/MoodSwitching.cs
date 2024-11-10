@@ -21,7 +21,8 @@ namespace Borealis
             {
                 if (Vector3.Distance(player.transform.position, gameObject.transform.position) < range)
                 {
-                
+                    Debug.Log("Works");
+
                     Happiness = !Happiness;
                     if (Happiness)
                     {

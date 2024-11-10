@@ -59,10 +59,6 @@ namespace Borealis
 		glm::vec3 Translate { 0.0f, 0.0f ,0.0f };
 		glm::vec3 Rotation{ 0.0f, 0.0f ,0.0f };
 		glm::vec3 Scale = { 1.0f, 1.0f, 1.0f };
-		glm::vec3 minExtent = { 0.0f, 0.0f, 0.0f };
-		glm::vec3 maxExtent = { 0.0f, 0.0f, 0.0f };
-		glm::vec3 offset = { 0.0f, 0.0f, 0.0f };
-		glm::vec3 temp = { 0.0f, 0.0f, 0.0f };
 		UUID ParentID = 0;
 		std::unordered_set<UUID> ChildrenID;
 	
@@ -264,6 +260,10 @@ namespace Borealis
 		// not serialised
 		unsigned int bodyID = 0;
 		glm::vec3 modelCenter = { 0,0,0 };
+
+		glm::vec3 minExtent = { 0.0f, 0.0f, 0.0f };
+		glm::vec3 maxExtent = { 0.0f, 0.0f, 0.0f };
+		glm::vec3 offset = { 0.0f, 0.0f, 0.0f };
 		//glm::vec3 velocity = { 0,0,0 };
 		//float mass = 1.f;
 		//float drag = 0.f;

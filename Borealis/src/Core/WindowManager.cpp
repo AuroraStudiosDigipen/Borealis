@@ -108,10 +108,14 @@ namespace Borealis
 		if (visible)
 		{
 			glfwSetInputMode((GLFWwindow*)mWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			glfwSetInputMode((GLFWwindow*)mWindow, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
+
 		}
 		else
 		{
 			glfwSetInputMode((GLFWwindow*)mWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			glfwSetInputMode((GLFWwindow*)mWindow, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+
 		}
 	}
 

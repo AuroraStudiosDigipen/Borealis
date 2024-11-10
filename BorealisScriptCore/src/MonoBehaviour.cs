@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Runtime.CompilerServices;
 
 namespace Borealis
 {
@@ -39,7 +40,13 @@ namespace Borealis
             InstanceID = id;
             gameObject = new GameObject(id);
         }
-
+        protected T GetComponent<T>() where T : Component, new()
+        {
+            T output = new T();
+            output.gameObject = gameObject;
+            output.transform = gameObject.transform;
+            return output;
+        }
         new private ulong GetInstanceID()
         {
             return InstanceID;

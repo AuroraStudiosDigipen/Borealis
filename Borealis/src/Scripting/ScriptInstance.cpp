@@ -223,6 +223,24 @@ namespace Borealis
 		} \
 	}\
 
+#define DefineMonoBehaviourCollision(methodName) \
+	void ScriptInstance::methodName(UUID entityID) \
+	{\
+		if (mScriptClass->GetMethod(#methodName, 0) == nullptr) \
+		{ \
+			return; \
+		} \
+		void* params[1]; \
+		params[0] = &entityID; \
+		MonoObject* exception = nullptr; \
+		mono_runtime_invoke(mScriptClass->GetMethod(#methodName, 0), mInstance, params, &exception); \
+		if (exception) \
+		{ \
+			mono_print_unhandled_exception(exception); \
+		} \
+	}\
+
+
 #else
 #define DefineMonoBehaviourMethod(methodName) \
 	void ScriptInstance::methodName() \
@@ -232,6 +250,18 @@ namespace Borealis
 			return; \
 		} \
 		mono_runtime_invoke(mScriptClass->GetMethod(#methodName, 0), mInstance, nullptr, nullptr); \
+	}\
+
+#define DefineMonoBehaviourCollision(methodName) \
+	void ScriptInstance::methodName(UUID entityID) \
+	{\
+		if (mScriptClass->GetMethod(#methodName, 0) == nullptr) \
+		{ \
+			return; \
+		} \
+		void* params[1]; \
+		params[0] = &entityID; \
+		mono_runtime_invoke(mScriptClass->GetMethod(#methodName, 0), mInstance, params, nullptr); \
 	}\
 
 #endif
@@ -265,6 +295,9 @@ namespace Borealis
 	DefineMonoBehaviourMethod(OnJointBreak);
 	DefineMonoBehaviourMethod(OnAnimatorMove);
 	DefineMonoBehaviourMethod(OnAnimatorIK);
+	DefineMonoBehaviourCollision(OnCollisionEnter);
+	DefineMonoBehaviourCollision(OnCollisionExit);
+	DefineMonoBehaviourCollision(OnCollisionStay);
 	
 }// End of namespace Borealis
 

@@ -246,7 +246,7 @@ namespace Borealis
         if (mTextureMaps[Metallic])
         {
             shader->Set("u_Material.metallic", textureUnit);
-            mTextureMaps[DetailMask]->Bind(textureUnit);
+            mTextureMaps[Metallic]->Bind(textureUnit);
             shader->Set("u_Material.hasMetallicMap", true);
             textureUnit++;
         }

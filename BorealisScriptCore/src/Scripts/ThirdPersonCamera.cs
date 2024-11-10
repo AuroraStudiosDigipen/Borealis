@@ -21,9 +21,8 @@ public class ThirdPersonCamera : MonoBehaviour
     public override void Start()
     {
         //Lock and hide mouse cursor
-        //Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-        unlock = false;
+        unlock = true;
     }
 
     // Update is called once per frame

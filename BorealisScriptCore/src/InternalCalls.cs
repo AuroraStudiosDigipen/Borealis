@@ -7,6 +7,7 @@ namespace Borealis
     {
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void SetActive(bool value, out ulong entityID);
+        
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static ulong GenerateUUID();
 
@@ -76,6 +77,10 @@ namespace Borealis
         internal extern static bool Entity_HasComponent(ulong entityID, Type type);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void Entity_RemoveComponent(ulong entityID, Type type);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void Entity_GetActive(ulong id, out bool active);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void Entity_SetActive(ulong id, ref bool active);
         #endregion
 
         #region TransformComponent
@@ -94,6 +99,11 @@ namespace Borealis
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void TransformComponent_SetRotation(ulong id, ref Vector3 rotation);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void TransformComponent_SetParentID(ulong id, ref ulong parentID);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void TransformComponent_GetParentID(ulong id, out ulong parentID);
         #endregion
 
         #region SpriteRendererComponent

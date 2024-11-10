@@ -366,16 +366,26 @@ void PhysicsSystem::Init()
 	{
 		// Get position from the physics system (JPH::RVec3 to glm::vec3)
 		JPH::RVec3 newPosition = sData.body_interface->GetPosition((BodyID)rigidbody.bodyID);
-
-		transform.Translate = glm::vec3(newPosition.GetX(), newPosition.GetY(), newPosition.GetZ()) - rigidbody.modelCenter;
-		
+		glm::vec3 newTranslate = glm::vec3(newPosition.GetX(), newPosition.GetY(), newPosition.GetZ());
 		// Get rotation from the physics system (JPH::Quat to glm::quat)
 		JPH::Quat newRotation = sData.body_interface->GetRotation((BodyID)rigidbody.bodyID);
 		glm::quat rotation = glm::quat(newRotation.GetW(), newRotation.GetX(), newRotation.GetY(), newRotation.GetZ());
-
 		// Convert quaternion to Euler angles (quat to vec3) in degrees
-		transform.Rotation = glm::degrees(glm::eulerAngles(rotation));  // Euler angles in degrees
+		glm::vec3 newRotate = glm::degrees(glm::eulerAngles(rotation));  // Euler angles in degrees
+		glm::vec3 newScale = transform.Scale;
 
+		glm::mat4 rotationMatrix = glm::mat4(glm::quat(glm::radians(newRotate)));
+		glm::mat4 translationMatrix = glm::mat4(1.f);
+		glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.f), newScale);
+		glm::mat4 modelMatrix = translationMatrix * rotationMatrix * scaleMatrix;
+		auto offsetCenter = modelMatrix * glm::vec4(rigidbody.modelCenter, 1.0f);
+
+		newTranslate -= glm::vec3(offsetCenter.x, offsetCenter.y, offsetCenter.z);
+
+
+		transform.Translate = newTranslate;
+		transform.Rotation = newRotate;
+		transform.Scale = newScale;
 
 		//TODO
 		/*if (transform.ParentID != 0)
@@ -434,10 +444,10 @@ void PhysicsSystem::Init()
 		glm::vec3 boundingVolumeCenter = (minExtent + maxExtent) * 0.5f;
 		rigidbody.modelCenter = boundingVolumeCenter;
 
-		transform.offset = transform.Translate - boundingVolumeCenter;
+		rigidbody.offset = transform.Translate - boundingVolumeCenter;
 
-		transform.minExtent = minExtent;
-		transform.maxExtent = maxExtent;
+		rigidbody.minExtent = minExtent;
+		rigidbody.maxExtent = maxExtent;
 
 		/*cout << "Min Extent: " << minExtent.x << ", " << minExtent.y << ", " << minExtent.z << endl;
 		cout << "Max Extent: " << maxExtent.x << ", " << maxExtent.y << ", " << maxExtent.z << endl;*/
@@ -525,14 +535,13 @@ void PhysicsSystem::Init()
 		ShapeRefC shape;
 		ShapeSettings::ShapeResult shape_result;
 
-		bodyIDMapUUID[rigidbody.bodyID] = entityID;
 
 		calculateBoundingVolume(*mesh.Model, transform, rigidbody);
 
 		switch (rigidbody.shape) {
 		case RigidBodyType::Box: {
 			// Create box shape settings
-			glm::vec3 size = calculateBoxSize(transform.minExtent, transform.maxExtent) * 0.5f;
+			glm::vec3 size = calculateBoxSize(rigidbody.minExtent, rigidbody.maxExtent) * 0.5f;
 			rigidbody.size = size;
 			BoxShapeSettings box_shape_settings(Vec3(size.x, size.y, size.z));
 			box_shape_settings.SetEmbedded();
@@ -542,7 +551,7 @@ void PhysicsSystem::Init()
 		}
 		case RigidBodyType::Sphere: {
 			// Create sphere shape settings
-			float radius = calculateSphereRadius(transform.minExtent,transform.maxExtent); // Assuming size.x represents the radius for a sphere
+			float radius = calculateSphereRadius(rigidbody.minExtent, rigidbody.maxExtent); // Assuming size.x represents the radius for a sphere
 			SphereShapeSettings sphere_shape_settings(radius);
 			sphere_shape_settings.SetEmbedded();
 			shape_result = sphere_shape_settings.Create();
@@ -578,6 +587,11 @@ void PhysicsSystem::Init()
 			body_settings.mMotionType = EMotionType::Dynamic;
 			body_settings.mObjectLayer = Layers::MOVING;
 		}
+		else
+		{
+			body_settings.mMotionType = EMotionType::Static;
+			body_settings.mObjectLayer = Layers::NON_MOVING;
+		}
 
 		// Create the actual rigid body
 		Body* body = sData.body_interface->CreateBody(body_settings); // Handle nullptr in a real scenario
@@ -591,6 +605,8 @@ void PhysicsSystem::Init()
 
 		// Store the BodyID in the RigidBodyComponent
 		rigidbody.bodyID = body->GetID().GetIndexAndSequenceNumber();
+		bodyIDMapUUID[rigidbody.bodyID] = entityID;
+
 	}
 
 	void PhysicsSystem::addSquareBody(glm::vec3 size, glm::vec3 position, RigidBodyComponent& rigidbody) {

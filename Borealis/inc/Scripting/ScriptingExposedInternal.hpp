@@ -103,6 +103,9 @@ namespace Borealis
 	*************************************************************************/
 	bool Entity_HasComponent(uint64_t entityID, MonoReflectionType* reflectionType);
 
+	void Entity_SetActive(uint64_t entityID, bool* active);
+	void Entity_GetActive(uint64_t entityID, bool* active);
+
 	float Time_GetDeltaTime();
 
 	/*!***********************************************************************
@@ -248,6 +251,9 @@ namespace Borealis
 			Pointer to the scale
 	*************************************************************************/
 	void TransformComponent_SetScale(UUID uuid, glm::vec3* scale);
+
+	void TransformComponent_GetParentID(UUID uuid, UUID* parentID);
+	void TransformComponent_SetParentID(UUID uuid, UUID* parentID);
 
 	void RigidbodyComponent_AddForce(UUID uuid, glm::vec3* force);
 

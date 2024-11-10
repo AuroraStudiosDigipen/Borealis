@@ -31,7 +31,9 @@ public class ThirdPersonController : MonoBehaviour
 
         //Handle Movement Input
         if (Input.GetKey(KeyCode.W))
+          {
             dir += CamYawPivot.transform.forward;
+        }
 
         if (Input.GetKey(KeyCode.A))
             dir -= CamYawPivot.transform.right;
@@ -53,7 +55,7 @@ public class ThirdPersonController : MonoBehaviour
         }
 
         //Handle Gravity 
-        if (CC.isGrounded)
+        if (VerticalVelocity == Vector3.zero)
         {
             //Small gravity applied when character is grounded to ensure grounded flag stays active
             VerticalVelocity = Vector3.down * 0.5f;
@@ -72,6 +74,6 @@ public class ThirdPersonController : MonoBehaviour
         dir += VerticalVelocity;
 
         //Apply movement
-        CC.Move(dir * MoveSpeed * Time.deltaTime);
+        //CC.Move(dir * MoveSpeed * Time.deltaTime);
     }
 }

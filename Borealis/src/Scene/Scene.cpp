@@ -243,23 +243,92 @@ namespace Borealis
 					PhysicsSystem::PullTransform(rigidbody, transform, brEntity);
 				}
 
-	/*			for (auto& collisionPair : PhysicsSystem::GetCollisionPairEnter())
+				while (!PhysicsSystem::GetCollisionEnterQueue().empty())
 				{
+					auto collisionPair = PhysicsSystem::GetCollisionEnterQueue().front();
+					PhysicsSystem::GetCollisionEnterQueue().pop();
 					Entity entity1 = GetEntityByUUID(collisionPair.first);
 					Entity entity2 = GetEntityByUUID(collisionPair.second);
-					auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
-					auto& scriptComponent2 = entity2.GetComponent<ScriptComponent>();
-					for (auto& [name, script] : scriptComponent1.mScripts)
+					if (entity1.HasComponent<ScriptComponent>())
 					{
+						auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
+						for (auto& [name, script] : scriptComponent1.mScripts)
+						{
 
-							script->OnCollisionEnter(entity2);
-						
+							script->OnCollisionEnter(entity2.GetComponent<IDComponent>().ID);
+
+						}
 					}
-					for (auto& [name, script] : scriptComponent2.mScripts)
+
+					if (entity2.HasComponent<ScriptComponent>())
 					{
-							script->OnCollisionEnter(entity1);
+						auto& scriptComponent2 = entity2.GetComponent<ScriptComponent>();
+						for (auto& [name, script] : scriptComponent2.mScripts)
+						{
+
+							script->OnCollisionEnter(entity1.GetComponent<IDComponent>().ID);
+
+						}
 					}
-				}*/
+				}
+
+				while (!PhysicsSystem::GetCollisionPersistQueue().empty())
+				{
+					auto collisionPair = PhysicsSystem::GetCollisionPersistQueue().front();
+					PhysicsSystem::GetCollisionPersistQueue().pop();
+					Entity entity1 = GetEntityByUUID(collisionPair.first);
+					Entity entity2 = GetEntityByUUID(collisionPair.second);
+					if (entity1.HasComponent<ScriptComponent>())
+					{
+						auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
+						for (auto& [name, script] : scriptComponent1.mScripts)
+						{
+
+							script->OnCollisionStay(entity2.GetComponent<IDComponent>().ID);
+
+						}
+					}
+
+					if (entity2.HasComponent<ScriptComponent>())
+					{
+						auto& scriptComponent2 = entity2.GetComponent<ScriptComponent>();
+						for (auto& [name, script] : scriptComponent2.mScripts)
+						{
+
+							script->OnCollisionStay(entity1.GetComponent<IDComponent>().ID);
+
+						}
+					}
+				}
+
+				while (!PhysicsSystem::GetCollisionExitQueue().empty())
+				{
+					auto collisionPair = PhysicsSystem::GetCollisionExitQueue().front();
+					PhysicsSystem::GetCollisionExitQueue().pop();
+					Entity entity1 = GetEntityByUUID(collisionPair.first);
+					Entity entity2 = GetEntityByUUID(collisionPair.second);
+					if (entity1.HasComponent<ScriptComponent>())
+					{
+						auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
+						for (auto& [name, script] : scriptComponent1.mScripts)
+						{
+
+							script->OnCollisionExit(entity2.GetComponent<IDComponent>().ID);
+
+						}
+					}
+
+					if (entity2.HasComponent<ScriptComponent>())
+					{
+						auto& scriptComponent2 = entity2.GetComponent<ScriptComponent>();
+						for (auto& [name, script] : scriptComponent2.mScripts)
+						{
+
+							script->OnCollisionExit(entity1.GetComponent<IDComponent>().ID);
+
+						}
+					}
+				}
 
 
 				for (auto entity : view)
@@ -573,21 +642,36 @@ namespace Borealis
 	static void CopyComponent<ScriptComponent>(Entity dst, Entity src)
 	{
 		if (src.HasComponent<ScriptComponent>())
+		{
 			dst.AddOrReplaceComponent<ScriptComponent>(src.GetComponent<ScriptComponent>());
 
 
-		// Initialize details
-		auto& dstScriptComponent = dst.GetComponent<ScriptComponent>();
-		auto& srcScriptComponent = src.GetComponent<ScriptComponent>();
+			auto& srcComponent = src.GetComponent<ScriptComponent>();
 
-		for (auto dstIT = dstScriptComponent.mScripts.begin(), srcIT = srcScriptComponent.mScripts.begin(); dstIT != dstScriptComponent.mScripts.end(); srcIT++, dstIT++)
-		{
-			auto scriptKlass = srcIT->second->GetScriptClass();
-			for (auto property : scriptKlass->mFields)
+			auto& newScriptComponent = dst.GetComponent<ScriptComponent>();
+
+			for (auto script : srcComponent.mScripts)
 			{
-				dstIT->second->SetFieldValue(property.first, srcIT->second->GetFieldValue<MonoObject*>(property.first));
+				Ref<ScriptInstance> newScript = MakeRef<ScriptInstance>(script.second->GetScriptClass());
+				newScript->Init(dst.GetComponent<IDComponent>().ID);
+				newScriptComponent.AddScript(script.first, newScript);
+			}
+
+			// Initialize details
+			auto& dstScriptComponent = newScriptComponent;
+			auto& srcScriptComponent = srcComponent;
+
+			for (auto dstIT = dstScriptComponent.mScripts.begin(); dstIT != dstScriptComponent.mScripts.end(); dstIT++)
+			{
+				auto scriptKlass = dstIT->second->GetScriptClass();
+				auto srcIT = srcScriptComponent.mScripts.find(dstIT->first);
+				for (auto property : scriptKlass->mFields)
+				{
+					dstIT->second->ReplaceFieldValue(srcIT->second.get(), property.first);
+				}
 			}
 		}
+
 	}
 
 	void Scene::DuplicateEntity(Entity entity)
@@ -677,9 +761,10 @@ namespace Borealis
 			auto& dstScriptComponent = newScriptComponent;
 			auto& srcScriptComponent = srcComponent;
 
-			for (auto dstIT = dstScriptComponent.mScripts.begin(), srcIT = srcScriptComponent.mScripts.begin(); dstIT != dstScriptComponent.mScripts.end(); srcIT++, dstIT++)
+			for (auto dstIT = dstScriptComponent.mScripts.begin(); dstIT != dstScriptComponent.mScripts.end(); dstIT++)
 			{
-				auto scriptKlass = srcIT->second->GetScriptClass();
+				auto scriptKlass = dstIT->second->GetScriptClass();
+				auto srcIT = srcScriptComponent.mScripts.find(dstIT->first);
 				for (auto property : scriptKlass->mFields)
 				{
 					dstIT->second->ReplaceFieldValue(srcIT->second.get(), property.first);
@@ -725,6 +810,8 @@ namespace Borealis
 			UUID uuid = originalRegistry.get<IDComponent>(entity).ID;
 			const auto& name = originalRegistry.get<TagComponent>(entity).Tag;
 			UUIDtoENTT[uuid] = newScene->CreateEntityWithUUID(name, uuid);
+			Entity newEntity = newScene->GetEntityByUUID(uuid);
+			newEntity.GetComponent<TagComponent>().active = originalRegistry.get<TagComponent>(entity).active;
 		}
 
 		CopyComponent<TransformComponent>(newRegistry, originalRegistry, UUIDtoENTT);
@@ -771,6 +858,7 @@ namespace Borealis
 		{
 			PhysicsSystem::FreeRigidBody(view.get<RigidBodyComponent>(entity));
 		}
+		PhysicsSystem::EndScene();
 	}
 
 	Entity Scene::GetPrimaryCameraEntity()

@@ -318,16 +318,19 @@ namespace Borealis
 				SetShadowAndLight(renderTarget, shadowMap, materialShader, registryPtr);
 
 				Renderer3D::SetLights(materialShader);
-				Renderer3D::DrawMesh(transform, meshFilter, meshRenderer, materialShader, (int)entity);
+				Renderer3D::DrawMesh(TransformComponent::GetGlobalTransform(brEntity), meshFilter, meshRenderer, materialShader, (int)entity);
 
 				if(Renderer3D::GetGlobalWireFrameMode())
 				{
 					AABB modelAABB = meshFilter.Model->mAABB;
 					modelAABB.Transform(TransformComponent::GetGlobalTransform(brEntity));
-
-					transform.minExtent = modelAABB.minExtent;
-					transform.maxExtent = modelAABB.maxExtent;
-					Renderer3D::DrawCube(transform.Translate, transform.minExtent, transform.maxExtent, { 0.f,1.f,0.f,1.f }, true);
+					if (brEntity.HasComponent<RigidBodyComponent>())
+					{
+						auto& rigidbody = brEntity.GetComponent<RigidBodyComponent>();
+						rigidbody.minExtent = modelAABB.minExtent;
+						rigidbody.maxExtent = modelAABB.maxExtent;
+						Renderer3D::DrawCube(transform.Translate, rigidbody.minExtent, rigidbody.maxExtent, { 0.f,1.f,0.f,1.f }, true);
+					}
 				}
 
 			}
@@ -396,7 +399,7 @@ namespace Borealis
 				//Renderer3D::SetLights(shader);
 				materialShader->Bind();
 				Renderer3D::SetLights(materialShader);
-				Renderer3D::DrawSkinnedMesh(transform, skinnedMesh, materialShader, (int)entity);
+				Renderer3D::DrawSkinnedMesh(TransformComponent::GetGlobalTransform(brEntity), skinnedMesh, materialShader, (int)entity);
 				materialShader->Unbind();
 			}
 		}
@@ -510,26 +513,7 @@ namespace Borealis
 				Renderer2D::DrawString(text.text, text.font, TransformComponent::GetGlobalTransform(brEntity), (int)entity);
 			}
 		}
-		{
-			auto group = registryPtr->group<>(entt::get<TransformComponent, RigidBodyComponent>);			
-			for (auto& entity : group)
-			{
-				Entity entityBR = { entity, SceneManager::GetActiveScene().get() };
-				if (!entityBR.IsActive())
-				{
-					continue;
-				}
-				auto [transform, rigidbody] = group.get<TransformComponent, RigidBodyComponent>(entity);
-				auto entityTransform = TransformComponent::GetGlobalTransform(entityBR);
-				auto entityCenter = TransformComponent::GetGlobalTranslate(entityBR);
 
-				auto actualCenter = entityTransform * glm::vec4(rigidbody.modelCenter, 1.f);
-				auto actualVec3Center = glm::vec3(actualCenter.x, actualCenter.y, actualCenter.z);
-
-				Renderer2D::DrawBox(actualVec3Center - rigidbody.size, actualVec3Center + rigidbody.size, { 1.f, 0.f, 0.f, 1.f });
-
-			}
-		}
 
 		Renderer2D::End();
 

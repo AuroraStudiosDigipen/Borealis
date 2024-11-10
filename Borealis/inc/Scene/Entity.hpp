@@ -155,7 +155,10 @@ namespace Borealis
 		*************************************************************************/
 		bool IsValid()
 		{
-			return mScene->mRegistry.valid(mID);
+			if (mScene == nullptr)
+				return false;
+			else
+				return mScene->mRegistry.valid(mID);
 		}
 
 		bool IsActive()

@@ -2,10 +2,15 @@
 using System.Runtime.InteropServices;
 namespace Borealis
 {
-
+    public struct RaycastHit
+    {
+        public Transform Transform;
+        public float distance;
+    }
     public class Physics
     {
         public const int DefaultRaycastLayers = 1;
+
         public static RaycastHit[] RaycastAll(Ray ray, float maxDistance, int layerMask = DefaultRaycastLayers)
         {
             // Get all game objects and loop through
@@ -31,12 +36,6 @@ namespace Borealis
                 // For now, just add a placeholder
             }
             return hits;
-        }
-
-        public struct RaycastHit
-        {
-            public Transform Transform;
-            public float distance;
         }
     }
 }

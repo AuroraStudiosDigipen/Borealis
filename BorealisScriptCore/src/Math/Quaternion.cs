@@ -19,6 +19,66 @@ namespace Borealis
             this.w = w;
         }
 
+        public static Quaternion QuaternionFromAxes(Vector3 right, Vector3 up, Vector3 forward)
+        {
+            float m00 = right.x;
+            float m01 = right.y;
+            float m02 = right.z;
+
+            float m10 = up.x;
+            float m11 = up.y;
+            float m12 = up.z;
+
+            float m20 = forward.x;
+            float m21 = forward.y;
+            float m22 = forward.z;
+
+            // Step 3: Compute the trace of the matrix
+            float trace = m00 + m11 + m22;
+
+            float qx, qy, qz, qw;
+
+            if (trace > 0)
+            {
+                // When the trace is positive
+                float s = 0.5f / Mathf.Sqrt(trace + 1.0f);
+                qw = 0.25f / s;
+                qx = (m21 - m12) * s;
+                qy = (m02 - m20) * s;
+                qz = (m10 - m01) * s;
+            }
+            else
+            {
+                // Handle the case where the trace is negative
+                if (m00 > m11 && m00 > m22)
+                {
+                    float s = 2.0f * Mathf.Sqrt(1.0f + m00 - m11 - m22);
+                    qw = (m21 - m12) / s;
+                    qx = 0.25f * s;
+                    qy = (m01 + m10) / s;
+                    qz = (m02 + m20) / s;
+                }
+                else if (m11 > m22)
+                {
+                    float s = 2.0f * Mathf.Sqrt(1.0f + m11 - m00 - m22);
+                    qw = (m02 - m20) / s;
+                    qx = (m01 + m10) / s;
+                    qy = 0.25f * s;
+                    qz = (m12 + m21) / s;
+                }
+                else
+                {
+                    float s = 2.0f * Mathf.Sqrt(1.0f + m22 - m00 - m11);
+                    qw = (m10 - m01) / s;
+                    qx = (m02 + m20) / s;
+                    qy = (m12 + m21) / s;
+                    qz = 0.25f * s;
+                }
+            }
+
+            return new Quaternion(qx, qy, qz, qw);
+        }
+
         public Vector3 eulerAngles
         {
             get
@@ -91,7 +151,6 @@ namespace Borealis
         {
             if (up == default)
                 up = Vector3.up;
-
             Quaternion q = LookRotation(view, up);
             Set(q.x, q.y, q.z, q.w);
         }
@@ -196,12 +255,19 @@ namespace Borealis
             if (upwards == default)
                 upwards = Vector3.up;
 
-            Quaternion q = Quaternion.identity;
-            // Find look rotation
-            Vector3 right = Vector3.Cross(upwards, forward);
-            Vector3 up = Vector3.Cross(forward, right);
-            q = Quaternion.LookRotation(forward, up);
-            return q;
+            // Ensure forward and upwards are normalized
+            Vector3 normalizedForward = forward.normalized;
+            Vector3 normalizedUpwards = upwards.normalized;
+
+            // Compute the right vector (cross product of up and forward)
+            Vector3 right = Vector3.Cross(normalizedUpwards, normalizedForward);
+
+            // Recompute the up vector (cross product of forward and right) to ensure orthonormal vectors
+            normalizedUpwards = Vector3.Cross(normalizedForward, right);
+
+            // Now we can build the quaternion from the orthonormal basis (right, up, forward)
+            // Assuming you have a constructor or method to create a quaternion from these three vectors
+            return QuaternionFromAxes(right, normalizedUpwards, normalizedForward);
         }
 
         public static Quaternion Normalize(Quaternion q)

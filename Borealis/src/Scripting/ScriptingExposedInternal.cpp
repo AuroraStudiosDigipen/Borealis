@@ -41,6 +41,8 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(Entity_AddComponent);
 		BOREALIS_ADD_INTERNAL_CALL(Entity_HasComponent);
 		BOREALIS_ADD_INTERNAL_CALL(Entity_RemoveComponent);
+		BOREALIS_ADD_INTERNAL_CALL(Entity_SetActive);
+		BOREALIS_ADD_INTERNAL_CALL(Entity_GetActive);
 
 		BOREALIS_ADD_INTERNAL_CALL(Time_GetDeltaTime);
 
@@ -64,6 +66,8 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(TransformComponent_SetRotation);
 		BOREALIS_ADD_INTERNAL_CALL(TransformComponent_GetScale);
 		BOREALIS_ADD_INTERNAL_CALL(TransformComponent_SetScale);
+		BOREALIS_ADD_INTERNAL_CALL(TransformComponent_GetParentID);
+		BOREALIS_ADD_INTERNAL_CALL(TransformComponent_SetParentID);
 
 		BOREALIS_ADD_INTERNAL_CALL(SpriteRendererComponent_GetColor);
 		BOREALIS_ADD_INTERNAL_CALL(SpriteRendererComponent_SetColor);
@@ -214,6 +218,22 @@ namespace Borealis
 			return false;
 		}
 	}
+	void Entity_SetActive(uint64_t entityID, bool* active)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(entityID);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<TagComponent>().active = *active;
+	}
+	void Entity_GetActive(uint64_t entityID, bool* active)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(entityID);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*active = entity.GetComponent<TagComponent>().active;
+	}
 	glm::vec3 Input_GetMousePosition()
 	{
 		return {InputSystem::GetMouseX(), InputSystem::GetMouseY(), 0.0f};
@@ -333,6 +353,25 @@ namespace Borealis
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		entity.GetComponent<TransformComponent>().Scale = *scale;
+	}
+	void TransformComponent_GetParentID(UUID uuid, UUID* parentID)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<TransformComponent>().ParentID = *parentID;
+	}
+	void TransformComponent_SetParentID(UUID uuid, UUID* parentID)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		Entity parent = scene->GetEntityByUUID(*parentID);
+		TransformComponent::ResetParent(entity);
+		if (*parentID != 0)
+			TransformComponent::SetParent(entity, parent);
 	}
 	void RigidbodyComponent_AddForce(UUID uuid, glm::vec3* force)
 	{

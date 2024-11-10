@@ -15,11 +15,11 @@ namespace Borealis
             Vector3 occlusionRayDir = (transform.position - CamYawPivot.transform.position).normalized;
             Ray occlusionRay = new Ray(CamYawPivot.transform.position, occlusionRayDir);
 
-            Physics.RaycastHit[] results = Physics.RaycastAll(occlusionRay, DefaultZoom, OcclusionMask);
+            RaycastHit[] results = Physics.RaycastAll(occlusionRay, DefaultZoom, OcclusionMask);
 
             float targetZoom = DefaultZoom;
 
-            foreach (Physics.RaycastHit result in results)
+            foreach (RaycastHit result in results)
             {
                 targetZoom = Mathf.Min(result.distance, DefaultZoom);
             }

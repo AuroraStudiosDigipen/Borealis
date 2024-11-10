@@ -16,9 +16,9 @@ public class PushAndPull : MonoBehaviour
 
     public override void Start()
     {
-        rb = GetComponent<Rigidbody>();
-        // Set to kinematic initially
-        rb.isKinematic = true;
+        //rb = GetComponent<Rigidbody>();
+        //// Set to kinematic initially
+        //rb.isKinematic = true;
     }
 
     private void AlignPlayerToObject()
@@ -52,7 +52,7 @@ public class PushAndPull : MonoBehaviour
         playerTransform = player;
 
         // Disable kinematic so the object can be moved
-        rb.isKinematic = false;
+        //rb.isKinematic = false;
 
         AlignPlayerToObject();
     }
@@ -64,7 +64,7 @@ public class PushAndPull : MonoBehaviour
         playerTransform = null;
 
         // Re-enable kinematic to stop physics-based interactions
-        rb.isKinematic = true;
+        //rb.isKinematic = true;
     }
 
     // Moves the object relative to the player's input

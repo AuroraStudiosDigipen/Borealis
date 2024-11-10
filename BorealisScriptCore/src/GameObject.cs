@@ -10,6 +10,19 @@ namespace Borealis
     {
         //public bool activeSelf => true; // Use internal call
         public Transform transform;
+
+        public bool activeSelf
+        {
+            get
+            {
+                InternalCalls.Entity_GetActive(GetInstanceID(), out bool active);
+                return active;
+            }
+            set
+            {
+                InternalCalls.Entity_SetActive(GetInstanceID(), ref value);
+            }
+        }
         public GameObject()
         {
             InstanceID = InternalCalls.CreateEntity("untitled");

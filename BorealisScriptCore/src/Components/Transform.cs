@@ -22,6 +22,20 @@ namespace Borealis
             }
         }
 
+        public GameObject parent
+        {
+            get
+            {
+                InternalCalls.TransformComponent_GetParentID(GetInstanceID(), out ulong parentID);
+                return new GameObject(parentID);
+            }
+            set
+            {
+                ulong refID = value.GetInstanceID();
+                InternalCalls.TransformComponent_SetParentID(GetInstanceID(), ref refID);
+            }
+        }
+
         //public Quaternion localRotation
         //{
         //    get

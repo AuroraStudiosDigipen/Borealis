@@ -162,13 +162,22 @@
     <Compile Include="src\Physics.cs" />
     <Compile Include="src\Ray.cs" />
     <Compile Include="src\RoslynCompiler.cs" />
+    <Compile Include="src\Scripts\Balloon.cs" />
+    <Compile Include="src\Scripts\BrittleBricks.cs" />
     <Compile Include="src\Scripts\CameraController.cs" />
+    <Compile Include="src\Scripts\CameraOcclusion.cs" />
+    <Compile Include="src\Scripts\Cupboard.cs" />
+    <Compile Include="src\Scripts\Doll.cs" />
+    <Compile Include="src\Scripts\Dollhouse.cs" />
     <Compile Include="src\Scripts\FieldScript.cs" />
+    <Compile Include="src\Scripts\Inventory.cs" />
     <Compile Include="src\Scripts\MoodSwitching.cs" />
     <Compile Include="src\Scripts\NestedScript.cs" />
-    <Compile Include="src\Scripts\CameraOcclusion.cs" />
+    <Compile Include="src\Scripts\PushAndPull.cs" />
     <Compile Include="src\Scripts\ThirdPersonCamera.cs" />
     <Compile Include="src\Scripts\ThirdPersonController.cs" />
+    <Compile Include="src\Scripts\Trampoline.cs" />
+    <Compile Include="src\Scripts\TreasureBox.cs" />
     <Compile Include="src\Time.cs" />
   </ItemGroup>
   <ItemGroup>

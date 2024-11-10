@@ -785,6 +785,14 @@ namespace Borealis {
 			}
 		}
 
+		case Key::Escape:
+		{
+			if (EditorLayer::mSceneState == SceneState::Play)
+			{
+				ApplicationManager::Get().GetWindow()->SetCursorVisibility(true);
+			}
+		}
+
 		}
 
 		return true;

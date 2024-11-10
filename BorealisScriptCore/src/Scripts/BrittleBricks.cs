@@ -20,7 +20,12 @@
                     {
                         isParented = true;
                         // Set parent here
-                        gameObject.transform.position = new Vector3( 0, 5f, 0);
+                        Vector3 Scale = gameObject.transform.localScale;
+
+                        gameObject.transform.parent = player;
+                        gameObject.transform.position = new Vector3( 0, 90f, 0);
+                        gameObject.transform.localScale = new Vector3(0.29f, 0.29f, 0.29f);
+                        gameObject.transform.localRotation = new Vector3(0, 0, 0);
                     }
                 }
                 else
@@ -29,6 +34,7 @@
                     {
                         isParented = false;
                         // Set parent here
+                        gameObject.transform.parent = Gap;
                         gameObject.transform.position = new Vector3(0, 0, 0);
                     }
                 }
@@ -39,10 +45,10 @@
         {
             if (obj.GetInstanceID() == player.GetInstanceID())
             {
-                if (collision.contacts[0].normal == Vector3.down)
-                {
-                    HandleBrittleWithDelay(0.1f);  // Add a 0.1s delay before brittle
-                }
+                //if (collision.contacts[0].normal == Vector3.down)
+                //{
+                //    HandleBrittleWithDelay(0.1f);  // Add a 0.1s delay before brittle
+                //}
             }
         }
 

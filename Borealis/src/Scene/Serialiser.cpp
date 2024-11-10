@@ -27,7 +27,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scripting/ScriptInstance.hpp>
 #include <Scripting/ScriptField.hpp>
 #include <Scripting/ScriptingSystem.hpp>
-
+#include <Scripting/ScriptingUtils.hpp>
 namespace YAML
 {
 	template<>
@@ -514,6 +514,34 @@ namespace Borealis
 
 				for (auto [name,field] : script->GetScriptClass()->mFields)
 				{
+					if (field.isGameObject())
+					{
+						MonoObject* Data = script->GetFieldValue<MonoObject*>(name);
+						if (!Data)
+						{
+							continue;
+						}
+						out << YAML::Key << field.mName << YAML::BeginMap;
+						out << YAML::Key << "Type" << YAML::Value << "GameObject";
+						out << YAML::Key << "Data" << YAML::Value << field.GetGameObjectID(Data);
+						out << YAML::EndMap;
+						continue;
+					}
+
+					if (field.isMonoBehaviour())
+					{
+						MonoObject* Data = script->GetFieldValue<MonoObject*>(name);
+						if (!Data)
+						{
+							continue;
+						}
+						out << YAML::Key << field.mName << YAML::BeginMap;
+						out << YAML::Key << "Type" << YAML::Value << "MonoBehaviour";
+						out << YAML::Key << "Data" << YAML::Value << field.GetAttachedID(Data);
+						out << YAML::EndMap;
+						continue;
+					}
+
 					if (field.mType == ScriptFieldType::Bool)
 					{
 						out << YAML::Key << field.mName << YAML::BeginMap;
@@ -897,6 +925,13 @@ namespace Borealis
 		auto entities = data["Entities"];
 		if (entities)
 		{
+			struct ScriptInitialData
+			{
+				Ref<ScriptInstance> scriptInstance;
+				UUID targetUUID;
+				std::string scriptFieldName;
+			};
+			std::queue<ScriptInitialData> scriptQueue;
 			for (auto entity : entities)
 			{
 				uint64_t uuid = entity["EntityID"].as<uint64_t>(); // UUID
@@ -969,6 +1004,22 @@ namespace Borealis
 								std::string fieldName = field.first.as<std::string>();
 								const YAML::Node& fieldData = field.second;
 								fieldData["Type"].as<std::string>();
+
+								if (fieldData["Type"].as<std::string>() == "GameObject")
+								{
+									uint64_t data = fieldData["Data"].as<uint64_t>();
+									MonoObject* field = nullptr;
+									InitGameObject(field, data);
+									scriptInstance->SetFieldValue(fieldName, field);
+									continue;
+								}
+
+								if (fieldData["Type"].as<std::string>() == "MonoBehaviour")
+								{
+									uint64_t data = fieldData["Data"].as<uint64_t>();
+									scriptQueue.push({scriptInstance, data, fieldName });
+									continue;
+								}
 
 								if (fieldData["Type"].as<std::string>() == "Bool")
 								{
@@ -1079,6 +1130,15 @@ namespace Borealis
 						}
 					}
 				}
+			}
+			while (!scriptQueue.empty())
+			{
+				auto& scriptData = scriptQueue.front();
+				Entity targetEntity = mScene->GetEntityByUUID(scriptData.targetUUID);
+				auto& scriptComponent = targetEntity.GetComponent<ScriptComponent>();
+				auto script = scriptComponent.mScripts.find(scriptData.scriptInstance->GetScriptClass()->mFields[scriptData.scriptFieldName].mFieldClassName());
+				scriptData.scriptInstance->SetFieldValue(scriptData.scriptFieldName, script->second->GetInstance());
+				scriptQueue.pop();
 			}
 		}
 

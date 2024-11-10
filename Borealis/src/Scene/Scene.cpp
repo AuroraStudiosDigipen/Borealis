@@ -114,7 +114,8 @@ namespace Borealis
 					continue;
 				}
 				auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
-				lightComponent.offset = TransformComponent::GetGlobalTranslate(entityBR);
+				lightComponent.position = TransformComponent::GetGlobalTranslate(entityBR);
+				lightComponent.direction = TransformComponent::GetGlobalRotation(entityBR);	
 				Renderer3D::AddLight(lightComponent);
 			}
 		}
@@ -463,7 +464,7 @@ namespace Borealis
 			};
 			mGFrameBuffer = FrameBuffer::Create(propsGBuffer);
 
-			FrameBufferProperties propsShadowMapBuffer{ 2024, 2024,false };
+			FrameBufferProperties propsShadowMapBuffer{ 2024, 2024, false };
 			propsShadowMapBuffer.Attachments = { FramebufferTextureFormat::Depth };
 			mShadowMapBuffer = FrameBuffer::Create(propsShadowMapBuffer);
 		}

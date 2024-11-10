@@ -63,6 +63,37 @@ namespace Borealis
 		//return frustum;
 	}
 
+	glm::vec3 IntersectPlanes(const glm::vec4& p1, const glm::vec4& p2, const glm::vec4& p3)
+	{
+		glm::vec3 n1 = glm::vec3(p1);
+		glm::vec3 n2 = glm::vec3(p2);
+		glm::vec3 n3 = glm::vec3(p3);
+
+		float denom = glm::dot(glm::cross(n1, n2), n3);
+		if (glm::abs(denom) < 1e-6f) 
+			return glm::vec3(0.0f);
+
+		glm::vec3 num = -p1.w * glm::cross(n2, n3) - p2.w * glm::cross(n3, n1) - p3.w * glm::cross(n1, n2);
+		return num / denom;
+	}
+
+	FrustumCorners GetCorners(Frustum const& frustum)
+	{
+		FrustumCorners corners;
+
+		corners.nearTopLeft		= IntersectPlanes(frustum.nearPlane, frustum.leftPlane, frustum.topPlane);
+		corners.nearTopRight	= IntersectPlanes(frustum.nearPlane, frustum.rightPlane, frustum.topPlane);
+		corners.nearBottomLeft	= IntersectPlanes(frustum.nearPlane, frustum.leftPlane, frustum.bottomPlane);
+		corners.nearBottomRight = IntersectPlanes(frustum.nearPlane, frustum.rightPlane, frustum.bottomPlane);
+
+		corners.farTopLeft		= IntersectPlanes(frustum.farPlane, frustum.leftPlane, frustum.topPlane);
+		corners.farTopRight		= IntersectPlanes(frustum.farPlane, frustum.rightPlane, frustum.topPlane);
+		corners.farBottomLeft	= IntersectPlanes(frustum.farPlane, frustum.leftPlane, frustum.bottomPlane);
+		corners.farBottomRight	= IntersectPlanes(frustum.farPlane, frustum.rightPlane, frustum.bottomPlane);
+
+		return corners;
+	}
+
 	bool CullBoundingSphere(Frustum const& frustum, BoundingSphere boundingSphere)
 	{
 		glm::vec4 center = glm::vec4(boundingSphere.Center, 1.f);

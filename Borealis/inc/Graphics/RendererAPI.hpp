@@ -113,6 +113,9 @@ namespace Borealis
 		virtual void EnableDepthTest() = 0;
 		virtual void DisableDepthTest() = 0;
 
+		virtual void EnableBackFaceCull() = 0;
+		virtual void EnableFrontFaceCull() = 0;
+
 		virtual void IgnoreNextError() = 0;
 		virtual unsigned GetError(std::string const& errorMsg) = 0;
 

@@ -6,7 +6,8 @@
         public GameObject Gap;
         private int maxBrittleCount = 2;
         private int currentBrittleCount = 0;
-        bool isParented = false;
+        private bool isParented = false;
+        private bool placed = false;
         // Delay to prevent instant destruction
 
         public override void Update()
@@ -23,19 +24,21 @@
                         Vector3 Scale = gameObject.transform.localScale;
 
                         gameObject.transform.parent = player;
-                        gameObject.transform.position = new Vector3( 0, 90f, 0);
+                        gameObject.transform.position = new Vector3( 0, 70f, 0);
                         gameObject.transform.localScale = new Vector3(0.29f, 0.29f, 0.29f);
                         gameObject.transform.localRotation = new Vector3(0, 0, 0);
                     }
                 }
                 else
                 {
-                    if (Vector3.Distance(player.transform.position, Gap.transform.position) < 2)
+                    if (Vector3.Distance(player.transform.position, Gap.transform.position) < 2 && !placed)
                     {
-                        isParented = false;
+                        placed = true;
                         // Set parent here
                         gameObject.transform.parent = Gap;
                         gameObject.transform.position = new Vector3(0, 0, 0);
+                        gameObject.transform.localScale = new Vector3(1, 1, 1);
+                        gameObject.transform.localRotation = new Vector3(0, 0, 0);
                     }
                 }
             }

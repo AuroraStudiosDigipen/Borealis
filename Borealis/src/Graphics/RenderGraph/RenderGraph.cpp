@@ -799,10 +799,12 @@ namespace Borealis
 			shadow_shader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_Material.glsl");
 	}
 
-	void RenderPassConfig::AddSinkLinkage(std::string sinkName, std::string sourceName)
+	RenderPassConfig& RenderPassConfig::AddSinkLinkage(std::string sinkName, std::string sourceName)
 	{
 		SinkLinkageInfo sinkLinkageInfo{ sinkName, sourceName };
 		mSinkLinkageList.push_back(sinkLinkageInfo);
+
+		return *this;
 	}
 
 	void RenderGraphConfig::AddPass(RenderPassConfig renderPassConfig)

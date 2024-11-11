@@ -40,6 +40,7 @@ namespace BorealisAssetCompiler
 
 	struct AssetMetaData
 	{
+		double Version;
 		std::string name;
 
 		AssetHandle Handle;
@@ -50,8 +51,7 @@ namespace BorealisAssetCompiler
 		std::filesystem::path CachePath;
 		std::filesystem::path SourcePath;
 
-		std::time_t importDate;
-		std::time_t cacheCreationDate;
+		uint32_t SourceFileHash = 0;
 	};
 
 	class Asset

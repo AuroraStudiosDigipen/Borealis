@@ -134,6 +134,9 @@ namespace Borealis {
 	void EditorLayer::UpdateFn(float dt)
 	{
 		PROFILE_FUNCTION();
+
+		Project::GetEditorAssetsManager()->Update();
+
 		if (Borealis::FrameBufferProperties spec = SceneManager::GetActiveScene()->GetEditorFB()->GetProperties();
 			mViewportSize.x > 0.0f && mViewportSize.y > 0.0f && // zero sized framebuffer is invalid
 			(spec.Width != mViewportSize.x || spec.Height != mViewportSize.y))
@@ -212,19 +215,19 @@ namespace Borealis {
 			//forward rendering editor
 			{
 				RenderPassConfig editorShadowPass(RenderPassType::Shadow, "editorShadowPass");
-				editorShadowPass.AddSinkLinkage("shadowMap", "ShadowMapBuffer");
-				editorShadowPass.AddSinkLinkage("camera", "EditorCamera");
+				editorShadowPass.AddSinkLinkage("shadowMap", "ShadowMapBuffer")
+				.AddSinkLinkage("camera", "EditorCamera");
 				fconfig.AddPass(editorShadowPass);
 
 				RenderPassConfig editorRender3D(RenderPassType::Render3D, "editorRender3D");
-				editorRender3D.AddSinkLinkage("renderTarget", "EditorBuffer");
-				editorRender3D.AddSinkLinkage("shadowMap", "editorShadowPass.shadowMap");
-				editorRender3D.AddSinkLinkage("camera", "EditorCamera");
+				editorRender3D.AddSinkLinkage("renderTarget", "EditorBuffer")
+				.AddSinkLinkage("shadowMap", "editorShadowPass.shadowMap")
+				.AddSinkLinkage("camera", "EditorCamera");
 				fconfig.AddPass(editorRender3D);
 
 				RenderPassConfig editorRender2D(RenderPassType::Render2D, "editorRender2D");
-				editorRender2D.AddSinkLinkage("renderTarget", "editorRender3D.renderTarget");
-				editorRender2D.AddSinkLinkage("camera", "EditorCamera");
+				editorRender2D.AddSinkLinkage("renderTarget", "editorRender3D.renderTarget")
+				.AddSinkLinkage("camera", "EditorCamera");
 				fconfig.AddPass(editorRender2D);
 			}
 

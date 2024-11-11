@@ -199,7 +199,7 @@ namespace Borealis
 		std::vector<SinkLinkageInfo> mSinkLinkageList;
 
 		RenderPassConfig(RenderPassType type, std::string passName);
-		void AddSinkLinkage(std::string sinkName, std::string sourceName);
+		RenderPassConfig& AddSinkLinkage(std::string sinkName, std::string sourceName);
 	};
 
 	class RenderGraphConfig

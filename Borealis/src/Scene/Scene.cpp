@@ -140,6 +140,7 @@ namespace Borealis
 	{
 		if (hasRuntimeStarted)
 		{
+			
 			{
 				mRegistry.view<NativeScriptComponent>().each([=](auto entity, auto& component)
 					{

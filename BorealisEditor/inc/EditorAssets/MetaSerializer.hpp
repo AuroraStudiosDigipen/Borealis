@@ -17,6 +17,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include <Assets/AssetMetaData.hpp>
 
+#define META_VERSION 0.01
+
 namespace Borealis
 {
 	class MetaFileSerializer
@@ -50,13 +52,15 @@ namespace Borealis
 			\brief
 				serialize registry
 		*************************************************************************/
-		static void SerialzeRegistry(std::filesystem::path assetRegistryPath, std::unordered_map<AssetHandle, AssetMetaData> const& assetRegistry);
+		static void SerialzeRegistry(std::filesystem::path const& assetRegistryPath, std::unordered_map<AssetHandle, AssetMetaData> const& assetRegistry);
 
 		/*!***********************************************************************
 			\brief
 				deserialize registry
 		*************************************************************************/
 		static void DeserializeRegistry(std::string const& registryFileString, std::unordered_map<AssetHandle, AssetMetaData>& AssetRegistry);
+
+		static uint32_t HashFile(std::filesystem::path const& path);
 
 	private:
 		static void SaveAsFile(const std::filesystem::path& path, const char* outputFile);

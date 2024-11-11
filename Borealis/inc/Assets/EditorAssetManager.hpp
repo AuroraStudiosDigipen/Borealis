@@ -40,6 +40,10 @@ namespace Borealis
 		*************************************************************************/
 		Ref<Asset> GetAsset(AssetHandle assetHandle) override;
 
+		void SubmitAssetReloadRequest(AssetHandle assetHandle);
+
+		Ref<Asset> ReloadAsset(AssetHandle assetHandle);
+
 		/*!***********************************************************************
 			\brief
 				Get meta data by handel
@@ -58,6 +62,8 @@ namespace Borealis
 		*************************************************************************/
 		void Clear();
 
+		void Update();
+
 	private:
 
 		/*!***********************************************************************
@@ -70,6 +76,8 @@ namespace Borealis
 		std::filesystem::path mAssetRegistryPath;
 		AssetRegistry mAssetRegistry;
 		std::unordered_map<AssetHandle, Ref<Asset>> mLoadedAssets;
+
+		std::list<AssetHandle> mAssetReloadRequests;
 	};
 }
 

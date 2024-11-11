@@ -60,7 +60,7 @@ namespace Borealis
 
 		//metaData.CachePath = PathToAssetFolder.parent_path() / str;
 		metaData.CachePath = str;
-		metaData.importDate = node["LastModifiedDate"].as<uint64_t>();
+		//metaData.importDate = node["LastModifiedDate"].as<uint64_t>();
 
 		return metaData;
 	}
@@ -91,8 +91,6 @@ namespace Borealis
 				mAssetRegistry.insert({ metaData.Handle, metaData });
 			}
 		}
-
-		int x = 0;
 	}
 	//=====================================
 
@@ -115,6 +113,27 @@ namespace Borealis
 			mLoadedAssets.insert({ assetHandle, asset });
 		}
 		BOREALIS_CORE_INFO("Get asset : {}", assetHandle);
+		return asset;
+	}
+
+	void EditorAssetManager::SubmitAssetReloadRequest(AssetHandle assetHandle)
+	{
+		auto it = std::find_if(mAssetReloadRequests.begin(), mAssetReloadRequests.end(),
+			[&assetHandle](const auto& request) {
+				return request == assetHandle;
+			});
+		if(it == mAssetReloadRequests.end())
+			mAssetReloadRequests.push_back(assetHandle);
+	}
+
+	Ref<Asset> EditorAssetManager::ReloadAsset(AssetHandle assetHandle)
+	{
+		//if not already loaded, no need to load it
+		if (!mLoadedAssets.contains(assetHandle)) return nullptr;
+
+		Ref<Asset> asset = LoadAsset(assetHandle);
+		mLoadedAssets.at(assetHandle).swap(asset);// TODO: Temp until reload function is up
+
 		return asset;
 	}
 
@@ -177,6 +196,18 @@ namespace Borealis
 		mAssetRegistryPath.clear();
 	}
 
+	void EditorAssetManager::Update()
+	{
+		if (mAssetReloadRequests.empty()) return;
+
+		for (AssetHandle assetHandle : mAssetReloadRequests)
+		{
+			ReloadAsset(assetHandle);
+		}
+
+		mAssetReloadRequests.clear();
+	}
+
 	Ref<Asset> GetModel(AssetConfig const& config, std::string const& path)
 	{
 		if (!GetConfig<MeshConfig>(config).skinMesh)
@@ -221,7 +252,8 @@ namespace Borealis
 			asset = BTreeFactory::Instance().LoadBehaviourTree(metaData.SourcePath.string());
 			break;
 		default:
-			break;
+			BOREALIS_CORE_TRACE("Asset Type not handled for loadiing");
+			return nullptr;
 		}
 		asset->mAssetHandle = assetHandle;
 		return asset;

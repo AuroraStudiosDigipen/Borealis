@@ -3,9 +3,14 @@ using Borealis;
 
 public class Balloon : MonoBehaviour
 {
-    GameObject Player;
-    Inventory inventory;
-    float distanceCap;
+    [Header("TestHeader")]
+    private GameObject Player;
+
+    [SerializeField]
+    private Inventory inventory;
+
+    [SerializeField]
+    private float distanceCap;
 
     public override void Update()
     {

@@ -18,6 +18,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 extern "C" {
 	typedef struct _MonoClassField MonoClassField;
 	typedef struct _MonoObject MonoObject;
+	typedef struct _MonoClass MonoClass;
 }
 
 namespace Borealis
@@ -44,8 +45,10 @@ namespace Borealis
 		UUID GetGameObjectID(MonoObject* object) const;
 		bool isPublic() const;
 		bool isPrivate() const;
-		bool hasHideInInspector() const;
-		bool hasSerializeField() const;
+		bool hasHideInInspector(MonoClass* klass) const;
+		bool hasSerializeField(MonoClass* klass) const;
+		bool hasHeader(MonoClass* klass) const;
+		std::string GetHeader(MonoClass* klass) const;
 		bool isMonoBehaviour() const;
 		bool isGameObject() const;
 	};

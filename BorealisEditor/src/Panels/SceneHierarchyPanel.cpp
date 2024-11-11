@@ -69,18 +69,20 @@ namespace ImGui
 
 namespace Borealis
 {
-	static bool DrawVec3Controller(const std::string& label, glm::vec3& values, float resetValue = 0.f, float columnWidth = 200.f)
+	static bool DrawVec3Controller(const std::string& label, glm::vec3& values, float resetValue = 0.f, float columnWidth = 10.f)
 	{
 		bool output = false;
 		ImGuiIO& io = ImGui::GetIO();
 		ImFont* bold = io.Fonts->Fonts[ImGuiFonts::bold];
 
+		columnWidth *= ImGui::GetFontSize();
+
 		ImGui::PushID(label.c_str());
 		ImGui::Columns(2);
 		ImGui::SetColumnWidth(0, columnWidth);
+
 		ImGui::Text(label.c_str());
 		ImGui::NextColumn();
-
 		ImGui::PushItemWidth(ImGui::CalcItemWidth()/3);
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 10, 0 }); // Spacing between Items
 
@@ -216,10 +218,9 @@ namespace Borealis
 			{
 				ImGui::PushID(Property.get_name().to_string().c_str());
 				ImGui::Columns(2);
-				ImGui::SetColumnWidth(0, 200);
+				ImGui::SetColumnWidth(0, 10 * ImGui::GetFontSize());
 				ImGui::Text(name.c_str());
 				ImGui::NextColumn();
-				ImGui::PushItemWidth(ImGui::CalcItemWidth());
 				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 10, 0 }); // Spacing between Items
 				*propertyDrawn = true;
 				if (ImGui::ColorEdit3(("##" + name + propName).c_str(), glm::value_ptr(Data)))
@@ -241,11 +242,10 @@ namespace Borealis
 
 		ImGui::PushID(Property.get_name().to_string().c_str());
 		ImGui::Columns(2);
-		ImGui::SetColumnWidth(0, 200);
+		ImGui::SetColumnWidth(0, 10 * ImGui::GetFontSize());
 		ImGui::Text(name.c_str());
 		ImGui::NextColumn();
 
-		ImGui::PushItemWidth(ImGui::CalcItemWidth());
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 10, 0 }); // Spacing between Items
 
 		*propertyDrawn = true;
@@ -465,6 +465,14 @@ namespace Borealis
 				AssetMetaData meta = AssetManager::GetMetaData(Data->mAssetHandle);
 				std::string fileName = meta.name;
 				ImGui::InputText(("##" + name + propName).c_str(), fileName.data(), fileName.size(), ImGuiInputTextFlags_ReadOnly);
+				if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverExistingPopup))
+				{
+					if (ImGui::MenuItem("Remove Model"))
+					{
+						Property.set_value(rInstance, Ref<Model>());
+					}
+					ImGui::EndPopup();
+				}
 			}
 			else
 			{
@@ -500,6 +508,14 @@ namespace Borealis
 				AssetMetaData meta = AssetManager::GetMetaData(Data->mAssetHandle);
 				std::string fileName = meta.name;
 				ImGui::InputText(("##" + name + propName).c_str(), fileName.data(), fileName.size(), ImGuiInputTextFlags_ReadOnly);
+				if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverExistingPopup))
+				{
+					if (ImGui::MenuItem("Remove Model"))
+					{
+						Property.set_value(rInstance, Ref<SkinnedModel>());
+					}
+					ImGui::EndPopup();
+				}
 			}
 			else
 			{
@@ -537,6 +553,14 @@ namespace Borealis
 				AssetMetaData meta = AssetManager::GetMetaData(Data->mAssetHandle);
 				std::string fileName = meta.name;
 				ImGui::InputText(("##" + name + propName).c_str(), fileName.data(), fileName.size(), ImGuiInputTextFlags_ReadOnly);
+				if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverExistingPopup))
+				{
+					if (ImGui::MenuItem("Remove Animation"))
+					{
+						Property.set_value(rInstance, Ref<Animation>());
+					}
+					ImGui::EndPopup();
+				}
 			}
 			else
 			{
@@ -570,6 +594,15 @@ namespace Borealis
 				AssetMetaData meta = AssetManager::GetMetaData(Data->mAssetHandle);
 				std::string fileName = meta.name;
 				ImGui::InputText(("##" + name + propName).c_str(), fileName.data(), fileName.size(), ImGuiInputTextFlags_ReadOnly);
+
+				if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverExistingPopup))
+				{
+					if (ImGui::MenuItem("Remove Material"))
+					{
+						Property.set_value(rInstance, Ref<Material>());
+					}
+					ImGui::EndPopup();
+				}
 			}
 			else
 			{
@@ -603,6 +636,14 @@ namespace Borealis
 				AssetMetaData meta = AssetManager::GetMetaData(Data->mAssetHandle);
 				std::string fileName = meta.name;
 				ImGui::InputText(("##" + name + propName).c_str(), fileName.data(), fileName.size(), ImGuiInputTextFlags_ReadOnly);
+				if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverExistingPopup))
+				{
+					if (ImGui::MenuItem("Remove Texture"))
+					{
+						Property.set_value(rInstance, Ref<Texture2D>());
+					}
+					ImGui::EndPopup();
+				}
 			}
 			else
 			{
@@ -637,6 +678,14 @@ namespace Borealis
 				AssetMetaData meta = AssetManager::GetMetaData(Data->mAssetHandle);
 				std::string fileName = meta.name;
 				ImGui::InputText(("##" + name + propName).c_str(), fileName.data(), fileName.size(), ImGuiInputTextFlags_ReadOnly);
+				if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverExistingPopup))
+				{
+					if (ImGui::MenuItem("Remove Behaviour Tree"))
+					{
+						Property.set_value(rInstance, Ref<BehaviourTree>());
+					}
+					ImGui::EndPopup();
+				}
 			}
 			else
 			{
@@ -672,6 +721,14 @@ namespace Borealis
 				AssetMetaData meta = AssetManager::GetMetaData(Data->mAssetHandle);
 				std::string fileName = meta.name;
 				ImGui::InputText(("##" + name + propName).c_str(), fileName.data(), fileName.size(), ImGuiInputTextFlags_ReadOnly);
+				if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverExistingPopup))
+				{
+					if (ImGui::MenuItem("Remove Audio"))
+					{
+						Property.set_value(rInstance, Ref<Audio>());
+					}
+					ImGui::EndPopup();
+				}
 			}
 			else
 			{
@@ -712,9 +769,8 @@ namespace Borealis
 					{
 						ImGui::PopID();
 						ImGui::Columns(1);
-						ImGui::PopItemWidth();
 						ImGui::PopStyleVar();
-						ImGui::NewLine();
+						ImGui::Dummy(ImVec2(0,5));
 					}
 				}
 
@@ -740,7 +796,6 @@ namespace Borealis
 			{
 				ImGui::PopID();
 				ImGui::Columns(1);
-				ImGui::PopItemWidth();
 				ImGui::PopStyleVar();
 				ImGui::Dummy(ImVec2(0,5));
 			}
@@ -1294,7 +1349,17 @@ namespace Borealis
 		for (const auto& name : component->GetScriptClass()->mOrder) // name of script field, script field
 		{
 			auto& field = component->GetScriptClass()->mFields[name];
-			if (field.isPrivate() && !field.hasSerializeField() || field.hasHideInInspector())
+
+			if (field.hasHeader(component->GetMonoClass()))
+			{
+				ImGui::NewLine();
+				std::string text = field.GetHeader(component->GetMonoClass());
+				ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[ImGuiFonts::bold]);
+				ImGui::Text(text.c_str());
+				ImGui::PopFont();
+			}
+
+			if (field.isPrivate() && !field.hasSerializeField(component->GetMonoClass()) || field.hasHideInInspector(component->GetMonoClass()))
 			{
 				continue;
 			}
@@ -1312,11 +1377,10 @@ namespace Borealis
 
 			ImGui::PushID(name.c_str());
 			ImGui::Columns(2);
-			ImGui::SetColumnWidth(0, 200);
+			ImGui::SetColumnWidth(0, 10 * ImGui::GetFontSize());
 			ImGui::Text(name.c_str());
 			ImGui::NextColumn();
 
-			ImGui::PushItemWidth(ImGui::CalcItemWidth());
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 10, 0 }); // Spacing between Items
 
 			if (field.isGameObject())
@@ -1596,7 +1660,7 @@ namespace Borealis
 			ImGui::PopID();
 			ImGui::Columns(1);
 			ImGui::PopStyleVar();
-			ImGui::PopItemWidth();
+			ImGui::Dummy(ImVec2(0, 5));
 		}
 		return isEdited;
 	}
@@ -1626,13 +1690,13 @@ namespace Borealis
 				open = ImGui::CollapsingHeader(name.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
 				ImGui::PopStyleVar();
 				ImGui::SameLine(ContentRegionAvailable.x - lineHeight * 0.5f); // Align to right (Button)
-				if (ImGui::Button("+", ImVec2{ lineHeight,lineHeight }))
+				if (ImGui::Button(("+##" + name).c_str(), ImVec2{lineHeight,lineHeight}))
 				{
-					ImGui::OpenPopup("ComponentSettingsPopup");
+					ImGui::OpenPopup(("ComponentSettingsPopup##" + name).c_str());
 				}
 
 
-				if (ImGui::BeginPopup("ComponentSettingsPopup"))
+				if (ImGui::BeginPopup(("ComponentSettingsPopup##" + name).c_str()))
 				{
 					if (ImGui::MenuItem("Remove Component"))
 					{
@@ -1650,6 +1714,20 @@ namespace Borealis
 			if (open)
 			{
 				ImGui::Spacing();
+				ImGui::PushID(name.c_str());
+				ImGui::Columns(2);
+				ImGui::SetColumnWidth(0, 10 * ImGui::GetFontSize());
+				ImGui::Text("Script");
+				ImGui::NextColumn();
+
+				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 10, 0 }); // Spacing between Items
+				std::string dataName = name;
+				ImGui::InputText(("##" + name).c_str(),dataName.data(), dataName.size(), ImGuiInputTextFlags_ReadOnly);
+
+				ImGui::PopID();
+				ImGui::Columns(1);
+				ImGui::PopStyleVar();
+
 				isEdited = DrawScriptField(script) ? true : isEdited;
 			}
 

@@ -212,6 +212,19 @@ namespace Borealis
 		return ScriptingSystem::GetScriptClass(className);
 	}
 
+	static std::unordered_map<std::string, MonoClass*> sScriptAttributes;
+
+	void LoadScriptAttribute(MonoClass* object)
+	{
+		std::string name = mono_class_get_name(object);
+		sScriptAttributes[name] = object;
+	}
+
+	MonoClass* GetScriptAttribute(std::string name)
+	{
+		return sScriptAttributes[name];
+	}
+
 	void InitGameObject(MonoObject*& object, UUID id)
 	{
 		object = mono_object_new(mono_domain_get(), ScriptingSystem::GetScriptClass("GameObject")->GetMonoClass());

@@ -103,6 +103,8 @@ namespace Borealis
 		ScriptingSystem::RegisterCSharpClass(ScriptClass("Borealis", "GameObject", assembly));
 		ScriptingSystem::RegisterCSharpClass(ScriptClass("Borealis", "Object", assembly));
 
+		MonoClass* attributeClass = mono_class_from_name(mono_get_corlib(), "System", "Attribute");
+		
 
 		for (int32_t i = 0; i < numTypes; i++)
 		{
@@ -121,6 +123,11 @@ namespace Borealis
 			if (mono_class_is_subclass_of(currClass, behaviourClass, false))
 			{
 				ScriptingSystem::RegisterCSharpClass(ScriptClass(nameSpace, className, assembly));
+			}
+			else if (mono_class_is_subclass_of(currClass, attributeClass, false))
+			{
+				// Register attribute
+				LoadScriptAttribute(currClass);
 			}
 			else
 			{
@@ -203,7 +210,6 @@ namespace Borealis
 	{
 		mono_set_assemblies_path("mono/lib/4.5");
 		sData->mRootDomain = mono_jit_init("BorealisJitRuntime");
-		
 		BOREALIS_CORE_ASSERT(sData->mRootDomain, "Failed to initialize Mono runtime");
 
 		char friendlyName[] = "BorealisAppDomain";

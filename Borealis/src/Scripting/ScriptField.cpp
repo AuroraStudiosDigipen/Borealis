@@ -61,13 +61,78 @@ namespace Borealis
 	{
 		return mono_field_get_flags(mMonoFieldType) & MONO_FIELD_ATTR_PRIVATE;
 	}
-	bool ScriptField::hasHideInInspector() const
+	bool ScriptField::hasHideInInspector(MonoClass* klass) const
 	{
+		MonoCustomAttrInfo* attributeInfo = mono_custom_attrs_from_field(klass, mMonoFieldType);
+
+		if (attributeInfo)
+		{
+			auto attributeClass = mono_custom_attrs_get_attr(attributeInfo, GetScriptAttribute("HideInInspector"));
+			if (attributeClass)
+			{
+				return true;
+			}
+		}
+
 		return false;
 	}
-	bool ScriptField::hasSerializeField() const
+	bool ScriptField::hasSerializeField(MonoClass* klass) const
 	{
+		MonoCustomAttrInfo* attributeInfo = mono_custom_attrs_from_field(klass, mMonoFieldType);
+
+		if (attributeInfo)
+		{
+			auto attributeClass = mono_custom_attrs_get_attr(attributeInfo, GetScriptAttribute("SerializeField"));
+			if (attributeClass)
+			{
+				return true;
+			}
+		}
+
 		return false;
+	}
+
+	bool ScriptField::hasHeader(MonoClass* klass) const
+	{
+		MonoCustomAttrInfo* attributeInfo = mono_custom_attrs_from_field(klass, mMonoFieldType);
+
+		if (attributeInfo)
+		{
+			auto attributeClass = mono_custom_attrs_get_attr(attributeInfo, GetScriptAttribute("Header"));
+			if (attributeClass)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	std::string ScriptField::GetHeader(MonoClass* klass) const
+	{
+		MonoCustomAttrInfo* attributeInfo = mono_custom_attrs_from_field(klass, mMonoFieldType);
+
+		if (attributeInfo)
+		{
+			auto attributeClass = mono_custom_attrs_get_attr(attributeInfo, GetScriptAttribute("Header"));
+			if (attributeClass)
+			{
+				
+				auto field = mono_class_get_field_from_name(mono_object_get_class(attributeClass), "header");
+
+				MonoString* monoString;
+				mono_field_get_value(attributeClass, field, &monoString);
+				if (monoString)
+				{
+					char* str = mono_string_to_utf8(monoString);
+					std::string output = str;
+					mono_free((void*)str);
+					return output;
+				}
+			}
+		}
+
+		return "";
 	}
 
 	bool ScriptField::isMonoBehaviour() const

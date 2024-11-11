@@ -104,6 +104,7 @@ namespace Borealis
 		*************************************************************************/
 		std::string GetKlassName() const;
 
+		std::list<std::string> mOrder; // Order of the fields
 		std::unordered_map<std::string, ScriptField> mFields; // Fields of the class
 	private:
 		std::string mClassName; // Name of the class

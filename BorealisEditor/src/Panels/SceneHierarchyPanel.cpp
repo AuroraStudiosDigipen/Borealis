@@ -69,7 +69,7 @@ namespace ImGui
 
 namespace Borealis
 {
-	static bool DrawVec3Controller(const std::string& label, glm::vec3& values, float resetValue = 0.f, float columnWidth = 100.f)
+	static bool DrawVec3Controller(const std::string& label, glm::vec3& values, float resetValue = 0.f, float columnWidth = 200.f)
 	{
 		bool output = false;
 		ImGuiIO& io = ImGui::GetIO();
@@ -169,7 +169,7 @@ namespace Borealis
 		return tokens;
 	}
 
-	static bool DrawProperty(rttr::property& Property, ReflectionInstance& rInstance)
+	static bool DrawProperty(rttr::property& Property, ReflectionInstance& rInstance, bool* propertyDrawn)
 	{
 		auto propType = Property.get_type();
 		auto propName = Property.get_name().to_string();
@@ -200,6 +200,56 @@ namespace Borealis
 			return false;
 		}
 
+		if (propType == rttr::type::get<glm::vec3>())
+		{
+			rttr::variant value = Property.get_value(rInstance);
+			glm::vec3 Data = value.get_value<glm::vec3>();
+
+			float min = 0;
+
+			if (Property.get_metadata("Min").is_valid())
+			{
+				min = Property.get_metadata("Min").get_value<float>();
+			}
+
+			if (Property.get_metadata("Colour").is_valid())
+			{
+				ImGui::PushID(Property.get_name().to_string().c_str());
+				ImGui::Columns(2);
+				ImGui::SetColumnWidth(0, 200);
+				ImGui::Text(name.c_str());
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(ImGui::CalcItemWidth());
+				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 10, 0 }); // Spacing between Items
+				*propertyDrawn = true;
+				if (ImGui::ColorEdit3(("##" + name + propName).c_str(), glm::value_ptr(Data)))
+				{
+					Property.set_value(rInstance, Data);
+					return true;
+				}
+			}
+
+			else if (DrawVec3Controller(name, Data, min))
+			{
+				Property.set_value(rInstance, Data);
+				return true;
+			}
+			return false;
+		}
+
+
+
+		ImGui::PushID(Property.get_name().to_string().c_str());
+		ImGui::Columns(2);
+		ImGui::SetColumnWidth(0, 200);
+		ImGui::Text(name.c_str());
+		ImGui::NextColumn();
+
+		ImGui::PushItemWidth(ImGui::CalcItemWidth());
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 10, 0 }); // Spacing between Items
+
+		*propertyDrawn = true;
+
 		if (Property.is_enumeration())
 		{
 			auto enumValues = Property.get_enumeration().get_names();
@@ -212,7 +262,7 @@ namespace Borealis
 			auto currentEnumString = Property.get_enumeration().value_to_name(currentEnum);
 			bool isTrue = false;
 
-			if (ImGui::BeginCombo((name + "##" + propName).c_str(), currentEnumString.to_string().c_str()))
+			if (ImGui::BeginCombo(("##" + name + propName).c_str(), currentEnumString.to_string().c_str()))
 			{
 				for (int i = 0; i < enumMap.size(); i++)
 				{
@@ -236,7 +286,7 @@ namespace Borealis
 		if (propType == rttr::type::get<bool>())
 		{
 			bool Data = Property.get_value(rInstance).to_bool();
-			if (ImGui::Checkbox((name + "##" + propName).c_str(), &Data))
+			if (ImGui::Checkbox(("##" + name + propName).c_str(), &Data))
 			{
 				Property.set_value(rInstance, Data);
 				// if is tracking
@@ -248,7 +298,7 @@ namespace Borealis
 		if (propType == rttr::type::get<float>())
 		{
 			float Data = Property.get_value(rInstance).to_float();
-			if (ImGui::DragFloat((name + "##" + propName).c_str(), &Data))
+			if (ImGui::DragFloat(("##" + name + propName).c_str(), &Data))
 			{
 				Property.set_value(rInstance, Data);
 				return true;
@@ -259,7 +309,7 @@ namespace Borealis
 		if (propType == rttr::type::get<int>())
 		{
 			int Data = Property.get_value(rInstance).to_int();
-			if (ImGui::DragInt((name + "##" + propName).c_str(), &Data))
+			if (ImGui::DragInt(("##" + name + propName).c_str(), &Data))
 			{
 				Property.set_value(rInstance, Data);
 				return true;
@@ -273,7 +323,7 @@ namespace Borealis
 			char buffer[256];
 			memset(buffer, 0, sizeof(buffer));
 			strcpy_s(buffer, sizeof(buffer), Data.c_str());
-			if (ImGui::InputText((name + "##" + propName).c_str(), buffer, sizeof(buffer)))
+			if (ImGui::InputText(("##" + name + propName).c_str(), buffer, sizeof(buffer)))
 			{
 				Data = std::string(buffer);
 				Property.set_value(rInstance, Data);
@@ -286,36 +336,7 @@ namespace Borealis
 		{
 			rttr::variant value = Property.get_value(rInstance);
 			glm::vec2 Data = value.get_value<glm::vec2>();
-			if (ImGui::DragFloat2((name + "##" + propName).c_str(), glm::value_ptr(Data)))
-			{
-				Property.set_value(rInstance, Data);
-				return true;
-			}
-			return false;
-		}
-
-		if (propType == rttr::type::get<glm::vec3>())
-		{
-			rttr::variant value = Property.get_value(rInstance);
-			glm::vec3 Data = value.get_value<glm::vec3>();
-
-			float min = 0;
-
-			if (Property.get_metadata("Min").is_valid())
-			{
-				min = Property.get_metadata("Min").get_value<float>();
-			}
-
-			if (Property.get_metadata("Colour").is_valid())
-			{
-				if (ImGui::ColorEdit3((name + "##" + propName).c_str(), glm::value_ptr(Data)))
-				{
-					Property.set_value(rInstance, Data);
-					return true;
-				}
-			}
-
-			else if (DrawVec3Controller(name, Data, min))
+			if (ImGui::DragFloat2(("##" + name + propName).c_str(), glm::value_ptr(Data)))
 			{
 				Property.set_value(rInstance, Data);
 				return true;
@@ -330,14 +351,14 @@ namespace Borealis
 
 			if (Property.get_metadata("Colour").is_valid())
 			{
-				if (ImGui::ColorEdit4((name + "##" + propName).c_str(), glm::value_ptr(Data)))
+				if (ImGui::ColorEdit4(("##" + name + propName).c_str(), glm::value_ptr(Data)))
 				{
 					Property.set_value(rInstance, Data);
 					return true;
 				}
 			}
 
-			else if (ImGui::DragFloat4((name + "##" + propName).c_str(), glm::value_ptr(Data)))
+			else if (ImGui::DragFloat4(("##" + name + propName).c_str(), glm::value_ptr(Data)))
 			{
 				Property.set_value(rInstance, Data);
 				return true;
@@ -349,7 +370,7 @@ namespace Borealis
 		if (propType == rttr::type::get<unsigned char>())
 		{
 			unsigned char Data = Property.get_value(rInstance).to_uint8();
-			if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_U8, &Data))
+			if (ImGui::DragScalar(("##" + name + propName).c_str(), ImGuiDataType_U8, &Data))
 			{
 				Property.set_value(rInstance, Data);
 				return true;
@@ -360,7 +381,7 @@ namespace Borealis
 		if (propType == rttr::type::get<char>())
 		{
 			char Data = Property.get_value(rInstance).to_int8();
-			if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_S8, &Data))
+			if (ImGui::DragScalar(("##" + name + propName).c_str(), ImGuiDataType_S8, &Data))
 			{
 				Property.set_value(rInstance, Data);
 				return true;
@@ -371,7 +392,7 @@ namespace Borealis
 		if (propType == rttr::type::get<unsigned short>())
 		{
 			unsigned short Data = Property.get_value(rInstance).to_uint16();
-			if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_U16, &Data))
+			if (ImGui::DragScalar(("##" + name + propName).c_str(), ImGuiDataType_U16, &Data))
 			{
 				Property.set_value(rInstance, Data);
 				return true;
@@ -382,7 +403,7 @@ namespace Borealis
 		if (propType == rttr::type::get<short>())
 		{
 			short Data = Property.get_value(rInstance).to_int16();
-			if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_S16, &Data))
+			if (ImGui::DragScalar(("##" + name + propName).c_str(), ImGuiDataType_S16, &Data))
 			{
 				Property.set_value(rInstance, Data);
 				return true;
@@ -393,7 +414,7 @@ namespace Borealis
 		if (propType == rttr::type::get<unsigned int>())
 		{
 			unsigned int Data = Property.get_value(rInstance).to_uint32();
-			if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_U32, &Data))
+			if (ImGui::DragScalar(("##" + name + propName).c_str(), ImGuiDataType_U32, &Data))
 			{
 				Property.set_value(rInstance, Data);
 				return true;
@@ -404,7 +425,7 @@ namespace Borealis
 		if (propType == rttr::type::get<long long>())
 		{
 			long long Data = Property.get_value(rInstance).to_int64();
-			if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_S64, &Data))
+			if (ImGui::DragScalar(("##" + name + propName).c_str(), ImGuiDataType_S64, &Data))
 			{
 				Property.set_value(rInstance, Data);
 				return true;
@@ -415,7 +436,7 @@ namespace Borealis
 		if (propType == rttr::type::get<unsigned long long>())
 		{
 			unsigned long long Data = Property.get_value(rInstance).to_uint64();
-			if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_U64, &Data))
+			if (ImGui::DragScalar(("##" + name + propName).c_str(), ImGuiDataType_U64, &Data))
 			{
 				Property.set_value(rInstance, Data);
 				return true;
@@ -426,7 +447,7 @@ namespace Borealis
 		if (propType == rttr::type::get<double>())
 		{
 			double Data = Property.get_value(rInstance).to_double();
-			if (ImGui::DragScalar((name + "##" + propName).c_str(), ImGuiDataType_Double, &Data))
+			if (ImGui::DragScalar(("##" + name + propName).c_str(), ImGuiDataType_Double, &Data))
 			{
 				Property.set_value(rInstance, Data);
 				return true;
@@ -436,14 +457,27 @@ namespace Borealis
 
 		if (propType == rttr::type::get<Ref<Model>>())
 		{
-			ImGui::Button(propName.c_str());
+
+			rttr::variant value = Property.get_value(rInstance);
+			Ref<Model> Data = value.get_value<Ref<Model>>();
+			if (Data)
+			{
+				AssetMetaData meta = AssetManager::GetMetaData(Data->mAssetHandle);
+				std::string fileName = meta.name;
+				ImGui::InputText(("##" + name + propName).c_str(), fileName.data(), fileName.size(), ImGuiInputTextFlags_ReadOnly);
+			}
+			else
+			{
+				char buffer[1] = "";
+				ImGui::InputText(("##" + name + propName).c_str(), buffer, IM_ARRAYSIZE(buffer), ImGuiInputTextFlags_ReadOnly);
+			}
 			if (ImGui::BeginDragDropTarget())
 			{
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropMeshItem"))
 				{
 					AssetHandle data = *(const uint64_t*)payload->Data;
-					rttr::variant value(AssetManager::GetAsset<Model>(data));
-					Property.set_value(rInstance, value);
+					rttr::variant setValue(AssetManager::GetAsset<Model>(data));
+					Property.set_value(rInstance, setValue);
 					return true;
 				}
 				ImGui::EndDragDropTarget();
@@ -454,48 +488,89 @@ namespace Borealis
 
 		if (propType == rttr::type::get<Ref<SkinnedModel>>())
 		{
-			ImGui::Button(propName.c_str());
+
+			rttr::variant value = Property.get_value(rInstance);
+			Ref<SkinnedModel> Data = value.get_value<Ref<SkinnedModel>>();
+			if (Data)
+			{
+				AssetMetaData meta = AssetManager::GetMetaData(Data->mAssetHandle);
+				std::string fileName = meta.name;
+				ImGui::InputText(("##" + name + propName).c_str(), fileName.data(), fileName.size(), ImGuiInputTextFlags_ReadOnly);
+			}
+			else
+			{
+				char buffer[1] = "";
+				ImGui::InputText(("##" + name + propName).c_str(), buffer, IM_ARRAYSIZE(buffer), ImGuiInputTextFlags_ReadOnly);
+			}
 			if (ImGui::BeginDragDropTarget())
 			{
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropMeshItem"))
 				{
 					AssetHandle data = *(const uint64_t*)payload->Data;
 					MeshConfig config = GetConfig<MeshConfig>(AssetManager::GetMetaData(data).Config);
-					if (!config.skinMesh) return false;
-					rttr::variant value(AssetManager::GetAsset<SkinnedModel>(data));
+					rttr::variant setValue(AssetManager::GetAsset<SkinnedModel>(data));
+					if (!config.skinMesh) 
+						return false;
 					Property.set_value(rInstance, value);
+						return true;
 				}
 				ImGui::EndDragDropTarget();
 			}
+			return false;
 		}
 
 		if (propType == rttr::type::get<Ref<Animation>>())
 		{
-			ImGui::Button(propName.c_str());
+
+			rttr::variant value = Property.get_value(rInstance);
+			Ref<Animation> Data = value.get_value<Ref<Animation>>();
+			if (Data)
+			{
+				AssetMetaData meta = AssetManager::GetMetaData(Data->mAssetHandle);
+				std::string fileName = meta.name;
+				ImGui::InputText(("##" + name + propName).c_str(), fileName.data(), fileName.size(), ImGuiInputTextFlags_ReadOnly);
+			}
+			else
+			{
+				char buffer[1] = "";
+				ImGui::InputText(("##" + name + propName).c_str(), buffer, IM_ARRAYSIZE(buffer), ImGuiInputTextFlags_ReadOnly);
+			}
 			if (ImGui::BeginDragDropTarget())
 			{
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropAnimationItem"))
 				{
 					AssetHandle data = *(const uint64_t*)payload->Data;
-
-					rttr::variant value(AssetManager::GetAsset<Animation>(data));
-					Property.set_value(rInstance, value);
+					rttr::variant setValue(AssetManager::GetAsset<Animation>(data));
+					Property.set_value(rInstance, setValue);
+					return true;
 				}
 				ImGui::EndDragDropTarget();
 			}
+			return false;
 		}
 
 		if (propType == rttr::type::get<Ref<Material>>())
 		{
-			ImGui::Button(propName.c_str());
+			rttr::variant value = Property.get_value(rInstance);
+			Ref<Material> Data = value.get_value<Ref<Material>>();
+			if (Data)
+			{
+				AssetMetaData meta = AssetManager::GetMetaData(Data->mAssetHandle);
+				std::string fileName = meta.name;
+				ImGui::InputText(("##" + name + propName).c_str(), fileName.data(), fileName.size(), ImGuiInputTextFlags_ReadOnly);
+			}
+			else
+			{
+				char buffer[1] = "";
+				ImGui::InputText(("##" + name + propName).c_str(), buffer, IM_ARRAYSIZE(buffer), ImGuiInputTextFlags_ReadOnly);
+			}
 			if (ImGui::BeginDragDropTarget())
 			{
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropMaterialItem"))
 				{
-
 					AssetHandle data = *(const uint64_t*)payload->Data;
-					rttr::variant value(AssetManager::GetAsset<Material>(data));
-					Property.set_value(rInstance, value);
+					rttr::variant setValue(AssetManager::GetAsset<Material>(data));
+					Property.set_value(rInstance, setValue);
 					return true;
 				}
 				ImGui::EndDragDropTarget();
@@ -505,14 +580,26 @@ namespace Borealis
 
 		if (propType == rttr::type::get<Ref<Texture2D>>())
 		{
-			ImGui::Button(propName.c_str());
+			rttr::variant value = Property.get_value(rInstance);
+			Ref<Texture2D> Data = value.get_value<Ref<Texture2D>>();
+			if (Data)
+			{
+				AssetMetaData meta = AssetManager::GetMetaData(Data->mAssetHandle);
+				std::string fileName = meta.name;
+				ImGui::InputText(("##" + name + propName).c_str(), fileName.data(), fileName.size(), ImGuiInputTextFlags_ReadOnly);
+			}
+			else
+			{
+				char buffer[1] = "";
+				ImGui::InputText(("##" + name + propName).c_str(), buffer, IM_ARRAYSIZE(buffer), ImGuiInputTextFlags_ReadOnly);
+			}
 			if (ImGui::BeginDragDropTarget())
 			{
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropImageItem"))
 				{
 					AssetHandle data = *(const uint64_t*)payload->Data;
-					rttr::variant value(AssetManager::GetAsset<Texture2D>(data));
-					Property.set_value(rInstance, value);
+					rttr::variant setValue(AssetManager::GetAsset<Texture2D>(data));
+					Property.set_value(rInstance, setValue);
 					return true;
 				}
 				ImGui::EndDragDropTarget();
@@ -522,7 +609,20 @@ namespace Borealis
 
 		if (propType == rttr::type::get<Ref<BehaviourTree>>())
 		{
-			ImGui::Button(propName.c_str());
+
+			rttr::variant value = Property.get_value(rInstance);
+			Ref<BehaviourTree> Data = value.get_value<Ref<BehaviourTree>>();
+			if (Data)
+			{
+				AssetMetaData meta = AssetManager::GetMetaData(Data->mAssetHandle);
+				std::string fileName = meta.name;
+				ImGui::InputText(("##" + name + propName).c_str(), fileName.data(), fileName.size(), ImGuiInputTextFlags_ReadOnly);
+			}
+			else
+			{
+				char buffer[1] = "";
+				ImGui::InputText(("##" + name + propName).c_str(), buffer, IM_ARRAYSIZE(buffer), ImGuiInputTextFlags_ReadOnly);
+			}
 			if (ImGui::BeginDragDropTarget())
 			{
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropBehaviourTreeItem"))
@@ -530,8 +630,8 @@ namespace Borealis
 					AssetHandle data = *(const uint64_t*)payload->Data;
 					Ref<BehaviourTree> originalTree = AssetManager::GetAsset<BehaviourTree>(data);
 					Ref<BehaviourTree> clonedTree = BTreeFactory::Instance().CloneBehaviourTree(originalTree);
-					rttr::variant value(clonedTree);
-					Property.set_value(rInstance, value);
+					rttr::variant setValue(clonedTree);
+					Property.set_value(rInstance, setValue);
 					return true;
 				}
 				ImGui::EndDragDropTarget();
@@ -541,14 +641,26 @@ namespace Borealis
 
 		if (propType == rttr::type::get<Ref<Audio>>())
 		{
-			ImGui::Button(propName.c_str());
+			rttr::variant value = Property.get_value(rInstance);
+			Ref<Audio> Data = value.get_value<Ref<Audio>>();
+			if (Data)
+			{
+				AssetMetaData meta = AssetManager::GetMetaData(Data->mAssetHandle);
+				std::string fileName = meta.name;
+				ImGui::InputText(("##" + name + propName).c_str(), fileName.data(), fileName.size(), ImGuiInputTextFlags_ReadOnly);
+			}
+			else
+			{
+				char buffer[1] = "";
+				ImGui::InputText(("##" + name + propName).c_str(), buffer, IM_ARRAYSIZE(buffer), ImGuiInputTextFlags_ReadOnly);
+			}
 			if (ImGui::BeginDragDropTarget())
 			{
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropAudioItem"))
 				{
 					AssetHandle data = *(const uint64_t*)payload->Data;
-					rttr::variant value(AssetManager::GetAsset<Audio>(data));
-					Property.set_value(rInstance, value);
+					rttr::variant setValue(AssetManager::GetAsset<Audio>(data));
+					Property.set_value(rInstance, setValue);
 					return true;
 				}
 				ImGui::EndDragDropTarget();
@@ -566,7 +678,16 @@ namespace Borealis
 			{
 				for (auto prop : properties)
 				{
-					DrawProperty(prop, oldInstance);
+					bool isPropertyDrawn = false;
+					DrawProperty(prop, oldInstance, &isPropertyDrawn);
+					if (isPropertyDrawn)
+					{
+						ImGui::PopID();
+						ImGui::Columns(1);
+						ImGui::PopItemWidth();
+						ImGui::PopStyleVar();
+						ImGui::NewLine();
+					}
 				}
 
 				Property.set_value(rInstance, oldVariant);
@@ -585,7 +706,16 @@ namespace Borealis
 		auto properties = rInstance.get_type().get_properties();
 		for (auto Property : properties)
 		{
-			isEdited = DrawProperty(Property, rInstance) ? true : isEdited;
+			bool isPropertyDrawn = false;
+			isEdited = DrawProperty(Property, rInstance, &isPropertyDrawn) ? true : isEdited;
+			if (isPropertyDrawn)
+			{
+				ImGui::PopID();
+				ImGui::Columns(1);
+				ImGui::PopItemWidth();
+				ImGui::PopStyleVar();
+				ImGui::Dummy(ImVec2(0,5));
+			}
 			if (entity.HasComponent<PrefabComponent>() && isEdited)
 			{
 				auto& prefabComp = entity.GetComponent<PrefabComponent>();
@@ -1133,8 +1263,34 @@ namespace Borealis
 	static bool DrawScriptField(Ref<ScriptInstance> component)
 	{
 		bool isEdited = false;
-		for (const auto& [name, field] : component->GetScriptClass()->mFields) // name of script field, script field
+		for (const auto& name : component->GetScriptClass()->mOrder) // name of script field, script field
 		{
+			auto& field = component->GetScriptClass()->mFields[name];
+			if (field.isPrivate() && !field.hasSerializeField() || field.hasHideInInspector())
+			{
+				continue;
+			}
+
+			if (field.mType == ScriptFieldType::Vector3)
+			{
+				glm::vec3 Data = component->GetFieldValue<glm::vec3>(name);
+				if (DrawVec3Controller(name, Data))
+				{
+					component->SetFieldValue(name, &Data);
+					isEdited = true;
+				}
+
+			}
+
+			ImGui::PushID(name.c_str());
+			ImGui::Columns(2);
+			ImGui::SetColumnWidth(0, 200);
+			ImGui::Text(name.c_str());
+			ImGui::NextColumn();
+
+			ImGui::PushItemWidth(ImGui::CalcItemWidth());
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 10, 0 }); // Spacing between Items
+
 			if (field.isGameObject())
 			{
 				MonoObject* Data = component->GetFieldValue<MonoObject*>(name);
@@ -1162,7 +1318,7 @@ namespace Borealis
 					component->SetFieldValue(name, Data);
 				}
 
-				if (ImGui::BeginCombo(name.c_str(), currentEntityName.c_str()))
+				if (ImGui::BeginCombo(("##" + component->GetKlassName() + name).c_str(), currentEntityName.c_str()))
 				{
 					int i = 0;
 					for (auto ID : entityIDList)
@@ -1217,7 +1373,7 @@ namespace Borealis
 					currentEntityName = SceneManager::GetActiveScene()->GetEntityByUUID(currentEntityID).GetName();
 				}
 
-				if (ImGui::BeginCombo(name.c_str(), currentEntityName.c_str()))
+				if (ImGui::BeginCombo(("##" + component->GetKlassName() + name).c_str(), currentEntityName.c_str()))
 				{
 					int i = 0;
 					for (auto ID : entityIDList)
@@ -1258,7 +1414,7 @@ namespace Borealis
 			if (field.mType == ScriptFieldType::Bool)
 			{
 				bool Data = component->GetFieldValue<bool>(name);
-				if (ImGui::Checkbox((name + "##" + component->GetKlassName()).c_str(), &Data))
+				if (ImGui::Checkbox(("##" + component->GetKlassName() + name).c_str(), &Data))
 				{
 					component->SetFieldValue(name, &Data);
 					isEdited = true;
@@ -1267,7 +1423,7 @@ namespace Borealis
 			if (field.mType == ScriptFieldType::Float)
 			{
 				float Data = component->GetFieldValue<float>(name);
-				if (ImGui::DragFloat((name + "##" + component->GetKlassName()).c_str(), &Data))
+				if (ImGui::DragFloat(("##" + component->GetKlassName() + name).c_str(), &Data))
 				{
 					component->SetFieldValue(name, &Data);
 					isEdited = true;
@@ -1277,7 +1433,7 @@ namespace Borealis
 			if (field.mType == ScriptFieldType::Int)
 			{
 				int Data = component->GetFieldValue<int>(name);
-				if (ImGui::DragInt((name + "##" + component->GetKlassName()).c_str(), &Data))
+				if (ImGui::DragInt(("##" + component->GetKlassName() + name).c_str(), &Data))
 				{
 					component->SetFieldValue(name, &Data);
 					isEdited = true;
@@ -1290,7 +1446,7 @@ namespace Borealis
 				char buffer[256];
 				memset(buffer, 0, sizeof(buffer));
 				strcpy_s(buffer, sizeof(buffer), Data.c_str());
-				if (ImGui::InputText((name + "##" + component->GetKlassName()).c_str(), buffer, sizeof(buffer)))
+				if (ImGui::InputText(("##" + component->GetKlassName() + name).c_str(), buffer, sizeof(buffer)))
 				{
 					Data = std::string(buffer);
 					component->SetFieldValue(name, &Data);
@@ -1301,28 +1457,19 @@ namespace Borealis
 			if (field.mType == ScriptFieldType::Vector2)
 			{
 				glm::vec2 Data = component->GetFieldValue<glm::vec2>(name);
-				if (ImGui::DragFloat2((name + "##" + component->GetKlassName()).c_str(), glm::value_ptr(Data)))
+				if (ImGui::DragFloat2(("##" + component->GetKlassName() + name).c_str(), glm::value_ptr(Data)))
 				{
 					component->SetFieldValue(name, &Data);
 					isEdited = true;
 				}
 			}
 
-			if (field.mType == ScriptFieldType::Vector3)
-			{
-				glm::vec3 Data = component->GetFieldValue<glm::vec3>(name);
-				if(DrawVec3Controller(name, Data))
-				{
-					component->SetFieldValue(name, &Data);
-					isEdited = true;
-				}
-				
-			}
+	
 
 			if (field.mType == ScriptFieldType::Vector4)
 			{
 				glm::vec4 Data = component->GetFieldValue<glm::vec4>(name);
-				if (ImGui::DragFloat4((name + "##" + component->GetKlassName()).c_str(), glm::value_ptr(Data)))
+				if (ImGui::DragFloat4(("##" + component->GetKlassName() + name).c_str(), glm::value_ptr(Data)))
 				{
 					component->SetFieldValue(name, &Data);
 					isEdited = true;
@@ -1333,7 +1480,7 @@ namespace Borealis
 			if (field.mType == ScriptFieldType::UChar)
 			{
 				unsigned char Data = component->GetFieldValue<unsigned char>(name);
-				if (ImGui::DragScalar((name + "##" + component->GetKlassName()).c_str(), ImGuiDataType_U8, &Data))
+				if (ImGui::DragScalar(("##" + component->GetKlassName() + name).c_str(), ImGuiDataType_U8, &Data))
 				{
 					component->SetFieldValue(name, &Data);
 					isEdited = true;
@@ -1344,7 +1491,7 @@ namespace Borealis
 			if (field.mType == ScriptFieldType::Char)
 			{
 				char Data = component->GetFieldValue<char>(name);
-				if (ImGui::DragScalar((name + "##" + component->GetKlassName()).c_str(), ImGuiDataType_S8, &Data))
+				if (ImGui::DragScalar(("##" + component->GetKlassName() + name).c_str(), ImGuiDataType_S8, &Data))
 				{
 					component->SetFieldValue(name, &Data);
 					isEdited = true;
@@ -1355,7 +1502,7 @@ namespace Borealis
 			if (field.mType == ScriptFieldType::UShort)
 			{
 				unsigned short Data = component->GetFieldValue<unsigned short>(name);
-				if (ImGui::DragScalar((name + "##" + component->GetKlassName()).c_str(), ImGuiDataType_U16, &Data))
+				if (ImGui::DragScalar(("##" + component->GetKlassName() + name).c_str(), ImGuiDataType_U16, &Data))
 				{
 					component->SetFieldValue(name, &Data);
 					isEdited = true;
@@ -1366,7 +1513,7 @@ namespace Borealis
 			if (field.mType == ScriptFieldType::Short)
 			{
 				short Data = component->GetFieldValue<short>(name);
-				if (ImGui::DragScalar((name + "##" + component->GetKlassName()).c_str(), ImGuiDataType_S16, &Data))
+				if (ImGui::DragScalar(("##" + component->GetKlassName() + name).c_str(), ImGuiDataType_S16, &Data))
 				{
 					component->SetFieldValue(name, &Data);
 					isEdited = true;
@@ -1377,7 +1524,7 @@ namespace Borealis
 			if (field.mType == ScriptFieldType::UInt)
 			{
 				unsigned int Data = component->GetFieldValue<unsigned int>(name);
-				if (ImGui::DragScalar((name + "##" + component->GetKlassName()).c_str(), ImGuiDataType_U32, &Data))
+				if (ImGui::DragScalar(("##" + component->GetKlassName() + name).c_str(), ImGuiDataType_U32, &Data))
 				{
 					component->SetFieldValue(name, &Data);
 					isEdited = true;
@@ -1388,7 +1535,7 @@ namespace Borealis
 			if (field.mType == ScriptFieldType::Long)
 			{
 				long long Data = component->GetFieldValue<long long>(name);
-				if (ImGui::DragScalar((name + "##" + component->GetKlassName()).c_str(), ImGuiDataType_S64, &Data))
+				if (ImGui::DragScalar(("##" + component->GetKlassName() + name).c_str(), ImGuiDataType_S64, &Data))
 				{
 					component->SetFieldValue(name, &Data);
 					isEdited = true;
@@ -1399,7 +1546,7 @@ namespace Borealis
 			if (field.mType == ScriptFieldType::ULong)
 			{
 				unsigned long long Data = component->GetFieldValue<unsigned long long>(name);
-				if (ImGui::DragScalar((name + "##" + component->GetKlassName()).c_str(), ImGuiDataType_U64, &Data))
+				if (ImGui::DragScalar(("##" + component->GetKlassName() + name).c_str(), ImGuiDataType_U64, &Data))
 				{
 					component->SetFieldValue(name, &Data);
 					isEdited = true;
@@ -1410,13 +1557,18 @@ namespace Borealis
 			if (field.mType == ScriptFieldType::Double)
 			{
 				double Data = component->GetFieldValue<double>(name);
-				if (ImGui::DragScalar((name + "##" + component->GetKlassName()).c_str(), ImGuiDataType_Double, &Data))
+				if (ImGui::DragScalar(("##" + component->GetKlassName() + name).c_str(), ImGuiDataType_Double, &Data))
 				{
 					component->SetFieldValue(name, &Data);
 					isEdited = true;
 
 				}
 			}
+
+			ImGui::PopID();
+			ImGui::Columns(1);
+			ImGui::PopStyleVar();
+			ImGui::PopItemWidth();
 		}
 		return isEdited;
 	}

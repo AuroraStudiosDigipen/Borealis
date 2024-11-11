@@ -50,6 +50,7 @@ namespace Borealis
 	{
 		auto scriptClass = MakeRef<ScriptClass>(klass);
 		mScriptClasses[klass.GetKlassName()] = scriptClass;
+
 		void* iterator = nullptr;
 		while (MonoClassField* field = mono_class_get_fields(scriptClass->GetMonoClass(), &iterator))
 		{
@@ -58,6 +59,7 @@ namespace Borealis
 
 			ScriptFieldType SFType = MonoType2ScriptFieldType(fieldType);
 			scriptClass->mFields[fieldName] = ScriptField{ SFType, fieldName, field };
+			scriptClass->mOrder.push_back(fieldName);
 		}
 	}
 

@@ -536,7 +536,7 @@ namespace Borealis
 					rttr::variant setValue(AssetManager::GetAsset<SkinnedModel>(data));
 					if (!config.skinMesh) 
 						return false;
-					Property.set_value(rInstance, value);
+					Property.set_value(rInstance, setValue);
 						return true;
 				}
 				ImGui::EndDragDropTarget();

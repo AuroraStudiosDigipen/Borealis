@@ -468,8 +468,12 @@ namespace Borealis
 			}
 			else
 			{
+				ImU32 color32 = IM_COL32(180, 120, 120, 255);
+				ImVec4 color = ImGui::ColorConvertU32ToFloat4(color32);
+				ImGui::PushStyleColor(ImGuiCol_FrameBg, color);
 				char buffer[1] = "";
 				ImGui::InputText(("##" + name + propName).c_str(), buffer, IM_ARRAYSIZE(buffer), ImGuiInputTextFlags_ReadOnly);
+				ImGui::PopStyleColor();
 			}
 			if (ImGui::BeginDragDropTarget())
 			{
@@ -499,8 +503,12 @@ namespace Borealis
 			}
 			else
 			{
+				ImU32 color32 = IM_COL32(180, 120, 120, 255);
+				ImVec4 color = ImGui::ColorConvertU32ToFloat4(color32);
+				ImGui::PushStyleColor(ImGuiCol_FrameBg, color);
 				char buffer[1] = "";
 				ImGui::InputText(("##" + name + propName).c_str(), buffer, IM_ARRAYSIZE(buffer), ImGuiInputTextFlags_ReadOnly);
+				ImGui::PopStyleColor();
 			}
 			if (ImGui::BeginDragDropTarget())
 			{
@@ -532,8 +540,12 @@ namespace Borealis
 			}
 			else
 			{
+				ImU32 color32 = IM_COL32(180, 120, 120, 255);
+				ImVec4 color = ImGui::ColorConvertU32ToFloat4(color32);
+				ImGui::PushStyleColor(ImGuiCol_FrameBg, color);
 				char buffer[1] = "";
 				ImGui::InputText(("##" + name + propName).c_str(), buffer, IM_ARRAYSIZE(buffer), ImGuiInputTextFlags_ReadOnly);
+				ImGui::PopStyleColor();
 			}
 			if (ImGui::BeginDragDropTarget())
 			{
@@ -561,8 +573,12 @@ namespace Borealis
 			}
 			else
 			{
+				ImU32 color32 = IM_COL32(180, 120, 120, 255);
+				ImVec4 color = ImGui::ColorConvertU32ToFloat4(color32);
+				ImGui::PushStyleColor(ImGuiCol_FrameBg, color);
 				char buffer[1] = "";
 				ImGui::InputText(("##" + name + propName).c_str(), buffer, IM_ARRAYSIZE(buffer), ImGuiInputTextFlags_ReadOnly);
+				ImGui::PopStyleColor();
 			}
 			if (ImGui::BeginDragDropTarget())
 			{
@@ -590,8 +606,12 @@ namespace Borealis
 			}
 			else
 			{
+				ImU32 color32 = IM_COL32(180, 120, 120, 255);
+				ImVec4 color = ImGui::ColorConvertU32ToFloat4(color32);
+				ImGui::PushStyleColor(ImGuiCol_FrameBg, color);
 				char buffer[1] = "";
 				ImGui::InputText(("##" + name + propName).c_str(), buffer, IM_ARRAYSIZE(buffer), ImGuiInputTextFlags_ReadOnly);
+				ImGui::PopStyleColor();
 			}
 			if (ImGui::BeginDragDropTarget())
 			{
@@ -620,8 +640,12 @@ namespace Borealis
 			}
 			else
 			{
+				ImU32 color32 = IM_COL32(180, 120, 120, 255);
+				ImVec4 color = ImGui::ColorConvertU32ToFloat4(color32);
+				ImGui::PushStyleColor(ImGuiCol_FrameBg, color);
 				char buffer[1] = "";
 				ImGui::InputText(("##" + name + propName).c_str(), buffer, IM_ARRAYSIZE(buffer), ImGuiInputTextFlags_ReadOnly);
+				ImGui::PopStyleColor();
 			}
 			if (ImGui::BeginDragDropTarget())
 			{
@@ -651,8 +675,12 @@ namespace Borealis
 			}
 			else
 			{
+				ImU32 color32 = IM_COL32(180, 120, 120, 255);
+				ImVec4 color = ImGui::ColorConvertU32ToFloat4(color32);
+				ImGui::PushStyleColor(ImGuiCol_FrameBg, color);
 				char buffer[1] = "";
 				ImGui::InputText(("##" + name + propName).c_str(), buffer, IM_ARRAYSIZE(buffer), ImGuiInputTextFlags_ReadOnly);
+				ImGui::PopStyleColor();
 			}
 			if (ImGui::BeginDragDropTarget())
 			{

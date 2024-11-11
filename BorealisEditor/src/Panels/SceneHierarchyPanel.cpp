@@ -465,7 +465,7 @@ namespace Borealis
 				AssetMetaData meta = AssetManager::GetMetaData(Data->mAssetHandle);
 				std::string fileName = meta.name;
 				ImGui::InputText(("##" + name + propName).c_str(), fileName.data(), fileName.size(), ImGuiInputTextFlags_ReadOnly);
-				if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverExistingPopup))
+				if (ImGui::BeginPopupContextItem(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverExistingPopup))
 				{
 					if (ImGui::MenuItem("Remove Model"))
 					{
@@ -508,7 +508,8 @@ namespace Borealis
 				AssetMetaData meta = AssetManager::GetMetaData(Data->mAssetHandle);
 				std::string fileName = meta.name;
 				ImGui::InputText(("##" + name + propName).c_str(), fileName.data(), fileName.size(), ImGuiInputTextFlags_ReadOnly);
-				if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverExistingPopup))
+
+				if (ImGui::BeginPopupContextItem(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverExistingPopup))
 				{
 					if (ImGui::MenuItem("Remove Model"))
 					{
@@ -553,7 +554,7 @@ namespace Borealis
 				AssetMetaData meta = AssetManager::GetMetaData(Data->mAssetHandle);
 				std::string fileName = meta.name;
 				ImGui::InputText(("##" + name + propName).c_str(), fileName.data(), fileName.size(), ImGuiInputTextFlags_ReadOnly);
-				if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverExistingPopup))
+				if (ImGui::BeginPopupContextItem(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverExistingPopup))
 				{
 					if (ImGui::MenuItem("Remove Animation"))
 					{
@@ -595,7 +596,7 @@ namespace Borealis
 				std::string fileName = meta.name;
 				ImGui::InputText(("##" + name + propName).c_str(), fileName.data(), fileName.size(), ImGuiInputTextFlags_ReadOnly);
 
-				if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverExistingPopup))
+				if (ImGui::BeginPopupContextItem(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverExistingPopup))
 				{
 					if (ImGui::MenuItem("Remove Material"))
 					{
@@ -636,7 +637,7 @@ namespace Borealis
 				AssetMetaData meta = AssetManager::GetMetaData(Data->mAssetHandle);
 				std::string fileName = meta.name;
 				ImGui::InputText(("##" + name + propName).c_str(), fileName.data(), fileName.size(), ImGuiInputTextFlags_ReadOnly);
-				if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverExistingPopup))
+				if (ImGui::BeginPopupContextItem(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverExistingPopup))
 				{
 					if (ImGui::MenuItem("Remove Texture"))
 					{
@@ -678,7 +679,7 @@ namespace Borealis
 				AssetMetaData meta = AssetManager::GetMetaData(Data->mAssetHandle);
 				std::string fileName = meta.name;
 				ImGui::InputText(("##" + name + propName).c_str(), fileName.data(), fileName.size(), ImGuiInputTextFlags_ReadOnly);
-				if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverExistingPopup))
+				if (ImGui::BeginPopupContextItem(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverExistingPopup))
 				{
 					if (ImGui::MenuItem("Remove Behaviour Tree"))
 					{
@@ -721,7 +722,7 @@ namespace Borealis
 				AssetMetaData meta = AssetManager::GetMetaData(Data->mAssetHandle);
 				std::string fileName = meta.name;
 				ImGui::InputText(("##" + name + propName).c_str(), fileName.data(), fileName.size(), ImGuiInputTextFlags_ReadOnly);
-				if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverExistingPopup))
+				if (ImGui::BeginPopupContextItem(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverExistingPopup))
 				{
 					if (ImGui::MenuItem("Remove Audio"))
 					{

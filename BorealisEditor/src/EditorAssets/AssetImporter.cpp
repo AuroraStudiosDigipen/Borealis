@@ -21,7 +21,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Assets/Asset.hpp>
 #include <EditorAssets/AssetImporter.hpp>
 #include <EditorAssets/MetaSerializer.hpp>
-
+#include <Scripting/ScriptingSystem.hpp>
 #include <thread>
 
 namespace Borealis
@@ -138,6 +138,9 @@ namespace Borealis
 				imported = ImportAsset(meta);
 				metaPath = path;
 				meta = MetaFileSerializer::GetAssetMetaDataFile(metaPath.string() + ".meta");
+				break;
+			case AssetType::Script:
+				ScriptingSystem::RegisterAssemblyCSharp(path.string());
 				break;
 			default:
 				break;

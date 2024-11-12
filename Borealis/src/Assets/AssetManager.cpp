@@ -21,13 +21,14 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/Model.hpp>
 #include <Graphics/Material.hpp>
 #include <Graphics/Animation/Animation.hpp>
+#include <Scripting/ScriptingSystem.hpp>
 
 namespace Borealis
 {
 	void AssetManager::RegisterAllAsset()
 	{
 		std::vector<AssetInfo> infos{
-		//Asset Type				//Asset Name				//extensions			//load function
+		//Asset Type				//Asset Name				//extensions			//load function			//Reload function
 		{ AssetType::None,			"AssetType::None",			{},						nullptr},
 		{ AssetType::Animation,		"AssetType::Animation",		{ ".anim" },			Animation::Load },
 		{ AssetType::Audio,			"AssetType::Audio",			{ ".mp3", ".wav" },		AudioEngine::Load },
@@ -38,7 +39,7 @@ namespace Borealis
 		{ AssetType::Mesh,			"AssetType::Mesh",			{ ".fbx"},				Model::Load },
 		{ AssetType::Prefab,		"AssetType::Prefab",		{ ".prefab"},			nullptr},
 		{ AssetType::Scene,			"AssetType::Scene",			{ ".sc"},				nullptr},
-		{ AssetType::Script,		"AssetType::Script",		{ ".cs"},				nullptr},
+		{ AssetType::Script,		"AssetType::Script",		{ ".cs"},				nullptr,				ScriptingSystem::Reload},
 		{ AssetType::Shader,		"AssetType::Shader",		{ ".glsl"},				nullptr},
 		{ AssetType::Texture2D,		"AssetType::Texture2D",		{ ".png"},				Texture2D::Load }
 		};
@@ -60,7 +61,7 @@ namespace Borealis
 		assetTypeToString.insert({ assetInfo.type , assetInfo.name });
 		stringToAssetType.insert({ assetInfo.name , assetInfo.type });
 
-		Project::GetEditorAssetsManager()->RegisterAsset(assetInfo.type, assetInfo.loadFunc);
+		Project::GetEditorAssetsManager()->RegisterAsset(assetInfo.type, assetInfo.loadFunc, assetInfo.reloadFunc);
 	}
 
 	AssetType AssetManager::GetAssetTypeFromExtension(std::filesystem::path path)

@@ -763,6 +763,7 @@ namespace Borealis {
 			{
 				if (assetMetaData.Type == AssetType::Script)
 				{
+					BOREALIS_CORE_INFO("{}", assetMetaData.SourcePath.string());
 					ScriptingSystem::PushCSharpQueue(assetMetaData.SourcePath.string());
 				}
 			}

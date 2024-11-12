@@ -96,11 +96,16 @@ namespace Borealis
 
 	//=====================================
 
-	void EditorAssetManager::RegisterAsset(AssetType type, AssetLoaderFunc loadFunc)
+	void EditorAssetManager::RegisterAsset(AssetType type, AssetLoaderFunc loadFunc, AssetReloadFunc reloadFunc)
 	{
 		if (loadFunc != nullptr)
 		{
 			mAssetLoaders.insert({ type, loadFunc });
+		}
+
+		if (reloadFunc != nullptr)
+		{
+			mAssetReloaders.insert({ type, reloadFunc });
 		}
 	}
 
@@ -138,6 +143,13 @@ namespace Borealis
 
 	Ref<Asset> EditorAssetManager::ReloadAsset(AssetHandle assetHandle)
 	{
+		AssetMetaData const& assetMetaData = GetMetaData(assetHandle);
+
+		if (mAssetReloaders.contains(assetMetaData.Type))
+		{
+			mAssetReloaders[assetMetaData.Type](assetMetaData);
+		}
+
 		//if not already loaded, no need to load it
 		if (!mLoadedAssets.contains(assetHandle)) return nullptr;
 

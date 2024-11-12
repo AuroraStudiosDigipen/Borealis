@@ -125,9 +125,15 @@ namespace Borealis
 		{
 			std::filesystem::path dupPath = path.string() + ".meta";
 			AssetMetaData meta;
-			if (errorType == MetaErrorType::META_FILE_NOT_FOUND || errorType == MetaErrorType::SOURCE_FILE_MODIFIED)
+			if (errorType == MetaErrorType::META_FILE_NOT_FOUND)
 			{
 				meta = MetaFileSerializer::CreateAssetMetaFile(path);
+			}
+			else if (errorType == MetaErrorType::SOURCE_FILE_MODIFIED)
+			{
+				meta = MetaFileSerializer::GetAssetMetaDataFile(dupPath);
+				AssetHandle handle = meta.Handle;
+				meta = MetaFileSerializer::CreateAssetMetaFile(path, handle);
 			}
 			else
 			{
@@ -150,7 +156,7 @@ namespace Borealis
 				break;
 			}
 
-			assetRegistry.insert({ meta.Handle, meta });
+			assetRegistry[meta.Handle] = meta;
 			VerifyMetaFile(path, assetRegistry);
 		}
 

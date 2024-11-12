@@ -26,6 +26,7 @@ namespace Borealis
 {
 	using AssetRegistry = std::unordered_map<AssetHandle, AssetMetaData>;
 	using AssetLoaderFunc = std::function<Ref<Asset>(AssetMetaData const&)>;
+	using AssetReloadFunc = std::function<void(AssetMetaData const&)>;
 
 	class EditorAssetManager : public IAssetManager
 	{
@@ -36,7 +37,7 @@ namespace Borealis
 		void LoadAssetRegistryRunTime(std::string path);
 		//===================================
 
-		void RegisterAsset(AssetType type, AssetLoaderFunc loadFunc);
+		void RegisterAsset(AssetType type, AssetLoaderFunc loadFunc, AssetReloadFunc reloadFunc);
 
 		/*!***********************************************************************
 			\brief
@@ -84,6 +85,7 @@ namespace Borealis
 		std::list<AssetHandle> mAssetReloadRequests;
 
 		std::unordered_map<AssetType, AssetLoaderFunc> mAssetLoaders;
+		std::unordered_map<AssetType, AssetReloadFunc> mAssetReloaders;
 	};
 }
 

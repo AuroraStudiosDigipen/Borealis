@@ -27,6 +27,7 @@ namespace Borealis
 		std::string name;
 		std::vector<std::string> extensions;
 		AssetLoaderFunc loadFunc;
+		AssetReloadFunc reloadFunc = nullptr;
 	};
 
 	class AssetManager

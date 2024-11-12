@@ -188,6 +188,14 @@ namespace Borealis
 
 	void ScriptingSystem::LoadScriptAssemblies(std::string filepath)
 	{
+		// Check if file exists
+		std::ifstream file(filepath);
+		if (!file.is_open())
+		{
+			BOREALIS_CORE_ERROR("Failed to open file {0}", filepath);
+			return;
+		}
+
 		mono_domain_set(sData->mRootDomain, true);
 		mono_domain_unload(sData->mAppDomain);
 		char friendlyName[] = "BorealisAppDomain";

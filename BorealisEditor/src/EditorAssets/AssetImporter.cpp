@@ -65,6 +65,11 @@ namespace Borealis
 		// - if every check is true, add to registry
 		RegisterAllAssets(projectInfo.AssetsPath, assetRegistry);
 
+		std::string originalPath = projectInfo.AssetsPath.string();
+		originalPath.replace(originalPath.find("Assets"), std::string("Assets").length(), "Cache");
+		ScriptingSystem::CompileCSharpQueue(originalPath + "/CSharp_Assembly.dll");
+		ScriptingSystem::LoadScriptAssemblies(originalPath + "/CSharp_Assembly.dll");
+
 		SerializeRegistry();
 
 		StartFileWatch();
@@ -140,7 +145,7 @@ namespace Borealis
 				meta = MetaFileSerializer::GetAssetMetaDataFile(metaPath.string() + ".meta");
 				break;
 			case AssetType::Script:
-				ScriptingSystem::RegisterAssemblyCSharp(path.string());
+				ScriptingSystem::PushCSharpQueue(path.string());
 				break;
 			default:
 				break;

@@ -68,7 +68,12 @@ namespace Borealis
 		*************************************************************************/
 		static Ref<ScriptClass> GetScriptClass(const std::string& className) { return mScriptClasses[className]; }
 
-		static void RegisterAssemblyCSharp(std::string cSharpPath);
+		static void CompileCSharpQueue(std::string pathToSave);
+
+		static void PushCSharpQueue(std::string filepath);
+
+		static void LoadScriptAssemblies(std::string filepath);
+
 
 		static bool GetEnabled(Ref<ScriptInstance> instance);
 		static void SetEnabled(Ref<ScriptInstance>, bool enabled);

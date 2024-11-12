@@ -1,5 +1,6 @@
 // File: RoslynCompiler.cs
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -21,20 +22,31 @@ namespace Borealis
             \param assemblyName
                 The name of the assembly to create.
         *************************************************************************/
-        public byte[] CompileCode(string code, string assemblyName)
+        public byte[] CompileCode(IEnumerable<string> filePaths, string assemblyName)
         {
-            var syntaxTree = CSharpSyntaxTree.ParseText(code);
+            // Parse all source files into syntax trees
+            var syntaxTrees = filePaths.Select(filePath =>
+            {
+                // Read the file contents as a string
+                string code = File.ReadAllText(filePath);
+                return CSharpSyntaxTree.ParseText(code);
+            }).ToList();
+
+            Debug.Log(filePaths);
+
+            // Create the CSharpCompilation with multiple syntax trees
             CSharpCompilation compilation = CSharpCompilation.Create(
                 assemblyName,
-                new[] { syntaxTree },
+                syntaxTrees,
                 new[] {
-                    MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-                    MetadataReference.CreateFromFile("resources/Scripts/Core/BorealisScriptCore.dll") 
+            MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+            MetadataReference.CreateFromFile("resources/Scripts/Core/BorealisScriptCore.dll")
                 },
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             using (var dllStream = new MemoryStream())
             {
+                // Compile the syntax trees into the DLL
                 var emitResult = compilation.Emit(dllStream);
                 if (!emitResult.Success)
                 {
@@ -42,11 +54,11 @@ namespace Borealis
                     {
                         Debug.Log(diagnostic.ToString());  // This will print the detailed diagnostic message
                     }
-                    Debug.Log(assemblyName);
                 }
+
                 return dllStream.ToArray();
             }
-
         }
+
     }
 }

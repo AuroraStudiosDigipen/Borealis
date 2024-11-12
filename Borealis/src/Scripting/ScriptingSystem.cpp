@@ -40,7 +40,8 @@ namespace Borealis
 		MonoDomain* mRootDomain = nullptr;
 		MonoDomain* mAppDomain = nullptr;
 		MonoAssembly* mRoslynAssembly = nullptr;
-		std::vector<MonoAssembly*> mAssemblies;
+		MonoAssembly* mScriptAssembly = nullptr;
+		std::vector <std::string> mCSharpList;
 	};
 
 
@@ -88,20 +89,23 @@ namespace Borealis
 		mono_field_set_value(instance->GetInstance(), field, &enabled);
 	}
 
-	void ScriptingSystem::RegisterAssemblyCSharp(std::string cSharpPath)
+	void ScriptingSystem::CompileCSharpQueue(std::string cSharpPath)
 	{
 		// Compile the C# script
 		ScriptInstance compiler(GetScriptClassUtils("RoslynCompiler"));
 		auto monoCompiler = compiler.GetInstance();
 
-		std::ifstream file(cSharpPath);
-		std::string code((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-		std::string assemblyName = cSharpPath.substr(cSharpPath.find_last_of('\\') + 1);
-		assemblyName = assemblyName.substr(0, assemblyName.find_last_of('.'));
-		MonoString* str1 = mono_string_new(mono_domain_get(), code.c_str());
-		MonoString* str2 = mono_string_new(mono_domain_get(), assemblyName.c_str());
+		mono_domain_set(sData->mAppDomain, true);
+		MonoArray* monoFilePaths = mono_array_new(mono_domain_get(), mono_get_string_class(), sData->mCSharpList.size());
 
-		void* args[3] = { str1, str2 };
+		for (size_t i = 0; i < sData->mCSharpList.size(); ++i) {
+			MonoString* monoString = mono_string_new(mono_domain_get(), sData->mCSharpList[i].c_str());
+			mono_array_set(monoFilePaths, MonoString*, i, monoString);
+		}
+
+		MonoString* str2 = mono_string_new(mono_domain_get(), "CSharp_Assembly");
+
+		void* args[3] = { monoFilePaths, str2 };
 
 		auto method = mono_class_get_method_from_name(compiler.GetMonoClass(), "CompileCode", 2);
 		MonoObject* result = mono_runtime_invoke(method, monoCompiler, args, nullptr);
@@ -111,36 +115,63 @@ namespace Borealis
 			int length = mono_array_length(byteArray);
 			void* data = mono_array_addr_with_size(byteArray, 0, 0);
 
-			auto assembly = LoadCSharpAssembly((char*)data, length, cSharpPath.c_str());
-			sData->mAssemblies.push_back(assembly);
-			// Free the string if you're done with it
-
-			void* iterator = nullptr;
-			auto assemblyImage = mono_assembly_get_image(assembly);
-			const MonoTableInfo* typeDefinitionsTable = mono_image_get_table_info(assemblyImage, MONO_TABLE_TYPEDEF);
-			int32_t numTypes = mono_table_info_get_rows(typeDefinitionsTable);
-
-			for (int32_t i = 0; i < numTypes; i++)
+			std::ofstream file(cSharpPath, std::ios::binary);
+			if (file.is_open())
 			{
-				uint32_t cols[MONO_TYPEDEF_SIZE];
-				mono_metadata_decode_row(typeDefinitionsTable, i, cols, MONO_TYPEDEF_SIZE);
-
-				const char* nameSpace = mono_metadata_string_heap(assemblyImage, cols[MONO_TYPEDEF_NAMESPACE]);
-				const char* className = mono_metadata_string_heap(assemblyImage, cols[MONO_TYPEDEF_NAME]);
-
-				MonoClass* currClass = mono_class_from_name(assemblyImage, nameSpace, className);
-				ScriptingSystem::RegisterCSharpClass(ScriptClass(nameSpace, className, assembly));
-			
+				file.write((char*)data, length);
+				file.close();
 			}
+		}
 
+		
+	}
+
+	void ScriptingSystem::PushCSharpQueue(std::string filepath)
+	{
+		sData->mCSharpList.push_back(filepath);
+	}
+
+	void ScriptingSystem::LoadScriptAssemblies(std::string filepath)
+	{
+
+		sData->mScriptAssembly = LoadCSharpAssembly(filepath);
+
+		void* iterator = nullptr;
+		auto assemblyImage = mono_assembly_get_image(sData->mScriptAssembly);
+
+		const MonoTableInfo* typeDefinitionsTable = mono_image_get_table_info(assemblyImage, MONO_TABLE_TYPEDEF);
+		int32_t numTypes = mono_table_info_get_rows(typeDefinitionsTable);
+
+		MonoClass* monoBehaviour = GetScriptClassUtils("MonoBehaviour")->GetMonoClass();
+
+		auto test = mono_class_from_name(assemblyImage, "Borealis", "CameraController");
+
+		for (int32_t i = 0; i < numTypes; i++)
+		{
+			uint32_t cols[MONO_TYPEDEF_SIZE];
+			mono_metadata_decode_row(typeDefinitionsTable, i, cols, MONO_TYPEDEF_SIZE);
+
+			const char* nameSpace = mono_metadata_string_heap(assemblyImage, cols[MONO_TYPEDEF_NAMESPACE]);
+			const char* className = mono_metadata_string_heap(assemblyImage, cols[MONO_TYPEDEF_NAME]);
+
+			MonoClass* currClass = mono_class_from_name(assemblyImage, nameSpace, className);
+
+			if (mono_class_is_subclass_of(currClass, monoBehaviour, false))
+			{
+				// Register attribute
+				ScriptingSystem::RegisterCSharpClass(ScriptClass(nameSpace, className, sData->mScriptAssembly));
+			}
+			else
+			{
+				continue;
+			}
 		}
 	}
 
 	static void RegisterCSharpScriptsFromAssembly(MonoAssembly* assembly)
 	{
-		MonoImage* image = mono_assembly_get_image(assembly);
 		void* iterator = nullptr;
-		auto assemblyImage = mono_assembly_get_image(sData->mRoslynAssembly);
+		auto assemblyImage = mono_assembly_get_image(assembly);
 
 		const MonoTableInfo* typeDefinitionsTable = mono_image_get_table_info(assemblyImage, MONO_TABLE_TYPEDEF);
 		int32_t numTypes = mono_table_info_get_rows(typeDefinitionsTable);
@@ -164,15 +195,11 @@ namespace Borealis
 
 			MonoClass* currClass = mono_class_from_name(assemblyImage, nameSpace, className);
 
-			if (currClass == behaviourClass)
+			if (!currClass)
 			{
 				continue;
 			}
-			if (mono_class_is_subclass_of(currClass, behaviourClass, false))
-			{
-				ScriptingSystem::RegisterCSharpClass(ScriptClass(nameSpace, className, assembly));
-			}
-			else if (mono_class_is_subclass_of(currClass, attributeClass, false))
+			if (mono_class_is_subclass_of(currClass, attributeClass, false))
 			{
 				// Register attribute
 				LoadScriptAttribute(currClass);
@@ -261,7 +288,7 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(sData->mRootDomain, "Failed to initialize Mono runtime");
 
 		char friendlyName[] = "BorealisAppDomain";
-		sData->mAppDomain = mono_domain_create_appdomain(friendlyName, nullptr);
+		sData->mAppDomain = mono_domain_create_appdomain(friendlyName, nullptr); // Compiler
 		mono_domain_set(sData->mAppDomain, true);
 
 		RegisterInternals();

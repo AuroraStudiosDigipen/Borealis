@@ -44,7 +44,7 @@ namespace Borealis
             return x.GetInstanceID() != y.GetInstanceID();
         }
 
-        internal ulong InstanceID;
+        public ulong InstanceID;
 
         // Operators
         public override bool Equals(object obj)

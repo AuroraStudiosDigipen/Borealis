@@ -119,7 +119,7 @@ namespace Borealis
 
 	void AssetImporter::RegisterAsset(std::filesystem::path path, AssetRegistry& assetRegistry)
 	{
-		if (!VerifyMetaFile(path, assetRegistry))
+		if (!VerifyMetaFile(path, assetRegistry)) // No .meta file
 		{
 			auto dupPath = path;
 			AssetMetaData meta;
@@ -144,15 +144,17 @@ namespace Borealis
 				metaPath = path;
 				meta = MetaFileSerializer::GetAssetMetaDataFile(metaPath.string() + ".meta");
 				break;
-			case AssetType::Script:
-				ScriptingSystem::PushCSharpQueue(path.string());
-				break;
 			default:
 				break;
 			}
 
 			assetRegistry.insert({ meta.Handle, meta });
 			VerifyMetaFile(path, assetRegistry);
+		}
+
+		if (MetaFileSerializer::GetAssetMetaDataFile(path.string() + ".meta").Type == AssetType::Script)
+		{
+			ScriptingSystem::PushCSharpQueue(path.string());
 		}
 	}
 

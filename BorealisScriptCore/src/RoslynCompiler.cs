@@ -1,10 +1,7 @@
 // File: RoslynCompiler.cs
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 namespace Borealis
@@ -13,6 +10,7 @@ namespace Borealis
     {
         public RoslynCompiler()
         {
+            Debug.Log("Created compiler");
         }
         /*!***********************************************************************
             \brief
@@ -24,25 +22,22 @@ namespace Borealis
         *************************************************************************/
         public byte[] CompileCode(IEnumerable<string> filePaths, string assemblyName)
         {
-            // Parse all source files into syntax trees
             var syntaxTrees = filePaths.Select(filePath =>
             {
-                // Read the file contents as a string
                 string code = File.ReadAllText(filePath);
                 return CSharpSyntaxTree.ParseText(code);
             }).ToList();
 
-            Debug.Log(filePaths);
-
             // Create the CSharpCompilation with multiple syntax trees
-            CSharpCompilation compilation = CSharpCompilation.Create(
+            var compilation = CSharpCompilation.Create(
                 assemblyName,
                 syntaxTrees,
                 new[] {
-            MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-            MetadataReference.CreateFromFile("resources/Scripts/Core/BorealisScriptCore.dll")
+                    MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+                    MetadataReference.CreateFromFile("resources/Scripts/Core/BorealisScriptCore.dll")
                 },
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
 
             using (var dllStream = new MemoryStream())
             {
@@ -55,7 +50,6 @@ namespace Borealis
                         Debug.Log(diagnostic.ToString());  // This will print the detailed diagnostic message
                     }
                 }
-
                 return dllStream.ToArray();
             }
         }

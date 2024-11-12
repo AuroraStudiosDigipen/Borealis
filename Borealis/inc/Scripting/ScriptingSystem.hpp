@@ -25,6 +25,7 @@ namespace Borealis
 	class ScriptingSystem
 	{
 	public:
+		friend class ScriptClass;
 		/*!***********************************************************************
 			\brief
 				Init function for the Scripting System
@@ -58,7 +59,7 @@ namespace Borealis
 			\brief
 				Iniitalise the core assembly
 		*************************************************************************/
-		static void InitCoreAssembly();
+		static void* InitCoreAssembly();
 
 		/*!***********************************************************************
 			\brief

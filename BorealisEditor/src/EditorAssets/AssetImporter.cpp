@@ -23,6 +23,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <EditorAssets/MetaSerializer.hpp>
 
 #include <zlib.h>
+#include <Scripting/ScriptingSystem.hpp>
 #include <thread>
 
 namespace Borealis
@@ -62,6 +63,11 @@ namespace Borealis
 
 		//Compare the metadata within registry with actual metadata for error checks
 		RegisterAllAssets(projectInfo.AssetsPath, assetRegistry);
+
+		std::string originalPath = projectInfo.AssetsPath.string();
+		originalPath.replace(originalPath.find("Assets"), std::string("Assets").length(), "Cache");
+		ScriptingSystem::CompileCSharpQueue(originalPath + "/CSharp_Assembly.dll");
+		ScriptingSystem::LoadScriptAssemblies(originalPath + "/CSharp_Assembly.dll");
 
 		SerializeRegistry();
 
@@ -145,6 +151,11 @@ namespace Borealis
 
 			assetRegistry.insert({ meta.Handle, meta });
 			VerifyMetaFile(path, assetRegistry);
+		}
+
+		if (MetaFileSerializer::GetAssetMetaDataFile(path.string() + ".meta").Type == AssetType::Script)
+		{
+			ScriptingSystem::PushCSharpQueue(path.string());
 		}
 	}
 

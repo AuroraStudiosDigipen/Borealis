@@ -17,7 +17,7 @@ namespace Borealis
         public Rigidbody()
         {
         }
-        internal Rigidbody(ulong id)
+        public Rigidbody(ulong id)
         {
             InstanceID = id;
         }

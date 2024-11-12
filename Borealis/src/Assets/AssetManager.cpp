@@ -38,6 +38,7 @@ namespace Borealis
 		{ AssetType::Mesh,			"AssetType::Mesh",			{ ".fbx"},				Model::Load },
 		{ AssetType::Prefab,		"AssetType::Prefab",		{ ".prefab"},			nullptr},
 		{ AssetType::Scene,			"AssetType::Scene",			{ ".sc"},				nullptr},
+		{ AssetType::Script,		"AssetType::Script",		{ ".cs"},				nullptr},
 		{ AssetType::Shader,		"AssetType::Shader",		{ ".glsl"},				nullptr},
 		{ AssetType::Texture2D,		"AssetType::Texture2D",		{ ".png"},				Texture2D::Load }
 		};

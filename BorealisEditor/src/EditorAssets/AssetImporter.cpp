@@ -66,6 +66,7 @@ namespace Borealis
 
 		std::string originalPath = projectInfo.AssetsPath.string();
 		originalPath.replace(originalPath.find("Assets"), std::string("Assets").length(), "Cache");
+		std::filesystem::create_directories(originalPath); //create cache folder if not exist
 		ScriptingSystem::CompileCSharpQueue(originalPath + "/CSharp_Assembly.dll");
 		ScriptingSystem::LoadScriptAssemblies(originalPath + "/CSharp_Assembly.dll");
 

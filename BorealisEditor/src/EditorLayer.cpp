@@ -759,6 +759,13 @@ namespace Borealis {
 		switch (e.GetKeyCode())
 		{
 		case Key::U:
+			for (auto [assetHandle, assetMetaData] : Project::GetEditorAssetsManager()->GetAssetRegistry())
+			{
+				if (assetMetaData.Type == AssetType::Script)
+				{
+					ScriptingSystem::PushCSharpQueue(assetMetaData.SourcePath.string());
+				}
+			}
 			ScriptingSystem::CompileCSharpQueue(Project::GetProjectPath() + "/Cache/CSharp_Assembly.dll");
 			ScriptingSystem::LoadScriptAssemblies(Project::GetProjectPath() + "/Cache/CSharp_Assembly.dll");
 			break;

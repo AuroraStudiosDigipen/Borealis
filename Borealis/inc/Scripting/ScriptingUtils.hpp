@@ -134,6 +134,10 @@ namespace Borealis
 	*************************************************************************/
 	Ref<ScriptClass> GetScriptClassUtils(const std::string& className);
 
+	void LoadScriptAttribute(MonoClass* object);
+
+	MonoClass* GetScriptAttribute(std::string name);
+
 	void InitGameObject(MonoObject*& object, UUID id);
 
 }

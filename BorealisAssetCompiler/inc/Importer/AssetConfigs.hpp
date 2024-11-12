@@ -19,7 +19,11 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace BorealisAssetCompiler
 {
-	struct TextureConfig {};
+	struct TextureConfig 
+	{
+		bool generateMipMaps;
+		bool sRGBA;
+	};
 
 	struct MeshConfig
 	{

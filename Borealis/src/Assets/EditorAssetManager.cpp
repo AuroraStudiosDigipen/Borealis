@@ -16,6 +16,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <yaml-cpp/yaml.h>
 #include <Core/Core.hpp>
 #include <Core/LoggerSystem.hpp>
+#include <Assets/AssetManager.hpp>
 #include <Assets/EditorAssetManager.hpp>
 #include <Audio/Audio.hpp>
 #include <Audio/AudioEngine.hpp>
@@ -35,7 +36,7 @@ namespace Borealis
 
 		metaData.name = node["Name"].as<std::string>();
 		metaData.Handle = node["AssetHandle"].as<uint64_t>();
-		metaData.Type = Asset::StringToAssetType(node["AssetType"].as<std::string>());
+		metaData.Type = AssetManager::StringToAssetType(node["AssetType"].as<std::string>());
 		std::string str = node["SourcePath"].as<std::string>();
 
 		const std::string pattern = "..\\";
@@ -92,7 +93,16 @@ namespace Borealis
 			}
 		}
 	}
+
 	//=====================================
+
+	void EditorAssetManager::RegisterAsset(AssetType type, AssetLoaderFunc loadFunc)
+	{
+		if (loadFunc != nullptr)
+		{
+			mAssetLoaders.insert({ type, loadFunc });
+		}
+	}
 
 	Ref<Asset> EditorAssetManager::GetAsset(AssetHandle assetHandle)
 	{
@@ -229,32 +239,17 @@ namespace Borealis
 		AssetMetaData metaData = mAssetRegistry.at(assetHandle);
 
 		Ref<Asset> asset = nullptr;
-		Animation anim;
-		switch (metaData.Type)
+
+		if (mAssetLoaders.contains(metaData.Type))
 		{
-		case AssetType::Animation:
-			anim.Load(metaData.SourcePath);
-			asset = MakeRef<Animation>(anim);
-			break;
-		case AssetType::Audio:
-			asset = MakeRef<Audio>(AudioEngine::LoadAudio(metaData.SourcePath.string()));
-			break;
-		case AssetType::Texture2D:
-			asset = Texture2D::Create(metaData.CachePath.string());
-			break;
-		case AssetType::Material:
-			asset = MakeRef<Material>(Material(metaData.SourcePath.string()));
-			break;
-		case AssetType::Mesh:
-			asset = GetModel(metaData.Config, metaData.CachePath.string());
-			break;
-		case AssetType::BehaviourTree:
-			asset = BTreeFactory::Instance().LoadBehaviourTree(metaData.SourcePath.string());
-			break;
-		default:
-			BOREALIS_CORE_TRACE("Asset Type not handled for loadiing");
-			return nullptr;
+			asset = mAssetLoaders[metaData.Type](metaData);
 		}
+
+		if (asset == nullptr)
+		{
+			//asset = GetDefaultAsset();
+		}
+
 		asset->mAssetHandle = assetHandle;
 		return asset;
 	}

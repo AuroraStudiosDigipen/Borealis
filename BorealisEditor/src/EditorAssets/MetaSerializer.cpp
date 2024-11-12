@@ -13,6 +13,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
  /******************************************************************************/
 
 #include <BorealisPCH.hpp>
+#include <Assets/AssetManager.hpp>
 #include <Core/LoggerSystem.hpp>
 #include <EditorAssets/MetaSerializer.hpp>
 
@@ -67,7 +68,7 @@ namespace Borealis
 		out << YAML::Key << "Version" << YAML::Value << META_VERSION;
 		out << YAML::Key << "Name" << YAML::Value << assetMetaData.name;
 		out << YAML::Key << "AssetHandle" << YAML::Value << assetMetaData.Handle;
-		out << YAML::Key << "AssetType" << YAML::Value << Asset::AssetTypeToString(assetMetaData.Type);
+		out << YAML::Key << "AssetType" << YAML::Value << AssetManager::AssetTypeToString(assetMetaData.Type);
 		SerializeMetaConfigFile(out, assetMetaData.Type ,assetMetaData.Config);
 		out << YAML::Key << "SourcePath" << YAML::Value << std::filesystem::relative(assetMetaData.SourcePath, PathToAssetFolder).string();
 		out << YAML::Key << "CachePath" << YAML::Value << std::filesystem::relative(assetMetaData.CachePath, PathToAssetFolder).string();
@@ -122,7 +123,7 @@ namespace Borealis
 	{
 		metaData.name = node["Name"].as<std::string>();
 		metaData.Handle = node["AssetHandle"].as<uint64_t>();
-		metaData.Type = Asset::StringToAssetType(node["AssetType"].as<std::string>());
+		metaData.Type = AssetManager::StringToAssetType(node["AssetType"].as<std::string>());
 		metaData.Config = DeserializeMetaConfigFile(node, metaData.Type);
 
 		std::string str = node["SourcePath"].as<std::string>();
@@ -156,7 +157,7 @@ namespace Borealis
 		metaData.Version = node["Version"].as<double>();
 		metaData.name = node["Name"].as<std::string>();
 		metaData.Handle = node["AssetHandle"].as<uint64_t>();
-		metaData.Type = Asset::StringToAssetType(node["AssetType"].as<std::string>());
+		metaData.Type = AssetManager::StringToAssetType(node["AssetType"].as<std::string>());
 		metaData.Config = DeserializeMetaConfigFile(node, metaData.Type);
 
 		std::string str = node["SourcePath"].as<std::string>();
@@ -300,6 +301,7 @@ namespace Borealis
 
 	uint32_t MetaFileSerializer::HashFile(std::filesystem::path const& path)
 	{
+		if (std::filesystem::is_directory(path)) return 0;
 		std::ifstream file(path, std::ios::binary);
 		if (!file.is_open()) {
 			throw std::runtime_error("Could not open file.");
@@ -342,7 +344,7 @@ namespace Borealis
 		metaData.name = path.filename().string();
 		metaData.Handle = UUID();
 
-		metaData.Type = Asset::GetAssetTypeFromExtention(path);
+		metaData.Type = AssetManager::GetAssetTypeFromExtension(path);
 
 		metaData.Config = GetDefaultConfig(metaData.Type);
 

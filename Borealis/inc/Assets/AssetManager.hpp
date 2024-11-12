@@ -21,9 +21,22 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace Borealis
 {
+	struct AssetInfo
+	{
+		AssetType type;
+		std::string name;
+		std::vector<std::string> extensions;
+		AssetLoaderFunc loadFunc;
+	};
+
 	class AssetManager
 	{
 	public:
+		static void RegisterAllAsset();
+
+		static void RegisterAsset(AssetInfo const& assetInfo);
+		
+
 		/*!***********************************************************************
 			\brief
 				Get Asset by handle
@@ -53,6 +66,12 @@ namespace Borealis
 			return Project::GetEditorAssetsManager()->GetMetaData(handle);
 		}
 
+		static AssetType GetAssetTypeFromExtension(std::filesystem::path path);
+
+		static std::string AssetTypeToString(AssetType type);
+
+		static AssetType StringToAssetType(std::string const& type);
+
 		//TEMP
 		//===============================================================
 		static void InsertMetaData(AssetMetaData data)
@@ -72,6 +91,10 @@ namespace Borealis
 	private:
 		inline static bool mRunTime = false;
 		inline static EditorAssetManager mAssetManager;
+
+		inline static std::unordered_map<std::string, AssetType> extensionToAssetType;
+		inline static std::unordered_map<AssetType, std::string> assetTypeToString;
+		inline static std::unordered_map<std::string, AssetType> stringToAssetType;
 	};
 }
 

@@ -25,6 +25,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 namespace Borealis
 {
 	using AssetRegistry = std::unordered_map<AssetHandle, AssetMetaData>;
+	using AssetLoaderFunc = std::function<Ref<Asset>(AssetMetaData const&)>;
+
 	class EditorAssetManager : public IAssetManager
 	{
 	public:
@@ -33,6 +35,8 @@ namespace Borealis
 		//===================================
 		void LoadAssetRegistryRunTime(std::string path);
 		//===================================
+
+		void RegisterAsset(AssetType type, AssetLoaderFunc loadFunc);
 
 		/*!***********************************************************************
 			\brief
@@ -78,6 +82,8 @@ namespace Borealis
 		std::unordered_map<AssetHandle, Ref<Asset>> mLoadedAssets;
 
 		std::list<AssetHandle> mAssetReloadRequests;
+
+		std::unordered_map<AssetType, AssetLoaderFunc> mAssetLoaders;
 	};
 }
 

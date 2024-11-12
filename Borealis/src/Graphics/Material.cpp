@@ -387,4 +387,10 @@ namespace Borealis
         BOREALIS_CORE_ASSERT(false, "Invalid string for Properties.");
         return UnknownProperty;
     }
+
+    Ref<Asset> Material::Load(AssetMetaData const& assetMetaData)
+    {
+        Material material(assetMetaData.SourcePath);
+        return MakeRef<Material>(material);
+    }
 }

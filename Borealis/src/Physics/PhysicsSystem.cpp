@@ -42,6 +42,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Jolt/Physics/Collision/Shape/RotatedTranslatedShape.h>
 #include <Jolt/Physics/Character/Character.h>
 #include <Jolt/Physics/Character/CharacterBase.h>
+#include <Jolt/Physics/Collision/Shape/ScaledShape.h>
 
 
 JPH_SUPPRESS_WARNINGS
@@ -350,6 +351,19 @@ void PhysicsSystem::Init()
 		auto modelCenter = rigidbody.modelCenter;
 		auto actualCenterVec4 = entityTransform * glm::vec4(modelCenter, 1.0f);
 		auto actualCenter = glm::vec3(actualCenterVec4.x, actualCenterVec4.y, actualCenterVec4.z);
+
+		// Assuming `body` is a pointer to an existing body
+		ShapeRefC oldShape = sData.body_interface->GetShape((BodyID(rigidbody.bodyID)));
+	
+		// Specify the new scale factor as a Vec3
+		Vec3 newScale(transform.Scale.x,transform.Scale.y,transform.Scale.z); // Example: scaling by 1.5 on all axes
+
+		// Create a scaled shape
+		ScaledShape* scaledShape = new ScaledShape(oldShape, newScale);
+
+		// Replace the body’s shape with the scaled shape
+		sData.body_interface->SetShape((BodyID(rigidbody.bodyID)), scaledShape, true, EActivation::Activate);
+	
 		// Convert position (glm::vec3 to Jolt's RVec3)
 		JPH::RVec3 newPosition = JPH::RVec3(actualCenter.x, actualCenter.y, actualCenter.z);
 

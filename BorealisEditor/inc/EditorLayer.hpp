@@ -177,6 +177,8 @@ namespace Borealis {
 		*************************************************************************/
 		void LoadProject();
 
+		void LoadProjectBackground(const std::string& filepath);
+
 		/*!***********************************************************************
 			\brief
 				New project

@@ -796,7 +796,7 @@ namespace Borealis
 			s_shader = Shader::Create("engineResources/Shaders/Renderer3D_DeferredLighting.glsl");
 
 		if (!shadow_shader)
-			shadow_shader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_Material.glsl");
+			shadow_shader = Shader::Create("engineResources/Shaders/Renderer3D_Material.glsl");
 	}
 
 	void RenderPassConfig::AddSinkLinkage(std::string sinkName, std::string sourceName)

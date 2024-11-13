@@ -1,6 +1,6 @@
 /******************************************************************************/
 /*!
-\file		EditorLayer.cpp
+\file		im
 \author 	Chua Zheng Yang
 \par    	email: c.zhengyang\@digipen.edu
 \date   	July 11, 2024
@@ -89,6 +89,10 @@ namespace Borealis {
 	}
 #endif
 
+	static std::atomic<bool> isLoading(false);  // Flag to track loading status
+	static std::atomic<bool> loadComplete(false);  // Flag to track completion
+	static std::string activeScName("");  // Flag to track completion
+
 	void EditorLayer::Init()
 	{
 
@@ -134,6 +138,7 @@ namespace Borealis {
 	void EditorLayer::UpdateFn(float dt)
 	{
 		PROFILE_FUNCTION();
+
 		if (Borealis::FrameBufferProperties spec = SceneManager::GetActiveScene()->GetEditorFB()->GetProperties();
 			mViewportSize.x > 0.0f && mViewportSize.y > 0.0f && // zero sized framebuffer is invalid
 			(spec.Width != mViewportSize.x || spec.Height != mViewportSize.y))
@@ -353,6 +358,42 @@ namespace Borealis {
 				ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 			}
 
+
+			if (isLoading.load())
+			{
+				if (!ImGui::IsPopupOpen("LoadingScreen")) {
+					ImGui::OpenPopup("LoadingScreen");
+				}
+
+				if (ImGui::BeginPopupModal("LoadingScreen", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+					ImGui::Text("Loading and Compiling Assets...");
+					ImGui::EndPopup();
+				}
+			}
+
+			if (loadComplete.load())
+			{
+				ScriptingSystem::AttachAppDomain();
+				loadComplete.store(false);
+
+				EditorSerialiser serialiser(nullptr);
+				SceneManager::SetActiveScene(activeScName, serialiser);
+
+				for (auto [handle, meta] : Project::GetEditorAssetsManager()->GetAssetRegistry())
+				{
+					if (meta.Type == AssetType::Prefab)
+					{
+						PrefabManager::DeserialisePrefab(meta.SourcePath.string());
+					}
+				}
+
+				std::string assetsPath = Project::GetProjectPath() + "\\Assets";
+				CBPanel.SetCurrDir(assetsPath);
+				DeserialiseEditorScene();
+				hasRuntimeCamera = false;
+
+				ImGui::CloseCurrentPopup();
+			}
 
 			if (ImGui::BeginMenuBar())
 			{
@@ -755,10 +796,6 @@ namespace Borealis {
 		bool shift = InputSystem::IsKeyPressed(Key::LeftShift) || InputSystem::IsKeyPressed(Key::RightShift);
 		switch (e.GetKeyCode())
 		{
-		case Key::U:
-			ScriptingSystem::CompileCSharpQueue(Project::GetProjectPath() + "/Cache/CSharp_Assembly.dll");
-			ScriptingSystem::LoadScriptAssemblies(Project::GetProjectPath() + "/Cache/CSharp_Assembly.dll");
-			break;
 		case Key::N:
 		{
 			if (control)
@@ -1066,6 +1103,27 @@ namespace Borealis {
 		SCPanel.SetContext(mEditorScene);
 	}
 
+	void EditorLayer::LoadProjectBackground(const std::string& filepath)
+	{
+
+		isLoading.store(true);
+		SceneManager::ClearSceneLibrary();
+		std::string activeSceneName;
+		if (Project::SetProjectPath(filepath.c_str(), activeSceneName))
+		{
+			mAssetImporter.LoadRegistry(Project::GetProjectInfo());
+
+			activeScName = activeSceneName;
+		}
+
+		// Clear Scenes in Scene Manager
+		// Clear Assets in Assets Manager
+		// Load Scenes in Assets Manager
+		// Load Assets in Assets Manager
+		loadComplete.store(true);  // Mark loading complete
+		isLoading.store(false);  // Reset loading flag
+	}
+
 	void EditorLayer::LoadProject()
 	{
 		if (mSceneState != SceneState::Edit)
@@ -1077,33 +1135,11 @@ namespace Borealis {
 		std::string filepath = FileDialogs::OpenFile("Borealis Project File (*.brproj)\0*.brproj\0");
 		if (!filepath.empty())
 		{
-			SceneManager::ClearSceneLibrary();
-			std::string activeSceneName;
-			if (Project::SetProjectPath(filepath.c_str(), activeSceneName))
-			{
-				mAssetImporter.LoadRegistry(Project::GetProjectInfo());
-				EditorSerialiser serialiser(nullptr);
-				SceneManager::SetActiveScene(activeSceneName, serialiser);
-
-				for (auto [handle,meta] : Project::GetEditorAssetsManager()->GetAssetRegistry())
-				{
-					if (meta.Type == AssetType::Prefab)
-					{
-						PrefabManager::DeserialisePrefab(meta.SourcePath.string());
-					}
-				}
-			}
-		
-
-
-			std::string assetsPath = Project::GetProjectPath() + "\\Assets";
-			CBPanel.SetCurrDir(assetsPath);
-			DeserialiseEditorScene();
-			hasRuntimeCamera = false;
-			// Clear Scenes in Scene Manager
-			// Clear Assets in Assets Manager
-			// Load Scenes in Assets Manager
-			// Load Assets in Assets Manager
+			ScriptingSystem::DetachAppDomain();
+			std::thread loadingThread([this, filepath]() {
+				LoadProjectBackground(filepath);  // Pass the argument via lambda
+				});
+			loadingThread.detach();
 		}
 	}
 

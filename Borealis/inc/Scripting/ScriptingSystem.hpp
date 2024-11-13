@@ -75,6 +75,9 @@ namespace Borealis
 
 		static void LoadScriptAssemblies(std::string filepath);
 
+		static void AttachAppDomain();
+		static void DetachAppDomain();
+
 
 		static bool GetEnabled(Ref<ScriptInstance> instance);
 		static void SetEnabled(Ref<ScriptInstance>, bool enabled);

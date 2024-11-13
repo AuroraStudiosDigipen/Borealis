@@ -376,8 +376,9 @@ namespace Borealis
 				{
 					AnimatorComponent& animatorComponent = registryPtr->get<AnimatorComponent>(entity);
 
-					if (animatorComponent.animation && !animatorComponent.animator.HasAnimation())
+					if (animatorComponent.animation && (!animatorComponent.animator.HasAnimation() || animatorComponent.currentAnimationHandle != animatorComponent.animation->mAssetHandle))
 					{
+						animatorComponent.currentAnimationHandle = animatorComponent.animation->mAssetHandle;
 						animatorComponent.animator.PlayAnimation(animatorComponent.animation);
 						skinnedMesh.SkinnnedModel->AssignAnimation(animatorComponent.animation);
 					}

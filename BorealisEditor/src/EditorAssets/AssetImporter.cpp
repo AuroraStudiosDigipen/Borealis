@@ -22,7 +22,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <EditorAssets/AssetImporter.hpp>
 #include <EditorAssets/MetaSerializer.hpp>
 
-#include <zlib.h>
+#include <zlib/zlib.h>
 #include <Scripting/ScriptingSystem.hpp>
 #include <thread>
 

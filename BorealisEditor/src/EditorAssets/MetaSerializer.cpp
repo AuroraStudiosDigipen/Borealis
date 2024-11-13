@@ -18,7 +18,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <EditorAssets/MetaSerializer.hpp>
 
 #include <yaml-cpp/yaml.h>
-#include <zlib.h>
+#include <zlib/zlib.h>
 
 namespace Borealis
 {

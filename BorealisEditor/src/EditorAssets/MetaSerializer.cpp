@@ -18,6 +18,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <EditorAssets/MetaSerializer.hpp>
 
 #include <yaml-cpp/yaml.h>
+#include <thread>
 #include <zlib.h>
 
 namespace Borealis
@@ -302,21 +303,29 @@ namespace Borealis
 	uint32_t MetaFileSerializer::HashFile(std::filesystem::path const& path)
 	{
 		if (std::filesystem::is_directory(path)) return 0;
-		std::ifstream file(path, std::ios::binary);
-		if (!file.is_open()) {
-			throw std::runtime_error("Could not open file.");
+
+		const int maxRetries = 5;
+		const std::chrono::milliseconds retryDelay(50);
+
+		for (int attempt = 0; attempt < maxRetries; ++attempt) {
+			std::ifstream file(path, std::ios::binary);
+			if (file.is_open()) {
+				std::vector<char> buffer(4096);
+				uint32_t crc = 0;
+
+				while (file.read(buffer.data(), buffer.size()) || file.gcount() > 0) {
+					crc = crc32(crc, reinterpret_cast<const unsigned char*>(buffer.data()), file.gcount());
+				}
+
+				file.close();
+				return crc;
+			}
+
+			// Wait and retry
+			std::this_thread::sleep_for(retryDelay);
 		}
 
-		std::vector<char> buffer(4096);
-		uint32_t crc = 0;
-
-		while (file.read(buffer.data(), buffer.size()) || file.gcount() > 0) {
-			crc = crc32(crc, reinterpret_cast<const unsigned char*>(buffer.data()), file.gcount());
-		}
-
-		file.close();
-
-		return crc;
+		return 0;
 	}
 
 	void MetaFileSerializer::SaveAsFile(const std::filesystem::path& path, const char* outputFile)

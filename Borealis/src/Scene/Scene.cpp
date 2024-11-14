@@ -448,7 +448,7 @@ namespace Borealis
 	Ref<FrameBuffer> Scene::GetEditorFB()
 	{
 		//move to rendergraph
-		if (!mViewportFrameBuffer || !mRuntimeFrameBuffer || !mGFrameBuffer)
+		if (!mViewportFrameBuffer || !mRuntimeFrameBuffer || !mGFrameBuffer || !mPixelBuffer)
 		{
 			FrameBufferProperties props{ 1280, 720, false };
 			props.Attachments = { FramebufferTextureFormat::RGBA8,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
@@ -473,8 +473,16 @@ namespace Borealis
 			FrameBufferProperties propsShadowMapBuffer{ 2024, 2024, false };
 			propsShadowMapBuffer.Attachments = { FramebufferTextureFormat::Depth };
 			mShadowMapBuffer = FrameBuffer::Create(propsShadowMapBuffer);
+
+			PixelBufferProperties propsPixelBuffer{ 1280, 720 };
+			mPixelBuffer = PixelBuffer::Create(propsPixelBuffer);
 		}
 		return mViewportFrameBuffer;
+	}
+
+	Ref<PixelBuffer> Scene::GetPixelBuffer()
+	{
+		return mPixelBuffer;
 	}
 
 	void Scene::SetRenderGraphConfig(RenderGraphConfig renderGraphConfig)
@@ -531,6 +539,9 @@ namespace Borealis
 			FrameBufferProperties propsShadowMapBuffer{ 2024, 2024,false };
 			propsShadowMapBuffer.Attachments = { FramebufferTextureFormat::Depth };
 			mShadowMapBuffer = FrameBuffer::Create(propsShadowMapBuffer);
+
+			PixelBufferProperties propsPixelBuffer{ 1280, 720 };
+			mPixelBuffer = PixelBuffer::Create(propsPixelBuffer);
 		}
 
 		Camera* mainCamera = nullptr; // camera not found
@@ -563,6 +574,9 @@ namespace Borealis
 
 		RenderTargetSource shadowMapBuffer("ShadowMapBuffer", mShadowMapBuffer);
 		mRenderGraph.SetGlobalSource(MakeRef<RenderTargetSource>(shadowMapBuffer));
+
+		PixelBufferSource pixelBuffer("PixelBuffer", mPixelBuffer);
+		mRenderGraph.SetGlobalSource(MakeRef<PixelBufferSource>(pixelBuffer));
 
 		if (mainCamera)
 		{

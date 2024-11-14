@@ -204,6 +204,7 @@ namespace Borealis {
 				Render3D.AddSinkLinkage("renderTarget", "RunTimeBuffer");
 				Render3D.AddSinkLinkage("shadowMap", "ShadowPass.shadowMap");
 				Render3D.AddSinkLinkage("camera", "RunTimeCamera");
+				Render3D.AddSinkLinkage("pixelBuffer", "PixelBuffer");
 				fconfig.AddPass(Render3D);
 
 				RenderPassConfig Render2D(RenderPassType::Render2D, "Render2D");
@@ -222,7 +223,8 @@ namespace Borealis {
 				RenderPassConfig editorRender3D(RenderPassType::Render3D, "editorRender3D");
 				editorRender3D.AddSinkLinkage("renderTarget", "EditorBuffer")
 				.AddSinkLinkage("shadowMap", "editorShadowPass.shadowMap")
-				.AddSinkLinkage("camera", "EditorCamera");
+				.AddSinkLinkage("camera", "EditorCamera")
+				.AddSinkLinkage("pixelBuffer", "PixelBuffer");
 				fconfig.AddPass(editorRender3D);
 
 				RenderPassConfig editorRender2D(RenderPassType::Render2D, "editorRender2D");
@@ -283,7 +285,7 @@ namespace Borealis {
 			if (SceneManager::GetActiveScene()->GetEditorFB()->ReadPixel(1, mouseX, mouseY) != -1)
 			{
 				//int id_ent = mViewportFrameBuffer->ReadPixel(1, mouseX, mouseY);
-				mHoveredEntity = { (entt::entity)SceneManager::GetActiveScene()->GetEditorFB()->ReadPixel(1, mouseX, mouseY), SceneManager::GetActiveScene().get()};
+				mHoveredEntity = { (entt::entity)SceneManager::GetActiveScene()->GetPixelBuffer()->ReadPixel(mouseX, mouseY), SceneManager::GetActiveScene().get()};
 				//BOREALIS_CORE_INFO("picking id {}", id_ent);
 				//BOREALIS_CORE_INFO("Name : {}", mHoveredEntity.GetName());
 			}

@@ -24,6 +24,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scene/Components.hpp>
 #include <Scene/SceneManager.hpp>
 
+#include <Graphics/PixelBuffer.hpp>
+
 namespace Borealis
 {
 	Ref<Shader> s_shader = nullptr;
@@ -42,6 +44,9 @@ namespace Borealis
 		sourceType = RenderSourceType::RenderTargetColor;
 
 		buffer = framebuffer;
+
+		Width = framebuffer->GetProperties().Width;
+		Height = framebuffer->GetProperties().Height;
 	}
 
 	void RenderTargetSource::Bind()
@@ -89,6 +94,36 @@ namespace Borealis
 	void GBufferSource::BindDepthBuffer(int index)
 	{
 		buffer->BindDepthBuffer(index);
+	}
+
+	PixelBufferSource::PixelBufferSource(std::string name, Ref<PixelBuffer> pixelbuffer)
+	{
+		sourceName = name;
+		sourceType = RenderSourceType::PixelBuffer;
+
+		buffer = pixelbuffer;
+		Width = pixelbuffer->GetProperties().Width;
+		Height = pixelbuffer->GetProperties().Height;
+	}
+
+	void PixelBufferSource::ReadTexture(uint32_t index)
+	{
+		buffer->ReadTexture(index);
+	}
+
+	void PixelBufferSource::Bind()
+	{
+		buffer->Bind();
+	}
+
+	void PixelBufferSource::Unbind()
+	{
+		buffer->Unbind();
+	}
+
+	void PixelBufferSource::Resize(uint32_t width, uint32_t height)
+	{
+		buffer->Resize(width, height);
 	}
 
 	CameraSource::CameraSource(std::string name, EditorCamera const& camera)
@@ -270,6 +305,7 @@ namespace Borealis
 
 		Ref<RenderTargetSource> renderTarget = nullptr;
 		Ref<RenderTargetSource> shadowMap = nullptr;
+		Ref<PixelBufferSource> pixelBuffer = nullptr;
 
 		for (auto sink : sinkList)
 		{
@@ -291,6 +327,11 @@ namespace Borealis
 				{
 					shadowMap = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
 				}
+			}
+
+			if (sink->source->sourceType == RenderSourceType::PixelBuffer)
+			{
+
 			}
 		}
 
@@ -346,6 +387,22 @@ namespace Borealis
 
 			}
 		}
+		
+		if(pixelBuffer)
+		{
+			if (pixelBuffer->Width != renderTarget->Width || pixelBuffer->Height != renderTarget->Height)
+			{
+				pixelBuffer->Resize(renderTarget->Width, renderTarget->Height);
+			}
+			renderTarget->Bind();
+			pixelBuffer->Bind();
+
+			pixelBuffer->ReadTexture(renderTarget->buffer->GetColorAttachmentRendererID(1));
+
+			pixelBuffer->Unbind();
+			
+		}
+
 		//skinned mesh pass
 		{
 			auto group = registryPtr->group<>(entt::get<TransformComponent, SkinnedMeshRendererComponent>);

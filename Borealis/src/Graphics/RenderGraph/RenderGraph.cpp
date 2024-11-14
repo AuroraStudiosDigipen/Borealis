@@ -96,14 +96,17 @@ namespace Borealis
 		buffer->BindDepthBuffer(index);
 	}
 
-	PixelBufferSource::PixelBufferSource(std::string name, Ref<PixelBuffer> pixelbuffer)
+	PixelBufferSource::PixelBufferSource(std::string name, Ref<PixelBuffer> pixelbuffer) : Width(0), Height(0)
 	{
 		sourceName = name;
 		sourceType = RenderSourceType::PixelBuffer;
 
 		buffer = pixelbuffer;
-		Width = pixelbuffer->GetProperties().Width;
-		Height = pixelbuffer->GetProperties().Height;
+		if(buffer)
+		{
+			Width = pixelbuffer->GetProperties().Width;
+			Height = pixelbuffer->GetProperties().Height;
+		}
 	}
 
 	void PixelBufferSource::ReadTexture(uint32_t index)
@@ -328,11 +331,6 @@ namespace Borealis
 					shadowMap = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
 				}
 			}
-
-			if (sink->source->sourceType == RenderSourceType::PixelBuffer)
-			{
-
-			}
 		}
 
 		//mesh pass
@@ -386,21 +384,6 @@ namespace Borealis
 				}
 
 			}
-		}
-		
-		if(pixelBuffer)
-		{
-			if (pixelBuffer->Width != renderTarget->Width || pixelBuffer->Height != renderTarget->Height)
-			{
-				pixelBuffer->Resize(renderTarget->Width, renderTarget->Height);
-			}
-			renderTarget->Bind();
-			pixelBuffer->Bind();
-
-			pixelBuffer->ReadTexture(renderTarget->buffer->GetColorAttachmentRendererID(1));
-
-			pixelBuffer->Unbind();
-			
 		}
 
 		//skinned mesh pass
@@ -523,23 +506,33 @@ namespace Borealis
 	void Render2D::Execute(float dt)
 	{
 		if (shader) shader->Bind();
-		for (auto sink : sinkList)
-		{
-			if (sink->source)
-			{
-				auto source = sink->source;
-				source->Bind();
-			}
-		}
+
+		Ref<RenderTargetSource> renderTarget = nullptr;
+		Ref<PixelBufferSource> pixelBuffer = nullptr;
 
 		for (auto sink : sinkList)
 		{
 			if (sink->source->sourceType == RenderSourceType::Camera)
 			{
 				Renderer2D::Begin(std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj());
-				break;
+			}
+
+			if (sink->source->sourceType == RenderSourceType::RenderTargetColor)
+			{
+				if (sink->sinkName == "renderTarget")
+				{
+					renderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
+				}
+			}
+
+
+			if (sink->source->sourceType == RenderSourceType::PixelBuffer)
+			{
+				pixelBuffer = std::dynamic_pointer_cast<PixelBufferSource>(sink->source);
 			}
 		}
+
+		renderTarget->Bind();
 
 		{
 			auto group = registryPtr->group<>(entt::get<TransformComponent, SpriteRendererComponent>);
@@ -584,18 +577,25 @@ namespace Borealis
 			}
 		}
 
-
 		Renderer2D::End();
 
-		for (auto sink : sinkList)
+		if (pixelBuffer)
 		{
-			if (sink->source)
+			if (pixelBuffer->Width != renderTarget->Width || pixelBuffer->Height != renderTarget->Height)
 			{
-				auto source = sink->source;
-				source->Unbind();
+				pixelBuffer->Resize(renderTarget->Width, renderTarget->Height);
 			}
+			renderTarget->Bind();
+
+			pixelBuffer->Bind();
+
+			pixelBuffer->ReadTexture(1);
+
+			pixelBuffer->Unbind();
+
 		}
 
+		renderTarget->Unbind();
 		if (shader) shader->Unbind();
 	}
 

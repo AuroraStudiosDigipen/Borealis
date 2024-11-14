@@ -47,7 +47,7 @@ namespace Borealis
 		GLint* ptr = (GLint*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
 		GLint entityID = -1;
 		if (ptr) {
-			entityID = *ptr;
+			entityID = entityID = ptr[y * mProps.Width + x];;
 			glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
 		}
 
@@ -88,7 +88,7 @@ namespace Borealis
 	{
 		glGenBuffers(1, &mRendererID);
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, mRendererID);
-		glBufferData(GL_PIXEL_PACK_BUFFER, mProps.Width * mProps.Height * sizeof(GLint), nullptr, GL_STREAM_READ); //see if there's difference between GL_STREAM_READ and GL_DYNAMIC_READ
+		glBufferData(GL_PIXEL_PACK_BUFFER, mProps.Width * mProps.Height * sizeof(GLint), nullptr, GL_DYNAMIC_READ); //see if there's difference between GL_STREAM_READ and GL_DYNAMIC_READ
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 		BOREALIS_CORE_ASSERT(glGetError() == GL_NO_ERROR, "Pixel Buffer Creation Failed");
 	}

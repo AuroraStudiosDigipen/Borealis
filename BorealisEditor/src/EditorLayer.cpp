@@ -157,7 +157,6 @@ namespace Borealis {
 			}
 		}
 
-
 		if (mViewportHovered)
 		{
 			mCamera.UpdateFn(dt);
@@ -192,6 +191,25 @@ namespace Borealis {
 
 			CameraSource feditorCameraSource("EditorCamera", mEditorCamera);
 			fconfig.AddGlobalSource(MakeRef<CameraSource>(feditorCameraSource));
+
+			auto [mx, my] = ImGui::GetMousePos();
+			mx -= mViewportBounds[0].x;
+			my -= mViewportBounds[0].y;
+			glm::vec2 viewportSize{ mViewportBounds[1].x - mViewportBounds[0].x, mViewportBounds[1].y - mViewportBounds[0].y };
+			my = viewportSize.y - my;
+
+			int mouseX = (int)mx;
+			int mouseY = (int)my;
+
+			Vec2IntSource mouseSource("MouseSource", mouseX, mouseY);
+			fconfig.AddGlobalSource(MakeRef<Vec2IntSource>(mouseSource));
+
+			int entityID = -1;
+			IntSource entityIDSource("EntityIDSource", entityID);
+			fconfig.AddGlobalSource(MakeRef<IntSource>(entityIDSource));
+
+			BoolSource viewPortHoveredSource("ViewPortHovered", mViewportHovered);
+			fconfig.AddGlobalSource(MakeRef<BoolSource>(viewPortHoveredSource));
 
 			//forward rendering
 			{
@@ -231,6 +249,13 @@ namespace Borealis {
 				.AddSinkLinkage("camera", "EditorCamera")
 				.AddSinkLinkage("pixelBuffer", "PixelBuffer");
 				fconfig.AddPass(editorRender2D);
+
+				RenderPassConfig ObjectPicking(RenderPassType::ObjectPicking, "ObjectPicking");
+				ObjectPicking.AddSinkLinkage("pixelBuffer", "editorRender2D.pixelBuffer")
+				.AddSinkLinkage("EntityIDSource", "EntityIDSource")
+				.AddSinkLinkage("ViewPortHovered", "ViewPortHovered")
+				.AddSinkLinkage("MouseSource", "MouseSource");
+				fconfig.AddPass(ObjectPicking);
 			}
 
 			//deferred rendering

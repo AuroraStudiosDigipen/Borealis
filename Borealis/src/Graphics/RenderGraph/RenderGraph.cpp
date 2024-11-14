@@ -48,6 +48,33 @@ namespace Borealis
 		Width = framebuffer->GetProperties().Width;
 		Height = framebuffer->GetProperties().Height;
 	}
+	
+	BoolSource::BoolSource(std::string name, bool& ref) : mRef(ref)
+	{
+		sourceName = name;
+		sourceType = RenderSourceType::BoolRef;
+	}
+
+	void BoolSource::Bind() {};
+	void BoolSource::Unbind() {};
+
+	IntSource::IntSource(std::string name, int& ref) : mRef(ref)
+	{
+		sourceName = name;
+		sourceType = RenderSourceType::IntRef;
+	}
+
+	void IntSource::Bind() {};
+	void IntSource::Unbind() {};
+
+	Vec2IntSource::Vec2IntSource(std::string name, int& refX, int& refY) : mRefX(refX), mRefY(refY)
+	{
+		sourceName = name;
+		sourceType = RenderSourceType::Vec2IntRef;
+	}
+
+	void Vec2IntSource::Bind() {};
+	void Vec2IntSource::Unbind() {};
 
 	void RenderTargetSource::Bind()
 	{
@@ -840,6 +867,60 @@ namespace Borealis
 		shader->Unbind();
 	}
 
+
+	ObjectPickingPass::ObjectPickingPass(std::string name) : RenderPass(name)
+	{
+
+	}
+
+	void ObjectPickingPass::Execute(float dt)
+	{
+		Ref<PixelBufferSource> pixelBuffer = nullptr;
+		Ref<IntSource> entityID = nullptr;
+		Ref<Vec2IntSource> mouse = nullptr;
+		Ref<BoolSource> viewPortHovered = nullptr;
+
+		for (auto sink : sinkList)
+		{
+			if (sink->source->sourceType == RenderSourceType::PixelBuffer)
+			{
+				pixelBuffer = std::dynamic_pointer_cast<PixelBufferSource>(sink->source);
+			}
+
+			if (sink->source->sourceType == RenderSourceType::IntRef)
+			{
+				entityID = std::dynamic_pointer_cast<IntSource>(sink->source);
+			}
+
+			if (sink->source->sourceType == RenderSourceType::Vec2IntRef)
+			{
+				mouse = std::dynamic_pointer_cast<Vec2IntSource>(sink->source);
+			}
+
+			if (sink->source->sourceType == RenderSourceType::BoolRef)
+			{
+				viewPortHovered = std::dynamic_pointer_cast<BoolSource>(sink->source);
+			}
+		}
+
+		if(viewPortHovered->mRef)
+		{
+			if (SceneManager::GetActiveScene()->GetPixelBuffer()->ReadPixel(mouse->mRefX, mouse->mRefY) != -1)
+			{
+				//int id_ent = mViewportFrameBuffer->ReadPixel(1, mouseX, mouseY);
+				entityID->mRef = SceneManager::GetActiveScene()->GetPixelBuffer()->ReadPixel(mouse->mRefX, mouse->mRefY);
+				//BOREALIS_CORE_INFO("picking id {}", mHoveredEntity.GetName());
+				//BOREALIS_CORE_INFO("Name : {}", mHoveredEntity.GetName());
+			}
+			else
+			{
+				entityID->mRef = -1;
+			}
+		}
+
+		BOREALIS_CORE_INFO("Entity ID {}", entityID->mRef);
+	}
+
 	//========================================================================
 	//RENDER GRAPH Config
 	//========================================================================	
@@ -934,6 +1015,10 @@ namespace Borealis
 			case RenderPassType::Lighting:
 			case RenderPassType::Shadow:
 				AddEntityPassConfig(passesConfig);
+				break;
+			case RenderPassType::ObjectPicking:
+				AddRenderPassConfig(passesConfig);
+				break;
 			default:
 				break;
 			}
@@ -962,6 +1047,24 @@ namespace Borealis
 		}
 
 		return nullptr;
+	}
+
+	void RenderGraph::AddRenderPassConfig(RenderPassConfig const& renderPassConfig)
+	{
+		Ref<RenderPass> renderPass = nullptr;
+		switch (renderPassConfig.mType)
+		{
+		case RenderPassType::ObjectPicking:
+			renderPass = MakeRef<ObjectPickingPass>(renderPassConfig.mPassName);
+			break;
+		}
+
+		for (auto const& sinkLinkage : renderPassConfig.mSinkLinkageList)
+		{
+			renderPass->SetSinkLinkage(sinkLinkage.sinkName, sinkLinkage.sourceName);
+		}
+
+		AddPass(renderPass);
 	}
 
 	void RenderGraph::AddEntityPassConfig(RenderPassConfig const& renderPassConfig)

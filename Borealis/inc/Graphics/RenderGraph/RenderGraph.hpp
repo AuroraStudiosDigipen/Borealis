@@ -30,6 +30,9 @@ namespace Borealis
 {
 	enum class RenderSourceType
 	{
+		BoolRef,
+		IntRef,
+		Vec2IntRef,
 		RenderTargetColor,
 		GBuffer,
 		PixelBuffer,
@@ -45,6 +48,40 @@ namespace Borealis
 		RenderSourceType sourceType;
 		virtual void Bind() = 0;
 		virtual void Unbind() {};
+	};
+
+	class BoolSource : public RenderSource
+	{
+	public:
+		BoolSource(std::string name, bool& ref);
+
+		void Bind() override;
+		void Unbind() override;
+
+		bool& mRef;
+	};
+
+	class IntSource : public RenderSource
+	{
+	public:
+		IntSource(std::string name, int& ref);
+
+		void Bind() override;
+		void Unbind() override;
+
+		int& mRef;
+	};
+
+	class Vec2IntSource : public RenderSource
+	{
+	public:
+		Vec2IntSource(std::string name, int& refX, int& refY);
+
+		void Bind() override;
+		void Unbind() override;
+
+		int& mRefX;
+		int& mRefY;
 	};
 
 	class RenderTargetSource : public RenderSource
@@ -133,7 +170,8 @@ namespace Borealis
 		Render2D,
 		Geometry,
 		Lighting,
-		Shadow
+		Shadow,
+		ObjectPicking
 	};
 
 	class RenderPass 
@@ -201,6 +239,14 @@ namespace Borealis
 		void Execute(float dt) override;
 	};
 
+	class ObjectPickingPass : public RenderPass
+	{
+	public:
+		ObjectPickingPass(std::string name);
+
+		void Execute(float dt) override;
+	};
+
 	struct RenderPassConfig
 	{
 		RenderPassType mType;
@@ -240,6 +286,8 @@ namespace Borealis
 		void Finalize();
 
 		Ref<RenderSource> FindSource(std::string sourceName);
+
+		void AddRenderPassConfig(RenderPassConfig const& renderPassConfig);
 
 		void AddEntityPassConfig(RenderPassConfig const& renderPassConfig);
 

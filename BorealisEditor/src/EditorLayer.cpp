@@ -169,15 +169,18 @@ namespace Borealis {
 
 			//move to scene or render graph
 			SceneManager::GetActiveScene()->GetRunTimeFB()->Bind();
-			RenderCommand::Clear();
 			RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
+			RenderCommand::Clear();
 			SceneManager::GetActiveScene()->GetRunTimeFB()->Unbind();
 
 			SceneManager::GetActiveScene()->GetEditorFB()->Bind();
-			RenderCommand::Clear();
 			RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
+			RenderCommand::Clear();
 			SceneManager::GetActiveScene()->GetEditorFB()->Unbind();
 		}
+
+
+		int entityID = -1;
 
 		//setting up rendergraph
 		{
@@ -204,7 +207,6 @@ namespace Borealis {
 			Vec2IntSource mouseSource("MouseSource", mouseX, mouseY);
 			fconfig.AddGlobalSource(MakeRef<Vec2IntSource>(mouseSource));
 
-			int entityID = -1;
 			IntSource entityIDSource("EntityIDSource", entityID);
 			fconfig.AddGlobalSource(MakeRef<IntSource>(entityIDSource));
 
@@ -227,7 +229,6 @@ namespace Borealis {
 				RenderPassConfig Render2D(RenderPassType::Render2D, "Render2D");
 				Render2D.AddSinkLinkage("renderTarget", "Render3D.renderTarget");
 				Render2D.AddSinkLinkage("camera", "RunTimeCamera");
-				Render2D.AddSinkLinkage("pixelBuffer", "NullPixelBuffer");
 				fconfig.AddPass(Render2D);
 			}
 
@@ -246,15 +247,16 @@ namespace Borealis {
 
 				RenderPassConfig editorRender2D(RenderPassType::Render2D, "editorRender2D");
 				editorRender2D.AddSinkLinkage("renderTarget", "editorRender3D.renderTarget")
-				.AddSinkLinkage("camera", "EditorCamera")
-				.AddSinkLinkage("pixelBuffer", "PixelBuffer");
+				.AddSinkLinkage("camera", "EditorCamera");
 				fconfig.AddPass(editorRender2D);
 
 				RenderPassConfig ObjectPicking(RenderPassType::ObjectPicking, "ObjectPicking");
-				ObjectPicking.AddSinkLinkage("pixelBuffer", "editorRender2D.pixelBuffer")
+				ObjectPicking.AddSinkLinkage("pixelBuffer", "PixelBuffer")
+				.AddSinkLinkage("renderTarget", "editorRender2D.renderTarget")
 				.AddSinkLinkage("EntityIDSource", "EntityIDSource")
 				.AddSinkLinkage("ViewPortHovered", "ViewPortHovered")
-				.AddSinkLinkage("MouseSource", "MouseSource");
+				.AddSinkLinkage("MouseSource", "MouseSource")
+				.AddSinkLinkage("camera", "EditorCamera");
 				fconfig.AddPass(ObjectPicking);
 			}
 
@@ -295,34 +297,34 @@ namespace Borealis {
 		}
 
 
-		auto[mx,my] = ImGui::GetMousePos();
-		mx -= mViewportBounds[0].x;
-		my -= mViewportBounds[0].y;
-		glm::vec2 viewportSize { mViewportBounds[1].x - mViewportBounds[0].x, mViewportBounds[1].y - mViewportBounds[0].y };
-		my = viewportSize.y - my;
+		//auto[mx,my] = ImGui::GetMousePos();
+		//mx -= mViewportBounds[0].x;
+		//my -= mViewportBounds[0].y;
+		//glm::vec2 viewportSize { mViewportBounds[1].x - mViewportBounds[0].x, mViewportBounds[1].y - mViewportBounds[0].y };
+		//my = viewportSize.y - my;
 
-		int mouseX = (int)mx;
-		int mouseY = (int)my;
-		//SceneManager::GetActiveScene()->GetEditorFB()->Bind();
-		if (mViewportHovered)
-		{
-			if (SceneManager::GetActiveScene()->GetPixelBuffer()->ReadPixel(mouseX, mouseY) != -1)
-			{
-				//int id_ent = mViewportFrameBuffer->ReadPixel(1, mouseX, mouseY);
-				mHoveredEntity = { (entt::entity)SceneManager::GetActiveScene()->GetPixelBuffer()->ReadPixel(mouseX, mouseY), SceneManager::GetActiveScene().get()};
-				//BOREALIS_CORE_INFO("picking id {}", mHoveredEntity.GetName());
-				//BOREALIS_CORE_INFO("Name : {}", mHoveredEntity.GetName());
-			}
-			else
-			{
-				mHoveredEntity = {};
-			}
-		}
+		//int mouseX = (int)mx;
+		//int mouseY = (int)my;
+		////SceneManager::GetActiveScene()->GetEditorFB()->Bind();
+		//if (mViewportHovered)
+		//{
+		//	if (SceneManager::GetActiveScene()->GetPixelBuffer()->ReadPixel(mouseX, mouseY) != -1)
+		//	{
+		//		//int id_ent = mViewportFrameBuffer->ReadPixel(1, mouseX, mouseY);
+		//		mHoveredEntity = { (entt::entity)SceneManager::GetActiveScene()->GetPixelBuffer()->ReadPixel(mouseX, mouseY), SceneManager::GetActiveScene().get()};
+		//		//BOREALIS_CORE_INFO("picking id {}", mHoveredEntity.GetName());
+		//		//BOREALIS_CORE_INFO("Name : {}", mHoveredEntity.GetName());
+		//	}
+		//	else
+		//	{
+		//		mHoveredEntity = {};
+		//	}
+		//}
+		// 
 		//SceneManager::GetActiveScene()->GetEditorFB()->Unbind();
+		mHoveredEntity = { (entt::entity)entityID , SceneManager::GetActiveScene().get() };
 
 		SceneManager::GetActiveScene()->UpdateRuntime(dt); //update physics, scripts and audio
-
-		//SceneManager::GetActiveScene()->GetEditorFB()->Blit(SceneManager::GetActiveScene()->GetRunTimeFB()->GetID(), SceneManager::GetActiveScene()->GetRunTimeFB()->GetProperties());
 	}
 
 	void EditorLayer::EventFn(Event& e)

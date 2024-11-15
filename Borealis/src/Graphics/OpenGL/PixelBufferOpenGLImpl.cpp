@@ -42,12 +42,17 @@ namespace Borealis
 
 	int OpenGLPixelBuffer::ReadPixel(int x, int y)
 	{
+		if (x < 0 || x >= mProps.Width || y < 0 || y >= mProps.Height) 
+		{
+			return -1; // Return an invalid ID if out of bounds
+		}
+
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, mRendererID);
 
 		GLint* ptr = (GLint*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
 		GLint entityID = -1;
 		if (ptr) {
-			entityID = entityID = ptr[y * mProps.Width + x];;
+			entityID = entityID = ptr[y * mProps.Width + x];
 			glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
 		}
 

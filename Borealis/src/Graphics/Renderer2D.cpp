@@ -33,6 +33,13 @@ namespace Borealis
 		int EntityID;
 	};
 
+	struct SimpleQuadData
+	{
+		glm::vec3 Position;
+		glm::vec3 NormalBuffer;
+		glm::vec2 TexCoord;
+	};
+
 	struct CircleData
 	{
 		glm::vec3 WorldPosition;
@@ -96,6 +103,9 @@ namespace Borealis
 		Ref<Shader> mQuadShader; 
 		Ref<Texture2D> mWhiteTexture;
 
+		Ref<VertexArray> mHighlightedQuadVAO;
+		Ref<VertexBuffer> mHighlightedQuadVBO;
+
 		Ref<VertexArray> mCircleVAO;
 		Ref<VertexBuffer> mCircleVBO;
 		Ref<Shader> mCircleShader;
@@ -155,6 +165,34 @@ namespace Borealis
 		Ref<ElementBuffer> EBO = ElementBuffer::Create(indices, sData->MaxIndices);
 		sData->mQuadVAO->SetElementBuffer(EBO);
 		delete[] indices;
+
+		sData->mHighlightedQuadVAO = VertexArray::Create();
+		float quadVertices[] = {
+			// Positions		  //normal  	   // TexCoords
+			-0.5f,  0.5f, 0.0f,   0.f, 0.f, 0.f,   0.0f, 1.0f,
+			-0.5f, -0.5f, 0.0f,   0.f, 0.f, 0.f,   0.0f, 0.0f,
+			 0.5f, -0.5f, 0.0f,   0.f, 0.f, 0.f,   1.0f, 0.0f,
+			 0.5f,  0.5f, 0.0f,   0.f, 0.f, 0.f,   1.0f, 1.0f 
+		};
+		sData->mHighlightedQuadVBO = VertexBuffer::Create(quadVertices, 4 * sizeof(SimpleQuadData));
+		sData->mHighlightedQuadVBO->SetLayout({
+			{ ShaderDataType::Float3, "a_Position" },
+			{ ShaderDataType::Float3, "a_Normal"},
+			{ ShaderDataType::Float2, "a_TexCoord" }
+			});
+		sData->mHighlightedQuadVAO->AddVertexBuffer(sData->mHighlightedQuadVBO);
+
+		uint32_t highlightIndices[6];
+
+		highlightIndices[0] = 0;
+		highlightIndices[1] = 1;
+		highlightIndices[2] = 2;
+		highlightIndices[3] = 0;
+		highlightIndices[4] = 2;
+		highlightIndices[5] = 3;
+
+		Ref<ElementBuffer> HighlightedEBO = ElementBuffer::Create(highlightIndices, 6);
+		sData->mHighlightedQuadVAO->SetElementBuffer(HighlightedEBO);
 
 		//circle
 		sData->mCircleVAO = VertexArray::Create();
@@ -357,6 +395,12 @@ namespace Borealis
 			DrawQuad(transform, sprite.Texture, sprite.TilingFactor, sprite.Colour, entityID);
 		}
 		DrawQuad(transform, sprite.Colour, entityID);
+	}
+
+	void Renderer2D::DrawHighlightedSprite(const glm::mat4& transform, const SpriteRendererComponent& sprite, Ref<Shader> shader, bool filled, glm::vec4 color)
+	{
+		PROFILE_FUNCTION();
+		DrawHighlightedQuad(transform, shader, filled, color);
 	}
 
 	void Renderer2D::DrawCircle(const glm::mat4& transform, const glm::vec4& colour, float thickness, float fade, int entityID)
@@ -781,6 +825,17 @@ namespace Borealis
 		sData->QuadIndexCount += 6;
 
 		sData->mStats.QuadCount++;
+	}
+
+	void Renderer2D::DrawHighlightedQuad(const glm::mat4& transform, Ref<Shader> shader, bool filled, glm::vec4 color)
+	{
+		shader->Bind();
+
+		shader->Set("u_ModelTransform", transform);
+		shader->Set("u_Color", color);
+		RenderCommand::DrawElements(sData->mHighlightedQuadVAO, 6);
+
+		shader->Unbind();
 	}
 
 	void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const Ref<SubTexture2D>& subtexture, const float& tilingFactor, const glm::vec4& tintColour)

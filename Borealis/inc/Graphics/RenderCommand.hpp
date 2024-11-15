@@ -56,6 +56,8 @@ namespace Borealis
 		*************************************************************************/
 		inline static void Clear() { sRendererAPI->Clear(); }
 
+		inline static void ClearStencil() { sRendererAPI->ClearStencil(); }
+
 		/*!***********************************************************************
 			\brief
 				Clears the Renderer with a color
@@ -77,6 +79,8 @@ namespace Borealis
 				The color to clear the renderer with
 		*************************************************************************/
 		inline static void SetClearColor(const glm::vec4& color) { sRendererAPI->SetClearColor(color); }
+
+		inline static void SetStencilClear(int clear) { sRendererAPI->SetStencilClear(clear); }
 
 		/*!***********************************************************************
 			\brief
@@ -111,6 +115,16 @@ namespace Borealis
 		inline static void EnableBackFaceCull() { sRendererAPI->EnableBackFaceCull(); }
 
 		inline static void EnableFrontFaceCull() { sRendererAPI->EnableFrontFaceCull(); }
+
+		inline static void EnableStencilTest() { sRendererAPI->EnableStencilTest(); }
+
+		inline static void ConfigureStencilForHighlight() { sRendererAPI->ConfigureStencilForHighlight(); }
+
+		inline static void DisableStencilTest() { sRendererAPI->DisableStencilTest(); }
+
+		inline static void EnableWireFrameMode() { sRendererAPI->EnableWireFrameMode(); }
+
+		inline static void DisableWireFrameMode() { sRendererAPI->DisableWireFrameMode(); }
 
 		inline static void IgnoreNextError() { sRendererAPI->IgnoreNextError(); }
 		inline static unsigned GetError(std::string const& errorMsg) { return sRendererAPI->GetError(errorMsg); }

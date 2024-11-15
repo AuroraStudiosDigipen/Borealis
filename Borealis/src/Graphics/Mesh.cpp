@@ -147,7 +147,10 @@ namespace Borealis
 		shader->Bind();
 
 		shader->Set("u_ModelTransform", transform);
-		shader->Set("u_EntityID", entityID);
+		if(entityID != -1)
+		{
+			shader->Set("u_EntityID", entityID);
+		}
 
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, (int)mIndices.size(), GL_UNSIGNED_INT, 0);

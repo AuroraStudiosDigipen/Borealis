@@ -44,6 +44,8 @@ namespace Borealis
 		*************************************************************************/
 		virtual void Clear() = 0;
 
+		virtual void ClearStencil() = 0;
+
 		/*!***********************************************************************
 			\brief
 				Sets the clear color of the RendererAPI
@@ -65,6 +67,8 @@ namespace Borealis
 				The color to set the clear color to
 		*************************************************************************/
 		virtual void SetClearColor(const glm::vec4& color) = 0;
+
+		virtual void SetStencilClear(int clear) = 0;
 
 		/*!***********************************************************************
 			\brief
@@ -115,6 +119,16 @@ namespace Borealis
 
 		virtual void EnableBackFaceCull() = 0;
 		virtual void EnableFrontFaceCull() = 0;
+
+		virtual void EnableStencilTest() = 0;
+
+		virtual void ConfigureStencilForHighlight() = 0;
+
+		virtual void DisableStencilTest() = 0;
+
+		virtual void EnableWireFrameMode() = 0;
+
+		virtual void DisableWireFrameMode() = 0;
 
 		virtual void IgnoreNextError() = 0;
 		virtual unsigned GetError(std::string const& errorMsg) = 0;

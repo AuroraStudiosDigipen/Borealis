@@ -376,6 +376,25 @@ void PhysicsSystem::Init()
 		// Set position and rotation in the physics system
 		sData.body_interface->SetPosition((BodyID)rigidbody.bodyID, newPosition, EActivation::Activate);
 		sData.body_interface->SetRotation((BodyID)rigidbody.bodyID, newRotation, EActivation::Activate);
+
+		//Set motion type if necceassary
+		if (rigidbody.movement == MovementType::Kinematic)
+		{
+			sData.body_interface->SetObjectLayer((BodyID)rigidbody.bodyID, Layers::MOVING);
+			sData.body_interface->SetMotionType((BodyID)rigidbody.bodyID, EMotionType::Kinematic, EActivation::Activate);
+		}
+		else if (rigidbody.movement == MovementType::Static)
+		{
+			sData.body_interface->SetObjectLayer((BodyID)rigidbody.bodyID, Layers::NON_MOVING);
+			sData.body_interface->SetMotionType((BodyID)rigidbody.bodyID, EMotionType::Static, EActivation::Activate);
+
+		}
+		else if (rigidbody.movement == MovementType::Dynamic)
+		{
+			sData.body_interface->SetObjectLayer((BodyID)rigidbody.bodyID, Layers::MOVING);
+			sData.body_interface->SetMotionType((BodyID)rigidbody.bodyID, EMotionType::Dynamic, EActivation::Activate);
+
+		}
 	}
 
 	void PhysicsSystem::PullTransform(RigidBodyComponent& rigidbody, TransformComponent& transform, Entity& entity)
@@ -646,7 +665,7 @@ void PhysicsSystem::Init()
 			body_settings.mMotionType = EMotionType::Kinematic;
 			body_settings.mObjectLayer = Layers::MOVING;
 		}
-
+		body_settings.mAllowDynamicOrKinematic = true;
 		body_settings.mFriction = rigidbody.friction;
 		body_settings.mRestitution = rigidbody.bounciness;
 

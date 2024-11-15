@@ -67,7 +67,7 @@ namespace Borealis
         if (ImGui::BeginPopup("NewNodePopup"))
         {
             static int selectedNodeType = 0; // 0: Leaf, 1: Decorator
-            static char nodeName[128] = "";
+            static char nodeName[256] = "";
 
             const char* nodeTypes[] = { "Control FLow", "Decorator", "Leaf"};
             ImGui::Text("Select Node Type:");
@@ -138,18 +138,17 @@ namespace Borealis
         if (ImGui::BeginPopup("SaveBehaviorTreePopup"))
         {
             // Ensure buffer is large enough to handle input
-            char buffer[256];
+            static char buffer[256];
             std::strncpy(buffer, m_TreeFileName.c_str(), sizeof(buffer));
             buffer[sizeof(buffer) - 1] = '\0'; // Null-terminate
 
             // Display the input field with m_TreeFileName as the label
-            std::string label = "Editing: " + m_TreeFileName;
-            if (ImGui::InputText(label.c_str(), buffer, sizeof(buffer)))
+            std::string label = "Editing: " + m_TreeFileName + "##InputField";
+            if (ImGui::InputText("##StaticInputField", buffer, sizeof(buffer)))
             {
                 // Update m_TreeFileName if the user makes a change
                 m_TreeFileName = buffer;
             }
-
 
             if (ImGui::Button("Save"))
             {
@@ -289,27 +288,15 @@ namespace Borealis
         NodeType nodeType = FindNodeType(nodeName);
 
         // Set the node color based on type (you can customize colors per type)
-        ImColor nodeColor(0, 0, 0); // Default color
-        if (nodeType == NodeType::CONTROLFLOW)
-        {
-            nodeColor = { 255, 234,0 };
-        }
-        else if (nodeType == NodeType::DECORATOR)
-        {
-            nodeColor = { 0,0, 255 };
-        }
-        else if (nodeType == NodeType::LEAF)
-        {
-            nodeColor = { 0,255,0 };
-        }
+        ImColor nodeColor(1, 1, 0); // Default color
         // Create a new node
         int nodeId = GetNextId();
         auto newNode = std::make_shared<Node>(nodeId, nodeName, nodeType, nodeColor);
-
         // Initialize pins based on the node category
         std::string prefix = nodeName.substr(0, 2);
         if (prefix == "C_") // Control Flow Node
         {
+
             // Input pin
             {
                 int pinId = GetNextId();
@@ -361,6 +348,7 @@ namespace Borealis
             // Leaf nodes do not have output pins
         }
         m_ShouldNavigateToContent = true;  // Set flag to focus on new content
+
         // Add the new node to the list of nodes
         m_Nodes.push_back(newNode);
 
@@ -374,13 +362,27 @@ namespace Borealis
     {
         for (const auto& node : m_Nodes)
         {
+            // Get the color for the node type
+            ImColor nodeColor;
+            switch (node->Type)
+            {
+            case NodeType::CONTROLFLOW: nodeColor = ImColor(255, 255, 0, 255); break; // Yellow
+            case NodeType::DECORATOR:   nodeColor = ImColor(0, 128, 255, 255); break; // Blue
+            case NodeType::LEAF:        nodeColor = ImColor(0, 255, 0, 255);   break; // Green
+            default:                    nodeColor = ImColor(128, 128, 128, 255); break; // Gray
+            }
+
             ed::BeginNode(node->ID);
             ImGui::PushID(node->ID.AsPointer());
 
+            // Push the background color for the node
+            ed::PushStyleColor(ed::StyleColor_NodeBg, nodeColor);
+
+            // Render the node title
             ImGui::Text("%s", node->Name.c_str());
             ImGui::Separator();
 
-            // Input pins
+            // Render input pins
             for (const auto& pin : node->Inputs)
             {
                 ed::BeginPin(pin->ID, ed::PinKind::Input);
@@ -388,7 +390,7 @@ namespace Borealis
                 ed::EndPin();
             }
 
-            // Output pins
+            // Render output pins
             for (const auto& pin : node->Outputs)
             {
                 ed::BeginPin(pin->ID, ed::PinKind::Output);
@@ -396,11 +398,14 @@ namespace Borealis
                 ed::EndPin();
             }
 
+            // Pop the color and ID styles
+            ed::PopStyleColor();
             ImGui::PopID();
             ed::EndNode();
+
+            // Get and store the node size if needed
             ImVec2 nodeSize = ed::GetNodeSize(node->ID);
         }
-
     }
 
     void BTNodeEditorPanel::RenderLinks()
@@ -515,20 +520,20 @@ namespace Borealis
         }
         ed::EndCreate(); // Ensure this is called outside the if block
 
-        if (ed::BeginDelete())
-        {
-            ed::LinkId linkId;
-            while (ed::QueryDeletedLink(&linkId))
-            {
-                if (ed::AcceptDeletedItem())
-                {
-                    // Remove the link
-                    m_Links.erase(std::remove_if(m_Links.begin(), m_Links.end(),
-                        [linkId](const std::shared_ptr<Link>& link) { return link->ID == linkId; }), m_Links.end());
-                }
-            }
-        }
-        ed::EndDelete();
+        //if (ed::BeginDelete())
+        //{
+        //    ed::LinkId linkId;
+        //    while (ed::QueryDeletedLink(&linkId))
+        //    {
+        //        if (ed::AcceptDeletedItem())
+        //        {
+        //            // Remove the link
+        //            m_Links.erase(std::remove_if(m_Links.begin(), m_Links.end(),
+        //                [linkId](const std::shared_ptr<Link>& link) { return link->ID == linkId; }), m_Links.end());
+        //        }
+        //    }
+        //}
+        //ed::EndDelete();
     }
 
 

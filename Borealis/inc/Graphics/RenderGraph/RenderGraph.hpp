@@ -30,9 +30,10 @@ namespace Borealis
 {
 	enum class RenderSourceType
 	{
-		BoolRef,
+		Bool,
 		IntRef,
-		Vec2IntRef,
+		Vec2Int,
+		IntList,
 		RenderTargetColor,
 		GBuffer,
 		PixelBuffer,
@@ -53,12 +54,12 @@ namespace Borealis
 	class BoolSource : public RenderSource
 	{
 	public:
-		BoolSource(std::string name, bool& ref);
+		BoolSource(std::string name, bool ref);
 
 		void Bind() override;
 		void Unbind() override;
 
-		bool& mRef;
+		bool mRef;
 	};
 
 	class IntSource : public RenderSource
@@ -75,13 +76,23 @@ namespace Borealis
 	class Vec2IntSource : public RenderSource
 	{
 	public:
-		Vec2IntSource(std::string name, int& refX, int& refY);
+		Vec2IntSource(std::string name, int refX, int refY);
 
 		void Bind() override;
 		void Unbind() override;
 
-		int& mRefX;
-		int& mRefY;
+		int mRefX;
+		int mRefY;
+	};
+
+	class IntListSource : public RenderSource
+	{
+	public:
+		IntListSource(std::string name, std::list<int> const& intList);
+		void Bind() override;
+		void Unbind() override;
+
+		std::list<int> mList;
 	};
 
 	class RenderTargetSource : public RenderSource
@@ -173,7 +184,8 @@ namespace Borealis
 		Lighting,
 		Shadow,
 		ObjectPicking,
-		HighlightPass
+		HighlightPass,
+		EditorHighlightPass
 	};
 
 	class RenderPass 
@@ -197,6 +209,14 @@ namespace Borealis
 	{
 	public:
 		ObjectPickingPass(std::string name);
+
+		void Execute(float dt) override;
+	};
+
+	class EditorHighlightPass : public RenderPass
+	{
+	public:
+		EditorHighlightPass(std::string name);
 
 		void Execute(float dt) override;
 	};

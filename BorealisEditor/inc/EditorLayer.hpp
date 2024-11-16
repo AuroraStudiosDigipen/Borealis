@@ -236,6 +236,7 @@ namespace Borealis {
 
 		float mLineThickness = 1.0f;
 
+		std::list<int> mSelectedEntities;
 
 		AssetImporter mAssetImporter;
 

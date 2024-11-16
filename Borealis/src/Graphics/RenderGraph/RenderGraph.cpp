@@ -46,10 +46,10 @@ namespace Borealis
 		Height = framebuffer->GetProperties().Height;
 	}
 	
-	BoolSource::BoolSource(std::string name, bool& ref) : mRef(ref)
+	BoolSource::BoolSource(std::string name, bool ref) : mRef(ref)
 	{
 		sourceName = name;
-		sourceType = RenderSourceType::BoolRef;
+		sourceType = RenderSourceType::Bool;
 	}
 
 	void BoolSource::Bind() {};
@@ -64,14 +64,24 @@ namespace Borealis
 	void IntSource::Bind() {};
 	void IntSource::Unbind() {};
 
-	Vec2IntSource::Vec2IntSource(std::string name, int& refX, int& refY) : mRefX(refX), mRefY(refY)
+	Vec2IntSource::Vec2IntSource(std::string name, int refX, int refY) : mRefX(refX), mRefY(refY)
 	{
 		sourceName = name;
-		sourceType = RenderSourceType::Vec2IntRef;
+		sourceType = RenderSourceType::Vec2Int;
 	}
 
 	void Vec2IntSource::Bind() {};
 	void Vec2IntSource::Unbind() {};
+
+	IntListSource::IntListSource(std::string name, std::list<int> const& intList) : mList(intList)
+	{
+		sourceName = name;
+		sourceType = RenderSourceType::IntList;
+	}
+
+	void IntListSource::Bind() {};
+
+	void IntListSource::Unbind() {};
 
 	void RenderTargetSource::Bind()
 	{
@@ -804,7 +814,6 @@ namespace Borealis
 
 	ObjectPickingPass::ObjectPickingPass(std::string name) : RenderPass(name)
 	{
-		shader = common_shader;
 	}
 
 	void ObjectPickingPass::Execute(float dt)
@@ -814,9 +823,6 @@ namespace Borealis
 		Ref<Vec2IntSource> mouse = nullptr;
 		Ref<BoolSource> viewPortHovered = nullptr;
 		Ref<RenderTargetSource> renderTarget = nullptr;
-		glm::vec3 cameraLookAt{};
-
-		glm::mat4 viewProjMatrix;
 
 		for (auto sink : sinkList)
 		{
@@ -830,12 +836,12 @@ namespace Borealis
 				entityID = std::dynamic_pointer_cast<IntSource>(sink->source);
 			}
 
-			if (sink->source->sourceType == RenderSourceType::Vec2IntRef)
+			if (sink->source->sourceType == RenderSourceType::Vec2Int)
 			{
 				mouse = std::dynamic_pointer_cast<Vec2IntSource>(sink->source);
 			}
 
-			if (sink->source->sourceType == RenderSourceType::BoolRef)
+			if (sink->source->sourceType == RenderSourceType::Bool)
 			{
 				viewPortHovered = std::dynamic_pointer_cast<BoolSource>(sink->source);
 			}
@@ -846,12 +852,6 @@ namespace Borealis
 				{
 					renderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
 				}
-			}
-
-			if (sink->source->sourceType == RenderSourceType::Camera)
-			{
-				viewProjMatrix = std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj();
-				cameraLookAt = std::dynamic_pointer_cast<CameraSource>(sink->source)->lookAt;
 			}
 		}
 
@@ -886,79 +886,136 @@ namespace Borealis
 				entityID->mRef = -1;
 			}
 		}
+	}
 
-		/*if (entityID->mRef != -1)
+	EditorHighlightPass::EditorHighlightPass(std::string name) : RenderPass(name)
+	{
+		shader = common_shader;
+	}
+
+	void EditorHighlightPass::Execute(float dt)
+	{
+		Ref<RenderTargetSource> renderTarget = nullptr;
+		glm::vec3 cameraLookAt{};
+
+		glm::mat4 viewProjMatrix;
+		Ref<IntListSource> selectedEntities = nullptr;
+		int hoveredEntity = -1;
+
+		for (auto sink : sinkList)
 		{
-			Entity brEntity = { (entt::entity)entityID->mRef, SceneManager::GetActiveScene().get() };
-
-			if (!brEntity.IsActive())
+			if (sink->source->sourceType == RenderSourceType::RenderTargetColor)
 			{
-				return;
+				if (sink->sinkName == "renderTarget")
+				{
+					renderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
+				}
 			}
 
-			shader->Bind();
-			shader->Set("u_ViewProjection", viewProjMatrix);
-			shader->Set("u_Filled", true);
-
-			renderTarget->Bind();
-
-			RenderCommand::ClearStencil();
-			RenderCommand::EnableDepthTest();
-			RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLEqual);
-			RenderCommand::EnableStencilTest();
-
-			glm::mat4 transform = TransformComponent::GetGlobalTransform(brEntity);
-			transform = glm::translate(transform, glm::normalize(cameraLookAt) * -0.01f);
-
-			if (brEntity.HasComponent<SpriteRendererComponent>())
+			if (sink->source->sourceType == RenderSourceType::Camera)
 			{
-				SpriteRendererComponent const& spriteRenderer = brEntity.GetComponent<SpriteRendererComponent>();
-				Renderer2D::DrawHighlightedSprite(transform, spriteRenderer, shader);
-			}
-			if (brEntity.HasComponent<MeshFilterComponent>())
-			{
-				MeshFilterComponent const& meshFilter = brEntity.GetComponent<MeshFilterComponent>();
-				Renderer3D::DrawHighlightedMesh(transform, meshFilter, shader);
-			}
-			if (brEntity.HasComponent<SkinnedMeshRendererComponent>())
-			{
-
+				viewProjMatrix = std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj();
+				cameraLookAt = std::dynamic_pointer_cast<CameraSource>(sink->source)->lookAt;
 			}
 
-			shader->Bind();
-			shader->Set("u_Filled", false);
-			RenderCommand::EnableStencilTest();
-			RenderCommand::EnableFrontFaceCull();
-			RenderCommand::ConfigureStencilForHighlight();
-			RenderCommand::EnableWireFrameMode();
-
-			transform = glm::translate(transform, glm::normalize(cameraLookAt) * -0.01f);
-
-			if (brEntity.HasComponent<SpriteRendererComponent>())
+			if (sink->source->sourceType == RenderSourceType::IntList)
 			{
-				SpriteRendererComponent const& spriteRenderer = brEntity.GetComponent<SpriteRendererComponent>();
-				Renderer2D::DrawHighlightedSprite(transform, spriteRenderer, shader);
-			}
-			if (brEntity.HasComponent<MeshFilterComponent>())
-			{
-				MeshFilterComponent const& meshFilter = brEntity.GetComponent<MeshFilterComponent>();
-				Renderer3D::DrawHighlightedMesh(transform, meshFilter, shader);
-			}
-			if (brEntity.HasComponent<SkinnedMeshRendererComponent>())
-			{
-
+				selectedEntities = std::dynamic_pointer_cast<IntListSource>(sink->source);
 			}
 
-			RenderCommand::DisableWireFrameMode();
-			RenderCommand::EnableDepthTest();
-			RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLess);
-			RenderCommand::EnableStencilTest();
-			RenderCommand::EnableBackFaceCull();
+			if (sink->source->sourceType == RenderSourceType::IntRef)
+			{
+				hoveredEntity = std::dynamic_pointer_cast<IntSource>(sink->source)->mRef;
+			}
+		}
 
-			renderTarget->Unbind();
+		selectedEntities->mList.push_back(hoveredEntity);
 
-			shader->Unbind();
-		}*/
+		for(int entityID : selectedEntities->mList)
+		{
+			if (entityID != -1)
+			{
+				Entity brEntity = { (entt::entity)entityID, SceneManager::GetActiveScene().get() };
+
+				if (!brEntity.IsActive())
+				{
+					return;
+				}
+
+				shader->Bind();
+				shader->Set("u_ViewProjection", viewProjMatrix);
+				if (entityID == hoveredEntity)
+				{
+					shader->Set("u_Filled", false);
+				}
+				else
+				{
+					shader->Set("u_Filled", true);
+				}
+				shader->Set("u_HighlightPass", false);
+				shader->Set("u_Color", { 0.043f, 0.8f, 0.961f , 1.f });
+
+				renderTarget->Bind();
+
+				RenderCommand::ClearStencil();
+				RenderCommand::EnableDepthTest();
+				RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLEqual);
+				RenderCommand::EnableStencilTest();
+
+				glm::mat4 transform = TransformComponent::GetGlobalTransform(brEntity);
+				transform = glm::translate(transform, glm::normalize(cameraLookAt) * -0.01f);
+
+				if (brEntity.HasComponent<SpriteRendererComponent>())
+				{
+					SpriteRendererComponent const& spriteRenderer = brEntity.GetComponent<SpriteRendererComponent>();
+					Renderer2D::DrawHighlightedSprite(transform, spriteRenderer, shader);
+				}
+				if (brEntity.HasComponent<MeshFilterComponent>())
+				{
+					MeshFilterComponent const& meshFilter = brEntity.GetComponent<MeshFilterComponent>();
+					Renderer3D::DrawHighlightedMesh(transform, meshFilter, shader);
+				}
+				if (brEntity.HasComponent<SkinnedMeshRendererComponent>())
+				{
+
+				}
+
+				shader->Bind();
+				shader->Set("u_Filled", false);
+				shader->Set("u_HighlightPass", true);
+				RenderCommand::EnableStencilTest();
+				RenderCommand::EnableFrontFaceCull();
+				RenderCommand::ConfigureStencilForHighlight();
+				RenderCommand::EnableWireFrameMode();
+
+				transform = glm::translate(transform, glm::normalize(cameraLookAt) * -0.01f);
+
+				if (brEntity.HasComponent<SpriteRendererComponent>())
+				{
+					SpriteRendererComponent const& spriteRenderer = brEntity.GetComponent<SpriteRendererComponent>();
+					Renderer2D::DrawHighlightedSprite(transform, spriteRenderer, shader);
+				}
+				if (brEntity.HasComponent<MeshFilterComponent>())
+				{
+					MeshFilterComponent const& meshFilter = brEntity.GetComponent<MeshFilterComponent>();
+					Renderer3D::DrawHighlightedMesh(transform, meshFilter, shader);
+				}
+				if (brEntity.HasComponent<SkinnedMeshRendererComponent>())
+				{
+
+				}
+
+				RenderCommand::DisableWireFrameMode();
+				RenderCommand::EnableDepthTest();
+				RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLess);
+				RenderCommand::EnableStencilTest();
+				RenderCommand::EnableBackFaceCull();
+
+				renderTarget->Unbind();
+
+				shader->Unbind();
+			}
+		}
 	}
 
 	HighlightPass::HighlightPass(std::string name) : EntityPass(name)
@@ -1176,6 +1233,7 @@ namespace Borealis
 				AddEntityPassConfig(passesConfig);
 				break;
 			case RenderPassType::ObjectPicking:
+			case RenderPassType::EditorHighlightPass:
 				AddRenderPassConfig(passesConfig);
 				break;
 			default:
@@ -1215,6 +1273,9 @@ namespace Borealis
 		{
 		case RenderPassType::ObjectPicking:
 			renderPass = MakeRef<ObjectPickingPass>(renderPassConfig.mPassName);
+			break;
+		case RenderPassType::EditorHighlightPass:
+			renderPass = MakeRef<EditorHighlightPass>(renderPassConfig.mPassName);
 			break;
 		}
 

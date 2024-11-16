@@ -213,6 +213,9 @@ namespace Borealis {
 			BoolSource viewPortHoveredSource("ViewPortHovered", mViewportHovered);
 			fconfig.AddGlobalSource(MakeRef<BoolSource>(viewPortHoveredSource));
 
+			IntListSource selectedEntities("SelectedEntities", mSelectedEntities);
+			fconfig.AddGlobalSource(MakeRef<IntListSource>(selectedEntities));
+
 			//forward rendering
 			{
 				RenderPassConfig shadowPass(RenderPassType::Shadow, "ShadowPass");
@@ -255,9 +258,15 @@ namespace Borealis {
 				.AddSinkLinkage("renderTarget", "editorRender2D.renderTarget")
 				.AddSinkLinkage("EntityIDSource", "EntityIDSource")
 				.AddSinkLinkage("ViewPortHovered", "ViewPortHovered")
-				.AddSinkLinkage("MouseSource", "MouseSource")
-				.AddSinkLinkage("camera", "EditorCamera");
+				.AddSinkLinkage("MouseSource", "MouseSource");
 				fconfig.AddPass(ObjectPicking);
+
+				RenderPassConfig editorHighlightPass(RenderPassType::EditorHighlightPass, "EditorHighlight");
+				editorHighlightPass.AddSinkLinkage("camera", "EditorCamera")
+					.AddSinkLinkage("renderTarget", "ObjectPicking.renderTarget")
+					.AddSinkLinkage("SelectedEntities", "SelectedEntities")
+					.AddSinkLinkage("EntityIDSource", "ObjectPicking.EntityIDSource");
+				fconfig.AddPass(editorHighlightPass);
 
 				RenderPassConfig highlightPass(RenderPassType::HighlightPass, "Highlight");
 				highlightPass.AddSinkLinkage("camera", "EditorCamera")
@@ -745,11 +754,14 @@ namespace Borealis {
 						if(mHoveredEntity.IsValid())
 						{
 							SCPanel.SetSelectedEntity(mHoveredEntity);
+							mSelectedEntities.clear();
+							mSelectedEntities.push_back((uint32_t)mHoveredEntity);
 						}
 					}
 					else if (mViewportHovered && !ImGuizmo::IsOver())
 					{
 						SCPanel.SetSelectedEntity({});
+						mSelectedEntities.clear();
 					}
 				}
 				break;

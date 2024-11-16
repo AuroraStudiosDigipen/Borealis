@@ -25,7 +25,10 @@ namespace Borealis
 	// Specifically meant for MonoBehaviours, not for other classes
 	class ScriptInstance : public std::enable_shared_from_this<ScriptInstance>
 	{
+
 	public:
+		ScriptInstance(MonoObject* object);
+
 		/*!***********************************************************************
 			\brief
 				Constructor for Script Instances

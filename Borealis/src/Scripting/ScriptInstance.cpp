@@ -22,6 +22,13 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace Borealis
 {
+	ScriptInstance::ScriptInstance(MonoObject* object)
+	{
+		auto scriptklass = mono_object_get_class(object);
+		auto scriptklassName = mono_class_get_name(scriptklass);
+		mScriptClass = GetScriptClassUtils(scriptklassName);
+		mInstance = object;
+	}
 	ScriptInstance::ScriptInstance(Ref<ScriptClass> scriptClass)
 	{
 		mScriptClass = scriptClass;

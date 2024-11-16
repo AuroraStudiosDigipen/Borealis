@@ -25,6 +25,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scene/ComponentRegistry.hpp>
 #include <Scripting/ScriptingSystem.hpp>
 #include <Scripting/ScriptInstance.hpp>
+#include <Scripting/ScriptingUtils.hpp>
 #include <EditorLayer.hpp>
 #include <Prefab.hpp>
 #include <PrefabManager.hpp>
@@ -39,7 +40,6 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <EditorAssets/FontImporter.hpp>
 #include <EditorAssets/MeshImporter.hpp>
 //#include <Assets/FontImporter.hpp>
-#include <AI/BehaviourTree/RegisterNodes.hpp>
 #include <AI/BehaviourTree/BehaviourTree.hpp>
 #include <PrefabComponent.hpp>
 
@@ -95,6 +95,8 @@ namespace Borealis {
 
 	void EditorLayer::Init()
 	{
+
+		
 
 		if (Serialiser::DeserialiseEditorStyle())
 		{

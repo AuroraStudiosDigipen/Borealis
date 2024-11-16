@@ -83,18 +83,24 @@ namespace Borealis
         *************************************************************************/
         Ref<BehaviourTree> CloneBehaviourTree(const Ref<BehaviourTree>& originalTree);
 
+        std::unordered_set<std::string> mControlFlowNames;
+        std::unordered_set<std::string> mDecoratorNames;
+        std::unordered_set<std::string> mLeafNames;
+
     private:
         /*!***********************************************************************
         \brief  Recursively clones a behavior node and all of its children.
         \param  originalNode The behavior node to clone.
         \return A reference to the newly cloned behavior node.
         *************************************************************************/
-        Ref<BehaviourNode> CloneNodeRecursive(const Ref<BehaviourNode>& originalNode);
+        BehaviourNode CloneNodeRecursive(const Ref<BehaviourNode>& originalNode);
 
         /*!***********************************************************************
         \brief  Private constructor to enforce singleton pattern.
         *************************************************************************/
         BTreeFactory() = default;
+
+        
     };
 }
 

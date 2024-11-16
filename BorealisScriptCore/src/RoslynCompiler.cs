@@ -34,6 +34,9 @@ namespace Borealis
                 syntaxTrees,
                 new[] {
                     MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+                    MetadataReference.CreateFromFile(typeof(System.Linq.Enumerable).Assembly.Location),
+                    MetadataReference.CreateFromFile(typeof(List<>).Assembly.Location),
+
                     MetadataReference.CreateFromFile("resources/Scripts/Core/BorealisScriptCore.dll")
                 },
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));

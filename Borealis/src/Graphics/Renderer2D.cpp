@@ -397,10 +397,10 @@ namespace Borealis
 		DrawQuad(transform, sprite.Colour, entityID);
 	}
 
-	void Renderer2D::DrawHighlightedSprite(const glm::mat4& transform, const SpriteRendererComponent& sprite, Ref<Shader> shader, bool filled, glm::vec4 color)
+	void Renderer2D::DrawHighlightedSprite(const glm::mat4& transform, const SpriteRendererComponent& sprite, Ref<Shader> shader)
 	{
 		PROFILE_FUNCTION();
-		DrawHighlightedQuad(transform, shader, filled, color);
+		DrawHighlightedQuad(transform, shader);
 	}
 
 	void Renderer2D::DrawCircle(const glm::mat4& transform, const glm::vec4& colour, float thickness, float fade, int entityID)
@@ -827,12 +827,11 @@ namespace Borealis
 		sData->mStats.QuadCount++;
 	}
 
-	void Renderer2D::DrawHighlightedQuad(const glm::mat4& transform, Ref<Shader> shader, bool filled, glm::vec4 color)
+	void Renderer2D::DrawHighlightedQuad(const glm::mat4& transform, Ref<Shader> shader)
 	{
 		shader->Bind();
 
 		shader->Set("u_ModelTransform", transform);
-		shader->Set("u_Color", color);
 		RenderCommand::DrawElements(sData->mHighlightedQuadVAO, 6);
 
 		shader->Unbind();

@@ -1802,6 +1802,7 @@ namespace Borealis
 			isEdited = SearchBar<AudioListenerComponent	>(search_text, entity, "Audio Listener", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<SkinnedMeshRendererComponent	>(search_text, entity, "Skinned Mesh Renderer", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<AnimatorComponent	>(search_text, entity, "Animator", search_buffer) ? true : isEdited;
+			isEdited = SearchBar<OutLineComponent	>(search_text, entity, "Outline", search_buffer) ? true : isEdited;
 
 
 			// scripts
@@ -1842,6 +1843,7 @@ namespace Borealis
 		isEdited = DrawComponentLayout<AudioListenerComponent>("Audio Listener", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<SkinnedMeshRendererComponent>("Skinned Mesh Renderer", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<AnimatorComponent>("Animator", entity) ? true : isEdited;
+		isEdited = DrawComponentLayout<OutLineComponent>("Outline", entity) ? true : isEdited;
 
 
 		/*DrawComponent<CameraComponent>("Camera", mSelectedEntity, [](auto& cameraComponent)

@@ -721,6 +721,7 @@ namespace Borealis
 		CopyComponent<AudioListenerComponent>(newEntity, entity);
 		CopyComponent<ScriptComponent>(newEntity, entity);
 		CopyComponent<BehaviourTreeComponent>(newEntity, entity);
+		CopyComponent<OutLineComponent>(newEntity, entity);
 
 		auto& tc = newEntity.GetComponent<TransformComponent>();
 		if (tc.ParentID)
@@ -856,6 +857,7 @@ namespace Borealis
 		CopyComponent<AudioListenerComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<ScriptComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<BehaviourTreeComponent>(newRegistry, originalRegistry, UUIDtoENTT);
+		CopyComponent<OutLineComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 
 		return newScene;
 	}
@@ -1008,4 +1010,11 @@ namespace Borealis
 	{
 
 	}
+
+	template<>
+	void Scene::OnComponentAdded<OutLineComponent>(Entity entity, OutLineComponent& component)
+	{
+
+	}
+
 }

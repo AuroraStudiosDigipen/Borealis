@@ -196,6 +196,11 @@ namespace Borealis
 			//out << YAML::EndMap;
 		}
 
+		if (entity.HasComponent<OutLineComponent>())
+		{
+			SerializeComponent(out, entity.GetComponent<OutLineComponent>());
+		}
+
 		if (entity.HasComponent<ScriptComponent>())
 		{
 			out << YAML::Key << "ScriptComponent";

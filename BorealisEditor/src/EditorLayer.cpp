@@ -258,6 +258,11 @@ namespace Borealis {
 				.AddSinkLinkage("MouseSource", "MouseSource")
 				.AddSinkLinkage("camera", "EditorCamera");
 				fconfig.AddPass(ObjectPicking);
+
+				RenderPassConfig highlightPass(RenderPassType::HighlightPass, "Highlight");
+				highlightPass.AddSinkLinkage("camera", "EditorCamera")
+				.AddSinkLinkage("renderTarget", "ObjectPicking.renderTarget");
+				fconfig.AddPass(highlightPass);
 			}
 
 			//deferred rendering

@@ -406,7 +406,8 @@ namespace Borealis
 
 	struct OutLineComponent
 	{
-		glm::vec4 color;
+		glm::vec4 color = { 0.043f, 0.8f, 0.961f , 1.f };
+		float lineWidth = 2.f;
 		bool filled;
 		bool active;
 

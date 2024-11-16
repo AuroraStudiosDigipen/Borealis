@@ -198,6 +198,7 @@ namespace Borealis
             .constructor<>()
             .property("Color", &OutLineComponent::color)
             (metadata("Colour", true))
+            .property("Line Width", &OutLineComponent::lineWidth)
             .property("Filled", &OutLineComponent::filled)
             .property("Active", &OutLineComponent::active);
 

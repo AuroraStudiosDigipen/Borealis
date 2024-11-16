@@ -8,12 +8,6 @@ layout(location = 2) in vec3 a_TexCoord;
 uniform mat4 u_ViewProjection;
 uniform mat4 u_ModelTransform;
 
-void HighlightPass()
-{
-
-    gl_Position = u_ViewProjection * u_ModelTransform * vec4(a_Position, 1.0);
-}
-
 void MainPass()
 {
     a_TexCoord;
@@ -30,6 +24,7 @@ void main()
 
 uniform vec4 u_Color; //uniform color for now
 uniform bool u_Filled = false;
+uniform bool u_HighlightPass = true;
 
 out vec4 FragColor;
 
@@ -39,7 +34,7 @@ void main()
     {
         FragColor = vec4(u_Color.rgb , 0.2f);
     }
-    else
+    else if(u_HighlightPass)
     {
         FragColor = u_Color;
     }

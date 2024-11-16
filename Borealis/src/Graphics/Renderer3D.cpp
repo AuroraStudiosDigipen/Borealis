@@ -112,7 +112,7 @@ namespace Borealis
 		}
 	}
 
-	void Renderer3D::DrawHighlightedMesh(const glm::mat4& transform, const MeshFilterComponent& meshFilter, Ref<Shader> shader, bool filled, glm::vec4 color)
+	void Renderer3D::DrawHighlightedMesh(const glm::mat4& transform, const MeshFilterComponent& meshFilter, Ref<Shader> shader)
 	{
 		if (meshFilter.Model)
 		{

@@ -8,8 +8,6 @@ layout(location = 2) in vec3 a_TexCoord;
 uniform mat4 u_ViewProjection;
 uniform mat4 u_ModelTransform;
 
-uniform bool u_HighlightPass = true;
-
 void HighlightPass()
 {
 
@@ -24,27 +22,24 @@ void MainPass()
 
 void main()
 {
-    if(u_HighlightPass)
-    {
-        HighlightPass();
-    }
-    else
-    {
-        MainPass();
-    }
+    MainPass();
 }
 
 #type fragment
 #version 410 core	
 
 uniform vec4 u_Color; //uniform color for now
-uniform bool u_HighlightPass = true;
+uniform bool u_Filled = false;
 
 out vec4 FragColor;
 
 void main()
 {
-    if(u_HighlightPass)
+    if(u_Filled)
+    {
+        FragColor = vec4(u_Color.rgb , 0.2f);
+    }
+    else
     {
         FragColor = u_Color;
     }

@@ -18,6 +18,12 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/VertexArray.hpp>
 namespace Borealis
 {
+	enum class DepthFunc
+	{
+		DepthLess,
+		DepthLEqual
+	};
+
 	class RendererAPI
 	{
 	public:
@@ -115,6 +121,7 @@ namespace Borealis
 		virtual void EnableBlend() = 0;
 		virtual void DisableBlend() = 0;
 		virtual void EnableDepthTest() = 0;
+		virtual void ConfigureDepthFunc(DepthFunc func) = 0;
 		virtual void DisableDepthTest() = 0;
 
 		virtual void EnableBackFaceCull() = 0;

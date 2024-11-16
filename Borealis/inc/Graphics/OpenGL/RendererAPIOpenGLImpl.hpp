@@ -108,6 +108,8 @@ namespace Borealis
 
 		void EnableDepthTest() override;
 
+		void ConfigureDepthFunc(DepthFunc func) override;
+
 		void DisableDepthTest() override;
 
 		void EnableBackFaceCull() override;
@@ -123,6 +125,7 @@ namespace Borealis
 		void EnableWireFrameMode() override;
 
 		void DisableWireFrameMode() override;
+
 		void IgnoreNextError() override;
 
 		unsigned GetError(std::string const& errorMsg) override;

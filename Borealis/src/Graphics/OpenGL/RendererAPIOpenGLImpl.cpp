@@ -84,6 +84,21 @@ namespace Borealis
 		glEnable(GL_DEPTH_TEST);
 	}
 
+	void OpenGLRendererAPI::ConfigureDepthFunc(DepthFunc func)
+	{
+		switch (func)
+		{
+		case Borealis::DepthFunc::DepthLess:
+			glDepthFunc(GL_LESS);
+			break;
+		case Borealis::DepthFunc::DepthLEqual:
+			glDepthFunc(GL_LEQUAL);
+			break;
+		default:
+			break;
+		}
+	}
+
 	void OpenGLRendererAPI::DisableDepthTest()
 	{
 		glDisable(GL_DEPTH_TEST);

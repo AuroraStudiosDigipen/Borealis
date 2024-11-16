@@ -110,6 +110,8 @@ namespace Borealis
 
 		inline static void EnableDepthTest() { sRendererAPI->EnableDepthTest(); }
 
+		inline static void ConfigureDepthFunc(DepthFunc func) { sRendererAPI->ConfigureDepthFunc(func); }
+
 		inline static void DisableDepthTest() { sRendererAPI->DisableDepthTest(); }
 
 		inline static void EnableBackFaceCull() { sRendererAPI->EnableBackFaceCull(); }

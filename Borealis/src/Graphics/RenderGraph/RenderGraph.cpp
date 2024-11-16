@@ -163,6 +163,7 @@ namespace Borealis
 		viewProj = camera.GetViewProjectionMatrix();
 		viewPortSize = camera.GetViewPortSize();
 		position = camera.GetPosition();
+		lookAt = camera.GetForwardDirection();
 		editor = true;
 	}
 
@@ -176,6 +177,7 @@ namespace Borealis
 		viewProj = camera.GetProjectionMatrix() * glm::inverse(transform);
 		viewPortSize = camera.GetViewPortSize();
 		position = transform[3];
+		lookAt = -glm::normalize(glm::vec3(transform[2]));
 
 		editor = false;
 	}
@@ -812,6 +814,7 @@ namespace Borealis
 		Ref<Vec2IntSource> mouse = nullptr;
 		Ref<BoolSource> viewPortHovered = nullptr;
 		Ref<RenderTargetSource> renderTarget = nullptr;
+		glm::vec3 cameraLookAt{};
 
 		glm::mat4 viewProjMatrix;
 
@@ -848,6 +851,7 @@ namespace Borealis
 			if (sink->source->sourceType == RenderSourceType::Camera)
 			{
 				viewProjMatrix = std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj();
+				cameraLookAt = std::dynamic_pointer_cast<CameraSource>(sink->source)->lookAt;
 			}
 		}
 
@@ -894,15 +898,17 @@ namespace Borealis
 
 			shader->Bind();
 			shader->Set("u_ViewProjection", viewProjMatrix);
-			shader->Set("u_HighlightPass", false);
+			shader->Set("u_Filled", true);
 
 			renderTarget->Bind();
 
 			RenderCommand::ClearStencil();
-			RenderCommand::DisableDepthTest();
+			RenderCommand::EnableDepthTest();
+			RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLEqual);
 			RenderCommand::EnableStencilTest();
 
 			glm::mat4 transform = TransformComponent::GetGlobalTransform(brEntity);
+			transform = glm::translate(transform, glm::normalize(cameraLookAt) * -0.01f);
 
 			if (brEntity.HasComponent<SpriteRendererComponent>())
 			{
@@ -920,11 +926,14 @@ namespace Borealis
 			}
 
 			shader->Bind();
-			shader->Set("u_HighlightPass", true);
+			shader->Set("u_Filled", false);
 			RenderCommand::EnableStencilTest();
 			RenderCommand::EnableFrontFaceCull();
 			RenderCommand::ConfigureStencilForHighlight();
+			RenderCommand::DisableBlend();
 			RenderCommand::EnableWireFrameMode();
+
+			transform = glm::translate(transform, glm::normalize(cameraLookAt) * -0.01f);
 
 			if (brEntity.HasComponent<SpriteRendererComponent>())
 			{
@@ -943,12 +952,36 @@ namespace Borealis
 
 			RenderCommand::DisableWireFrameMode();
 			RenderCommand::EnableDepthTest();
+			RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLess);
 			RenderCommand::EnableStencilTest();
 			RenderCommand::EnableBackFaceCull();
+			RenderCommand::EnableBlend();
 
 			renderTarget->Unbind();
 
 			shader->Unbind();
+		}
+	}
+
+	HighlightPass::HighlightPass(std::string name) : EntityPass(name)
+	{
+		shader = common_shader;
+	}
+
+	void HighlightPass::Execute(float dt)
+	{
+		{
+			auto group = registryPtr->group<>(entt::get<TransformComponent, OutLineComponent>);
+			for (auto& entity : group)
+			{
+				Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
+				if (!brEntity.IsActive())
+				{
+					continue;
+				}
+				auto [transform, outline] = group.get<TransformComponent, OutLineComponent>(entity);
+
+			}
 		}
 	}
 

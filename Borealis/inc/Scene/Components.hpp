@@ -404,6 +404,15 @@ namespace Borealis
 		BehaviourTreeComponent(const BehaviourTreeComponent&) = default;
 	};
 
+	struct OutLineComponent
+	{
+		glm::vec4 color;
+		bool filled;
+		bool active;
+
+		OutLineComponent() = default;
+		OutLineComponent(const OutLineComponent&) = default;
+	};
 }
 
 #endif

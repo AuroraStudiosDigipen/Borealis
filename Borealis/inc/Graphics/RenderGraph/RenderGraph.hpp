@@ -144,6 +144,7 @@ namespace Borealis
 
 		bool editor;
 		glm::vec3 position;
+		glm::vec3 lookAt;
 		glm::mat4 projMtx;
 		glm::mat4 viewMtx;
 		glm::mat4 viewProj;
@@ -171,7 +172,8 @@ namespace Borealis
 		Geometry,
 		Lighting,
 		Shadow,
-		ObjectPicking
+		ObjectPicking,
+		HighlightPass
 	};
 
 	class RenderPass 
@@ -189,6 +191,14 @@ namespace Borealis
 		std::vector<Ref<RenderSink>> sinkList;
 		std::vector<Ref<RenderSource>> sourceList;
 		Ref<Shader> shader;
+	};
+
+	class ObjectPickingPass : public RenderPass
+	{
+	public:
+		ObjectPickingPass(std::string name);
+
+		void Execute(float dt) override;
 	};
 
 	class EntityPass : public RenderPass
@@ -239,10 +249,10 @@ namespace Borealis
 		void Execute(float dt) override;
 	};
 
-	class ObjectPickingPass : public RenderPass
+	class HighlightPass : public EntityPass
 	{
 	public:
-		ObjectPickingPass(std::string name);
+		HighlightPass(std::string name);
 
 		void Execute(float dt) override;
 	};

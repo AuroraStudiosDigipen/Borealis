@@ -1040,7 +1040,10 @@ namespace Borealis
 				RenderCommand::EnableStencilTest();
 				RenderCommand::EnableFrontFaceCull();
 				RenderCommand::ConfigureStencilForHighlight();
-				RenderCommand::SetLineThickness(outline.lineWidth);
+				if(outline.lineWidth < 0.1f)
+					RenderCommand::SetLineThickness(0.1f);
+				else
+					RenderCommand::SetLineThickness((outline.lineWidth > 10.f) ? 10.f : outline.lineWidth);
 				RenderCommand::EnableWireFrameMode();
 
 				transform = glm::translate(transform, glm::normalize(cameraLookAt) * -0.01f);

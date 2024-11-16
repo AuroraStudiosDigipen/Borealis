@@ -301,32 +301,6 @@ namespace Borealis {
 			SceneManager::GetActiveScene()->UpdateRenderer(dt);	
 		}
 
-
-		//auto[mx,my] = ImGui::GetMousePos();
-		//mx -= mViewportBounds[0].x;
-		//my -= mViewportBounds[0].y;
-		//glm::vec2 viewportSize { mViewportBounds[1].x - mViewportBounds[0].x, mViewportBounds[1].y - mViewportBounds[0].y };
-		//my = viewportSize.y - my;
-
-		//int mouseX = (int)mx;
-		//int mouseY = (int)my;
-		////SceneManager::GetActiveScene()->GetEditorFB()->Bind();
-		//if (mViewportHovered)
-		//{
-		//	if (SceneManager::GetActiveScene()->GetPixelBuffer()->ReadPixel(mouseX, mouseY) != -1)
-		//	{
-		//		//int id_ent = mViewportFrameBuffer->ReadPixel(1, mouseX, mouseY);
-		//		mHoveredEntity = { (entt::entity)SceneManager::GetActiveScene()->GetPixelBuffer()->ReadPixel(mouseX, mouseY), SceneManager::GetActiveScene().get()};
-		//		//BOREALIS_CORE_INFO("picking id {}", mHoveredEntity.GetName());
-		//		//BOREALIS_CORE_INFO("Name : {}", mHoveredEntity.GetName());
-		//	}
-		//	else
-		//	{
-		//		mHoveredEntity = {};
-		//	}
-		//}
-		// 
-		//SceneManager::GetActiveScene()->GetEditorFB()->Unbind();
 		mHoveredEntity = { (entt::entity)entityID , SceneManager::GetActiveScene().get() };
 
 		SceneManager::GetActiveScene()->UpdateRuntime(dt); //update physics, scripts and audio

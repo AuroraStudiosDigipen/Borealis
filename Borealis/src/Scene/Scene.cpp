@@ -216,8 +216,53 @@ namespace Borealis
 			// Physics Simulation here
 			//------------------------
 			
-			// Set Jolt values to entity transform.
+			// thread the push operation maybe next time. TODO
 			{
+				/*unsigned numThread = std::thread::hardware_concurrency();
+				size_t maxSize = physicsGroup.size();
+				size_t chunkSize = (maxSize + numThread - 1) / numThread;
+				std::vector<std::thread> threads;
+
+				for (unsigned i = 0; i < numThread; i++)
+				{
+					size_t start = i * chunkSize;
+					size_t end = (i + 1) * chunkSize;
+					if (end > maxSize)
+						end = maxSize;
+					threads.emplace_back([start, end, &physicsGroup, this]()
+						{
+							for (auto entity : physicsGroup)
+							{
+								Entity brEntity{ entity, this };
+								if (!brEntity.IsActive())
+								{
+									continue;
+								}
+								auto [transform, rigidbody] = physicsGroup.get<TransformComponent, RigidBodyComponent>(entity);
+								PhysicsSystem::PushTransform(rigidbody, transform, brEntity);
+							}
+						});
+				}
+
+				for (auto& thread : threads)
+				{
+					thread.join();
+				}*/
+
+				auto characterGroup = mRegistry.group<>(entt::get<TransformComponent, CharacterControlComponent>);
+				for (auto entity : characterGroup)
+				{
+					Entity brEntity{ entity, this };
+					if (!brEntity.IsActive())
+					{
+						continue;
+					}
+					auto [transform, character] = characterGroup.get<TransformComponent, CharacterControlComponent>(entity);
+					PhysicsSystem::PushCharacterTransform(character, transform.Translate, transform.Rotation);
+					PhysicsSystem::HandleInput(glm::vec3(0, 0, 0), false, dt, character.controller);
+				}
+
+
 				auto physicsGroup = mRegistry.group<>(entt::get<TransformComponent, RigidBodyComponent>);
 				for (auto entity : physicsGroup)
 				{
@@ -233,6 +278,31 @@ namespace Borealis
 					/*if(rigidbody.movement == MovementType::Kinematic)
 					PhysicsSystem::move(rigidbody, glm::vec3(0.01f, 0.0f, 0.0f));*/
 				}
+
+				
+
+				for (auto entity : characterGroup)
+				{
+					Entity brEntity{ entity, this };
+					if (!brEntity.IsActive())
+					{
+						continue;
+					}
+					auto [transform, character] = characterGroup.get<TransformComponent, CharacterControlComponent>(entity);
+					PhysicsSystem::PrePhysicsUpdate(dt, character.controller);
+				}
+
+				for (auto entity : characterGroup)
+				{
+					Entity brEntity{ entity, this };
+					if (!brEntity.IsActive())
+					{
+						continue;
+					}
+					auto [transform, character] = characterGroup.get<TransformComponent, CharacterControlComponent>(entity);
+					PhysicsSystem::PullCharacterTransform(character, transform.Translate, transform.Rotation);
+				}
+
 
 				PhysicsSystem::Update(dt);
 
@@ -696,6 +766,7 @@ namespace Borealis
 		CopyComponent<BoxColliderComponent>(newEntity,entity);
 		CopyComponent<CapsuleColliderComponent>(newEntity,entity);
 		CopyComponent<RigidBodyComponent>(newEntity, entity);
+		CopyComponent<CharacterControlComponent>(newEntity, entity);
 		CopyComponent<LightComponent>(newEntity, entity);
 		CopyComponent<CircleRendererComponent>(newEntity, entity);
 		CopyComponent<TextComponent>(newEntity, entity);
@@ -832,6 +903,7 @@ namespace Borealis
 		CopyComponent<CapsuleColliderComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<RigidBodyComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<LightComponent>(newRegistry, originalRegistry, UUIDtoENTT);
+		CopyComponent<CharacterControlComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<CircleRendererComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<TextComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<AudioSourceComponent>(newRegistry, originalRegistry, UUIDtoENTT);
@@ -853,6 +925,13 @@ namespace Borealis
 			auto [transform, rigidbody] = physicsGroup.get<TransformComponent, RigidBodyComponent>(entity);
 			auto entityID = mRegistry.get<IDComponent>(entity).ID;
 			PhysicsSystem::addBody(transform, rigidbody, mesh, entityID);
+		}
+
+		auto characterGroup = mRegistry.group<>(entt::get<TransformComponent, CharacterControlComponent>);
+		for (auto entity : characterGroup)
+		{
+			auto [character, transform] = characterGroup.get<CharacterControlComponent, TransformComponent>(entity);
+			PhysicsSystem::addCharacter(character, transform);
 		}
 	}
 
@@ -951,6 +1030,11 @@ namespace Borealis
 	}
 	template<>
 	void Scene::OnComponentAdded<LightComponent>(Entity entity, LightComponent& component)
+	{
+
+	}
+	template<>
+	void Scene::OnComponentAdded<CharacterControlComponent>(Entity entity, CharacterControlComponent& component)
 	{
 
 	}

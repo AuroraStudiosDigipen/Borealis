@@ -41,8 +41,10 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Jolt/Physics/Body/BodyActivationListener.h>
 #include <Jolt/Physics/Collision/Shape/RotatedTranslatedShape.h>
 #include <Jolt/Physics/Character/Character.h>
+#include <Jolt/Physics/Character/CharacterVirtual.h>
 #include <Jolt/Physics/Character/CharacterBase.h>
 #include <Jolt/Physics/Collision/Shape/ScaledShape.h>
+
 
 
 JPH_SUPPRESS_WARNINGS
@@ -270,7 +272,8 @@ namespace Borealis
 			sData.onCollisionPairRemovedQueue.pop();
 		}
 	}
-void PhysicsSystem::Init()
+
+	void PhysicsSystem::Init()
 {
 	sData.broad_phase_layer_interface = new BPLayerInterfaceImpl();
 	sData.object_vs_broadphase_layer_filter = new ObjectVsBroadPhaseLayerFilterImpl();
@@ -453,6 +456,37 @@ void PhysicsSystem::Init()
 		}*/
 	}
 
+	void PhysicsSystem::PushCharacterTransform(CharacterControlComponent& character, glm::vec3 position, glm::vec3 rotation)
+	{
+		// Convert position (glm::vec3 to Jolt's RVec3)
+		JPH::RVec3 newPosition = JPH::RVec3(position.x, position.y, position.z);
+
+		// Convert Euler angles (vec3) to quaternion (quat)
+		glm::quat rotationQuat = glm::quat(glm::radians(rotation));  // Assuming Rotation is in degrees
+
+		// Convert glm::quat to Jolt's Quat (JPH::Quat)
+		JPH::Quat newRotation = JPH::Quat(rotationQuat.x, rotationQuat.y, rotationQuat.z, rotationQuat.w);
+
+		// Set position and rotation in the physics system
+		reinterpret_cast<CharacterVirtual*>(character.controller)->SetPosition(newPosition);
+		reinterpret_cast<CharacterVirtual*>(character.controller)->SetRotation(newRotation);
+	}
+
+	void PhysicsSystem::PullCharacterTransform(CharacterControlComponent& character, glm::vec3& position, glm::vec3& rotation)
+	{
+		// Get position from the physics system (JPH::RVec3 to glm::vec3)
+		JPH::RVec3 newPosition = reinterpret_cast<CharacterVirtual*>(character.controller)->GetPosition();
+		position = glm::vec3(newPosition.GetX(), newPosition.GetY(), newPosition.GetZ());
+
+		// Get rotation from the physics system (JPH::Quat to glm::quat)
+		JPH::Quat newRotation = reinterpret_cast<CharacterVirtual*>(character.controller)->GetRotation();
+		glm::quat rotationQuat = glm::quat(newRotation.GetW(), newRotation.GetX(), newRotation.GetY(), newRotation.GetZ());
+
+		// Convert quaternion to Euler angles (quat to vec3) in degrees
+		rotation = glm::degrees(glm::eulerAngles(rotationQuat));  // Euler angles in degrees
+
+	}
+
 	void PhysicsSystem::Update(float dt)
 	{
 		sData.mSystem->Update(dt, 1, sData.temp_allocator, sData.job_system);
@@ -495,6 +529,7 @@ void PhysicsSystem::Init()
 				maxExtent.z = std::max(maxExtent.z, vertex.Position.z);
 			}
 		}
+
 		minExtent *= transform.Scale;
 		maxExtent *= transform.Scale;
 
@@ -593,6 +628,7 @@ void PhysicsSystem::Init()
 	void PhysicsSystem::SetRotation(unsigned int bodyID, glm::vec3 rotation)
 	{
 	}
+
 	void PhysicsSystem::move(RigidBodyComponent& rigidbody, glm::vec3 motion)
 	{
 		// Get the current position of the body
@@ -600,6 +636,151 @@ void PhysicsSystem::Init()
 
 		// Set the new position
 		sData.body_interface->SetLinearVelocity((BodyID)rigidbody.bodyID, JoltMotion);
+	}
+
+	void PhysicsSystem::addCharacter(CharacterControlComponent& character, TransformComponent& transform)
+	{
+		CharacterVirtualSettings settings;
+		ShapeRefC shape;
+		ShapeSettings::ShapeResult shape_result;
+
+		// Create capsule shape settings
+		float radius = 1.f;
+		float halfHeight = 1.f;
+		CapsuleShapeSettings capsule_shape_settings(radius, halfHeight);
+		capsule_shape_settings.SetEmbedded();
+		shape_result = capsule_shape_settings.Create();
+		shape = shape_result.Get();
+
+		settings.mMaxSlopeAngle = JPH::DegreesToRadians(character.slopeAngle);
+		settings.mMaxStrength = character.strength;
+		settings.mMass = character.mass;
+		settings.mShape = shape;
+		settings.SetEmbedded();
+
+		character.controller = new CharacterVirtual(&settings, RVec3(transform.Translate.x, transform.Translate.y,transform.Translate.z), Quat::sIdentity(), sData.mSystem);
+	}
+
+	void PhysicsSystem::PrePhysicsUpdate(float dt, void* Character)
+	{
+		CharacterVirtual* mCharacter = reinterpret_cast<CharacterVirtual*>(Character);
+		bool sEnableStickToFloor = true;
+		bool sEnableWalkStairs = true;
+
+		// Settings for our update function
+		CharacterVirtual::ExtendedUpdateSettings update_settings;
+		if (!sEnableStickToFloor)
+			update_settings.mStickToFloorStepDown = Vec3::sZero();
+		else
+			update_settings.mStickToFloorStepDown = -mCharacter->GetUp() * update_settings.mStickToFloorStepDown.Length();
+		if (!sEnableWalkStairs)
+			update_settings.mWalkStairsStepUp = Vec3::sZero();
+		else
+			update_settings.mWalkStairsStepUp = mCharacter->GetUp() * update_settings.mWalkStairsStepUp.Length();
+
+		// Update the character position
+		mCharacter->ExtendedUpdate(dt,
+			-mCharacter->GetUp() * sData.mSystem->GetGravity().Length(),
+			update_settings,
+			sData.mSystem->GetDefaultBroadPhaseLayerFilter(Layers::MOVING),
+			sData.mSystem->GetDefaultLayerFilter(Layers::MOVING),
+			{ },
+			{ },
+			*sData.temp_allocator);
+
+	}
+
+	void PhysicsSystem::HandleInput(glm::vec3 inMovementDirection, bool inJump, float inDeltaTime, void* Character)
+	{
+		static bool mAllowSliding;
+		static float sCharacterSpeed = 5;
+		static float sJumpSpeed = 10;
+		static glm::vec3 mDesiredVelocity(0.f);
+		static bool sControlMovementDuringJump = true;
+		static bool sEnableCharacterInertia = true;
+
+		CharacterVirtual* mCharacter = reinterpret_cast<CharacterVirtual*>(Character);
+		bool player_controls_horizontal_velocity = sEnableCharacterInertia || mCharacter->IsSupported();
+		if (player_controls_horizontal_velocity)
+		{
+			// Smooth the player input : Enable character inertia
+			mDesiredVelocity = true ? 0.25f * inMovementDirection * sCharacterSpeed + 0.75f * mDesiredVelocity : inMovementDirection * sCharacterSpeed;
+
+			// True if the player intended to mov
+			mAllowSliding = glm::all(glm::lessThan(glm::abs(inMovementDirection), glm::vec3(glm::epsilon<float>())));
+		}
+		else
+		{
+			// While in air we allow sliding
+			mAllowSliding = true;
+		}
+
+		// Update the character rotation and its up vector to match the up vector set by the user settings
+		Quat character_up_rotation = Quat::sEulerAngles(Vec3(0, 0, 0));
+		mCharacter->SetUp(character_up_rotation.RotateAxisY());
+		mCharacter->SetRotation(character_up_rotation);
+
+		// A cheaper way to update the character's ground velocity,
+		// the platforms that the character is standing on may have changed velocity
+		mCharacter->UpdateGroundVelocity();
+
+		// Determine new basic velocity
+		Vec3 current_vertical_velocity = mCharacter->GetLinearVelocity().Dot(mCharacter->GetUp()) * mCharacter->GetUp();
+		Vec3 ground_velocity = mCharacter->GetGroundVelocity();
+		Vec3 new_velocity;
+		bool moving_towards_ground = (current_vertical_velocity.GetY() - ground_velocity.GetY()) < 0.1f;
+		if (mCharacter->GetGroundState() == CharacterVirtual::EGroundState::OnGround	// If on ground
+			&& (sEnableCharacterInertia ?
+				moving_towards_ground													// Inertia enabled: And not moving away from ground
+				: !mCharacter->IsSlopeTooSteep(mCharacter->GetGroundNormal())))			// Inertia disabled: And not on a slope that is too steep
+		{
+			// Assume velocity of ground when on ground
+			new_velocity = ground_velocity;
+
+			// Jump
+			if (inJump && moving_towards_ground)
+				new_velocity += sJumpSpeed * mCharacter->GetUp();
+		}
+		else
+			new_velocity = current_vertical_velocity;
+
+		// Gravity
+		new_velocity += (character_up_rotation * sData.mSystem->GetGravity()) * inDeltaTime;
+
+		if (player_controls_horizontal_velocity)
+		{
+			// Player input
+			new_velocity += character_up_rotation * JPH::Vec3(mDesiredVelocity.x, mDesiredVelocity.y, mDesiredVelocity.z);
+		}
+		else
+		{
+			// Preserve horizontal velocity
+			Vec3 current_horizontal_velocity = mCharacter->GetLinearVelocity() - current_vertical_velocity;
+			new_velocity += current_horizontal_velocity;
+		}
+
+		// Update character velocity
+		mCharacter->SetLinearVelocity(new_velocity);
+
+		// Stance switch
+		/*if (inSwitchStance)
+		{
+			bool is_standing = mCharacter->GetShape() == mStandingShape;
+			const Shape* shape = is_standing ? mCrouchingShape : mStandingShape;
+			if (mCharacter->SetShape(shape, 1.5f * mPhysicsSystem->GetPhysicsSettings().mPenetrationSlop, mPhysicsSystem->GetDefaultBroadPhaseLayerFilter(Layers::MOVING), mPhysicsSystem->GetDefaultLayerFilter(Layers::MOVING), { }, { }, *mTempAllocator))
+			{
+				const Shape* inner_shape = is_standing ? mInnerCrouchingShape : mInnerStandingShape;
+				mCharacter->SetInnerBodyShape(inner_shape);
+			}
+		}*/
+	}
+
+	void PhysicsSystem::FreeCharacter(CharacterControlComponent& character)
+	{
+		if(character.controller)
+		delete character.controller;
+
+		character.controller = nullptr;
 	}
 
 	void PhysicsSystem::addBody(TransformComponent& transform, RigidBodyComponent& rigidbody, MeshFilterComponent& mesh, UUID entityID) {
@@ -716,7 +897,6 @@ void PhysicsSystem::Init()
 		// Store the BodyID in the RigidBodyComponent
 		rigidbody.bodyID = box->GetID().GetIndexAndSequenceNumber();
 	}
-
 
 	void PhysicsSystem::addSphereBody(float radius, glm::vec3 position, RigidBodyComponent& rigidbody)
 	{

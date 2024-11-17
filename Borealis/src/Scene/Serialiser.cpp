@@ -175,6 +175,11 @@ namespace Borealis
 			SerializeComponent(out, entity.GetComponent<AudioSourceComponent>());
 		}
 
+		if (entity.HasComponent<CharacterControlComponent>())
+		{
+			SerializeComponent(out, entity.GetComponent<CharacterControlComponent>());
+		}
+
 
 		if (entity.HasComponent<BehaviourTreeComponent>())
 		{
@@ -422,6 +427,7 @@ namespace Borealis
 		DeserialiseComponent<CapsuleColliderComponent>(entity, BorealisEntity);
 		DeserialiseComponent<RigidBodyComponent>(entity, BorealisEntity);
 		DeserialiseComponent<LightComponent>(entity, BorealisEntity);
+		DeserialiseComponent<CharacterControlComponent>(entity, BorealisEntity);
 		DeserialiseComponent<AudioSourceComponent>(entity, BorealisEntity);
 		DeserialiseComponent<AudioListenerComponent>(entity, BorealisEntity);
 		DeserialiseComponent<TextComponent>(entity, BorealisEntity);

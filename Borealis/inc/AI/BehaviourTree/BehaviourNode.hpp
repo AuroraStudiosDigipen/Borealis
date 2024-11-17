@@ -18,13 +18,12 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <memory>
 #include <vector>
 #include <Core/Core.hpp>
-
-#include <Scene/Entity.hpp>
 #include <Scripting/ScriptInstance.hpp>
 
 
 namespace Borealis
 {
+    class Entity;
     class Serialiser; // Forward declaration
     enum class NodeType
     {
@@ -54,6 +53,8 @@ namespace Borealis
     {
         friend class NodeFactory;
         friend class Serialiser;
+        friend class BehaviourTree;
+
 
     public:
         BehaviourNode(MonoObject* objectInstance); // For getparent use only
@@ -64,7 +65,7 @@ namespace Borealis
 
         std::vector<BehaviourNode> GetChildrenNodes() const;
 
-
+        BehaviourNode GetParent() const;
         /*!***********************************************************************
            \brief
                Sets the depth of the node in the behavior tree.

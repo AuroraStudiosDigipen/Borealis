@@ -16,12 +16,12 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <string>
 #include <Core/Core.hpp>
 #include <Assets/Asset.hpp>
+#include <AI/BehaviourTree/BehaviourNode.hpp>
 
 namespace Borealis
 {
     // Forward declaration
     class Entity;
-    class BehaviourNode;
     class BehaviourTree : public Asset
     {
     public:
@@ -93,8 +93,8 @@ namespace Borealis
         std::string GetBehaviourTreeName() const;
 
     private:
-        BehaviourNode* mRootNode;  // The root node of the behavior tree
-        BehaviourNode* mPreviousNode;  // Keeps track of the previously added node
+        BehaviourNode mRootNode;  // The root node of the behavior tree
+        BehaviourNode mPreviousNode;  // Keeps track of the previously added node
         std::string mTreeName;  // Name of the behavior tree
     };
 }

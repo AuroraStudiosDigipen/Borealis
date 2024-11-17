@@ -19,6 +19,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <mono/jit/jit.h>
 #include <mono/metadata/object.h>
 #include <mono/metadata/reflection.h>
+#include <Scene/Entity.hpp>
 
 namespace Borealis
 {
@@ -200,5 +201,12 @@ namespace Borealis
 
 
         return output;
+    }
+    BehaviourNode BehaviourNode::GetParent() const
+    {
+        auto klass = GetScriptClassUtils("BehaviourNode");
+        auto method = klass->GetMethod("GetParent", 0);
+        auto result = klass->InvokeMethod(mInstance->GetInstance(), method, nullptr);
+        return result;
     }
 }

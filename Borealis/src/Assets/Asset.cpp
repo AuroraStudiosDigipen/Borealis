@@ -36,6 +36,7 @@ namespace Borealis
 		if (extension == ".wav")	return AssetType::Audio;
 		if (extension == ".prefab")	return AssetType::Prefab;
 		if (extension == ".btree")	return AssetType::BehaviourTree;
+		if (extension == ".cs")		return AssetType::Script;
 
 
 		return AssetType::None;
@@ -57,7 +58,7 @@ namespace Borealis
 		case AssetType::Material:		return "AssetType::Material";
 		case AssetType::Prefab:			return "AssetType::Prefab";
 		case AssetType::BehaviourTree:	return "AssetType::BehaviourTree";
-
+		case AssetType::Script:			return "AssetType::Script";
 		}
 
 		return "AssetType::<Invalid>";
@@ -77,6 +78,7 @@ namespace Borealis
 		if (type == "AssetType::Material")		return AssetType::Material;
 		if (type == "AssetType::Prefab")		return AssetType::Prefab;
 		if (type == "AssetType::BehaviourTree")	return AssetType::BehaviourTree;
+		if (type == "AssetType::Script")		return AssetType::Script;
 
 		return AssetType::None;
 	}

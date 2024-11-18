@@ -283,7 +283,7 @@
     <ClInclude Include="inc\Core\ProjectInfo.hpp">
       <Filter>inc\Core</Filter>
     </ClInclude>
-    <ClInclude Include="inc\Core\TagList.hpp">
+    <ClInclude Include="inc\Core\LayerList.hpp">
       <Filter>inc\Core</Filter>
     </ClInclude>
     <ClInclude Include="inc\Core\TimeManager.hpp">
@@ -2035,6 +2035,7 @@
     <ClInclude Include="lib\xproperty\include\xproperty\xproperty_config.hpp">
       <Filter>lib\xproperty\include\xproperty</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Core\BitSet32.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lib\imGuizmo\imGuizmo.cpp">
@@ -2109,7 +2110,7 @@
     <ClCompile Include="src\Core\Project.cpp">
       <Filter>src\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\Core\TagList.cpp">
+    <ClCompile Include="src\Core\LayerList.cpp">
       <Filter>src\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Core\TimeManager.cpp">
@@ -2298,5 +2299,6 @@
     <ClCompile Include="src\Scripting\ScriptingUtils.cpp">
       <Filter>src\Scripting</Filter>
     </ClCompile>
+    <ClCompile Include="src\Core\BitSet32.cpp" />
   </ItemGroup>
 </Project>

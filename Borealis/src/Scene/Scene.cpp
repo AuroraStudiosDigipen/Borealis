@@ -26,6 +26,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scene/SceneCamera.hpp>
 #include "Graphics/Light.hpp"
 #include <Physics/PhysicsSystem.hpp>
+#include <Core/LayerList.hpp>
 
 namespace Borealis
 {
@@ -854,6 +855,12 @@ namespace Borealis
 			auto entityID = mRegistry.get<IDComponent>(entity).ID;
 			PhysicsSystem::addBody(transform, rigidbody, mesh, entityID);
 		}
+
+		auto IDView = mRegistry.view<IDComponent>();
+		for (auto entity : IDView)
+		{
+			LayerList::initializeEntity({ entity,this });
+		}
 	}
 
 	void Scene::RuntimeEnd()
@@ -865,6 +872,7 @@ namespace Borealis
 			PhysicsSystem::FreeRigidBody(view.get<RigidBodyComponent>(entity));
 		}
 		PhysicsSystem::EndScene();
+		LayerList::resetEntities();
 	}
 
 	Entity Scene::GetPrimaryCameraEntity()

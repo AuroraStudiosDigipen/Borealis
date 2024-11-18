@@ -21,7 +21,8 @@
     <OutputPath>..\BorealisEditor\Resources\Scripts\Core\</OutputPath>
     <BaseIntermediateOutputPath>..\BorealisEditor\Resources\Scripts\Core\Intermediate\Debug\BorealisScriptCore\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
-    <DefineConstants></DefineConstants>
+    <DefineConstants>
+    </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -33,7 +34,8 @@
     <OutputPath>..\BorealisEditor\Resources\Scripts\Core\</OutputPath>
     <BaseIntermediateOutputPath>..\BorealisEditor\Resources\Scripts\Core\Intermediate\Release\BorealisScriptCore\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
-    <DefineConstants></DefineConstants>
+    <DefineConstants>
+    </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -45,7 +47,8 @@
     <OutputPath>..\BorealisEditor\Resources\Scripts\Core\</OutputPath>
     <BaseIntermediateOutputPath>..\BorealisEditor\Resources\Scripts\Core\Intermediate\Distribution\BorealisScriptCore\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
-    <DefineConstants></DefineConstants>
+    <DefineConstants>
+    </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -150,6 +153,7 @@
     <Compile Include="src\Input.cs" />
     <Compile Include="src\InternalCalls.cs" />
     <Compile Include="src\KeyCode.cs" />
+    <Compile Include="src\LayerMask.cs" />
     <Compile Include="src\Math\Color.cs" />
     <Compile Include="src\Math\Color32.cs" />
     <Compile Include="src\Math\Mathf.cs" />

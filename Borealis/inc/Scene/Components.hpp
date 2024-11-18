@@ -29,6 +29,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/Font.hpp>
 #include <AI/BehaviourTree/BehaviourTree.hpp>
 #include <Core/UUID.hpp>
+#include <Core/Bitset32.hpp>
 #include <Audio/Audio.hpp>
 
 
@@ -47,6 +48,7 @@ namespace Borealis
 	{
 		bool active = true;
 		std::string Tag;
+		Bitset32 mLayer;
 
 		TagComponent() = default;
 		TagComponent(const TagComponent&) = default;

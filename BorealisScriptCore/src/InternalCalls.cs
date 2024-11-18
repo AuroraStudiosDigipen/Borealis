@@ -28,7 +28,18 @@ namespace Borealis
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static ulong CreateEntity(string text);
-        
+        #region LayerMask
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void LayerMask_LayerToName(int layerNum, out string layerName);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void LayerMask_NameToLayer(string layerName, out int layerNum);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void LayerMask_GetMask(out int mask, params string[] layerNames);
+
+        #endregion
+
         #region Time
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static float Time_GetDeltaTime();

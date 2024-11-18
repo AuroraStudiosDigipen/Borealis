@@ -22,6 +22,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/KeyCodes.hpp>
 #include <Core/Utils.hpp>
 #include <Core/Project.hpp>
+#include <Core/Bitset32.hpp>
 
 #include <Scene/OrthographicCameraController.hpp>
 #include <Scene/Scene.hpp>

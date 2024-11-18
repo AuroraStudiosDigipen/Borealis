@@ -953,7 +953,7 @@ namespace Borealis
 					shader->Set("u_Filled", true);
 				}
 				shader->Set("u_HighlightPass", false);
-				shader->Set("u_Color", { 0.043f, 0.8f, 0.961f , 1.f });
+				shader->Set("u_Color", { 1.f, 0.475f, 0.f , 1.f });
 
 				renderTarget->Bind();
 

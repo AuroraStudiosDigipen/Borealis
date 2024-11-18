@@ -21,7 +21,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Assets/Asset.hpp>
 #include <EditorAssets/AssetImporter.hpp>
 #include <EditorAssets/MetaSerializer.hpp>
-
+#include <Scripting/ScriptingSystem.hpp>
 #include <thread>
 
 namespace Borealis
@@ -64,6 +64,11 @@ namespace Borealis
 		// - verify that asset have a cached if needed
 		// - if every check is true, add to registry
 		RegisterAllAssets(projectInfo.AssetsPath, assetRegistry);
+
+		std::string originalPath = projectInfo.AssetsPath.string();
+		originalPath.replace(originalPath.find("Assets"), std::string("Assets").length(), "Cache");
+		ScriptingSystem::CompileCSharpQueue(originalPath + "/CSharp_Assembly.dll");
+		ScriptingSystem::LoadScriptAssemblies(originalPath + "/CSharp_Assembly.dll");
 
 		SerializeRegistry();
 
@@ -114,7 +119,7 @@ namespace Borealis
 
 	void AssetImporter::RegisterAsset(std::filesystem::path path, AssetRegistry& assetRegistry)
 	{
-		if (!VerifyMetaFile(path, assetRegistry))
+		if (!VerifyMetaFile(path, assetRegistry)) // No .meta file
 		{
 			auto dupPath = path;
 			AssetMetaData meta;
@@ -145,6 +150,11 @@ namespace Borealis
 
 			assetRegistry.insert({ meta.Handle, meta });
 			VerifyMetaFile(path, assetRegistry);
+		}
+
+		if (MetaFileSerializer::GetAssetMetaDataFile(path.string() + ".meta").Type == AssetType::Script)
+		{
+			ScriptingSystem::PushCSharpQueue(path.string());
 		}
 	}
 

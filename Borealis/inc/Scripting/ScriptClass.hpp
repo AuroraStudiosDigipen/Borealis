@@ -103,10 +103,11 @@ namespace Borealis
 				The name of the class
 		*************************************************************************/
 		std::string GetKlassName() const;
-
 		std::list<std::string> mOrder; // Order of the fields
 		std::unordered_map<std::string, ScriptField> mFields; // Fields of the class
+
 	private:
+		void SetMonoClass(MonoClass* klass) { mMonoClass = klass; }
 		std::string mClassName; // Name of the class
 		std::string mNamespaceName; // Namespace of the class
 		MonoClass* mMonoClass; // The class

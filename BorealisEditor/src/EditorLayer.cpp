@@ -755,6 +755,10 @@ namespace Borealis {
 		bool shift = InputSystem::IsKeyPressed(Key::LeftShift) || InputSystem::IsKeyPressed(Key::RightShift);
 		switch (e.GetKeyCode())
 		{
+		case Key::U:
+			ScriptingSystem::CompileCSharpQueue(Project::GetProjectPath() + "/Cache/CSharp_Assembly.dll");
+			ScriptingSystem::LoadScriptAssemblies(Project::GetProjectPath() + "/Cache/CSharp_Assembly.dll");
+			break;
 		case Key::N:
 		{
 			if (control)

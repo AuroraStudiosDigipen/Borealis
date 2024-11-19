@@ -18,11 +18,12 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <memory>
 #include <vector>
 #include <Core/Core.hpp>
+#include <Scripting/ScriptInstance.hpp>
 
-#include <Scene/Entity.hpp>
 
 namespace Borealis
 {
+    class Entity;
     class Serialiser; // Forward declaration
     enum class NodeType
     {
@@ -52,20 +53,19 @@ namespace Borealis
     {
         friend class NodeFactory;
         friend class Serialiser;
+        friend class BehaviourTree;
+
 
     public:
+        BehaviourNode(MonoObject* objectInstance); // For getparent use only
+
         BehaviourNode() = default;
 
-        std::vector<Ref<BehaviourNode>> GetChildrenNodes() const;
+        BehaviourNode(std::string klassName);
 
-        /*!***********************************************************************
-            \brief
-                Gets the type of the node.
-            \return
-                The NodeType of the node.
-        *************************************************************************/
-        NodeType GetType() const;
+        std::vector<BehaviourNode> GetChildrenNodes() const;
 
+        BehaviourNode GetParent() const;
         /*!***********************************************************************
            \brief
                Sets the depth of the node in the behavior tree.
@@ -84,59 +84,11 @@ namespace Borealis
 
         /*!***********************************************************************
             \brief
-                Gets the name of the node
-            \return
-                The node as a string
-        *************************************************************************/
-        std::string GetName() const;
-
-        /*!***********************************************************************
-            \brief
-                Retrieves the parent node
-            \return
-                A weak reference to the parent node
-        *************************************************************************/
-        WeakRef<BehaviourNode> GetParent() const;
-
-        /*!***********************************************************************
-            \brief
-                Sets the name of the node
-            \param[in] setName
-                The name to set for the node
-        *************************************************************************/
-        void SetName(const std::string& setName);
-
-        /*!***********************************************************************
-            \brief
                 Adds a child to this node
             \param[in] child 
                 The child node to add
         *************************************************************************/
-        void AddChild(Ref<BehaviourNode> child);
-
-        /*!***********************************************************************
-            \brief
-                Checks if the node is in the READY state.
-            \return
-                True if the node is READY, false otherwise.
-        *************************************************************************/
-        bool IsReady() const;
-
-        /*!***********************************************************************
-            \brief
-                Checks if the node has succeeded.
-            \return
-                True if the node's result is SUCCESS, false otherwise.
-        *************************************************************************/
-        bool HasSucceeded() const;
-
-        /*!***********************************************************************
-            \brief
-                Checks if the node has failed.
-            \return
-                True if the node's result is FAILURE, false otherwise.
-        *************************************************************************/
-        bool HasFailed() const;
+        void AddChild(BehaviourNode child);
 
         /*!***********************************************************************
            \brief
@@ -145,13 +97,7 @@ namespace Borealis
                True if the node is RUNNING, false otherwise.
         *************************************************************************/
         bool IsRunning() const;
-        /*!***********************************************************************
-           \brief
-               Checks if the node is suspended.
-           \return
-               True if the node is SUSPENDED, false otherwise.
-        *************************************************************************/
-        bool IsSuspended() const;
+
         /*!***********************************************************************
            \brief
                Sets the status of this node.
@@ -159,54 +105,6 @@ namespace Borealis
                The status to set.
         *************************************************************************/
         void SetStatus(NodeStatus newStatus);
-
-        /*!***********************************************************************
-    	    \brief
-           	    Recursively sets the status for this node and all of its children.
-            \param[in] newStatus
-                The status to set for the node and its children.
-        *************************************************************************/
-        void SetStatusAll(NodeStatus newStatus);
-
-        /*!***********************************************************************
-            \brief
-                Sets the status for all the node's immediate children.
-            \param[in] newStatus
-                The status to set for the children.
-        *************************************************************************/
-        void SetStatusChildren(NodeStatus newStatus);
-
-        /*!***********************************************************************
-            \brief
-                Sets the result for this node.
-            \param[in] result
-                The result to set.
-        *************************************************************************/
-        void SetResult(NodeResult result);
-
-        /*!***********************************************************************
-            \brief
-                Sets the result for all the node's children.
-            \param[in] result
-                The result to set for the children.
-        *************************************************************************/
-        void SetResultChildren(NodeResult result);
-
-        /*!***********************************************************************
-            \brief
-                Gets the current status of the node.
-            \return
-                The node's status.
-        *************************************************************************/
-        NodeStatus GetStatus() const;
-
-        /*!***********************************************************************
-            \brief
-                Gets the result of the node.
-            \return
-                The node's result.
-        *************************************************************************/
-        NodeResult GetResult() const;
 
         /*!***********************************************************************
             \brief
@@ -222,59 +120,11 @@ namespace Borealis
             \return
                 A shared reference to the cloned node.
         *************************************************************************/
-        virtual Ref<BehaviourNode> Clone() = 0;
+        BehaviourNode Clone();
 
+        std::string GetName() const;
     protected:
-
-        /*!***********************************************************************
-            \brief
-                Called when a leaf node starts execution.
-       *************************************************************************/
-        void OnLeafEnter();
-
-        /*!***********************************************************************
-            \brief
-                Called when the node enters execution.
-        *************************************************************************/
-        virtual void OnEnter();
-
-        /*!***********************************************************************
-            \brief
-                Called when the node is updated.
-            \param[in] dt
-                The delta time for updating the node.
-        *************************************************************************/
-        virtual void OnUpdate(float dt, Entity& entity);
-
-        /*!***********************************************************************
-            \brief
-                Called when the node exits execution.
-        *************************************************************************/
-        virtual void OnExit();
-
-        /*!***********************************************************************
-            \brief
-                Marks the node as successful and exits execution.
-        *************************************************************************/
-        void OnSuccess();
-
-        /*!***********************************************************************
-            \brief
-                Marks the node as failed and exits execution.
-        *************************************************************************/
-        void OnFailure();
-    protected:
-        WeakRef<BehaviourNode> mParent;  // Parent node reference
-        std::vector<Ref<BehaviourNode>> mChildren;  // Child nodes
-    private:
-        unsigned int mDepth;  // Depth of the node in the behavior tree
-
-        // Node type, status, and result
-        NodeType mNodeType;
-        NodeStatus mStatus;
-        NodeResult mResult;
-        
-        std::string mName;  // Name of the node
+        Ref<ScriptInstance> mInstance;
     };
 
     // Simple CRTP intermediary for cloning derived types

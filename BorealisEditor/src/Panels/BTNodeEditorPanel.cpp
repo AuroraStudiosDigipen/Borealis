@@ -14,8 +14,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include <BorealisPCH.hpp>
 #include "Panels/BTNodeEditorPanel.hpp"
+#include <AI/BehaviourTree/BTreeFactory.hpp>
 #include <Core/LoggerSystem.hpp>
-#include <AI/BehaviourTree/NodeHeaderCodeFormat.hpp>
 #include <Core/Project.hpp>
 namespace Borealis
 {
@@ -276,25 +276,15 @@ namespace Borealis
         ImGui::End();
     }
     
-    void BTNodeEditorPanel::AddNewNode(const std::string& nodeName)
+    void BTNodeEditorPanel::AddNewNode(const std::string& nodeName, NodeType nodeType)
     {
-        // Retrieve the prototype from the factory
-        auto prototype = NodeFactory::CreateNodeByName(nodeName);
-        if (!prototype)
-        {
-            return;
-        }
-        // Get the node type from the prototype
-        NodeType nodeType = FindNodeType(nodeName);
-
         // Set the node color based on type (you can customize colors per type)
         ImColor nodeColor(1, 1, 0); // Default color
         // Create a new node
         int nodeId = GetNextId();
         auto newNode = std::make_shared<Node>(nodeId, nodeName, nodeType, nodeColor);
         // Initialize pins based on the node category
-        std::string prefix = nodeName.substr(0, 2);
-        if (prefix == "C_") // Control Flow Node
+        if (nodeType == NodeType::CONTROLFLOW) // Control Flow Node
         {
 
             // Input pin
@@ -315,7 +305,7 @@ namespace Borealis
                 newNode->Outputs.push_back(outputPin);
             }
         }
-        else if (prefix == "D_") // Decorator Node
+        else if (nodeType == NodeType::DECORATOR) // Decorator Node
         {
             // Input pin
             {
@@ -335,7 +325,7 @@ namespace Borealis
                 newNode->Outputs.push_back(outputPin);
             }
         }
-        else if (prefix == "L_") // Leaf Node
+        else if (nodeType == NodeType::LEAF) // Leaf Node
         {
             // Input pin only
             {
@@ -431,16 +421,11 @@ namespace Borealis
         {
             if (ImGui::BeginMenu("Control Flow Nodes"))
             {
-                for (const auto& pair : NodeFactory::GetNodePrototypes())
+                for (const auto& name : BTreeFactory::Instance().mControlFlowNames)
                 {
-                    const std::string& nodeName = pair.first;
-                    if (nodeName.substr(0, 2) == "C_")
+                    if (ImGui::MenuItem(name.c_str()))
                     {
-                        std::string displayName = nodeName.substr(2); // Remove "C_" prefix
-                        if (ImGui::MenuItem(displayName.c_str()))
-                        {
-                            AddNewNode(nodeName);
-                        }
+                        AddNewNode(name, NodeType::CONTROLFLOW);
                     }
                 }
                 ImGui::EndMenu();
@@ -448,16 +433,11 @@ namespace Borealis
 
             if (ImGui::BeginMenu("Decorator Nodes"))
             {
-                for (const auto& pair : NodeFactory::GetNodePrototypes())
+                for (const auto& name : BTreeFactory::Instance().mDecoratorNames)
                 {
-                    const std::string& nodeName = pair.first;
-                    if (nodeName.substr(0, 2) == "D_")
+                    if (ImGui::MenuItem(name.c_str()))
                     {
-                        std::string displayName = nodeName.substr(2); // Remove "D_" prefix
-                        if (ImGui::MenuItem(displayName.c_str()))
-                        {
-                            AddNewNode(nodeName);
-                        }
+                        AddNewNode(name, NodeType::DECORATOR);
                     }
                 }
                 ImGui::EndMenu();
@@ -465,16 +445,11 @@ namespace Borealis
 
             if (ImGui::BeginMenu("Leaf Nodes"))
             {
-                for (const auto& pair : NodeFactory::GetNodePrototypes())
+                for (const auto& name : BTreeFactory::Instance().mLeafNames)
                 {
-                    const std::string& nodeName = pair.first;
-                    if (nodeName.substr(0, 2) == "L_")
+                    if (ImGui::MenuItem(name.c_str()))
                     {
-                        std::string displayName = nodeName.substr(2); // Remove "L_" prefix
-                        if (ImGui::MenuItem(displayName.c_str()))
-                        {
-                            AddNewNode(nodeName);
-                        }
+                        AddNewNode(name, NodeType::LEAF);
                     }
                 }
                 ImGui::EndMenu();
@@ -555,17 +530,11 @@ namespace Borealis
         // Control Flow Nodes
         if (ImGui::CollapsingHeader("Control Flow Nodes"))
         {
-            // List all control flow nodes
-            for (const auto& pair : NodeFactory::GetNodePrototypes())
+            for (const auto& name : BTreeFactory::Instance().mControlFlowNames)
             {
-                const std::string& nodeName = pair.first;
-                // Check if nodeName starts with "C_"
-                if (nodeName.rfind("C_", 0) == 0) // rfind returns 0 if "C_" is found at position 0
+                if (ImGui::Button(name.c_str()))
                 {
-                    if (ImGui::Button(nodeName.c_str()))
-                    {
-                        AddNewNode(nodeName);
-                    }
+                    AddNewNode(name, NodeType::CONTROLFLOW);
                 }
             }
         }
@@ -573,17 +542,11 @@ namespace Borealis
         // Decorator Nodes
         if (ImGui::CollapsingHeader("Decorator Nodes"))
         {
-            // List all decorator nodes
-            for (const auto& pair : NodeFactory::GetNodePrototypes())
+            for (const auto& name : BTreeFactory::Instance().mDecoratorNames)
             {
-                const std::string& nodeName = pair.first;
-                // Check if nodeName starts with "D_"
-                if (nodeName.rfind("D_", 0) == 0)
+                if (ImGui::Button(name.c_str()))
                 {
-                    if (ImGui::Button(nodeName.c_str()))
-                    {
-                        AddNewNode(nodeName);
-                    }
+                    AddNewNode(name, NodeType::DECORATOR);
                 }
             }
         }
@@ -591,17 +554,11 @@ namespace Borealis
         // Leaf Nodes
         if (ImGui::CollapsingHeader("Leaf Nodes"))
         {
-            // List all leaf nodes
-            for (const auto& pair : NodeFactory::GetNodePrototypes())
+            for (const auto& name : BTreeFactory::Instance().mLeafNames)
             {
-                const std::string& nodeName = pair.first;
-                // Check if nodeName starts with "L_"
-                if (nodeName.rfind("L_", 0) == 0)
+                if (ImGui::Button(name.c_str()))
                 {
-                    if (ImGui::Button(nodeName.c_str()))
-                    {
-                        AddNewNode(nodeName);
-                    }
+                    AddNewNode(name, NodeType::LEAF);
                 }
             }
         }
@@ -1019,12 +976,12 @@ namespace Borealis
         {
             try {
                 // Generate the code using templates
-                std::string headerCode = NodeHeaderCodeFormat::GenerateHeaderCode(className, baseClassName, nodeTypeIndex);
-                std::string sourceCode = NodeHeaderCodeFormat::GenerateSourceCode(className, nodeTypeIndex);
+                //std::string headerCode = NodeHeaderCodeFormat::GenerateHeaderCode(className, baseClassName, nodeTypeIndex);
+                //std::string sourceCode = NodeHeaderCodeFormat::GenerateSourceCode(className, nodeTypeIndex);
 
-                // Write the files
-                NodeHeaderCodeFormat::WriteToFile(headerFilePath, headerCode);
-                NodeHeaderCodeFormat::WriteToFile(sourceFilePath, sourceCode);
+                //// Write the files
+                //NodeHeaderCodeFormat::WriteToFile(headerFilePath, headerCode);
+                //NodeHeaderCodeFormat::WriteToFile(sourceFilePath, sourceCode);
 
                 BOREALIS_CORE_INFO("Successfully created header and source files for class: {}", className);
             }

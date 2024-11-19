@@ -25,6 +25,7 @@ namespace Borealis
 	class ScriptingSystem
 	{
 	public:
+		friend class ScriptClass;
 		/*!***********************************************************************
 			\brief
 				Init function for the Scripting System
@@ -58,7 +59,7 @@ namespace Borealis
 			\brief
 				Iniitalise the core assembly
 		*************************************************************************/
-		static void InitCoreAssembly();
+		static void* InitCoreAssembly();
 
 		/*!***********************************************************************
 			\brief
@@ -67,6 +68,16 @@ namespace Borealis
 				The name of the class to get
 		*************************************************************************/
 		static Ref<ScriptClass> GetScriptClass(const std::string& className) { return mScriptClasses[className]; }
+
+		static void CompileCSharpQueue(std::string pathToSave);
+
+		static void PushCSharpQueue(std::string filepath);
+
+		static void LoadScriptAssemblies(std::string filepath);
+
+		static void AttachAppDomain();
+		static void DetachAppDomain();
+
 
 		static bool GetEnabled(Ref<ScriptInstance> instance);
 		static void SetEnabled(Ref<ScriptInstance>, bool enabled);

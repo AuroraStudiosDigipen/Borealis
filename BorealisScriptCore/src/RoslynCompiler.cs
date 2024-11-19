@@ -1,7 +1,7 @@
 // File: RoslynCompiler.cs
-using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Runtime.CompilerServices;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 namespace Borealis
@@ -10,6 +10,7 @@ namespace Borealis
     {
         public RoslynCompiler()
         {
+            Debug.Log("Created compiler");
         }
         /*!***********************************************************************
             \brief
@@ -19,24 +20,42 @@ namespace Borealis
             \param assemblyName
                 The name of the assembly to create.
         *************************************************************************/
-        public byte[] CompileCode(string code, string assemblyName)
+        public byte[] CompileCode(IEnumerable<string> filePaths, string assemblyName)
         {
-            var syntaxTree = CSharpSyntaxTree.ParseText(code);
-            CSharpCompilation compilation = CSharpCompilation.Create(
+            var syntaxTrees = filePaths.Select(filePath =>
+            {
+                string code = File.ReadAllText(filePath);
+                return CSharpSyntaxTree.ParseText(code);
+            }).ToList();
+
+            // Create the CSharpCompilation with multiple syntax trees
+            var compilation = CSharpCompilation.Create(
                 assemblyName,
-                new[] { syntaxTree },
-                new[] { MetadataReference.CreateFromFile(typeof(object).Assembly.Location) },
+                syntaxTrees,
+                new[] {
+                    MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+                    MetadataReference.CreateFromFile(typeof(System.Linq.Enumerable).Assembly.Location),
+                    MetadataReference.CreateFromFile(typeof(List<>).Assembly.Location),
+
+                    MetadataReference.CreateFromFile("resources/Scripts/Core/BorealisScriptCore.dll")
+                },
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
 
             using (var dllStream = new MemoryStream())
             {
+                // Compile the syntax trees into the DLL
                 var emitResult = compilation.Emit(dllStream);
                 if (!emitResult.Success)
                 {
+                    foreach (var diagnostic in emitResult.Diagnostics)
+                    {
+                        Debug.Log(diagnostic.ToString());  // This will print the detailed diagnostic message
+                    }
                 }
                 return dllStream.ToArray();
             }
-
         }
+
     }
 }

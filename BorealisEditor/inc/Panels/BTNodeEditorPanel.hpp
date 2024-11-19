@@ -19,11 +19,12 @@ prior written consent of DigiPen Institute of Technology is prohibited.
  /******************************************************************************/
 #ifndef BTNodeEditorPanel_HPP
 #define BTNodeEditorPanel_HPP
-#include <AI/BehaviourTree/RegisterNodes.hpp>
 #include <AI/BehaviourTree/BehaviourTree.hpp>
+#include <AI/BehaviourTree/BehaviourNode.hpp>
 #include <imgui_node_editor.h>
 #include <imgui_internal.h>
 #include <yaml-cpp/yaml.h>
+
 
 namespace Borealis
 {
@@ -201,7 +202,7 @@ namespace Borealis
         \brief  Adds a new node to the editor by specifying its name.
         \param  nodeName The name of the node to be added.
         *************************************************************************/
-        void AddNewNode(const std::string& nodeName);
+        void AddNewNode(const std::string& nodeName, NodeType nodeType);
 
         /*!***********************************************************************
         \brief  Finds the root node within the behavior tree.

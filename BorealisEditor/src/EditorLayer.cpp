@@ -258,13 +258,20 @@ namespace Borealis {
 				.AddSinkLinkage("camera", "EditorCamera");
 				fconfig.AddPass(editorRender2D);
 
+				RenderPassConfig editorUIPass(RenderPassType::EditorUIPass, "EditorUI");
+				editorUIPass.AddSinkLinkage("renderTarget", "editorRender2D.renderTarget")
+					.AddSinkLinkage("camera", "EditorCamera")
+					.AddSinkLinkage("runTimeRenderTarget", "RunTimeBuffer");
+				fconfig.AddPass(editorUIPass);
+
 				RenderPassConfig ObjectPicking(RenderPassType::ObjectPicking, "ObjectPicking");
 				ObjectPicking.AddSinkLinkage("pixelBuffer", "PixelBuffer")
-				.AddSinkLinkage("renderTarget", "editorRender2D.renderTarget")
+				.AddSinkLinkage("renderTarget", "EditorUI.renderTarget")
 				.AddSinkLinkage("EntityIDSource", "EntityIDSource")
 				.AddSinkLinkage("ViewPortHovered", "ViewPortHovered")
 				.AddSinkLinkage("MouseSource", "MouseSource");
 				fconfig.AddPass(ObjectPicking);
+
 
 				RenderPassConfig editorHighlightPass(RenderPassType::EditorHighlightPass, "EditorHighlight");
 				editorHighlightPass.AddSinkLinkage("camera", "EditorCamera")

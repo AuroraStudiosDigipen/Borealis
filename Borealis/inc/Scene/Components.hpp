@@ -415,6 +415,14 @@ namespace Borealis
 		OutLineComponent(const OutLineComponent&) = default;
 	};
 
+	struct CanvasComponent
+	{
+		glm::vec2 canvasSize{};
+		float scaleFactor{};
+		CanvasComponent() = default;
+		CanvasComponent(const CanvasComponent&) = default;
+	};
+
 	struct CanvasRendererComponent
 	{
 		bool allowPassthrough = false;

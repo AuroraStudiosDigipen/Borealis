@@ -504,12 +504,14 @@ namespace Borealis
 		if (shader) shader->Bind();
 
 		Ref<RenderTargetSource> renderTarget = nullptr;
+		bool editor = false;
 
 		for (auto sink : sinkList)
 		{
 			if (sink->source->sourceType == RenderSourceType::Camera)
 			{
 				Renderer2D::Begin(std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj());
+				editor = std::dynamic_pointer_cast<CameraSource>(sink->source)->editor;
 			}
 
 			if (sink->source->sourceType == RenderSourceType::RenderTargetColor)
@@ -527,7 +529,7 @@ namespace Borealis
 			for (auto& entity : group)
 			{
 				Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
-				if (!brEntity.IsActive() || brEntity.HasComponent<CanvasRendererComponent>())
+				if (!brEntity.IsActive() || (!editor && brEntity.HasComponent<CanvasRendererComponent>()))
 				{
 					continue;
 				}
@@ -564,6 +566,7 @@ namespace Borealis
 				Renderer2D::DrawString(text.text, text.font, TransformComponent::GetGlobalTransform(brEntity), (int)entity);
 			}
 		}
+		
 
 		Renderer2D::End();
 
@@ -1174,17 +1177,13 @@ namespace Borealis
 			UIFBO->Resize(renderTarget->Width, renderTarget->Height);
 		}
 
-		UIFBO->Bind();
-		RenderCommand::Clear();
-
-		RenderCommand::DisableDepthTest();
 		const float baseScreenWidth = 1920.0f;
 		const float baseScreenHeight = 1080.0f;
 		viewProjMatrix = glm::ortho(0.0f, (float)renderTarget->Width, (float)renderTarget->Height, 0.0f, -100.0f, 100.0f);
 		Renderer2D::Begin(viewProjMatrix);
 
 		{
-			auto group = registryPtr->group<>(entt::get<TransformComponent, CanvasRendererComponent>);
+			auto group = registryPtr->group<>(entt::get<TransformComponent, CanvasComponent>);
 			for (auto& entity : group)
 			{
 				Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
@@ -1192,49 +1191,62 @@ namespace Borealis
 				{
 					continue;
 				}
-				auto [transformHolder, canvasRenderer] = group.get<TransformComponent, CanvasRendererComponent>(entity);
+				auto [transform, canvas] = group.get<TransformComponent, CanvasComponent>(entity);
 
-				renderTarget->Bind();
+				float scaleFactor = 1 / canvas.scaleFactor * 0.95;
 
-				glm::mat4 transform = TransformComponent::GetGlobalTransform(brEntity);
+				glm::vec3 canvasPosition(renderTarget->Width * 0.5f, renderTarget->Height * 0.5f, 0.0f);
+				glm::vec3 canvasScale(canvas.canvasSize.x * scaleFactor, canvas.canvasSize.y * scaleFactor, 1.0f);
 
-				glm::vec3 position = glm::vec3(transform[3]); // Extract translation
-				glm::vec3 screenCenterOffset(renderTarget->Width * 0.5f, renderTarget->Height * 0.5f, 0.0f);
-				glm::vec3 screenPosition = position + screenCenterOffset;
-				screenPosition.y = renderTarget->Height - screenPosition.y;
-				glm::vec3 scale = glm::vec3(
-					glm::length(glm::vec3(transform[0])),
-					glm::length(glm::vec3(transform[1])),
-					glm::length(glm::vec3(transform[2]))
-				);
+				glm::mat4 canvasTransform = glm::translate(glm::mat4(1.0f), canvasPosition) *
+					glm::scale(glm::mat4(1.0f), glm::vec3(scaleFactor, scaleFactor * -1.f, 1.f));
 
-				float scalingFactorX = renderTarget->Width / baseScreenWidth;
-				float scalingFactorY = renderTarget->Height / baseScreenHeight;
-
-				// Adjust scale to match screen resolution
-				scale.x *= scalingFactorX * 10;
-				scale.y *= scalingFactorY * 10;
-
-				// Build the final screen-space transform
-				glm::mat4 screenTransform = glm::translate(glm::mat4(1.0f), screenPosition) *
-					glm::scale(glm::mat4(1.0f), scale);
-
-				if (brEntity.HasComponent<SpriteRendererComponent>())
+				//render debug canvas
 				{
-					SpriteRendererComponent const& spriteRenderer = brEntity.GetComponent<SpriteRendererComponent>();
-					Renderer2D::DrawSprite(screenTransform, spriteRenderer, (int)entity);
+					SpriteRendererComponent spriteRenderer;
+					spriteRenderer.Colour = { 0.f,0.f,100.f,0.2f };
+
+					glm::vec3 screenPosition(renderTarget->Width * 0.5f, renderTarget->Height * 0.5f, 0.0f);
+
+					glm::vec3 scale = glm::vec3(
+						canvas.canvasSize.x * scaleFactor,
+						canvas.canvasSize.y * scaleFactor,
+						1.f
+					);
+					glm::mat4 screenTransform = glm::translate(glm::mat4(1.0f), screenPosition) *
+						glm::scale(glm::mat4(1.0f), scale);
+					Renderer2D::DrawSprite(screenTransform, spriteRenderer);
 				}
-				
+
+				for (UUID childID : transform.ChildrenID)
+				{
+					Entity child = SceneManager::GetActiveScene()->GetEntityByUUID(childID);
+
+					if (!child.HasComponent<CanvasRendererComponent>()) continue;
+					if (!child.HasComponent<SpriteRendererComponent>()) continue;
+
+					glm::mat4 childTransform = child.GetComponent<TransformComponent>();
+					//childTransform = glm::translate(childTransform, canvasPosition);
+					//childTransform = glm::scale(childTransform, glm::vec3(scaleFactor));
+
+					childTransform = canvasTransform * childTransform;
+
+					Renderer2D::DrawSprite(childTransform, child.GetComponent<SpriteRendererComponent>());
+				}
 			}
 		}
 
+		UIFBO->Bind();
+		RenderCommand::Clear();
+
+		RenderCommand::DisableDepthTest();
 		Renderer2D::End();
 		UIFBO->Unbind();
 
 		//std::swap(UIFBO, renderTarget->buffer);
 
 		RenderCommand::DisableDepthTest();
-		UIFBO->BindTexture(1, 0);
+		UIFBO->BindTexture(0, 0);
 		shader->Bind();
 		shader->Set("u_Texture0", 0);
 
@@ -1244,6 +1256,63 @@ namespace Borealis
 
 		shader->Unbind();
 		RenderCommand::EnableDepthTest();
+	}
+
+	EditorUIPass::EditorUIPass(std::string name) : EntityPass(name)
+	{
+
+	}
+
+	void EditorUIPass::Execute(float dt)
+	{
+		Ref<RenderTargetSource> renderTarget = nullptr;
+		Ref<RenderTargetSource> runTimeRenderTarget = nullptr;
+
+		for (auto sink : sinkList)
+		{
+			if (sink->source->sourceType == RenderSourceType::Camera)
+			{
+				Renderer2D::Begin(std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj());
+			}
+
+			if (sink->source->sourceType == RenderSourceType::RenderTargetColor)
+			{
+				if (sink->sinkName == "renderTarget")
+				{
+					renderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
+				}
+				if (sink->sinkName == "runTimeRenderTarget")
+				{
+					runTimeRenderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
+				}
+			}
+		}
+
+		renderTarget->Bind();
+		{
+			auto group = registryPtr->group<>(entt::get<TransformComponent, CanvasComponent>);
+			for (auto& entity : group)
+			{
+				Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
+				if (!brEntity.IsActive())
+				{
+					continue;
+				}
+
+				auto [transform, canvas] = group.get<TransformComponent, CanvasComponent>(entity);
+				canvas.scaleFactor = 0.01;
+				canvas.canvasSize.x = runTimeRenderTarget->Width * canvas.scaleFactor;
+				canvas.canvasSize.y = runTimeRenderTarget->Height * canvas.scaleFactor;
+				SpriteRendererComponent sprite;
+				sprite.Colour = { 0.f,0.f,100.f, 0.2f };
+				glm::mat4 canvasTransform = glm::translate(glm::mat4(1.f), glm::vec3(((glm::mat4)transform)[3]));
+				canvasTransform = glm::scale(canvasTransform, glm::vec3(canvas.canvasSize.x, canvas.canvasSize.y, 1.f));
+				Renderer2D::DrawSprite(canvasTransform, sprite, (int)entity);
+			}
+		}
+		Renderer2D::End();
+
+		renderTarget->Unbind();
 	}
 
 	//========================================================================
@@ -1347,6 +1416,7 @@ namespace Borealis
 			case RenderPassType::Shadow:
 			case RenderPassType::HighlightPass:
 			case RenderPassType::UIPass:
+			case RenderPassType::EditorUIPass:
 				AddEntityPassConfig(passesConfig);
 				break;
 			case RenderPassType::ObjectPicking:
@@ -1429,6 +1499,9 @@ namespace Borealis
 			break;
 		case RenderPassType::UIPass:
 			renderPass = MakeRef<UIPass>(renderPassConfig.mPassName);
+			break;
+		case RenderPassType::EditorUIPass:
+			renderPass = MakeRef<EditorUIPass>(renderPassConfig.mPassName);
 			break;
 		}
 

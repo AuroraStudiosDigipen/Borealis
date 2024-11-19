@@ -201,6 +201,11 @@ namespace Borealis
 			SerializeComponent(out, entity.GetComponent<OutLineComponent>());
 		}
 
+		if (entity.HasComponent<CanvasComponent>())
+		{
+			SerializeComponent(out, entity.GetComponent<CanvasComponent>());
+		}
+
 		if (entity.HasComponent<CanvasRendererComponent>())
 		{
 			SerializeComponent(out, entity.GetComponent<CanvasRendererComponent>());
@@ -438,6 +443,7 @@ namespace Borealis
 		DeserialiseComponent<SkinnedMeshRendererComponent>(entity, BorealisEntity);
 		DeserialiseComponent<AnimatorComponent>(entity, BorealisEntity);
 		DeserialiseComponent<OutLineComponent>(entity, BorealisEntity);
+		DeserialiseComponent<CanvasComponent>(entity, BorealisEntity);
 		DeserialiseComponent<CanvasRendererComponent>(entity, BorealisEntity);
 
 		DeserialiseAbstractItems(entity, BorealisEntity);

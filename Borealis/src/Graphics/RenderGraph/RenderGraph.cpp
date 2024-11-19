@@ -1153,11 +1153,11 @@ namespace Borealis
 
 	void RenderCanvasRecursive(Entity parent, const glm::mat4& parentTransform, const glm::mat4& canvasTransform)
 	{
-		glm::mat4 parentTansform = parent.GetComponent<TransformComponent>();
+		glm::mat4 globalTansform = (glm::mat4)parent.GetComponent<TransformComponent>();
 		if (parent.HasComponent<CanvasRendererComponent>() && parent.HasComponent<SpriteRendererComponent>())
 		{
 
-			glm::mat4 transform = canvasTransform * parentTransform * parentTansform;
+			glm::mat4 transform = canvasTransform * parentTransform * globalTansform;
 
 			Renderer2D::DrawSprite(transform, parent.GetComponent<SpriteRendererComponent>());
 		}
@@ -1166,7 +1166,7 @@ namespace Borealis
 		{
 			Entity child = SceneManager::GetActiveScene()->GetEntityByUUID(childID);
 
-			RenderCanvasRecursive(child, parentTansform, canvasTransform);
+			RenderCanvasRecursive(child, parentTransform * globalTansform, canvasTransform);
 		}
 	}
 

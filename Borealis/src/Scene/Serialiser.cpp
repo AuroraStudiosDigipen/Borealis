@@ -140,16 +140,6 @@ namespace Borealis
 			SerializeComponent(out, entity.GetComponent<AnimatorComponent>());
 		}
 
-		if (entity.HasComponent<BoxColliderComponent>())
-		{
-			SerializeComponent(out, entity.GetComponent<BoxColliderComponent>());
-		}
-
-		if (entity.HasComponent<CapsuleColliderComponent>())
-		{
-			SerializeComponent(out, entity.GetComponent<CapsuleColliderComponent>());
-		}
-
 		if (entity.HasComponent<RigidBodyComponent>())
 		{
 			SerializeComponent(out, entity.GetComponent<RigidBodyComponent>());
@@ -179,6 +169,24 @@ namespace Borealis
 		{
 			SerializeComponent(out, entity.GetComponent<CharacterControlComponent>());
 		}
+
+		if (entity.HasComponent<BoxColliderComponent>())
+		{
+			SerializeComponent(out, entity.GetComponent<BoxColliderComponent>());
+		}
+
+
+		if (entity.HasComponent<SphereColliderComponent>())
+		{
+			SerializeComponent(out, entity.GetComponent<SphereColliderComponent>());
+		}
+
+
+		if (entity.HasComponent<CapsuleColliderComponent>())
+		{
+			SerializeComponent(out, entity.GetComponent<CapsuleColliderComponent>());
+		}
+
 
 
 		if (entity.HasComponent<BehaviourTreeComponent>())
@@ -423,8 +431,6 @@ namespace Borealis
 		DeserialiseComponent<CameraComponent>(entity, BorealisEntity);
 		DeserialiseComponent<MeshFilterComponent>(entity, BorealisEntity);
 		DeserialiseComponent<MeshRendererComponent>(entity, BorealisEntity);
-		DeserialiseComponent<BoxColliderComponent>(entity, BorealisEntity);
-		DeserialiseComponent<CapsuleColliderComponent>(entity, BorealisEntity);
 		DeserialiseComponent<RigidBodyComponent>(entity, BorealisEntity);
 		DeserialiseComponent<LightComponent>(entity, BorealisEntity);
 		DeserialiseComponent<CharacterControlComponent>(entity, BorealisEntity);
@@ -432,7 +438,9 @@ namespace Borealis
 		DeserialiseComponent<AudioListenerComponent>(entity, BorealisEntity);
 		DeserialiseComponent<TextComponent>(entity, BorealisEntity);
 		DeserialiseComponent<SkinnedMeshRendererComponent>(entity, BorealisEntity);
-
+		DeserialiseComponent<BoxColliderComponent>(entity, BorealisEntity);
+		DeserialiseComponent<SphereColliderComponent>(entity, BorealisEntity);
+		DeserialiseComponent<CapsuleColliderComponent>(entity, BorealisEntity);
 		DeserialiseAbstractItems(entity, BorealisEntity);
 		//auto behaviourTreeComponent = entity["BehaviourTreeComponent"];
 		/*

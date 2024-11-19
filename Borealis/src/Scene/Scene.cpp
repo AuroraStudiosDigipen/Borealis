@@ -263,20 +263,40 @@ namespace Borealis
 				}
 
 
-				auto physicsGroup = mRegistry.group<>(entt::get<TransformComponent, RigidBodyComponent>);
-				for (auto entity : physicsGroup)
+				auto boxGroup = mRegistry.group<>(entt::get<TransformComponent, BoxColliderComponent, RigidBodyComponent>);
+				for (auto entity : boxGroup)
 				{
 					Entity brEntity{ entity, this };
 					if (!brEntity.IsActive())
 					{
 						continue;
 					}
-					auto [transform, rigidbody] = physicsGroup.get<TransformComponent, RigidBodyComponent>(entity);
-					PhysicsSystem::PushTransform(rigidbody, transform, brEntity);
+					auto [transform, box, rigidbody] = boxGroup.get<TransformComponent, BoxColliderComponent, RigidBodyComponent>(entity);
+					PhysicsSystem::PushTransform(box, transform, box.rigidBody, brEntity);
+				}
 
-					//Example move usage
-					/*if(rigidbody.movement == MovementType::Kinematic)
-					PhysicsSystem::move(rigidbody, glm::vec3(0.01f, 0.0f, 0.0f));*/
+				auto sphereGroup = mRegistry.group<>(entt::get<TransformComponent, SphereColliderComponent, RigidBodyComponent>);
+				for (auto entity : sphereGroup)
+				{
+					Entity brEntity{ entity, this };
+					if (!brEntity.IsActive())
+					{
+						continue;
+					}
+					auto [transform, sphere, rigidbody] = sphereGroup.get<TransformComponent, SphereColliderComponent, RigidBodyComponent>(entity);
+					PhysicsSystem::PushTransform(sphere, transform, sphere.rigidBody, brEntity);
+				}
+
+				auto capsuleGroup = mRegistry.group<>(entt::get<TransformComponent, CapsuleColliderComponent, RigidBodyComponent>);
+				for (auto entity : capsuleGroup)
+				{
+					Entity brEntity{ entity, this };
+					if (!brEntity.IsActive())
+					{
+						continue;
+					}
+					auto [transform, capsule, rigidbody] = capsuleGroup.get<TransformComponent, CapsuleColliderComponent, RigidBodyComponent>(entity);
+					PhysicsSystem::PushTransform(capsule, transform, capsule.rigidBody, brEntity);
 				}
 
 				
@@ -307,15 +327,36 @@ namespace Borealis
 				PhysicsSystem::Update(dt);
 
 				// Set entity values to Jolt transform.
-				for (auto entity : physicsGroup)
+				for (auto entity : boxGroup)
 				{
 					Entity brEntity{ entity, this };
 					if (!brEntity.IsActive())
 					{
 						continue;
 					}
-					auto [transform, rigidbody] = physicsGroup.get<TransformComponent, RigidBodyComponent>(entity);
-					PhysicsSystem::PullTransform(rigidbody, transform, brEntity);
+					auto [transform, box, rigidbody] = boxGroup.get<TransformComponent, BoxColliderComponent, RigidBodyComponent>(entity);
+					PhysicsSystem::PullTransform(box, transform, brEntity);
+				}
+
+				for (auto entity : capsuleGroup)
+				{
+					Entity brEntity{ entity, this };
+					if (!brEntity.IsActive())
+					{
+						continue;
+					}
+					auto [transform, capsule, rigidbody] = capsuleGroup.get<TransformComponent, CapsuleColliderComponent, RigidBodyComponent>(entity);
+					PhysicsSystem::PullTransform(capsule, transform, brEntity);
+				}
+				for (auto entity : sphereGroup)
+				{
+					Entity brEntity{ entity, this };
+					if (!brEntity.IsActive())
+					{
+						continue;
+					}
+					auto [transform, sphere, rigidbody] = sphereGroup.get<TransformComponent, SphereColliderComponent, RigidBodyComponent>(entity);
+					PhysicsSystem::PullTransform(sphere, transform, brEntity);
 				}
 
 				while (!PhysicsSystem::GetCollisionEnterQueue().empty())
@@ -684,9 +725,23 @@ namespace Borealis
 	void Scene::DestroyEntity(Entity entity)
 	{		
 		mEntityMap.erase(entity.GetUUID());
-		if (hasRuntimeStarted && entity.HasComponent<RigidBodyComponent>())
+		if (hasRuntimeStarted)
 		{
-			PhysicsSystem::FreeRigidBody(entity.GetComponent<RigidBodyComponent>());
+			if (entity.HasComponent<BoxColliderComponent>())
+			{
+				PhysicsSystem::FreeRigidBody(entity.GetComponent<BoxColliderComponent>());
+				entity.GetComponent<BoxColliderComponent>().rigidBody = nullptr;
+			}
+			if (entity.HasComponent<SphereColliderComponent>())
+			{
+				PhysicsSystem::FreeRigidBody(entity.GetComponent<SphereColliderComponent>());
+				entity.GetComponent<SphereColliderComponent>().rigidBody = nullptr;
+			}
+			if (entity.HasComponent<CapsuleColliderComponent>())
+			{
+				PhysicsSystem::FreeRigidBody(entity.GetComponent<CapsuleColliderComponent>());
+				entity.GetComponent<CapsuleColliderComponent>().rigidBody = nullptr;
+			}
 		}
 		mRegistry.destroy(entity);
 	}
@@ -918,13 +973,55 @@ namespace Borealis
 	{
 		hasRuntimeStarted = true;
 
-		auto physicsGroup = mRegistry.group<>(entt::get<TransformComponent, RigidBodyComponent>);
-		for (auto entity : physicsGroup)
+		auto boxGroup = mRegistry.group<>(entt::get<TransformComponent, BoxColliderComponent>);
+		for (auto entity : boxGroup)
 		{
 			auto mesh = mRegistry.get<MeshFilterComponent>(entity);
-			auto [transform, rigidbody] = physicsGroup.get<TransformComponent, RigidBodyComponent>(entity);
+			auto [transform, box] = boxGroup.get<TransformComponent, BoxColliderComponent>(entity);
 			auto entityID = mRegistry.get<IDComponent>(entity).ID;
-			PhysicsSystem::addBody(transform, rigidbody, mesh, entityID);
+			if (mRegistry.storage<RigidBodyComponent>().contains(entity))
+			{
+				PhysicsSystem::addBody(transform, &mRegistry.get<RigidBodyComponent>(entity), box, entityID);
+				box.rigidBody = &mRegistry.get<RigidBodyComponent>(entity);
+			}
+			else
+			{
+				PhysicsSystem::addBody(transform, nullptr, box, entityID);
+			}
+		}
+
+		auto sphereGroup = mRegistry.group<>(entt::get<TransformComponent, SphereColliderComponent>);
+		for (auto entity : sphereGroup)
+		{
+			auto mesh = mRegistry.get<MeshFilterComponent>(entity);
+			auto [transform, sphere] = sphereGroup.get<TransformComponent, SphereColliderComponent>(entity);
+			auto entityID = mRegistry.get<IDComponent>(entity).ID;
+			if (mRegistry.storage<RigidBodyComponent>().contains(entity))
+			{
+				PhysicsSystem::addBody(transform, &mRegistry.get<RigidBodyComponent>(entity), sphere, entityID);
+				sphere.rigidBody = &mRegistry.get<RigidBodyComponent>(entity);
+			}
+			else
+			{
+				PhysicsSystem::addBody(transform, nullptr, sphere, entityID);
+			}
+		}
+
+		auto capsuleGroup = mRegistry.group<>(entt::get<TransformComponent, CapsuleColliderComponent>);
+		for (auto entity : capsuleGroup)
+		{
+			auto mesh = mRegistry.get<MeshFilterComponent>(entity);
+			auto [transform, capsule] = capsuleGroup.get<TransformComponent, CapsuleColliderComponent>(entity);
+			auto entityID = mRegistry.get<IDComponent>(entity).ID;
+			if (mRegistry.storage<RigidBodyComponent>().contains(entity))
+			{
+				PhysicsSystem::addBody(transform, &mRegistry.get<RigidBodyComponent>(entity), capsule, entityID);
+				capsule.rigidBody = &mRegistry.get<RigidBodyComponent>(entity);
+			}
+			else
+			{
+				PhysicsSystem::addBody(transform, nullptr, capsule, entityID);
+			}
 		}
 
 		auto characterGroup = mRegistry.group<>(entt::get<TransformComponent, CharacterControlComponent>);
@@ -938,10 +1035,28 @@ namespace Borealis
 	void Scene::RuntimeEnd()
 	{
 		hasRuntimeStarted = false;
-		auto view = mRegistry.view<RigidBodyComponent>();
-		for (auto entity : view)
 		{
-			PhysicsSystem::FreeRigidBody(view.get<RigidBodyComponent>(entity));
+			auto boxView = mRegistry.view<BoxColliderComponent>();
+			for (auto entity : boxView)
+			{
+				PhysicsSystem::FreeRigidBody(boxView.get<BoxColliderComponent>(entity));
+			}
+		}
+
+		{
+			auto capsuleView = mRegistry.view<CapsuleColliderComponent>();
+			for (auto entity : capsuleView)
+			{
+				PhysicsSystem::FreeRigidBody(capsuleView.get<CapsuleColliderComponent>(entity));
+			}
+		}
+
+		{
+			auto sphereView = mRegistry.view<SphereColliderComponent>();
+			for (auto entity : sphereView)
+			{
+				PhysicsSystem::FreeRigidBody(sphereView.get<SphereColliderComponent>(entity));
+			}
 		}
 		PhysicsSystem::EndScene();
 	}
@@ -1017,13 +1132,51 @@ namespace Borealis
 	template<>
 	void Scene::OnComponentAdded<BoxColliderComponent>(Entity entity, BoxColliderComponent& component)
 	{
-
+		if (entity.HasComponent<MeshFilterComponent>())
+		{
+			component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).first;
+			component.size = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).second;
+		}
+		else
+		{
+			component.center = { 0,0,0 };
+			component.size = { 1,1,1 };
+		}
 	}
 	template<>
 	void Scene::OnComponentAdded<CapsuleColliderComponent>(Entity entity, CapsuleColliderComponent& component)
 	{
-
+		if (entity.HasComponent<MeshFilterComponent>())
+		{
+			component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).first;
+			glm::vec3 data = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).second;
+			component.radius = PhysicsSystem::calculateCapsuleDimensions(data).first;
+			component.height = PhysicsSystem::calculateCapsuleDimensions(data).second;
+		}
+		else
+		{
+			component.radius = 1.f;
+			component.height = 2.f;
+			component.center = { 0,0,0 };
+		}
 	}
+
+	template<>
+	void Scene::OnComponentAdded<SphereColliderComponent>(Entity entity, SphereColliderComponent& component)
+	{
+		if (entity.HasComponent<MeshFilterComponent>())
+		{
+			component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).first;
+			glm::vec3 data = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).second;
+			component.radius = PhysicsSystem::calculateSphereRadius(data);
+		}
+		else
+		{
+			component.center = { 0,0,0 };
+			component.radius = 1.f;
+		}
+	}
+
 	template<>
 	void Scene::OnComponentAdded<RigidBodyComponent>(Entity entity, RigidBodyComponent& component)
 	{

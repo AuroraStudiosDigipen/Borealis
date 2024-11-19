@@ -325,7 +325,7 @@ namespace Borealis
 
 		// Pass the model matrix to the shader
 		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, (maxExtent + minExtent) / 2.0f);
+		model = glm::translate(model, translation);
 		//model = glm::translate(model, translation);
 		model = glm::scale(model, maxExtent - minExtent);
 

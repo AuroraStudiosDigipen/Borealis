@@ -209,36 +209,6 @@ namespace Borealis
 		CombineMethod mBounceCombine = CombineMethod::Average;
 	};
 
-	struct BoxColliderComponent
-	{
-		bool isTrigger = false;
-		bool providesContact = false;
-		Ref<PhysicMaterial> Material;
-		glm::vec3 Center{ 0,0,0 };
-		glm::vec3 Size{ 1,1,1 };
-		BoxColliderComponent() = default;
-		BoxColliderComponent(const BoxColliderComponent&) = default;
-	};
-
-	struct CapsuleColliderComponent
-	{
-		enum class Direction : uint8_t
-		{
-			X,
-			Y,
-			Z
-		};
-
-		bool isTrigger = false;
-		bool providesContact = false;
-		Ref<PhysicMaterial> Material;
-		float radius = 0.5f;
-		float height = 2;
-		Direction direction = Direction::Y;
-		CapsuleColliderComponent() = default;
-		CapsuleColliderComponent(const CapsuleColliderComponent&) = default;
-	};
-
 
 	enum class RigidBodyType : int
 	{
@@ -256,20 +226,11 @@ namespace Borealis
 
 	struct RigidBodyComponent
 	{
-		RigidBodyType shape = RigidBodyType::Box;
 		MovementType movement = MovementType::Static;
-		float radius = 1.5f; //radius for circle
-		glm::vec3 size = { 1.f,1.f,1.f }; //size for box
-		float halfHeight = 1.f; //half height for capsule
 		float friction = 0.5f;
 		float bounciness = 0.5f;
 		bool dynamicBody = false;
 		// not serialised
-		unsigned int bodyID = 0;
-		glm::vec3 modelCenter = { 0,0,0 };
-
-		glm::vec3 minExtent = { 0.0f, 0.0f, 0.0f };
-		glm::vec3 maxExtent = { 0.0f, 0.0f, 0.0f };
 		glm::vec3 offset = { 0.0f, 0.0f, 0.0f };
 		//glm::vec3 velocity = { 0,0,0 };
 		//float mass = 1.f;
@@ -285,6 +246,41 @@ namespace Borealis
 
 		RigidBodyComponent() = default;
 		RigidBodyComponent(const RigidBodyComponent&) = default;
+	};
+
+	struct ColliderComponent
+	{
+		virtual ~ColliderComponent() = default;
+		bool isTrigger = false;
+		bool providesContact = false;
+		glm::vec3 center = { 0,0,0 };
+		Ref<PhysicMaterial> Material;
+		RigidBodyComponent* rigidBody = nullptr;
+		unsigned int bodyID = 0;
+	};
+
+	struct BoxColliderComponent : public ColliderComponent
+	{
+		glm::vec3 size = { 1,1,1 };
+	};
+
+	struct SphereColliderComponent : public ColliderComponent
+	{
+		float radius = 1.f;
+	};
+
+	struct CapsuleColliderComponent : public ColliderComponent
+	{
+		enum class Direction : uint8_t
+		{
+			X,
+			Y,
+			Z
+		};
+
+		float radius = 0.5f;
+		float height = 2;
+		Direction direction = Direction::Y;
 	};
 
 	struct CharacterControlComponent

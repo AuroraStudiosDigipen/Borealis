@@ -860,10 +860,6 @@ namespace Borealis
 
 			if (deleteComponent)
 			{
-				if (typeid(T) == typeid(RigidBodyComponent))
-				{
-					PhysicsSystem::FreeRigidBody(entity.GetComponent<RigidBodyComponent>());
-				}
 				entity.RemoveComponent<T>();
 			}
 		}
@@ -921,10 +917,6 @@ namespace Borealis
 
 			if (deleteComponent)
 			{
-				if (typeid(MeshRendererComponent) == typeid(RigidBodyComponent))
-				{
-					PhysicsSystem::FreeRigidBody(entity.GetComponent<RigidBodyComponent>());
-				}
 				entity.RemoveComponent<MeshRendererComponent>();
 			}
 
@@ -987,10 +979,6 @@ namespace Borealis
 
 			if (deleteComponent)
 			{
-				if (typeid(SkinnedMeshRendererComponent) == typeid(RigidBodyComponent))
-				{
-					PhysicsSystem::FreeRigidBody(entity.GetComponent<RigidBodyComponent>());
-				}
 				entity.RemoveComponent<SkinnedMeshRendererComponent>();
 			}
 

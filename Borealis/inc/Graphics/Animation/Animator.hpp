@@ -18,12 +18,19 @@ namespace Borealis
 		bool HasAnimation();
 		void PlayAnimation(Ref<Animation> animation);
 		void CalculateBoneTransform(AssimpNodeData const* node, glm::mat4 parentTransform);
+		void CalculateBlendedBoneTransform(Ref<Animation> animationBase, AssimpNodeData const* node,
+			Ref<Animation> animationLayer, AssimpNodeData const* nodeLayer,
+			float currentTimeBase, float currentTimeLayer, glm::mat4 const& parentTransform, float blendFactor);
+		void BlendTwoAnimations(Ref<Animation> baseAnimation, Ref<Animation> layerAnimation, float blendFactor, float deltaTime);
 
 		std::vector<glm::mat4> GetFinalBoneMatrices() { return mFinalBoneMatrices; }
+
+		bool mLoop;
 
 	private:
 		std::vector<glm::mat4> mFinalBoneMatrices;
 		Ref<Animation> mCurrentAnimation;
+		bool mPlayed;
 		float mCurrentTime;
 		float mDeltaTime;
 	};

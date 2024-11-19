@@ -1,5 +1,5 @@
 #include <imgui.h>
-#include "EditorAssets/MaterialEditor.hpp"
+#include "MaterialEditor.hpp"
 #include "Assets/AssetManager.hpp"
 
 #include <string>

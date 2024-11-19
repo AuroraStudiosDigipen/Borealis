@@ -3,13 +3,30 @@
 
 namespace Borealis
 {
-#define MAX_BONES 128
-	Animator::Animator()
-	{
-		mDeltaTime = {};
-		mCurrentTime = 0.0;
-		mCurrentAnimation = nullptr;
+	#define MAX_BONES 128
 
+	void DecomposeMatrix(const glm::mat4& matrix, glm::vec3& position, glm::quat& rotation, glm::vec3& scale)
+	{
+		// Extract translation
+		position = glm::vec3(matrix[3]);
+
+		// Extract scale and rotation
+		glm::mat3 rotScaleMatrix(matrix);
+		scale.x = glm::length(rotScaleMatrix[0]);
+		scale.y = glm::length(rotScaleMatrix[1]);
+		scale.z = glm::length(rotScaleMatrix[2]);
+
+		// Remove scale from rotation matrix
+		if (scale.x != 0) rotScaleMatrix[0] /= scale.x;
+		if (scale.y != 0) rotScaleMatrix[1] /= scale.y;
+		if (scale.z != 0) rotScaleMatrix[2] /= scale.z;
+
+		rotation = glm::quat_cast(rotScaleMatrix);
+	}
+
+	Animator::Animator() :
+	mCurrentAnimation(nullptr), mLoop(true), mPlayed(false), mCurrentTime(0.f), mDeltaTime(0.f)
+	{
 		mFinalBoneMatrices.reserve(MAX_BONES);
 
 		for (int i = 0; i < MAX_BONES; i++)
@@ -18,12 +35,9 @@ namespace Borealis
 		}
 	}
 
-	Animator::Animator(Ref<Animation> animation)
+	Animator::Animator(Ref<Animation> animation) :
+	mCurrentAnimation(animation), mLoop(true), mPlayed(false), mCurrentTime(0.f), mDeltaTime(0.f)
 	{
-		mDeltaTime = {};
-		mCurrentTime = 0.0;
-		mCurrentAnimation = animation;
-
 		mFinalBoneMatrices.reserve(MAX_BONES);
 
 		for (int i = 0; i < MAX_BONES; i++)
@@ -35,11 +49,24 @@ namespace Borealis
 	void Animator::UpdateAnimation(float dt)
 	{
 		mDeltaTime = dt;
-		if (mCurrentAnimation)
+		if (mCurrentAnimation && !mPlayed)
 		{
 			mCurrentTime += mCurrentAnimation->mTicksPerSecond * dt;
-			mCurrentTime = fmod(mCurrentTime, mCurrentAnimation->mDuration);
-			CalculateBoneTransform(&mCurrentAnimation->mRootNode, glm::mat4(1.0f));
+
+			if (mLoop)
+			{
+				mCurrentTime = fmod(mCurrentTime, mCurrentAnimation->mDuration);
+			}
+			else if (mCurrentTime >= mCurrentAnimation->mDuration)
+			{
+				mCurrentTime = mCurrentAnimation->mDuration;
+				mPlayed = true;
+			}
+
+			if (!mPlayed)
+			{
+				CalculateBoneTransform(&mCurrentAnimation->mRootNode, glm::mat4(1.0f));
+			}
 		}
 	}
 
@@ -52,6 +79,7 @@ namespace Borealis
 	{
 		mCurrentAnimation = animation;
 		mCurrentTime = 0.0f;
+		mPlayed = false;
 	}
 
 	void Animator::CalculateBoneTransform(const AssimpNodeData* node, glm::mat4 parentTransform)
@@ -82,4 +110,72 @@ namespace Borealis
 			CalculateBoneTransform(&node->children[i], globalTransformation);
 		}
 	}
+
+	void Animator::CalculateBlendedBoneTransform(Ref<Animation> animationBase, AssimpNodeData const* node, Ref<Animation> animationLayer, AssimpNodeData const* nodeLayer, float currentTimeBase, float currentTimeLayer, glm::mat4 const& parentTransform, float blendFactor)
+	{
+		std::string nodeName = node->name;
+		glm::mat4 nodeTransform = node->transformation;
+
+		Bone* bone = animationBase->FindBone(nodeName);
+		if (bone)
+		{
+			bone->Update(currentTimeBase);
+			nodeTransform = bone->GetLocalTransform();
+		}
+
+		glm::mat4 layerNodeTransform = nodeLayer->transformation;
+		bone = animationLayer->FindBone(nodeName);
+		if (bone)
+		{
+			bone->Update(currentTimeLayer);
+			layerNodeTransform = bone->GetLocalTransform();
+		}
+
+		glm::quat rot0 = glm::quat_cast(nodeTransform);
+		glm::quat rot1 = glm::quat_cast(layerNodeTransform);
+		glm::quat finalRot = glm::slerp(rot0, rot1, blendFactor);
+		glm::mat4 blendedMat = glm::mat4_cast(finalRot);
+		blendedMat[3] = (1.f - blendFactor) * nodeTransform[3] + layerNodeTransform[3] * blendFactor;
+
+		glm::mat4 globalTransformation = parentTransform * blendedMat;
+
+		auto const& boneDataMap = animationBase->GetBoneDataMap();
+		if (boneDataMap.find(nodeName) != boneDataMap.end())
+		{
+			int index = boneDataMap.at(nodeName).id;
+			glm::mat4 offset = boneDataMap.at(nodeName).offsetMatrix;
+			mFinalBoneMatrices[index] = globalTransformation * offset;
+		}
+
+		for (int i = 0; i < node->childrenCount; i++)
+		{
+			CalculateBlendedBoneTransform(animationBase, &node->children[i], 
+				animationLayer, &nodeLayer->children[i], 
+				currentTimeBase, currentTimeLayer, globalTransformation, blendFactor);
+		}
+	}
+
+	void Animator::BlendTwoAnimations(Ref<Animation> baseAnimation, Ref<Animation> layerAnimation, float blendFactor, float deltaTime)
+	{
+		float a = 1.f;
+		float b = baseAnimation->GetDuration() / layerAnimation->GetDuration();
+		float animSpeedMultiplierUp = (1.f - blendFactor) * a + b * blendFactor;
+
+		a = layerAnimation->GetDuration() / baseAnimation->GetDuration();
+		b = 1.f;
+		float animSpeedMultiplierDown = (1.f - blendFactor) * a + b * blendFactor;
+
+		static float currentTimeBase = 0.f;
+		currentTimeBase += baseAnimation->GetTicksPerSecond() * deltaTime * animSpeedMultiplierUp;
+		currentTimeBase = fmod(currentTimeBase, baseAnimation->GetDuration());
+
+		static float currentTimeLayer = 0.f;
+		currentTimeLayer += layerAnimation->GetTicksPerSecond() * deltaTime * animSpeedMultiplierDown;
+		currentTimeLayer = fmod(currentTimeLayer, layerAnimation->GetDuration());
+
+		CalculateBlendedBoneTransform(baseAnimation, &baseAnimation->GetRootNode(), 
+			layerAnimation, &layerAnimation->GetRootNode(), 
+			currentTimeBase, currentTimeLayer, glm::mat4(1.f), blendFactor);
+	}
+
 }

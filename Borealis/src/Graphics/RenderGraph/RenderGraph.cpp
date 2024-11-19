@@ -1151,6 +1151,25 @@ namespace Borealis
 		shader = quad_shader;
 	}
 
+	void RenderCanvasRecursive(Entity parent, const glm::mat4& parentTransform, const glm::mat4& canvasTransform)
+	{
+		glm::mat4 parentTansform = parent.GetComponent<TransformComponent>();
+		if (parent.HasComponent<CanvasRendererComponent>() && parent.HasComponent<SpriteRendererComponent>())
+		{
+
+			glm::mat4 transform = canvasTransform * parentTransform * parentTansform;
+
+			Renderer2D::DrawSprite(transform, parent.GetComponent<SpriteRendererComponent>());
+		}
+
+		for (UUID childID : parent.GetComponent<TransformComponent>().ChildrenID)
+		{
+			Entity child = SceneManager::GetActiveScene()->GetEntityByUUID(childID);
+
+			RenderCanvasRecursive(child, parentTansform, canvasTransform);
+		}
+	}
+
 	void UIPass::Execute(float dt)
 	{
 		Ref<RenderTargetSource> renderTarget = nullptr;
@@ -1218,21 +1237,23 @@ namespace Borealis
 					Renderer2D::DrawSprite(screenTransform, spriteRenderer);
 				}
 
-				for (UUID childID : transform.ChildrenID)
-				{
-					Entity child = SceneManager::GetActiveScene()->GetEntityByUUID(childID);
+				RenderCanvasRecursive(brEntity, glm::mat4(1.0f), canvasTransform);
 
-					if (!child.HasComponent<CanvasRendererComponent>()) continue;
-					if (!child.HasComponent<SpriteRendererComponent>()) continue;
+				//for (UUID childID : transform.ChildrenID)
+				//{
+				//	Entity child = SceneManager::GetActiveScene()->GetEntityByUUID(childID);
 
-					glm::mat4 childTransform = child.GetComponent<TransformComponent>();
-					//childTransform = glm::translate(childTransform, canvasPosition);
-					//childTransform = glm::scale(childTransform, glm::vec3(scaleFactor));
+				//	if (!child.HasComponent<CanvasRendererComponent>()) continue;
+				//	if (!child.HasComponent<SpriteRendererComponent>()) continue;
 
-					childTransform = canvasTransform * childTransform;
+				//	glm::mat4 childTransform = child.GetComponent<TransformComponent>();
+				//	//childTransform = glm::translate(childTransform, canvasPosition);
+				//	//childTransform = glm::scale(childTransform, glm::vec3(scaleFactor));
 
-					Renderer2D::DrawSprite(childTransform, child.GetComponent<SpriteRendererComponent>());
-				}
+				//	childTransform = canvasTransform * childTransform;
+
+				//	Renderer2D::DrawSprite(childTransform, child.GetComponent<SpriteRendererComponent>());
+				//}
 			}
 		}
 

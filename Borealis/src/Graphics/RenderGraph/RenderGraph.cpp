@@ -31,6 +31,7 @@ namespace Borealis
 	Ref<Shader> s_shader = nullptr;
 	Ref<Shader> shadow_shader = nullptr;
 	Ref<Shader> common_shader = nullptr;
+	Ref<Shader> quad_shader = nullptr;
 
 	//========================================================================
 	//BUFFER SOURCE
@@ -526,7 +527,7 @@ namespace Borealis
 			for (auto& entity : group)
 			{
 				Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
-				if (!brEntity.IsActive())
+				if (!brEntity.IsActive() || brEntity.HasComponent<CanvasRendererComponent>())
 				{
 					continue;
 				}
@@ -1133,6 +1134,118 @@ namespace Borealis
 		}
 	}
 
+	Ref<FrameBuffer> UIFBO;
+
+	UIPass::UIPass(std::string name) : EntityPass(name)
+	{
+		if (!UIFBO)
+		{
+			FrameBufferProperties props{ 1280, 720, false };
+			props.Attachments = { FramebufferTextureFormat::RGBA8,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
+			UIFBO = FrameBuffer::Create(props);
+		}
+
+		shader = quad_shader;
+	}
+
+	void UIPass::Execute(float dt)
+	{
+		Ref<RenderTargetSource> renderTarget = nullptr;
+		glm::mat4 viewProjMatrix{};
+
+		for (auto sink : sinkList)
+		{
+			if (sink->source->sourceType == RenderSourceType::RenderTargetColor)
+			{
+				if (sink->sinkName == "renderTarget")
+				{
+					renderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
+				}
+			}
+
+			if (sink->source->sourceType == RenderSourceType::Camera)
+			{
+				viewProjMatrix = std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj();
+			}
+		}
+
+		if (UIFBO->GetProperties().Width != renderTarget->Width || UIFBO->GetProperties().Height != renderTarget->Height)
+		{
+			UIFBO->Resize(renderTarget->Width, renderTarget->Height);
+		}
+
+		UIFBO->Bind();
+		RenderCommand::Clear();
+
+		RenderCommand::DisableDepthTest();
+		const float baseScreenWidth = 1920.0f;
+		const float baseScreenHeight = 1080.0f;
+		viewProjMatrix = glm::ortho(0.0f, (float)renderTarget->Width, (float)renderTarget->Height, 0.0f, -100.0f, 100.0f);
+		Renderer2D::Begin(viewProjMatrix);
+
+		{
+			auto group = registryPtr->group<>(entt::get<TransformComponent, CanvasRendererComponent>);
+			for (auto& entity : group)
+			{
+				Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
+				if (!brEntity.IsActive())
+				{
+					continue;
+				}
+				auto [transformHolder, canvasRenderer] = group.get<TransformComponent, CanvasRendererComponent>(entity);
+
+				renderTarget->Bind();
+
+				glm::mat4 transform = TransformComponent::GetGlobalTransform(brEntity);
+
+				glm::vec3 position = glm::vec3(transform[3]); // Extract translation
+				glm::vec3 screenCenterOffset(renderTarget->Width * 0.5f, renderTarget->Height * 0.5f, 0.0f);
+				glm::vec3 screenPosition = position + screenCenterOffset;
+				screenPosition.y = renderTarget->Height - screenPosition.y;
+				glm::vec3 scale = glm::vec3(
+					glm::length(glm::vec3(transform[0])),
+					glm::length(glm::vec3(transform[1])),
+					glm::length(glm::vec3(transform[2]))
+				);
+
+				float scalingFactorX = renderTarget->Width / baseScreenWidth;
+				float scalingFactorY = renderTarget->Height / baseScreenHeight;
+
+				// Adjust scale to match screen resolution
+				scale.x *= scalingFactorX * 10;
+				scale.y *= scalingFactorY * 10;
+
+				// Build the final screen-space transform
+				glm::mat4 screenTransform = glm::translate(glm::mat4(1.0f), screenPosition) *
+					glm::scale(glm::mat4(1.0f), scale);
+
+				if (brEntity.HasComponent<SpriteRendererComponent>())
+				{
+					SpriteRendererComponent const& spriteRenderer = brEntity.GetComponent<SpriteRendererComponent>();
+					Renderer2D::DrawSprite(screenTransform, spriteRenderer, (int)entity);
+				}
+				
+			}
+		}
+
+		Renderer2D::End();
+		UIFBO->Unbind();
+
+		//std::swap(UIFBO, renderTarget->buffer);
+
+		RenderCommand::DisableDepthTest();
+		UIFBO->BindTexture(1, 0);
+		shader->Bind();
+		shader->Set("u_Texture0", 0);
+
+		renderTarget->Bind();
+		Renderer3D::DrawQuad();
+		renderTarget->Unbind();
+
+		shader->Unbind();
+		RenderCommand::EnableDepthTest();
+	}
+
 	//========================================================================
 	//RENDER GRAPH Config
 	//========================================================================	
@@ -1150,6 +1263,9 @@ namespace Borealis
 
 		if (!common_shader)
 			common_shader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_Common.glsl");
+
+		if (!quad_shader)
+			quad_shader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_Quad.glsl");
 	}
 
 	RenderPassConfig& RenderPassConfig::AddSinkLinkage(std::string sinkName, std::string sourceName)
@@ -1230,6 +1346,7 @@ namespace Borealis
 			case RenderPassType::Lighting:
 			case RenderPassType::Shadow:
 			case RenderPassType::HighlightPass:
+			case RenderPassType::UIPass:
 				AddEntityPassConfig(passesConfig);
 				break;
 			case RenderPassType::ObjectPicking:
@@ -1309,6 +1426,10 @@ namespace Borealis
 			break;
 		case RenderPassType::HighlightPass:
 			renderPass = MakeRef<HighlightPass>(renderPassConfig.mPassName);
+			break;
+		case RenderPassType::UIPass:
+			renderPass = MakeRef<UIPass>(renderPassConfig.mPassName);
+			break;
 		}
 
 		Ref<EntityPass> entityPass = std::dynamic_pointer_cast<EntityPass>(renderPass);

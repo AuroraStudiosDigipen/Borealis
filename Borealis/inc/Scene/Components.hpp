@@ -414,6 +414,14 @@ namespace Borealis
 		OutLineComponent() = default;
 		OutLineComponent(const OutLineComponent&) = default;
 	};
+
+	struct CanvasRendererComponent
+	{
+		bool allowPassthrough = false;
+
+		CanvasRendererComponent() = default;
+		CanvasRendererComponent(const CanvasRendererComponent&) = default;
+	};
 }
 
 #endif

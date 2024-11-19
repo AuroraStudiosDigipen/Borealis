@@ -202,6 +202,11 @@ namespace Borealis
             .property("Filled", &OutLineComponent::filled)
             .property("Active", &OutLineComponent::active);
 
+        registration::class_<CanvasRendererComponent>("Canvas Renderer Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("Allow Passthrough", &CanvasRendererComponent::allowPassthrough);
+
         registration::class_<TextComponent>("Text Component")
             (metadata("Component", true))
             .constructor<>()

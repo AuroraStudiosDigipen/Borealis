@@ -201,6 +201,11 @@ namespace Borealis
 			SerializeComponent(out, entity.GetComponent<OutLineComponent>());
 		}
 
+		if (entity.HasComponent<CanvasRendererComponent>())
+		{
+			SerializeComponent(out, entity.GetComponent<CanvasRendererComponent>());
+		}
+
 		if (entity.HasComponent<ScriptComponent>())
 		{
 			out << YAML::Key << "ScriptComponent";
@@ -431,6 +436,9 @@ namespace Borealis
 		DeserialiseComponent<AudioListenerComponent>(entity, BorealisEntity);
 		DeserialiseComponent<TextComponent>(entity, BorealisEntity);
 		DeserialiseComponent<SkinnedMeshRendererComponent>(entity, BorealisEntity);
+		DeserialiseComponent<AnimatorComponent>(entity, BorealisEntity);
+		DeserialiseComponent<OutLineComponent>(entity, BorealisEntity);
+		DeserialiseComponent<CanvasRendererComponent>(entity, BorealisEntity);
 
 		DeserialiseAbstractItems(entity, BorealisEntity);
 		//auto behaviourTreeComponent = entity["BehaviourTreeComponent"];

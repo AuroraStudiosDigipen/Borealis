@@ -185,7 +185,8 @@ namespace Borealis
 		Shadow,
 		ObjectPicking,
 		HighlightPass,
-		EditorHighlightPass
+		EditorHighlightPass,
+		UIPass
 	};
 
 	class RenderPass 
@@ -273,6 +274,14 @@ namespace Borealis
 	{
 	public:
 		HighlightPass(std::string name);
+
+		void Execute(float dt) override;
+	};
+
+	class UIPass : public EntityPass
+	{
+	public:
+		UIPass(std::string name);
 
 		void Execute(float dt) override;
 	};

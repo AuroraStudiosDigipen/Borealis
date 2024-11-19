@@ -722,6 +722,7 @@ namespace Borealis
 		CopyComponent<ScriptComponent>(newEntity, entity);
 		CopyComponent<BehaviourTreeComponent>(newEntity, entity);
 		CopyComponent<OutLineComponent>(newEntity, entity);
+		CopyComponent<CanvasRendererComponent>(newEntity, entity);
 
 		auto& tc = newEntity.GetComponent<TransformComponent>();
 		if (tc.ParentID)
@@ -858,6 +859,7 @@ namespace Borealis
 		CopyComponent<ScriptComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<BehaviourTreeComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<OutLineComponent>(newRegistry, originalRegistry, UUIDtoENTT);
+		CopyComponent<CanvasRendererComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 
 		return newScene;
 	}
@@ -1017,4 +1019,9 @@ namespace Borealis
 
 	}
 
+	template<>
+	void Scene::OnComponentAdded<CanvasRendererComponent>(Entity entity, CanvasRendererComponent& component)
+	{
+
+	}
 }

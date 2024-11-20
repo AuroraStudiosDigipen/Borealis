@@ -23,7 +23,6 @@ namespace Borealis
 	OpenGLShader::OpenGLShader(const std::string& filepath)
 	{
 		PROFILE_FUNCTION();
-
 		std::string shaderSrc = ReadFile(filepath);
 		auto shaderSources = PreProcess(shaderSrc);
 		Compile(shaderSources);
@@ -192,6 +191,8 @@ namespace Borealis
 			return GL_VERTEX_SHADER;
 		if (type == "fragment")
 			return GL_FRAGMENT_SHADER;
+		if (type == "geometry")
+			return GL_GEOMETRY_SHADER;
 
 		BOREALIS_CORE_ERROR("Invalid Shader Type: {}", type);
 		return 0;
@@ -250,8 +251,8 @@ namespace Borealis
 		PROFILE_FUNCTION();
 
 		GLuint program = glCreateProgram();
-		BOREALIS_CORE_ASSERT(shaderSources.size() <= 2, "More than 2 shaders detected in 1 glsl");
-		std::array<GLenum,2> shaderIDs;
+		BOREALIS_CORE_ASSERT(shaderSources.size() <= 3, "More than 3 shaders detected in 1 glsl");
+		std::array<GLenum, 3> shaderIDs{};
 		int index = 0;
 		for (auto& kv : shaderSources)
 		{
@@ -309,6 +310,7 @@ namespace Borealis
 			glDeleteProgram(program);
 			for (auto id : shaderIDs)
 			{
+				if (id == 0) continue;
 				glDeleteShader(id);
 			}
 			// Use the infoLog as you see fit.
@@ -319,6 +321,7 @@ namespace Borealis
 
 		for (auto id : shaderIDs)
 		{
+			if (id == 0) continue;
 			glDetachShader(program,id);
 		}
 		mRendererID = program;

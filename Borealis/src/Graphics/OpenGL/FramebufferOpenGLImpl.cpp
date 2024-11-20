@@ -59,10 +59,19 @@ namespace Borealis
 		glBindTexture(GL_TEXTURE_2D, mColorAttachments[attachmentIndex]);
 	}
 
-	void OpenGLFrameBuffer::BindDepthBuffer(uint32_t textureUnit)
+	void OpenGLFrameBuffer::BindDepthBuffer(uint32_t textureUnit, bool is3D)
 	{
 		glActiveTexture(GL_TEXTURE0 + textureUnit);
-		glBindTexture(GL_TEXTURE_2D, mDepthAttachment);
+		unsigned int type;
+		if (is3D)
+		{
+			type = GL_TEXTURE_2D_ARRAY;
+		}
+		else
+		{
+			type = GL_TEXTURE_2D;
+		}
+		glBindTexture(type, mDepthAttachment);
 	}
 
 	void OpenGLFrameBuffer::Resize(uint32_t width, uint32_t height)
@@ -143,11 +152,24 @@ namespace Borealis
 		if (mDepthAttachmentProp.mTextureFormat != FramebufferTextureFormat::None)
 		{
 			GraphicsUtils::CreateTextures(multisample, &mDepthAttachment, 1);
-			GraphicsUtils::BindTexture(multisample, mDepthAttachment);
+			bool is3D;
+			switch (mDepthAttachmentProp.mTextureFormat)
+			{
+			case FramebufferTextureFormat::DepthArray:
+				is3D = true;
+				break;
+			default:
+				is3D = false;
+				break;
+			}
+			GraphicsUtils::BindTexture(multisample, mDepthAttachment, is3D);
 			switch (mDepthAttachmentProp.mTextureFormat)
 			{
 			case FramebufferTextureFormat::Depth24Stencil8:
 				GraphicsUtils::AttachDepthTexture(mDepthAttachment, mProps.Samples, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL_ATTACHMENT, mProps.Width, mProps.Height);
+				break;
+			case FramebufferTextureFormat::DepthArray:
+				GraphicsUtils::AttachDepthTextureArray(mDepthAttachment, mProps.Samples, GL_DEPTH_COMPONENT32F, GL_DEPTH_ATTACHMENT, mProps.Width, mProps.Height);
 				break;
 			}
 		}

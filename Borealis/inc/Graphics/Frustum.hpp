@@ -85,6 +85,8 @@ namespace Borealis
 
 	FrustumCorners GetCorners(Frustum const& frustum);
 
+	void GetCornersViewProj(std::vector<glm::vec4>& corners, glm::mat4 const& viewProj);
+
 	bool CullBoundingSphere(Frustum const& frustum, BoundingSphere boundingSphere);
 }
 

@@ -30,6 +30,7 @@ namespace Borealis
 
 		//Stencil
 		Depth24Stencil8,
+		DepthArray,
 
 		//Default
 		Depth = Depth24Stencil8
@@ -96,7 +97,7 @@ namespace Borealis
 
 		virtual void BindTexture(uint32_t attachmentIndex, uint32_t textureUnit) = 0;
 
-		virtual void BindDepthBuffer(uint32_t textureUnit) = 0;
+		virtual void BindDepthBuffer(uint32_t textureUnit, bool is3D = false) = 0;
 
 		/*!***********************************************************************
 			\brief

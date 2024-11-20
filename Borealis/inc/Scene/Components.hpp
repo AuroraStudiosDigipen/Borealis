@@ -399,7 +399,9 @@ namespace Borealis
 		//}
 
 		Ref<BehaviourTree> mBehaviourTrees;
-
+		// List of names in tree-style
+		//TreeData -> AssetManager with ID
+		//BehaviourNode mRoot;
 		BehaviourTreeComponent() = default;
 		BehaviourTreeComponent(const BehaviourTreeComponent&) = default;
 	};

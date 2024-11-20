@@ -854,6 +854,30 @@ namespace Borealis
 			auto entityID = mRegistry.get<IDComponent>(entity).ID;
 			PhysicsSystem::addBody(transform, rigidbody, mesh, entityID);
 		}
+
+		auto behaviourTreeGroup = mRegistry.group<>(entt::get<TransformComponent, BehaviourTreeComponent>);
+		for (auto entity : physicsGroup)
+		{
+			//construct the behaviour tree using the components' behavioourtreedata, using recursive function calls 
+			/*auto mesh = mRegistry.get<MeshFilterComponent>(entity);
+			auto [transform, btree] = physicsGroup.get<TransformComponent, BehaviourTreeComponent>(entity);
+			auto entityID = mRegistry.get<IDComponent>(entity).ID;
+			BehaviourNode mRoot(btree.NameList.first());*/
+
+			////creating the nodes and building the tree
+			//for (element : nameList)
+			//{
+			//	parent->addChild(current);
+			//	BehaviourNode current(element);
+
+			//}
+			////print out tree name with depth to test
+			//for ()
+			//{
+			//	BOREALIS_CORE_INFO(mRoot.GetDepth() + mRoot.GetName());
+			//}
+		}
+
 	}
 
 	void Scene::RuntimeEnd()

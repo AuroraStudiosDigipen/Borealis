@@ -154,7 +154,7 @@ namespace Borealis
             {
                 
                 std::string savePath = Project::GetAssetsPath();
-                std::string fullPath = savePath + m_TreeFileName + ".btree";
+                std::string fullPath = savePath + "/" + m_TreeFileName + ".btree";
                 SaveBehaviorTree(fullPath);
                 ImGui::CloseCurrentPopup();
             }
@@ -196,13 +196,20 @@ namespace Borealis
         if (ImGui::BeginPopupModal("Enter Tree Name", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
             ImGui::Text("Please enter a name for the behavior tree.");
+            static bool setRed = false;
+            if (std::string(treeNameBuffer) == "Untitled-No-Name-Entered")
+            {
+                ImU32 color32 = IM_COL32(180, 120, 120, 255);
+                ImVec4 color = ImGui::ColorConvertU32ToFloat4(color32);
+                ImGui::PushStyleColor(ImGuiCol_FrameBg, color);
+                setRed = true;
+            }
             ImGui::InputText("##TreeNameInput", treeNameBuffer, IM_ARRAYSIZE(treeNameBuffer));
-
-            // Disable the "OK" button if the name is empty
-            bool nameEntered = strlen(treeNameBuffer) > 0;
-            if (!nameEntered)
-                ImGui::BeginDisabled();
-
+            if (setRed)
+            {
+                ImGui::PopStyleColor();
+                setRed = false;
+            }
             if (ImGui::Button("OK", ImVec2(120, 0)))
             {
                 m_TreeFileName = treeNameBuffer;
@@ -211,9 +218,6 @@ namespace Borealis
                 // Now proceed to save the tree with the new name
                 SaveBehaviorTree(m_TreeFileName);
             }
-
-            if (!nameEntered)
-                ImGui::EndDisabled();
 
             ImGui::SameLine();
             if (ImGui::Button("Cancel", ImVec2(120, 0)))
@@ -911,6 +915,13 @@ namespace Borealis
     }
     std::vector<std::string> BTNodeEditorPanel::GetAvailableBehaviorTrees()
     {
+        // Loop through all assets in asset manager
+        // If assetType == Type::BTree
+        // Add into vector
+
+        // Display all the strings in the vector
+
+
         std::vector<std::string> behaviorTrees;
         std::filesystem::path directoryPath(".");
         try {

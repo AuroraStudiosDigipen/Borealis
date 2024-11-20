@@ -495,7 +495,6 @@ namespace Borealis
 				ImGui::EndDragDropTarget();
 			}
 			return false;
-
 		}
 
 		if (propType == rttr::type::get<Ref<SkinnedModel>>())
@@ -702,9 +701,7 @@ namespace Borealis
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropBehaviourTreeItem"))
 				{
 					AssetHandle data = *(const uint64_t*)payload->Data;
-					Ref<BehaviourTree> originalTree = AssetManager::GetAsset<BehaviourTree>(data);
-					Ref<BehaviourTree> clonedTree = BTreeFactory::Instance().CloneBehaviourTree(originalTree);
-					rttr::variant setValue(clonedTree);
+					rttr::variant setValue(AssetManager::GetAsset<BehaviourTree>(data));
 					Property.set_value(rInstance, setValue);
 					return true;
 				}

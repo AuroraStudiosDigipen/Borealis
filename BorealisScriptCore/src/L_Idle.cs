@@ -2,6 +2,7 @@
 
 namespace Borealis
 {
+    [BTNodeClass(NodeType.LEAF)]
     public class Idle : BehaviourNode
     {
         private float timer;
@@ -22,7 +23,7 @@ namespace Borealis
 
             if (timer <= 0.0f)
             {
-                InternalCalls.Log("Idling completed for GameObject" + gameobject.name);
+                Debug.Log("Idling completed for GameObject" + gameobject.name);
                 OnSuccess();
             }
         }

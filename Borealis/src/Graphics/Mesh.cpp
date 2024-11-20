@@ -352,6 +352,280 @@ namespace Borealis
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
 
+	void Mesh::DrawSphere(glm::vec3 center, float radius, glm::vec4 color, bool wireframe, Ref<Shader> shader, SphereSides side)
+	{
+		static GLuint SphereVAO = 0, SphereVBO = 0, SphereEBO = 0;
+		static int sphereIndexCount = 0;
+		static std::vector<GLuint> fullIndices;
+		const int latitudeSegments = 16;
+		const int longitudeSegments = 16;
+
+		if (SphereVAO == 0)
+		{
+			std::vector<glm::vec3> vertices;
+			std::vector<GLuint> indices;
+
+			// Generate vertices
+			for (int y = 0; y <= latitudeSegments; ++y)
+			{
+				float theta = y * glm::pi<float>() / latitudeSegments; // Latitude angle
+				float sinTheta = sin(theta) * 0.5f;
+				float cosTheta = cos(theta) * 0.5f;
+
+				for (int x = 0; x <= longitudeSegments; ++x)
+				{
+					float phi = x * 2.0f * glm::pi<float>() / longitudeSegments; // Longitude angle
+					float sinPhi = sin(phi);
+					float cosPhi = cos(phi);
+
+					glm::vec3 position(
+						cosPhi * sinTheta,
+						cosTheta,
+						sinPhi * sinTheta
+					);
+
+					vertices.push_back(position);
+				}
+			}
+
+			// Generate indices
+			for (int y = 0; y < latitudeSegments; ++y)
+			{
+				for (int x = 0; x < longitudeSegments; ++x)
+				{
+					int first = y * (longitudeSegments + 1) + x;
+					int second = first + longitudeSegments + 1;
+
+					indices.push_back(first);
+					indices.push_back(second);
+					indices.push_back(first + 1);
+
+					indices.push_back(second);
+					indices.push_back(second + 1);
+					indices.push_back(first + 1);
+				}
+			}
+
+			fullIndices = indices;
+			sphereIndexCount = static_cast<int>(indices.size());
+
+			// Create buffers
+			glGenVertexArrays(1, &SphereVAO);
+			glGenBuffers(1, &SphereVBO);
+			glGenBuffers(1, &SphereEBO);
+
+			glBindVertexArray(SphereVAO);
+
+			glBindBuffer(GL_ARRAY_BUFFER, SphereVBO);
+			glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), vertices.data(), GL_STATIC_DRAW);
+
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, SphereEBO);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), indices.data(), GL_STATIC_DRAW);
+
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (GLvoid*)0);
+			glEnableVertexAttribArray(0);
+
+			glBindVertexArray(0);
+		}
+
+		// Bind the VAO
+		glBindVertexArray(SphereVAO);
+
+		shader->Bind();
+
+		// Create and set model matrix
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, center);
+		model = glm::scale(model, glm::vec3(radius));
+
+		shader->Set("u_ModelTransform", model);
+		shader->Set("u_Color", color);
+
+		std::vector<GLuint> partialIndices;
+		if (side != SphereSides::BOTH)
+		{
+			int cutoff = latitudeSegments / 2;
+			for (int y = 0; y < latitudeSegments; ++y)
+			{
+				if ((side == SphereSides::TOP && y >= cutoff) || (side == SphereSides::BOTTOM && y < cutoff))
+					continue; // Skip the other half
+
+				for (int x = 0; x < longitudeSegments; ++x)
+				{
+					int first = y * (longitudeSegments + 1) + x;
+					int second = first + longitudeSegments + 1;
+
+					partialIndices.push_back(first);
+					partialIndices.push_back(second);
+					partialIndices.push_back(first + 1);
+
+					partialIndices.push_back(second);
+					partialIndices.push_back(second + 1);
+					partialIndices.push_back(first + 1);
+				}
+			}
+
+			// Update the EBO with partial indices
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, SphereEBO);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, partialIndices.size() * sizeof(GLuint), partialIndices.data(), GL_DYNAMIC_DRAW);
+			sphereIndexCount = static_cast<int>(partialIndices.size());
+		}
+		else
+		{
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, SphereEBO);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, fullIndices.size() * sizeof(GLuint), fullIndices.data(), GL_DYNAMIC_DRAW);
+			sphereIndexCount = static_cast<int>(fullIndices.size());
+		}
+
+		// Toggle wireframe mode
+		if (wireframe) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		}
+		else {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		}
+
+		// Draw the sphere
+		glDrawElements(GL_TRIANGLES, sphereIndexCount, GL_UNSIGNED_INT, 0);
+
+		// Reset polygon mode
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+		glBindVertexArray(0);
+	}
+
+	void Mesh::DrawCylinder(glm::vec3 center, float radius, float height, glm::vec4 color, bool wireframe, Ref<Shader> shader)
+	{
+		static GLuint CylinderVAO = 0, CylinderVBO = 0, CylinderEBO = 0;
+		const int segments = 16; // Adjust for detail level
+
+		if (CylinderVAO == 0)
+		{
+			std::vector<GLfloat> vertices;
+			std::vector<GLuint> indices;
+
+			// Generate vertices
+			for (int i = 0; i <= segments; ++i)
+			{
+				float angle = glm::radians(360.0f * i / segments);
+				float x = cos(angle) * 0.5f;
+				float z = sin(angle) * 0.5f;
+
+				// Bottom circle
+				vertices.push_back(x);
+				vertices.push_back(-1.f / 2.0f);
+				vertices.push_back(z);
+
+				// Top circle
+				vertices.push_back(x);
+				vertices.push_back(1.f / 2.0f);
+				vertices.push_back(z);
+			}
+
+			// Indices for the curved surface
+			for (int i = 0; i < segments; ++i)
+			{
+				int bottom1 = i * 2;
+				int top1 = bottom1 + 1;
+				int bottom2 = (i + 1) * 2;
+				int top2 = bottom2 + 1;
+
+				// First triangle of the quad
+				indices.push_back(bottom1);
+				indices.push_back(top1);
+				indices.push_back(bottom2);
+
+				// Second triangle of the quad
+				indices.push_back(bottom2);
+				indices.push_back(top1);
+				indices.push_back(top2);
+			}
+
+			//// Indices for the bottom cap
+			//int bottomCenterIndex = vertices.size() / 3;
+			//vertices.push_back(0.0f);                // x
+			//vertices.push_back(-height / 2.0f);     // y
+			//vertices.push_back(0.0f);                // z
+
+			//for (int i = 0; i < segments; ++i)
+			//{
+			//	int next = (i + 1) % segments;
+			//	indices.push_back(bottomCenterIndex);
+			//	indices.push_back(i * 2);
+			//	indices.push_back(next * 2);
+			//}
+
+			//// Indices for the top cap
+			//int topCenterIndex = vertices.size() / 3;
+			//vertices.push_back(0.0f);               // x
+			//vertices.push_back(height / 2.0f);      // y
+			//vertices.push_back(0.0f);               // z
+
+			//for (int i = 0; i < segments; ++i)
+			//{
+			//	int next = (i + 1) % segments;
+			//	indices.push_back(topCenterIndex);
+			//	indices.push_back(i * 2 + 1);
+			//	indices.push_back(next * 2 + 1);
+			//}
+
+			// Create VAO, VBO, EBO
+			glGenVertexArrays(1, &CylinderVAO);
+			glGenBuffers(1, &CylinderVBO);
+			glGenBuffers(1, &CylinderEBO);
+
+			glBindVertexArray(CylinderVAO);
+
+			glBindBuffer(GL_ARRAY_BUFFER, CylinderVBO);
+			glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(GLfloat), vertices.data(), GL_STATIC_DRAW);
+
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, CylinderEBO);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), indices.data(), GL_STATIC_DRAW);
+
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+			glEnableVertexAttribArray(0);
+
+			glBindVertexArray(0);
+		}
+
+		// Bind and configure shader
+		shader->Bind();
+
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, center);
+		model = glm::scale(model, glm::vec3(radius, height, radius));
+
+		shader->Set("u_ModelTransform", model);
+		shader->Set("u_Color", color);
+
+		// Set wireframe mode if requested
+		if (wireframe)
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+		// Draw the cylinder
+		glBindVertexArray(CylinderVAO);
+		glDrawElements(GL_TRIANGLES, (segments * 6) + (segments * 3 * 2), GL_UNSIGNED_INT, 0);
+
+		// Reset to fill mode
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+		glBindVertexArray(0);
+	}
+
+	void Mesh::DrawCapsule(glm::vec3 center, float radius, float height, glm::vec4 color, bool wireframe, Ref<Shader> shader)
+	{
+		// Draw cylinder
+		DrawCylinder(center, radius, height, color, wireframe, shader);
+
+		glm::vec3 topSphereCenter = center;
+		topSphereCenter.y += height*0.5f;
+		DrawSphere(topSphereCenter, radius, color, wireframe, shader, SphereSides::TOP);
+
+		glm::vec3 bottomSphereCenter = center;
+		bottomSphereCenter.y -= height*0.5f;
+		DrawSphere(bottomSphereCenter, radius, color, wireframe, shader, SphereSides::BOTTOM);
+	}
+
 	std::vector<unsigned int> const& Mesh::GetIndices() const
 	{
 		return mIndices;

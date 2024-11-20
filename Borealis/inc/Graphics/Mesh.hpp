@@ -117,6 +117,19 @@ namespace Borealis
 
 		static void DrawCube(glm::vec3 translation, glm::vec3 minExtent, glm::vec3 maxExtent, glm::vec4 color, bool wireframe, Ref<Shader> shader);
 
+		enum class SphereSides
+		{
+			BOTH,
+			TOP,
+			BOTTOM
+		};
+
+		static void DrawSphere(glm::vec3 center, float radius, glm::vec4 color, bool wireframe, Ref<Shader> shader, SphereSides side = SphereSides::BOTH);
+
+		static void DrawCylinder(glm::vec3 center, float radius, float height, glm::vec4 color, bool wireframe, Ref<Shader> shader);
+
+		static void DrawCapsule(glm::vec3 center, float radius, float height, glm::vec4 color, bool wireframe, Ref<Shader> shader);
+
 		/*!***********************************************************************
 			\brief
 				Getters and setters

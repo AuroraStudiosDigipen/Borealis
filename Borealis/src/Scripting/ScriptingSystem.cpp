@@ -220,8 +220,6 @@ namespace Borealis
 
 		MonoClass* monoBehaviour = GetScriptClassUtils("MonoBehaviour")->GetMonoClass();
 
-		auto test = mono_class_from_name(assemblyImage, "Borealis", "CameraController");
-
 		for (int32_t i = 0; i < numTypes; i++)
 		{
 			uint32_t cols[MONO_TYPEDEF_SIZE];
@@ -359,11 +357,11 @@ namespace Borealis
 
 	void ScriptingSystem::Reload(AssetMetaData const& assetMetaData)
 	{
-		for (auto [assetHandle, assetMetaData] : Project::GetEditorAssetsManager()->GetAssetRegistry())
+		for (auto [assetHandle, assetMetaDataFromRegistry] : Project::GetEditorAssetsManager()->GetAssetRegistry())
 		{
-			if (assetMetaData.Type == AssetType::Script)
+			if (assetMetaDataFromRegistry.Type == AssetType::Script)
 			{
-				ScriptingSystem::PushCSharpQueue(assetMetaData.SourcePath.string());
+				ScriptingSystem::PushCSharpQueue(assetMetaDataFromRegistry.SourcePath.string());
 			}
 		}
 		ScriptingSystem::CompileCSharpQueue(Project::GetProjectPath() + "/Cache/CSharp_Assembly.dll");

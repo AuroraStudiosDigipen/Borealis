@@ -23,6 +23,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <AI/BehaviourTree/BehaviourTree.hpp>
 #include <yaml-cpp/yaml.h>
 
+#include <Assets/AssetMetaData.hpp>
+
 namespace Borealis
 {
     /*!***********************************************************************
@@ -82,6 +84,8 @@ namespace Borealis
         \return A reference to the newly cloned behavior tree.
         *************************************************************************/
         Ref<BehaviourTree> CloneBehaviourTree(const Ref<BehaviourTree>& originalTree);
+
+        static Ref<Asset> Load(AssetMetaData const& assetMetaData);
 
     private:
         /*!***********************************************************************

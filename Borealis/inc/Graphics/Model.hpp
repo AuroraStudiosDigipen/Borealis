@@ -18,6 +18,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <glm/glm.hpp>
 
 #include <Assets/Asset.hpp>
+#include <Assets/AssetMetaData.hpp>
 #include <Core/Core.hpp>
 #include <Graphics/Shader.hpp>
 #include <Graphics/Mesh.hpp>
@@ -53,6 +54,8 @@ namespace Borealis
 
 		void GenerateRitterBoundingSphere();
 		void GenerateAABB();
+
+		static Ref<Asset> Load(AssetMetaData const& assetMetaData);
 
 		BoundingSphere mBoundingSphere{};
 		AABB mAABB;

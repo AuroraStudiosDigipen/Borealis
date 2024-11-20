@@ -14,6 +14,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include <BorealisPCH.hpp>
 #include <Graphics/Model.hpp>
+#include <Graphics/SkinnedModel.hpp>
 
 namespace Borealis
 {
@@ -148,6 +149,23 @@ namespace Borealis
 
 		// Now `aabb` represents the AABB that encloses all meshes in the model
 		mAABB = aabb;
+	}
+
+	Ref<Asset> Model::Load(AssetMetaData const& assetMetaData)
+	{
+		MeshConfig config = GetConfig<MeshConfig>(assetMetaData.Config);
+		if (config.skinMesh)
+		{
+			SkinnedModel skinnedModel;
+			skinnedModel.LoadModel(assetMetaData.CachePath);
+			return MakeRef<SkinnedModel>(skinnedModel);
+		}
+		else
+		{
+			Model model;
+			model.LoadModel(assetMetaData.CachePath);
+			return MakeRef<Model>(model);
+		}
 	}
 
 	

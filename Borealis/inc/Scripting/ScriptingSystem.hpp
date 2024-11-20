@@ -75,6 +75,9 @@ namespace Borealis
 
 		static void LoadScriptAssemblies(std::string filepath);
 
+		static void AttachAppDomain();
+		static void DetachAppDomain();
+
 
 		static bool GetEnabled(Ref<ScriptInstance> instance);
 		static void SetEnabled(Ref<ScriptInstance>, bool enabled);
@@ -82,6 +85,7 @@ namespace Borealis
 		static std::unordered_map<std::string, Ref<ScriptClass>> mScriptClasses; // Library of available scripts
 		static std::unordered_map<std::string, std::unordered_set<UUID>> mEntityScriptMap; // Scripts attached to entities
 
+		static void Reload(AssetMetaData const& assetMetaData);
 
 	private:
 

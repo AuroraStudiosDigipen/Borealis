@@ -373,6 +373,9 @@
     <ClInclude Include="inc\Graphics\OpenGL\GraphicsContextOpenGLImpl.hpp">
       <Filter>inc\Graphics\OpenGL</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Graphics\OpenGL\PixelBufferOpenGLImpl.hpp">
+      <Filter>inc\Graphics\OpenGL</Filter>
+    </ClInclude>
     <ClInclude Include="inc\Graphics\OpenGL\RendererAPIOpenGLImpl.hpp">
       <Filter>inc\Graphics\OpenGL</Filter>
     </ClInclude>
@@ -386,6 +389,9 @@
       <Filter>inc\Graphics\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="inc\Graphics\OrthographicCamera.hpp">
+      <Filter>inc\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Graphics\PixelBuffer.hpp">
       <Filter>inc\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="inc\Graphics\RenderCommand.hpp">
@@ -2193,6 +2199,9 @@
     <ClCompile Include="src\Graphics\OpenGL\GraphicsContextOpenGLImpl.cpp">
       <Filter>src\Graphics\OpenGL</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\OpenGL\PixelBufferOpenGLImpl.cpp">
+      <Filter>src\Graphics\OpenGL</Filter>
+    </ClCompile>
     <ClCompile Include="src\Graphics\OpenGL\RendererAPIOpenGLImpl.cpp">
       <Filter>src\Graphics\OpenGL</Filter>
     </ClCompile>
@@ -2206,6 +2215,9 @@
       <Filter>src\Graphics\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\OrthographicCamera.cpp">
+      <Filter>src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\PixelBuffer.cpp">
       <Filter>src\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\RenderCommand.cpp">

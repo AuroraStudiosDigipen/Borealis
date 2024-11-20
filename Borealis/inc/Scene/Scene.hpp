@@ -193,6 +193,7 @@ namespace Borealis
 
 		Ref<FrameBuffer> GetRunTimeFB();
 		Ref<FrameBuffer> GetEditorFB();
+		Ref<PixelBuffer> GetPixelBuffer();
 
 		void SetRenderGraphConfig(RenderGraphConfig renderGraphConfig);
 
@@ -225,6 +226,7 @@ namespace Borealis
 		Ref<FrameBuffer> mRuntimeFrameBuffer;
 		Ref<FrameBuffer> mGFrameBuffer;
 		Ref<FrameBuffer> mShadowMapBuffer;
+		Ref<PixelBuffer> mPixelBuffer;
 		RenderGraph mRenderGraph;
 	};
 }

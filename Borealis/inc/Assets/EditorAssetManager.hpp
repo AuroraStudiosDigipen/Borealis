@@ -25,6 +25,10 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 namespace Borealis
 {
 	using AssetRegistry = std::unordered_map<AssetHandle, AssetMetaData>;
+	using AssetRegistrySrcLoc = std::unordered_map<std::string, AssetHandle>;
+	using AssetLoaderFunc = std::function<Ref<Asset>(AssetMetaData const&)>;
+	using AssetReloadFunc = std::function<void(AssetMetaData const&)>;
+
 	class EditorAssetManager : public IAssetManager
 	{
 	public:
@@ -34,11 +38,17 @@ namespace Borealis
 		void LoadAssetRegistryRunTime(std::string path);
 		//===================================
 
+		void RegisterAsset(AssetType type, AssetLoaderFunc loadFunc, AssetReloadFunc reloadFunc);
+
 		/*!***********************************************************************
 			\brief
 				Get asset by handle
 		*************************************************************************/
 		Ref<Asset> GetAsset(AssetHandle assetHandle) override;
+
+		void SubmitAssetReloadRequest(AssetHandle assetHandle);
+
+		Ref<Asset> ReloadAsset(AssetHandle assetHandle);
 
 		/*!***********************************************************************
 			\brief
@@ -52,11 +62,15 @@ namespace Borealis
 		*************************************************************************/
 		AssetRegistry& GetAssetRegistry();
 
+		AssetRegistrySrcLoc& GetAssetRegistrySrcLoc();
+
 		/*!***********************************************************************
 			\brief
 				Clear the asset manager
 		*************************************************************************/
 		void Clear();
+
+		void Update();
 
 	private:
 
@@ -69,7 +83,13 @@ namespace Borealis
 	private:
 		std::filesystem::path mAssetRegistryPath;
 		AssetRegistry mAssetRegistry;
+		AssetRegistrySrcLoc mAssetRegistrySrcLoc;
 		std::unordered_map<AssetHandle, Ref<Asset>> mLoadedAssets;
+
+		std::list<AssetHandle> mAssetReloadRequests;
+
+		std::unordered_map<AssetType, AssetLoaderFunc> mAssetLoaders;
+		std::unordered_map<AssetType, AssetReloadFunc> mAssetReloaders;
 	};
 }
 

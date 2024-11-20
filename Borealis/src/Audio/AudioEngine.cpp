@@ -322,4 +322,9 @@ namespace Borealis
         // If no group is found, return -1 or handle the case accordingly
         return -1;
     }
+    Ref<Asset> AudioEngine::Load(AssetMetaData const& assetMetaData)
+    {
+        Audio audio = LoadAudio(assetMetaData.SourcePath.string());
+        return MakeRef<Audio>(audio);
+    }
 }

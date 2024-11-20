@@ -975,13 +975,6 @@ namespace Borealis
         else
         {
             try {
-                // Generate the code using templates
-                //std::string headerCode = NodeHeaderCodeFormat::GenerateHeaderCode(className, baseClassName, nodeTypeIndex);
-                //std::string sourceCode = NodeHeaderCodeFormat::GenerateSourceCode(className, nodeTypeIndex);
-
-                //// Write the files
-                //NodeHeaderCodeFormat::WriteToFile(headerFilePath, headerCode);
-                //NodeHeaderCodeFormat::WriteToFile(sourceFilePath, sourceCode);
 
                 BOREALIS_CORE_INFO("Successfully created header and source files for class: {}", className);
             }

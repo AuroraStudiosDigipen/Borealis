@@ -39,30 +39,6 @@ namespace Borealis
 	};
 	static std::queue<ScriptInitialData> scriptQueue;
 
-	void Serialiser::ParseTree(YAML::Node& node, Ref<BehaviourNode> parentNode, BehaviourTree& tree, int parentDepth)
-	{
-		//// Extract the node name and depth
-		//std::string nodeName = node["name"].as<std::string>();
-		//int depth = node["depth"].as<int>();
-
-		//// Create the node using NodeFactory based on its name
-		//Ref<BehaviourNode> currentNode = Borealis::NodeFactory::CreateNodeByName(nodeName);
-		//currentNode->SetDepth(depth);
-
-		//// Add the current node to the tree
-		//tree.AddNode(parentNode, currentNode, depth);
-
-		//// Process children if they exist
-		//if (node["children"])
-		//{
-		//	for (auto childNode : node["children"])
-		//	{
-		//		// Recursively process each child node
-		//		ParseTree(childNode, currentNode, tree, depth);
-		//	}
-		//}
-	}
-
 	void SerializeTexture(YAML::Emitter& out, Ref<Texture2D> texture)
 	{
 		if (texture)
@@ -72,23 +48,6 @@ namespace Borealis
 	}
 
 	Serialiser::Serialiser(const Ref<Scene>& scene) : mScene(scene) {}
-
-
-	bool Serialiser::SerializeBehaviourNode(YAML::Emitter& out, const Ref<BehaviourNode> node) {
-		//out << YAML::Key << "name" << YAML::Value << node->GetName();
-		//out << YAML::Key << "depth" << YAML::Value << node->GetDepth();
-		//if (!node->mChildren.empty())
-		//{
-		//	out << YAML::Key << "children" << YAML::Value << YAML::BeginSeq;
-		//	for (const auto& child : node->mChildren) {
-		//		out << YAML::BeginMap;
-		//		SerializeBehaviourNode(out, child); // Recursively serialize the child node
-		//		out << YAML::EndMap;
-		//	}
-		//	out << YAML::EndSeq;
-		//}
-		return true;
-	}
 
 	void Serialiser::SerializeEntity(YAML::Emitter& out, Entity& entity)
 	{

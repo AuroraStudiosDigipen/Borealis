@@ -140,6 +140,7 @@
     <Compile Include="src\Attributes.cs" />
     <Compile Include="src\Behaviour.cs" />
     <Compile Include="src\BehaviourNode.cs" />
+    <Compile Include="src\C_Sequencer.cs" />
     <Compile Include="src\Components\Component.cs" />
     <Compile Include="src\Components\Rigidbody.cs" />
     <Compile Include="src\Components\SpriteRenderer.cs" />
@@ -150,6 +151,7 @@
     <Compile Include="src\Input.cs" />
     <Compile Include="src\InternalCalls.cs" />
     <Compile Include="src\KeyCode.cs" />
+    <Compile Include="src\L_Idle.cs" />
     <Compile Include="src\Math\Color.cs" />
     <Compile Include="src\Math\Color32.cs" />
     <Compile Include="src\Math\Mathf.cs" />

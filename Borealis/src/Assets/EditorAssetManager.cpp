@@ -90,6 +90,7 @@ namespace Borealis
 				AssetMetaData metaData = DeserializeMetaFile(metaInfo);
 
 				mAssetRegistry.insert({ metaData.Handle, metaData });
+				mAssetRegistrySrcLoc.insert({metaData.SourcePath.string(), metaData.Handle});
 			}
 		}
 	}
@@ -173,6 +174,11 @@ namespace Borealis
 		return mAssetRegistry;
 	}
 
+	AssetRegistrySrcLoc& EditorAssetManager::GetAssetRegistrySrcLoc()
+	{
+		return mAssetRegistrySrcLoc;
+	}
+
 	//void EditorAssetManager::LoadRegistry(ProjectInfo projectInfo)
 	//{
 	//	//open registry database file
@@ -216,6 +222,7 @@ namespace Borealis
 	{
 		mAssetRegistry.clear();
 		mAssetRegistryPath.clear();
+		mAssetRegistrySrcLoc.clear();
 	}
 
 	void EditorAssetManager::Update()

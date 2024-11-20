@@ -218,19 +218,13 @@
     <ClInclude Include="inc\Graphics\OpenGL\BufferOpenGLImpl.hpp" />
     <ClInclude Include="inc\Graphics\OpenGL\FramebufferOpenGLImpl.hpp" />
     <ClInclude Include="inc\Graphics\OpenGL\GraphicsContextOpenGLImpl.hpp" />
-    <ClInclude Include="inc\Graphics\OpenGL\PixelBufferOpenGLImpl.hpp">
-      <SubType>
-      </SubType>
-    </ClInclude>
+    <ClInclude Include="inc\Graphics\OpenGL\PixelBufferOpenGLImpl.hpp" />
     <ClInclude Include="inc\Graphics\OpenGL\RendererAPIOpenGLImpl.hpp" />
     <ClInclude Include="inc\Graphics\OpenGL\ShaderOpenGLImpl.hpp" />
     <ClInclude Include="inc\Graphics\OpenGL\TextureOpenGLImpl.hpp" />
     <ClInclude Include="inc\Graphics\OpenGL\VertexArrayOpenGLImpl.hpp" />
     <ClInclude Include="inc\Graphics\OrthographicCamera.hpp" />
-    <ClInclude Include="inc\Graphics\PixelBuffer.hpp">
-      <SubType>
-      </SubType>
-    </ClInclude>
+    <ClInclude Include="inc\Graphics\PixelBuffer.hpp" />
     <ClInclude Include="inc\Graphics\RenderCommand.hpp" />
     <ClInclude Include="inc\Graphics\RenderGraph\RenderGraph.hpp" />
     <ClInclude Include="inc\Graphics\RenderGraph\RenderGraphOld.hpp" />
@@ -837,19 +831,13 @@
     <ClCompile Include="src\Graphics\OpenGL\BufferOpenGLImpl.cpp" />
     <ClCompile Include="src\Graphics\OpenGL\FramebufferOpenGLImpl.cpp" />
     <ClCompile Include="src\Graphics\OpenGL\GraphicsContextOpenGLImpl.cpp" />
-    <ClCompile Include="src\Graphics\OpenGL\PixelBufferOpenGLImpl.cpp">
-      <SubType>
-      </SubType>
-    </ClCompile>
+    <ClCompile Include="src\Graphics\OpenGL\PixelBufferOpenGLImpl.cpp" />
     <ClCompile Include="src\Graphics\OpenGL\RendererAPIOpenGLImpl.cpp" />
     <ClCompile Include="src\Graphics\OpenGL\ShaderOpenGLImpl.cpp" />
     <ClCompile Include="src\Graphics\OpenGL\TextureOpenGLImpl.cpp" />
     <ClCompile Include="src\Graphics\OpenGL\VertexArrayOpenGLImpl.cpp" />
     <ClCompile Include="src\Graphics\OrthographicCamera.cpp" />
-    <ClCompile Include="src\Graphics\PixelBuffer.cpp">
-      <SubType>
-      </SubType>
-    </ClCompile>
+    <ClCompile Include="src\Graphics\PixelBuffer.cpp" />
     <ClCompile Include="src\Graphics\RenderCommand.cpp" />
     <ClCompile Include="src\Graphics\RenderGraph\RenderGraph.cpp" />
     <ClCompile Include="src\Graphics\RenderGraph\RenderGraphOld.cpp" />

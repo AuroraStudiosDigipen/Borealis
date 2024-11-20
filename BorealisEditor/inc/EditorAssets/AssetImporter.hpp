@@ -67,19 +67,21 @@ namespace Borealis
 			\brief
 				Deserialize registry
 		*************************************************************************/
-		void DeserializeRegistry(std::string const& registryFileString, AssetRegistry& assetRegistry);
+		void DeserializeRegistry(std::string const& registryFileString, AssetRegistry& assetRegistry, AssetRegistrySrcLoc& RegistrySrcLoc);
 
 		/*!***********************************************************************
 			\brief
 				Register asset
+			\return
+				Asset handle of the registered asset
 		*************************************************************************/
-		void RegisterAsset(std::filesystem::path path, AssetRegistry& assetRegistry);
+		AssetHandle RegisterAsset(std::filesystem::path path, AssetRegistry& assetRegistry);
 
 		/*!***********************************************************************
 			\brief
 				register all asset in a path
 		*************************************************************************/
-		void RegisterAllAssets(std::filesystem::path path, AssetRegistry& assetRegistry);
+		void RegisterAllAssets(std::filesystem::path path, AssetRegistry& assetRegistry, std::set<AssetHandle>& assetChecker);
 
 		/*!***********************************************************************
 			\brief

@@ -578,8 +578,8 @@ namespace Borealis
 		PixelBufferSource pixelBuffer("PixelBuffer", mPixelBuffer);
 		mRenderGraph.SetGlobalSource(MakeRef<PixelBufferSource>(pixelBuffer));
 
-		PixelBufferSource nullPixelBuffer("NullPixelBuffer", nullptr);
-		mRenderGraph.SetGlobalSource(MakeRef<PixelBufferSource>(nullPixelBuffer));
+		//PixelBufferSource nullPixelBuffer("NullPixelBuffer", nullptr);
+		//mRenderGraph.SetGlobalSource(MakeRef<PixelBufferSource>(nullPixelBuffer));
 
 		if (mainCamera)
 		{

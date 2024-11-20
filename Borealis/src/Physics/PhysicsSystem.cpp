@@ -25,6 +25,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Jolt/Jolt.h>
 #include <Scene/Entity.hpp>
 #include <Scene/SceneManager.hpp>
+#include <Core/LayerList.hpp>
+#include <Core/BitSet32.hpp>
 
 
 // Jolt includes
@@ -44,6 +46,9 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Jolt/Physics/Character/CharacterVirtual.h>
 #include <Jolt/Physics/Character/CharacterBase.h>
 #include <Jolt/Physics/Collision/Shape/ScaledShape.h>
+#include <Jolt/Physics/Collision/RayCast.h>
+#include <Jolt/Physics/Collision/CastResult.h>
+
 
 
 
@@ -765,6 +770,96 @@ namespace Borealis
 
 		character.controller = nullptr;
 	}
+	static bool RayCast(glm::vec3 origin, glm::vec3 direction, float maxDistance, Bitset32 LayerMask)
+	{
+		direction = glm::normalize(direction);
+		RRayCast ray { Vec3(origin.x, origin.y, origin.z), Vec3(direction.x, direction.y, direction.z) };
+		auto& narrowPhaseQuery = sData.mSystem->GetNarrowPhaseQuery();
+		RayCastResult result;
+		result.mFraction = maxDistance;
+		return narrowPhaseQuery.CastRay(ray, result);
+	}
+
+	struct RaycastHit
+	{
+		UUID ID;
+		BodyID colliderID;
+		float distance;
+		glm::vec3 normal;
+		glm::vec3 point;
+	};
+
+	static bool Raycast(glm::vec3 origin, glm::vec3 direction, RaycastHit* hitInfo, float maxDistance, Bitset32 LayerMask)
+	{
+		direction = glm::normalize(direction);
+
+		RRayCast ray{ Vec3(origin.x, origin.y, origin.z), Vec3(direction.x, direction.y, direction.z) };
+		auto& narrowPhaseQuery = sData.mSystem->GetNarrowPhaseQuery();
+		RayCastResult result;
+		result.mFraction = maxDistance; // Assuming this is how you set max distance
+		bool output = narrowPhaseQuery.CastRay(ray, result);
+
+		hitInfo->colliderID = result.mBodyID;
+		hitInfo->distance = result.mFraction * maxDistance;
+		hitInfo->ID = PhysicsSystem::BodyIDToUUID(result.mBodyID.GetIndexAndSequenceNumber());
+
+		// If you want the surface normal of the hit use 
+		// Body::GetWorldSpaceSurfaceNormal(ioHit.mSubShapeID2, 
+		// inRay.GetPointOnRay(ioHit.mFraction)) on body with ID ioHit.mBodyID.
+
+		JPH::BodyLockWrite lock(sData.mSystem->GetBodyLockInterface(), result.mBodyID);
+		if (lock.Succeeded())
+		{
+			JPH::Body& body = lock.GetBody();
+			auto normals = body.GetWorldSpaceSurfaceNormal(result.mSubShapeID2, ray.GetPointOnRay(result.mFraction));
+			hitInfo->normal = { normals.GetX(), normals.GetY(), normals.GetZ() };
+		}
+		hitInfo->point = origin + direction * hitInfo->distance;
+
+		return output;
+	}
+
+	class RayCollector : public CastRayCollector
+	{
+	public:
+
+		void AddHit(const ResultType& inResult) override
+		{
+			hits.push_back(inResult);
+		}
+		std::vector<RayCastResult> hits;
+	};
+
+	static std::vector<RaycastHit> RayCastAll(glm::vec3 origin, glm::vec3 direction, float maxDistance, Bitset32 LayerMask)
+	{
+		direction = glm::normalize(direction);
+		RayCollector collector;
+		RayCastSettings settings;
+		RRayCast ray{ Vec3(origin.x, origin.y, origin.z), Vec3(direction.x, direction.y, direction.z) };
+		auto& narrowPhaseQuery = sData.mSystem->GetNarrowPhaseQuery();
+		narrowPhaseQuery.CastRay(ray, settings, collector);
+
+		std::vector<RaycastHit> output;
+		for (auto hitResult : collector.hits)
+		{
+			RaycastHit hit;
+			hit.colliderID = hitResult.mBodyID;
+			hit.distance = hitResult.mFraction * maxDistance;
+			hit.ID = PhysicsSystem::BodyIDToUUID(hitResult.mBodyID.GetIndexAndSequenceNumber());
+			JPH::BodyLockWrite lock(sData.mSystem->GetBodyLockInterface(), hitResult.mBodyID);
+			if (lock.Succeeded())
+			{
+				JPH::Body& body = lock.GetBody();
+				auto normals = body.GetWorldSpaceSurfaceNormal(hitResult.mSubShapeID2, ray.GetPointOnRay(hitResult.mFraction));
+				hit.normal = { normals.GetX(), normals.GetY(), normals.GetZ() };
+			}
+			hit.point = origin + direction * hit.distance;
+			output.push_back(hit);
+		}
+
+		return output;
+	}
+
 
 	void PhysicsSystem::addBody(TransformComponent& transform, RigidBodyComponent* rigidbody, ColliderComponent& collider, UUID entityID)
 	{

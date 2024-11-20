@@ -116,16 +116,16 @@ namespace Borealis {
 } // End of namespace Borealis
  
 // Define the log macros
-#define BOREALIS_CORE_INFO(...)     ::Borealis::LoggerSystem::GetEngineLogger()->info(__VA_ARGS__); ::Borealis::Console::GetInstance().Log(::Borealis::LoggerSystem::GetString(), ::Borealis::Console::INFO_MESSAGE); ::Borealis::LoggerSystem::Flush()
-#define BOREALIS_CORE_TRACE(...)    ::Borealis::LoggerSystem::GetEngineLogger()->trace(__VA_ARGS__);  ::Borealis::Console::GetInstance().Log(::Borealis::LoggerSystem::GetString(), ::Borealis::Console::INFO_MESSAGE); ::Borealis::LoggerSystem::Flush()
-#define BOREALIS_CORE_WARN(...)     ::Borealis::LoggerSystem::GetEngineLogger()->warn(__VA_ARGS__); ::Borealis::Console::GetInstance().Log(::Borealis::LoggerSystem::GetString(), ::Borealis::Console::WARNING_MESSAGE); ::Borealis::LoggerSystem::Flush()
-#define BOREALIS_CORE_ERROR(...)    ::Borealis::LoggerSystem::GetEngineLogger()->error(__VA_ARGS__); ::Borealis::Console::GetInstance().Log(::Borealis::LoggerSystem::GetString(), ::Borealis::Console::ERROR_MESSAGE); ::Borealis::LoggerSystem::Flush()
-#define BOREALIS_CORE_CRITICAL(...) ::Borealis::LoggerSystem::GetEngineLogger()->critical(__VA_ARGS__); ::Borealis::Console::GetInstance().Log(::Borealis::LoggerSystem::GetString(), ::Borealis::Console::ERROR_MESSAGE); ::Borealis::LoggerSystem::Flush()
+#define BOREALIS_CORE_INFO(...)     ::Borealis::LoggerSystem::GetEngineLogger()->info(__VA_ARGS__)
+#define BOREALIS_CORE_TRACE(...)    ::Borealis::LoggerSystem::GetEngineLogger()->trace(__VA_ARGS__)
+#define BOREALIS_CORE_WARN(...)     ::Borealis::LoggerSystem::GetEngineLogger()->warn(__VA_ARGS__)
+#define BOREALIS_CORE_ERROR(...)    ::Borealis::LoggerSystem::GetEngineLogger()->error(__VA_ARGS__)
+#define BOREALIS_CORE_CRITICAL(...) ::Borealis::LoggerSystem::GetEngineLogger()->critical(__VA_ARGS__)
 
-#define APP_LOG_INFO(...)        ::Borealis::LoggerSystem::GetApplicationLogger()->info(__VA_ARGS__)
-#define APP_LOG_TRACE(...)       ::Borealis::LoggerSystem::GetApplicationLogger()->trace(__VA_ARGS__)
-#define APP_LOG_WARN(...)        ::Borealis::LoggerSystem::GetApplicationLogger()->warn(__VA_ARGS__)
-#define APP_LOG_ERROR(...)       ::Borealis::LoggerSystem::GetApplicationLogger()->error(__VA_ARGS__)
-#define APP_LOG_CRITICAL(...)    ::Borealis::LoggerSystem::GetApplicationLogger()->critical(__VA_ARGS__)
+#define APP_LOG_INFO(...)        ::Borealis::LoggerSystem::GetApplicationLogger()->info(__VA_ARGS__); ::Borealis::Console::GetInstance().Log(::Borealis::LoggerSystem::GetString(), ::Borealis::Console::INFO_MESSAGE); ::Borealis::LoggerSystem::Flush()
+#define APP_LOG_TRACE(...)       ::Borealis::LoggerSystem::GetApplicationLogger()->trace(__VA_ARGS__);  ::Borealis::Console::GetInstance().Log(::Borealis::LoggerSystem::GetString(), ::Borealis::Console::INFO_MESSAGE); ::Borealis::LoggerSystem::Flush()
+#define APP_LOG_WARN(...)        ::Borealis::LoggerSystem::GetApplicationLogger()->warn(__VA_ARGS__); ::Borealis::Console::GetInstance().Log(::Borealis::LoggerSystem::GetString(), ::Borealis::Console::WARNING_MESSAGE); ::Borealis::LoggerSystem::Flush()
+#define APP_LOG_ERROR(...)       ::Borealis::LoggerSystem::GetApplicationLogger()->error(__VA_ARGS__); ::Borealis::Console::GetInstance().Log(::Borealis::LoggerSystem::GetString(), ::Borealis::Console::ERROR_MESSAGE); ::Borealis::LoggerSystem::Flush()
+#define APP_LOG_CRITICAL(...)    ::Borealis::LoggerSystem::GetApplicationLogger()->critical(__VA_ARGS__); ::Borealis::Console::GetInstance().Log(::Borealis::LoggerSystem::GetString(), ::Borealis::Console::ERROR_MESSAGE); ::Borealis::LoggerSystem::Flush()
 
 #endif

@@ -238,6 +238,9 @@ namespace Borealis
 		std::queue<CollisionPair> onCollisionPairAddedQueue;
 		std::queue<CollisionPair> onCollisionPairRemovedQueue;
 		std::queue<CollisionPair> onCollisionPairPersistedQueue;
+		std::queue<CollisionPair> onTriggerPairAddedQueue;
+		std::queue<CollisionPair> onTriggerPairRemovedQueue;
+		std::queue<CollisionPair> onTriggerPairPersistedQueue;
 	};
 
 	static PhysicsSystemData sData;
@@ -245,17 +248,47 @@ namespace Borealis
 
 	void MyContactListener::OnContactAdded(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings)
 	{
-		//sData.onCollisionPairAddedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
+		if (inBody1.IsSensor() || inBody2.IsSensor())
+		{
+			sData.onTriggerPairAddedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
+			spdlog::info("Trigger pair added");
+		}
+		else
+		{
+			sData.onCollisionPairAddedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
+		}
 	}
 
 	void MyContactListener::OnContactPersisted(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings)
 	{
-		//sData.onCollisionPairPersistedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
+		if (inBody1.IsSensor() || inBody2.IsSensor())
+		{
+			sData.onTriggerPairPersistedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
+			spdlog::info("Trigger pair persisted");
+		}
+		else
+		{
+			sData.onCollisionPairPersistedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
+		}
+	}
+
+	static bool IsBodySensor(const JPH::BodyID& bodyID)
+	{
+		// Get the body lock interface (read-lock to ensure thread safety)
+		JPH::BodyLockRead lock(sData.mSystem->GetBodyLockInterface(), bodyID);
+		if (lock.Succeeded()) {
+			// Check if the body is a sensor
+			return lock.GetBody().IsSensor();
+		}
+
+		// If the body doesn't exist or is invalid, return false
+		return false;
 	}
 
 	void MyContactListener::OnContactRemoved(const SubShapeIDPair& inSubShapePair)
 	{
-		//sData.onCollisionPairRemovedQueue.push({ PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody1ID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody2ID().GetIndexAndSequenceNumber())});
+		sData.onCollisionPairRemovedQueue.push({ PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody1ID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody2ID().GetIndexAndSequenceNumber())});
+		spdlog::info("Collision pair removed");
 	}
 
 	std::queue<CollisionPair>& PhysicsSystem::GetCollisionEnterQueue() {return sData.onCollisionPairAddedQueue; }
@@ -770,7 +803,8 @@ namespace Borealis
 
 		character.controller = nullptr;
 	}
-	static bool RayCast(glm::vec3 origin, glm::vec3 direction, float maxDistance, Bitset32 LayerMask)
+
+	bool PhysicsSystem::RayCast(glm::vec3 origin, glm::vec3 direction, float maxDistance, Bitset32 LayerMask)
 	{
 		direction = glm::normalize(direction);
 		RRayCast ray { Vec3(origin.x, origin.y, origin.z), Vec3(direction.x, direction.y, direction.z) };
@@ -807,10 +841,10 @@ namespace Borealis
 		// Body::GetWorldSpaceSurfaceNormal(ioHit.mSubShapeID2, 
 		// inRay.GetPointOnRay(ioHit.mFraction)) on body with ID ioHit.mBodyID.
 
-		JPH::BodyLockWrite lock(sData.mSystem->GetBodyLockInterface(), result.mBodyID);
+		JPH::BodyLockRead lock(sData.mSystem->GetBodyLockInterface(), result.mBodyID);
 		if (lock.Succeeded())
 		{
-			JPH::Body& body = lock.GetBody();
+			const JPH::Body& body = lock.GetBody();
 			auto normals = body.GetWorldSpaceSurfaceNormal(result.mSubShapeID2, ray.GetPointOnRay(result.mFraction));
 			hitInfo->normal = { normals.GetX(), normals.GetY(), normals.GetZ() };
 		}
@@ -859,7 +893,6 @@ namespace Borealis
 
 		return output;
 	}
-
 
 	void PhysicsSystem::addBody(TransformComponent& transform, RigidBodyComponent* rigidbody, ColliderComponent& collider, UUID entityID)
 	{

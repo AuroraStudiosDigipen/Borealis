@@ -264,6 +264,11 @@ namespace Borealis
 					PhysicsSystem::HandleInput(glm::vec3(0, 0, 0), false, dt, character.controller);
 				}
 
+				if (PhysicsSystem::RayCast(glm::vec3(0, 0, 0), glm::vec3(0, -1, 0), 5.f, 0))
+				{
+					BOREALIS_CORE_INFO("Ray hit");
+				}
+
 
 				auto boxGroup = mRegistry.group<>(entt::get<TransformComponent, BoxColliderComponent, RigidBodyComponent>);
 				for (auto entity : boxGroup)

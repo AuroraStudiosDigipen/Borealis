@@ -21,6 +21,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Assets/Asset.hpp>
 #include <EditorAssets/AssetImporter.hpp>
 #include <EditorAssets/MetaSerializer.hpp>
+
+#include <zlib.h>
 #include <Scripting/ScriptingSystem.hpp>
 #include <thread>
 
@@ -55,20 +57,19 @@ namespace Borealis
 
 		MetaFileSerializer::SetAssetFolderPath(projectInfo.AssetsRegistryPath);
 		AssetRegistry& assetRegistry = Project::GetEditorAssetsManager()->GetAssetRegistry();
-		DeserializeRegistry(registryStream.str(), assetRegistry);
 
+		//Deserialize metadata within registry into map
+		DeserializeRegistry(registryStream.str(), assetRegistry); //checked
 
-		//read files in assets folder and compare it with file
-		// - check if the asset have a .meta file
-		// - verify the version of the assets
-		// - verify that asset have a cached if needed
-		// - if every check is true, add to registry
+		//Compare the metadata within registry with actual metadata for error checks
 		RegisterAllAssets(projectInfo.AssetsPath, assetRegistry);
 
 		std::string originalPath = projectInfo.AssetsPath.string();
 		originalPath.replace(originalPath.find("Assets"), std::string("Assets").length(), "Cache");
-		ScriptingSystem::CompileCSharpQueue(originalPath + "/CSharp_Assembly.dll");
-		ScriptingSystem::LoadScriptAssemblies(originalPath + "/CSharp_Assembly.dll");
+		std::filesystem::create_directories(originalPath); //create cache folder if not exist
+		//ScriptingSystem::CompileCSharpQueue(originalPath + "/CSharp_Assembly.dll");
+		//ScriptingSystem::LoadScriptAssemblies(originalPath + "/CSharp_Assembly.dll");
+		ScriptingSystem::Reload({});
 
 		SerializeRegistry();
 
@@ -119,13 +120,21 @@ namespace Borealis
 
 	void AssetImporter::RegisterAsset(std::filesystem::path path, AssetRegistry& assetRegistry)
 	{
-		if (!VerifyMetaFile(path, assetRegistry)) // No .meta file
+		//if failed to pass all error check, recompile if needed
+		MetaErrorType errorType = VerifyMetaFile(path, assetRegistry);
+		if (errorType != MetaErrorType::ALL_FINE)
 		{
-			auto dupPath = path;
+			std::filesystem::path dupPath = path.string() + ".meta";
 			AssetMetaData meta;
-			if (!std::filesystem::exists(dupPath.replace_extension(".meta").string()))
+			if (errorType == MetaErrorType::META_FILE_NOT_FOUND)
 			{
 				meta = MetaFileSerializer::CreateAssetMetaFile(path);
+			}
+			else if (errorType == MetaErrorType::SOURCE_FILE_MODIFIED)
+			{
+				meta = MetaFileSerializer::GetAssetMetaDataFile(dupPath);
+				AssetHandle handle = meta.Handle;
+				meta = MetaFileSerializer::CreateAssetMetaFile(path, handle);
 			}
 			else
 			{
@@ -148,13 +157,8 @@ namespace Borealis
 				break;
 			}
 
-			assetRegistry.insert({ meta.Handle, meta });
+			assetRegistry[meta.Handle] = meta;
 			VerifyMetaFile(path, assetRegistry);
-		}
-
-		if (MetaFileSerializer::GetAssetMetaDataFile(path.string() + ".meta").Type == AssetType::Script)
-		{
-			ScriptingSystem::PushCSharpQueue(path.string());
 		}
 	}
 
@@ -188,7 +192,7 @@ namespace Borealis
 		}
 	}
 
-	bool AssetImporter::VerifyMetaFile(std::filesystem::path path, AssetRegistry& assetRegistry)
+	MetaErrorType AssetImporter::VerifyMetaFile(std::filesystem::path path, AssetRegistry& assetRegistry)
 	{
 		std::filesystem::path metaFilePath;
 
@@ -205,7 +209,7 @@ namespace Borealis
 
 		if (!std::filesystem::exists(metaFilePath))
 		{
-			return false;
+			return MetaErrorType::META_FILE_NOT_FOUND;
 		}
 		else
 		{
@@ -213,19 +217,31 @@ namespace Borealis
 
 			if (assetRegistry.contains(metaData.Handle))
 			{
-				if (assetRegistry.at(metaData.Handle).importDate == metaData.importDate)
+				if (META_VERSION != metaData.Version)
 				{
-					mPathRegistry.insert({ hash, metaData.Handle });
-					return true;
+					//Version difference, update to latest version
+					metaData = MetaFileSerializer::CreateAssetMetaFile(metaData.SourcePath, metaData.Handle);
+				}
+
+				//difference between source file and meta data
+				if (MetaFileSerializer::HashFile(metaData.SourcePath) != metaData.SourceFileHash)
+				{
+					return MetaErrorType::SOURCE_FILE_MODIFIED;
+				}
+				//difference between current meta data and meta data within asset registry
+				else if (assetRegistry.at(metaData.Handle).SourceFileHash != metaData.SourceFileHash)
+				{
+					return MetaErrorType::SOURCE_FILE_MODIFIED;
 				}
 				else
 				{
-					BOREALIS_CORE_ASSERT(false, "IMPORT DATE DIFF");
+					mPathRegistry.insert({ hash, metaData.Handle });
+					return MetaErrorType::ALL_FINE;
 				}
 			}
 		}
 
-		return false;
+		return MetaErrorType::UNKNOWN;
 	}
 	void AssetImporter::StartFileWatch()
 	{
@@ -233,6 +249,8 @@ namespace Borealis
 			mAssetPath.generic_wstring(),
 			[this](const std::filesystem::path& path, const filewatch::Event change_type) {
 				AssetRegistry* assetRegistry = nullptr;
+				AssetHandle assetHandleBuffer = -1;
+				AssetMetaData assetMetaDataBuffer;
 				BOREALIS_CORE_INFO("File change detected : {}", path.string());
 				switch (change_type)
 				{
@@ -249,6 +267,17 @@ namespace Borealis
 				case filewatch::Event::modified:
 					//compare modified file with meta file
 					//check if need to re compile
+					
+					if (path.extension() == ".meta") return;
+					
+					assetHandleBuffer = GetAssetHandle(mAssetPath / path);
+					assetMetaDataBuffer = Project::GetEditorAssetsManager()->GetMetaData(assetHandleBuffer);
+					if (assetMetaDataBuffer.SourceFileHash == MetaFileSerializer::HashFile(mAssetPath / path)) return;
+					ImportAsset(assetMetaDataBuffer);
+
+					//dont call reload in filewatch as multithreading, submit a reload request and handle it that way
+					Project::GetEditorAssetsManager()->SubmitAssetReloadRequest(assetHandleBuffer);
+
 					break;
 				case filewatch::Event::renamed_old:
 					//handle rename

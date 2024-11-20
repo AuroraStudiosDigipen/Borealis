@@ -24,6 +24,14 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace Borealis
 {
+	enum class MetaErrorType
+	{
+		ALL_FINE,
+		META_FILE_NOT_FOUND,
+		SOURCE_FILE_MODIFIED,
+		UNKNOWN
+	};
+
 	class AssetImporter
 	{
 	public:
@@ -77,7 +85,7 @@ namespace Borealis
 			\brief
 				verify meta file
 		*************************************************************************/
-		bool VerifyMetaFile(std::filesystem::path path, AssetRegistry& assetRegistry);
+		MetaErrorType VerifyMetaFile(std::filesystem::path path, AssetRegistry& assetRegistry);
 
 		void StartFileWatch();
 

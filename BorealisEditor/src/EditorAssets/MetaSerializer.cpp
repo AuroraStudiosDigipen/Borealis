@@ -13,11 +13,13 @@ prior written consent of DigiPen Institute of Technology is prohibited.
  /******************************************************************************/
 
 #include <BorealisPCH.hpp>
+#include <Assets/AssetManager.hpp>
 #include <Core/LoggerSystem.hpp>
 #include <EditorAssets/MetaSerializer.hpp>
 
 #include <yaml-cpp/yaml.h>
-
+#include <thread>
+#include <zlib.h>
 
 namespace Borealis
 {
@@ -64,14 +66,14 @@ namespace Borealis
 	void SerializeMetaFile(YAML::Emitter& out, AssetMetaData const& assetMetaData, std::filesystem::path PathToAssetFolder)
 	{
 		out << YAML::BeginMap;
+		out << YAML::Key << "Version" << YAML::Value << META_VERSION;
 		out << YAML::Key << "Name" << YAML::Value << assetMetaData.name;
 		out << YAML::Key << "AssetHandle" << YAML::Value << assetMetaData.Handle;
-		out << YAML::Key << "AssetType" << YAML::Value << Asset::AssetTypeToString(assetMetaData.Type);
+		out << YAML::Key << "AssetType" << YAML::Value << AssetManager::AssetTypeToString(assetMetaData.Type);
 		SerializeMetaConfigFile(out, assetMetaData.Type ,assetMetaData.Config);
-		//out << YAML::Key << "SourcePath" << YAML::Value << assetMetaData.SourcePath.lexically_relative(PathToAssetFolder).string();
 		out << YAML::Key << "SourcePath" << YAML::Value << std::filesystem::relative(assetMetaData.SourcePath, PathToAssetFolder).string();
 		out << YAML::Key << "CachePath" << YAML::Value << std::filesystem::relative(assetMetaData.CachePath, PathToAssetFolder).string();
-		out << YAML::Key << "LastModifiedDate" << YAML::Value << assetMetaData.importDate;
+		out << YAML::Key << "SourceFileHash" << YAML::Value << assetMetaData.SourceFileHash;
 		out << YAML::EndMap;
 	}
 
@@ -118,13 +120,11 @@ namespace Borealis
 		return config;
 	}
 
-	AssetMetaData DeserializeMetaFile(YAML::Node& node, std::filesystem::path PathToAssetFolder)
+	void DeserializeVersionlessMeta(AssetMetaData& metaData, YAML::Node& node, std::filesystem::path const& PathToAssetFolder)
 	{
-		AssetMetaData metaData;
-
 		metaData.name = node["Name"].as<std::string>();
 		metaData.Handle = node["AssetHandle"].as<uint64_t>();
-		metaData.Type = Asset::StringToAssetType(node["AssetType"].as<std::string>());
+		metaData.Type = AssetManager::StringToAssetType(node["AssetType"].as<std::string>());
 		metaData.Config = DeserializeMetaConfigFile(node, metaData.Type);
 
 		std::string str = node["SourcePath"].as<std::string>();
@@ -149,8 +149,62 @@ namespace Borealis
 		}
 
 		metaData.CachePath = PathToAssetFolder.parent_path() / str;
-		metaData.importDate = node["LastModifiedDate"].as<uint64_t>();
-		
+		//no longer used
+		//metaData.importDate = node["LastModifiedDate"].as<uint64_t>();
+	}
+
+	void DeserializeVersionMeta0_01(AssetMetaData& metaData, YAML::Node& node, std::filesystem::path const& PathToAssetFolder)
+	{
+		metaData.Version = node["Version"].as<double>();
+		metaData.name = node["Name"].as<std::string>();
+		metaData.Handle = node["AssetHandle"].as<uint64_t>();
+		metaData.Type = AssetManager::StringToAssetType(node["AssetType"].as<std::string>());
+		metaData.Config = DeserializeMetaConfigFile(node, metaData.Type);
+
+		std::string str = node["SourcePath"].as<std::string>();
+
+		const std::string pattern = "..\\";
+		size_t pos = str.find(pattern);
+
+		// If the pattern is found, erase it
+		if (pos != std::string::npos) {
+			str.erase(pos, pattern.length());
+		}
+
+		metaData.SourcePath = PathToAssetFolder.parent_path() / str;
+
+		str = node["CachePath"].as<std::string>();
+
+		pos = str.find(pattern);
+
+		// If the pattern is found, erase it
+		if (pos != std::string::npos) {
+			str.erase(pos, pattern.length());
+		}
+
+		metaData.CachePath = PathToAssetFolder.parent_path() / str;
+
+		metaData.SourceFileHash = node["SourceFileHash"].as<uint32_t>();
+	}
+
+	AssetMetaData DeserializeMetaFile(YAML::Node& node, std::filesystem::path PathToAssetFolder)
+	{
+		AssetMetaData metaData;
+
+		if (node["Version"])
+		{
+			double version = node["Version"].as<double>();
+
+			if (version == 0.01)
+			{
+				DeserializeVersionMeta0_01(metaData, node, PathToAssetFolder);
+			}
+		}
+		else
+		{
+			DeserializeVersionlessMeta(metaData, node, PathToAssetFolder);
+		}
+
 		return metaData;
 	}
 
@@ -176,16 +230,7 @@ namespace Borealis
 	{
 		AssetMetaData metaData = GetAssetMetaData(path);
 
-		std::filesystem::path metaFilePath;
-
-		if (std::filesystem::is_directory(path))
-		{
-			metaFilePath = path.string() + ".meta";
-		}
-		else
-		{
-			metaFilePath = path.string() + ".meta";
-		}
+		std::filesystem::path metaFilePath = path.string() + ".meta";
 		
 		YAML::Emitter out;
 		SerializeMetaFile(out, metaData, PathToAssetFolder);
@@ -220,7 +265,7 @@ namespace Borealis
 		return metaData;
 	}
 
-	void MetaFileSerializer::SerialzeRegistry(std::filesystem::path assetRegistryPath, std::unordered_map<AssetHandle, AssetMetaData> const& assetRegistry)
+	void MetaFileSerializer::SerialzeRegistry(std::filesystem::path const& assetRegistryPath, std::unordered_map<AssetHandle, AssetMetaData> const& assetRegistry)
 	{
 		YAML::Emitter out;
 		out << YAML::BeginMap
@@ -255,6 +300,34 @@ namespace Borealis
 		}
 	}
 
+	uint32_t MetaFileSerializer::HashFile(std::filesystem::path const& path)
+	{
+		if (std::filesystem::is_directory(path)) return 0;
+
+		const int maxRetries = 5;
+		const std::chrono::milliseconds retryDelay(50);
+
+		for (int attempt = 0; attempt < maxRetries; ++attempt) {
+			std::ifstream file(path, std::ios::binary);
+			if (file.is_open()) {
+				std::vector<char> buffer(4096);
+				uint32_t crc = 0;
+
+				while (file.read(buffer.data(), buffer.size()) || file.gcount() > 0) {
+					crc = crc32(crc, reinterpret_cast<const unsigned char*>(buffer.data()), file.gcount());
+				}
+
+				file.close();
+				return crc;
+			}
+
+			// Wait and retry
+			std::this_thread::sleep_for(retryDelay);
+		}
+
+		return 0;
+	}
+
 	void MetaFileSerializer::SaveAsFile(const std::filesystem::path& path, const char* outputFile)
 	{
 		std::ofstream outStream(path);
@@ -280,13 +353,13 @@ namespace Borealis
 		metaData.name = path.filename().string();
 		metaData.Handle = UUID();
 
-		metaData.Type = Asset::GetAssetTypeFromExtention(path);
+		metaData.Type = AssetManager::GetAssetTypeFromExtension(path);
 
 		metaData.Config = GetDefaultConfig(metaData.Type);
 
 		metaData.SourcePath = path;// .lexically_relative(PathToAssetFolder);
 
-		metaData.importDate = GetLastWriteTime(path);
+		metaData.SourceFileHash = HashFile(path);
 
 		return metaData;
 	}

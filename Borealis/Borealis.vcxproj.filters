@@ -2035,6 +2035,12 @@
     <ClInclude Include="lib\xproperty\include\xproperty\xproperty_config.hpp">
       <Filter>lib\xproperty\include\xproperty</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Graphics\PixelBuffer.hpp">
+      <Filter>inc\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Graphics\OpenGL\PixelBufferOpenGLImpl.hpp">
+      <Filter>inc\Graphics\OpenGL</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lib\imGuizmo\imGuizmo.cpp">
@@ -2297,6 +2303,12 @@
     </ClCompile>
     <ClCompile Include="src\Scripting\ScriptingUtils.cpp">
       <Filter>src\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\OpenGL\PixelBufferOpenGLImpl.cpp">
+      <Filter>src\Graphics\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\PixelBuffer.cpp">
+      <Filter>src\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

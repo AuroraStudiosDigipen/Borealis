@@ -139,6 +139,8 @@ namespace Borealis {
 	{
 		PROFILE_FUNCTION();
 
+		Project::GetEditorAssetsManager()->Update();
+
 		if (Borealis::FrameBufferProperties spec = SceneManager::GetActiveScene()->GetEditorFB()->GetProperties();
 			mViewportSize.x > 0.0f && mViewportSize.y > 0.0f && // zero sized framebuffer is invalid
 			(spec.Width != mViewportSize.x || spec.Height != mViewportSize.y))
@@ -211,25 +213,27 @@ namespace Borealis {
 				RenderPassConfig Render2D(RenderPassType::Render2D, "Render2D");
 				Render2D.AddSinkLinkage("renderTarget", "Render3D.renderTarget");
 				Render2D.AddSinkLinkage("camera", "RunTimeCamera");
+				Render2D.AddSinkLinkage("pixelBuffer", "NullPixelBuffer");
 				fconfig.AddPass(Render2D);
 			}
 
 			//forward rendering editor
 			{
 				RenderPassConfig editorShadowPass(RenderPassType::Shadow, "editorShadowPass");
-				editorShadowPass.AddSinkLinkage("shadowMap", "ShadowMapBuffer");
-				editorShadowPass.AddSinkLinkage("camera", "EditorCamera");
+				editorShadowPass.AddSinkLinkage("shadowMap", "ShadowMapBuffer")
+				.AddSinkLinkage("camera", "EditorCamera");
 				fconfig.AddPass(editorShadowPass);
 
 				RenderPassConfig editorRender3D(RenderPassType::Render3D, "editorRender3D");
-				editorRender3D.AddSinkLinkage("renderTarget", "EditorBuffer");
-				editorRender3D.AddSinkLinkage("shadowMap", "editorShadowPass.shadowMap");
-				editorRender3D.AddSinkLinkage("camera", "EditorCamera");
+				editorRender3D.AddSinkLinkage("renderTarget", "EditorBuffer")
+				.AddSinkLinkage("shadowMap", "editorShadowPass.shadowMap")
+				.AddSinkLinkage("camera", "EditorCamera");
 				fconfig.AddPass(editorRender3D);
 
 				RenderPassConfig editorRender2D(RenderPassType::Render2D, "editorRender2D");
-				editorRender2D.AddSinkLinkage("renderTarget", "editorRender3D.renderTarget");
-				editorRender2D.AddSinkLinkage("camera", "EditorCamera");
+				editorRender2D.AddSinkLinkage("renderTarget", "editorRender3D.renderTarget")
+				.AddSinkLinkage("camera", "EditorCamera")
+				.AddSinkLinkage("pixelBuffer", "PixelBuffer");
 				fconfig.AddPass(editorRender2D);
 			}
 
@@ -278,15 +282,14 @@ namespace Borealis {
 
 		int mouseX = (int)mx;
 		int mouseY = (int)my;
-
-		SceneManager::GetActiveScene()->GetEditorFB()->Bind();
+		//SceneManager::GetActiveScene()->GetEditorFB()->Bind();
 		if (mViewportHovered)
 		{
-			if (SceneManager::GetActiveScene()->GetEditorFB()->ReadPixel(1, mouseX, mouseY) != -1)
+			if (SceneManager::GetActiveScene()->GetPixelBuffer()->ReadPixel(mouseX, mouseY) != -1)
 			{
 				//int id_ent = mViewportFrameBuffer->ReadPixel(1, mouseX, mouseY);
-				mHoveredEntity = { (entt::entity)SceneManager::GetActiveScene()->GetEditorFB()->ReadPixel(1, mouseX, mouseY), SceneManager::GetActiveScene().get()};
-				//BOREALIS_CORE_INFO("picking id {}", id_ent);
+				mHoveredEntity = { (entt::entity)SceneManager::GetActiveScene()->GetPixelBuffer()->ReadPixel(mouseX, mouseY), SceneManager::GetActiveScene().get()};
+				//BOREALIS_CORE_INFO("picking id {}", mHoveredEntity.GetName());
 				//BOREALIS_CORE_INFO("Name : {}", mHoveredEntity.GetName());
 			}
 			else
@@ -294,7 +297,7 @@ namespace Borealis {
 				mHoveredEntity = {};
 			}
 		}
-		SceneManager::GetActiveScene()->GetEditorFB()->Unbind();
+		//SceneManager::GetActiveScene()->GetEditorFB()->Unbind();
 
 		SceneManager::GetActiveScene()->UpdateRuntime(dt); //update physics, scripts and audio
 
@@ -796,6 +799,18 @@ namespace Borealis {
 		bool shift = InputSystem::IsKeyPressed(Key::LeftShift) || InputSystem::IsKeyPressed(Key::RightShift);
 		switch (e.GetKeyCode())
 		{
+		case Key::U:
+			for (auto [assetHandle, assetMetaData] : Project::GetEditorAssetsManager()->GetAssetRegistry())
+			{
+				if (assetMetaData.Type == AssetType::Script)
+				{
+					BOREALIS_CORE_INFO("{}", assetMetaData.SourcePath.string());
+					ScriptingSystem::PushCSharpQueue(assetMetaData.SourcePath.string());
+				}
+			}
+			ScriptingSystem::CompileCSharpQueue(Project::GetProjectPath() + "/Cache/CSharp_Assembly.dll");
+			ScriptingSystem::LoadScriptAssemblies(Project::GetProjectPath() + "/Cache/CSharp_Assembly.dll");
+			break;
 		case Key::N:
 		{
 			if (control)

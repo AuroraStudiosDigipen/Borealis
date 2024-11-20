@@ -68,6 +68,7 @@ namespace BorealisAssetCompiler
 	{
 		AssetMetaData metaData;
 
+		metaData.Version = node["Version"].as<double>();
 		metaData.name = node["Name"].as<std::string>();
 		metaData.Handle = node["AssetHandle"].as<uint64_t>();
 		metaData.Type = Asset::StringToAssetType(node["AssetType"].as<std::string>());
@@ -84,7 +85,7 @@ namespace BorealisAssetCompiler
 		}
 
 		metaData.SourcePath = PathToAssetFolder / str;
-		metaData.importDate = node["LastModifiedDate"].as<uint64_t>();
+		metaData.SourceFileHash = node["SourceFileHash"].as<uint32_t>();
 
 		return metaData;
 	}
@@ -220,6 +221,7 @@ namespace BorealisAssetCompiler
 	void SerializeMetaFile(YAML::Emitter& out, AssetMetaData const& assetMetaData, std::filesystem::path PathToAssetFolder)
 	{
 		out << YAML::BeginMap;
+		out << YAML::Key << "Version" << YAML::Value << assetMetaData.Version;
 		out << YAML::Key << "Name" << YAML::Value << assetMetaData.name;
 		out << YAML::Key << "AssetHandle" << YAML::Value << assetMetaData.Handle;
 		out << YAML::Key << "AssetType" << YAML::Value << Asset::AssetTypeToString(assetMetaData.Type);
@@ -227,7 +229,7 @@ namespace BorealisAssetCompiler
 		//out << YAML::Key << "SourcePath" << YAML::Value << assetMetaData.SourcePath.lexically_relative(PathToAssetFolder).string();
 		out << YAML::Key << "SourcePath" << YAML::Value << std::filesystem::relative(assetMetaData.SourcePath, PathToAssetFolder).string();
 		out << YAML::Key << "CachePath" << YAML::Value << std::filesystem::relative(assetMetaData.CachePath, PathToAssetFolder).string();
-		out << YAML::Key << "LastModifiedDate" << YAML::Value << assetMetaData.importDate;
+		out << YAML::Key << "SourceFileHash" << YAML::Value << assetMetaData.SourceFileHash;
 		out << YAML::EndMap;
 	}
 

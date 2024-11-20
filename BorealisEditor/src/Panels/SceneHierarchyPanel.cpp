@@ -1145,7 +1145,7 @@ namespace Borealis
 				ImGui::Text(("UUID: " + std::to_string(metadata.Handle)).c_str());
 #endif
 				ImGui::Text(("Name: " + metadata.name).c_str());
-				ImGui::Text(("Type: " + Asset::AssetTypeToString(metadata.Type)).c_str());
+				ImGui::Text(("Type: " + AssetManager::AssetTypeToString(metadata.Type)).c_str());
 				ImGui::Text(("Path: " + metadata.SourcePath.string()).c_str());
 				switch (metadata.Type)
 				{
@@ -1801,6 +1801,7 @@ namespace Borealis
 			isEdited = SearchBar<AudioSourceComponent		>(search_text, entity, "Audio Source", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<AudioListenerComponent	>(search_text, entity, "Audio Listener", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<SkinnedMeshRendererComponent	>(search_text, entity, "Skinned Mesh Renderer", search_buffer) ? true : isEdited;
+			isEdited = SearchBar<AnimatorComponent	>(search_text, entity, "Animator", search_buffer) ? true : isEdited;
 
 
 			// scripts
@@ -1840,6 +1841,7 @@ namespace Borealis
 		isEdited = DrawComponentLayout<AudioSourceComponent>("Audio Source", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<AudioListenerComponent>("Audio Listener", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<SkinnedMeshRendererComponent>("Skinned Mesh Renderer", entity) ? true : isEdited;
+		isEdited = DrawComponentLayout<AnimatorComponent>("Animator", entity) ? true : isEdited;
 
 
 		/*DrawComponent<CameraComponent>("Camera", mSelectedEntity, [](auto& cameraComponent)

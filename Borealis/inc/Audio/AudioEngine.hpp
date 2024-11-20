@@ -8,6 +8,7 @@
 #include <math.h>
 #include <iostream>
 #include <Scene/Components.hpp>
+#include <Assets/AssetMetaData.hpp>
 
 namespace Borealis
 {
@@ -218,6 +219,8 @@ namespace Borealis
         static int GetDefaultGroupId();
 
         static int GetGroupIdForAudio(FMOD::Sound* fmodSound);
+
+        static Ref<Asset> Load(AssetMetaData const& assetMetaData);
 
         static int mDefaultGroupI; /*!< The default audio group ID */
 

@@ -24,6 +24,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scene/Components.hpp>
 #include <Scene/SceneManager.hpp>
 
+#include <Graphics/PixelBuffer.hpp>
+
 namespace Borealis
 {
 	Ref<Shader> s_shader = nullptr;
@@ -42,6 +44,9 @@ namespace Borealis
 		sourceType = RenderSourceType::RenderTargetColor;
 
 		buffer = framebuffer;
+
+		Width = framebuffer->GetProperties().Width;
+		Height = framebuffer->GetProperties().Height;
 	}
 
 	void RenderTargetSource::Bind()
@@ -89,6 +94,39 @@ namespace Borealis
 	void GBufferSource::BindDepthBuffer(int index)
 	{
 		buffer->BindDepthBuffer(index);
+	}
+
+	PixelBufferSource::PixelBufferSource(std::string name, Ref<PixelBuffer> pixelbuffer) : Width(0), Height(0)
+	{
+		sourceName = name;
+		sourceType = RenderSourceType::PixelBuffer;
+
+		buffer = pixelbuffer;
+		if(buffer)
+		{
+			Width = pixelbuffer->GetProperties().Width;
+			Height = pixelbuffer->GetProperties().Height;
+		}
+	}
+
+	void PixelBufferSource::ReadTexture(uint32_t index)
+	{
+		buffer->ReadTexture(index);
+	}
+
+	void PixelBufferSource::Bind()
+	{
+		buffer->Bind();
+	}
+
+	void PixelBufferSource::Unbind()
+	{
+		buffer->Unbind();
+	}
+
+	void PixelBufferSource::Resize(uint32_t width, uint32_t height)
+	{
+		buffer->Resize(width, height);
 	}
 
 	CameraSource::CameraSource(std::string name, EditorCamera const& camera)
@@ -270,6 +308,7 @@ namespace Borealis
 
 		Ref<RenderTargetSource> renderTarget = nullptr;
 		Ref<RenderTargetSource> shadowMap = nullptr;
+		Ref<PixelBufferSource> pixelBuffer = nullptr;
 
 		for (auto sink : sinkList)
 		{
@@ -346,6 +385,7 @@ namespace Borealis
 
 			}
 		}
+
 		//skinned mesh pass
 		{
 			auto group = registryPtr->group<>(entt::get<TransformComponent, SkinnedMeshRendererComponent>);
@@ -466,23 +506,33 @@ namespace Borealis
 	void Render2D::Execute(float dt)
 	{
 		if (shader) shader->Bind();
-		for (auto sink : sinkList)
-		{
-			if (sink->source)
-			{
-				auto source = sink->source;
-				source->Bind();
-			}
-		}
+
+		Ref<RenderTargetSource> renderTarget = nullptr;
+		Ref<PixelBufferSource> pixelBuffer = nullptr;
 
 		for (auto sink : sinkList)
 		{
 			if (sink->source->sourceType == RenderSourceType::Camera)
 			{
 				Renderer2D::Begin(std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj());
-				break;
+			}
+
+			if (sink->source->sourceType == RenderSourceType::RenderTargetColor)
+			{
+				if (sink->sinkName == "renderTarget")
+				{
+					renderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
+				}
+			}
+
+
+			if (sink->source->sourceType == RenderSourceType::PixelBuffer)
+			{
+				pixelBuffer = std::dynamic_pointer_cast<PixelBufferSource>(sink->source);
 			}
 		}
+
+		renderTarget->Bind();
 
 		{
 			auto group = registryPtr->group<>(entt::get<TransformComponent, SpriteRendererComponent>);
@@ -527,18 +577,25 @@ namespace Borealis
 			}
 		}
 
-
 		Renderer2D::End();
 
-		for (auto sink : sinkList)
+		if (pixelBuffer)
 		{
-			if (sink->source)
+			if (pixelBuffer->Width != renderTarget->Width || pixelBuffer->Height != renderTarget->Height)
 			{
-				auto source = sink->source;
-				source->Unbind();
+				pixelBuffer->Resize(renderTarget->Width, renderTarget->Height);
 			}
+			renderTarget->Bind();
+
+			pixelBuffer->Bind();
+
+			pixelBuffer->ReadTexture(1);
+
+			pixelBuffer->Unbind();
+
 		}
 
+		renderTarget->Unbind();
 		if (shader) shader->Unbind();
 	}
 
@@ -799,10 +856,12 @@ namespace Borealis
 			shadow_shader = Shader::Create("engineResources/Shaders/Renderer3D_Material.glsl");
 	}
 
-	void RenderPassConfig::AddSinkLinkage(std::string sinkName, std::string sourceName)
+	RenderPassConfig& RenderPassConfig::AddSinkLinkage(std::string sinkName, std::string sourceName)
 	{
 		SinkLinkageInfo sinkLinkageInfo{ sinkName, sourceName };
 		mSinkLinkageList.push_back(sinkLinkageInfo);
+
+		return *this;
 	}
 
 	void RenderGraphConfig::AddPass(RenderPassConfig renderPassConfig)

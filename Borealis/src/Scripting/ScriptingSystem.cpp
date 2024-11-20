@@ -29,6 +29,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scene/Components.hpp>
 #include <Scene/Entity.hpp>
 
+#include <Core/Project.hpp>
+
 namespace Borealis
 {
 
@@ -355,4 +357,16 @@ namespace Borealis
 		sData->mRootDomain = nullptr;
 	}
 
+	void ScriptingSystem::Reload(AssetMetaData const& assetMetaData)
+	{
+		for (auto [assetHandle, assetMetaData] : Project::GetEditorAssetsManager()->GetAssetRegistry())
+		{
+			if (assetMetaData.Type == AssetType::Script)
+			{
+				ScriptingSystem::PushCSharpQueue(assetMetaData.SourcePath.string());
+			}
+		}
+		ScriptingSystem::CompileCSharpQueue(Project::GetProjectPath() + "/Cache/CSharp_Assembly.dll");
+		ScriptingSystem::LoadScriptAssemblies(Project::GetProjectPath() + "/Cache/CSharp_Assembly.dll");
+	}
 }

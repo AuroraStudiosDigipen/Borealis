@@ -1,6 +1,6 @@
 /******************************************************************************/
 /*!
-\file		EditorLayer.cpp
+\file		im
 \author 	Chua Zheng Yang
 \par    	email: c.zhengyang\@digipen.edu
 \date   	July 11, 2024
@@ -89,6 +89,10 @@ namespace Borealis {
 	}
 #endif
 
+	static std::atomic<bool> isLoading(false);  // Flag to track loading status
+	static std::atomic<bool> loadComplete(false);  // Flag to track completion
+	static std::string activeScName("");  // Flag to track completion
+
 	void EditorLayer::Init()
 	{
 
@@ -134,6 +138,9 @@ namespace Borealis {
 	void EditorLayer::UpdateFn(float dt)
 	{
 		PROFILE_FUNCTION();
+
+		Project::GetEditorAssetsManager()->Update();
+
 		if (Borealis::FrameBufferProperties spec = SceneManager::GetActiveScene()->GetEditorFB()->GetProperties();
 			mViewportSize.x > 0.0f && mViewportSize.y > 0.0f && // zero sized framebuffer is invalid
 			(spec.Width != mViewportSize.x || spec.Height != mViewportSize.y))
@@ -206,25 +213,27 @@ namespace Borealis {
 				RenderPassConfig Render2D(RenderPassType::Render2D, "Render2D");
 				Render2D.AddSinkLinkage("renderTarget", "Render3D.renderTarget");
 				Render2D.AddSinkLinkage("camera", "RunTimeCamera");
+				Render2D.AddSinkLinkage("pixelBuffer", "NullPixelBuffer");
 				fconfig.AddPass(Render2D);
 			}
 
 			//forward rendering editor
 			{
 				RenderPassConfig editorShadowPass(RenderPassType::Shadow, "editorShadowPass");
-				editorShadowPass.AddSinkLinkage("shadowMap", "ShadowMapBuffer");
-				editorShadowPass.AddSinkLinkage("camera", "EditorCamera");
+				editorShadowPass.AddSinkLinkage("shadowMap", "ShadowMapBuffer")
+				.AddSinkLinkage("camera", "EditorCamera");
 				fconfig.AddPass(editorShadowPass);
 
 				RenderPassConfig editorRender3D(RenderPassType::Render3D, "editorRender3D");
-				editorRender3D.AddSinkLinkage("renderTarget", "EditorBuffer");
-				editorRender3D.AddSinkLinkage("shadowMap", "editorShadowPass.shadowMap");
-				editorRender3D.AddSinkLinkage("camera", "EditorCamera");
+				editorRender3D.AddSinkLinkage("renderTarget", "EditorBuffer")
+				.AddSinkLinkage("shadowMap", "editorShadowPass.shadowMap")
+				.AddSinkLinkage("camera", "EditorCamera");
 				fconfig.AddPass(editorRender3D);
 
 				RenderPassConfig editorRender2D(RenderPassType::Render2D, "editorRender2D");
-				editorRender2D.AddSinkLinkage("renderTarget", "editorRender3D.renderTarget");
-				editorRender2D.AddSinkLinkage("camera", "EditorCamera");
+				editorRender2D.AddSinkLinkage("renderTarget", "editorRender3D.renderTarget")
+				.AddSinkLinkage("camera", "EditorCamera")
+				.AddSinkLinkage("pixelBuffer", "PixelBuffer");
 				fconfig.AddPass(editorRender2D);
 			}
 
@@ -273,15 +282,14 @@ namespace Borealis {
 
 		int mouseX = (int)mx;
 		int mouseY = (int)my;
-
-		SceneManager::GetActiveScene()->GetEditorFB()->Bind();
+		//SceneManager::GetActiveScene()->GetEditorFB()->Bind();
 		if (mViewportHovered)
 		{
-			if (SceneManager::GetActiveScene()->GetEditorFB()->ReadPixel(1, mouseX, mouseY) != -1)
+			if (SceneManager::GetActiveScene()->GetPixelBuffer()->ReadPixel(mouseX, mouseY) != -1)
 			{
 				//int id_ent = mViewportFrameBuffer->ReadPixel(1, mouseX, mouseY);
-				mHoveredEntity = { (entt::entity)SceneManager::GetActiveScene()->GetEditorFB()->ReadPixel(1, mouseX, mouseY), SceneManager::GetActiveScene().get()};
-				//BOREALIS_CORE_INFO("picking id {}", id_ent);
+				mHoveredEntity = { (entt::entity)SceneManager::GetActiveScene()->GetPixelBuffer()->ReadPixel(mouseX, mouseY), SceneManager::GetActiveScene().get()};
+				//BOREALIS_CORE_INFO("picking id {}", mHoveredEntity.GetName());
 				//BOREALIS_CORE_INFO("Name : {}", mHoveredEntity.GetName());
 			}
 			else
@@ -289,7 +297,7 @@ namespace Borealis {
 				mHoveredEntity = {};
 			}
 		}
-		SceneManager::GetActiveScene()->GetEditorFB()->Unbind();
+		//SceneManager::GetActiveScene()->GetEditorFB()->Unbind();
 
 		SceneManager::GetActiveScene()->UpdateRuntime(dt); //update physics, scripts and audio
 
@@ -353,6 +361,42 @@ namespace Borealis {
 				ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 			}
 
+
+			if (isLoading.load())
+			{
+				if (!ImGui::IsPopupOpen("LoadingScreen")) {
+					ImGui::OpenPopup("LoadingScreen");
+				}
+
+				if (ImGui::BeginPopupModal("LoadingScreen", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+					ImGui::Text("Loading and Compiling Assets...");
+					ImGui::EndPopup();
+				}
+			}
+
+			if (loadComplete.load())
+			{
+				ScriptingSystem::AttachAppDomain();
+				loadComplete.store(false);
+
+				EditorSerialiser serialiser(nullptr);
+				SceneManager::SetActiveScene(activeScName, serialiser);
+
+				for (auto [handle, meta] : Project::GetEditorAssetsManager()->GetAssetRegistry())
+				{
+					if (meta.Type == AssetType::Prefab)
+					{
+						PrefabManager::DeserialisePrefab(meta.SourcePath.string());
+					}
+				}
+
+				std::string assetsPath = Project::GetProjectPath() + "\\Assets";
+				CBPanel.SetCurrDir(assetsPath);
+				DeserialiseEditorScene();
+				hasRuntimeCamera = false;
+
+				ImGui::CloseCurrentPopup();
+			}
 
 			if (ImGui::BeginMenuBar())
 			{
@@ -755,6 +799,18 @@ namespace Borealis {
 		bool shift = InputSystem::IsKeyPressed(Key::LeftShift) || InputSystem::IsKeyPressed(Key::RightShift);
 		switch (e.GetKeyCode())
 		{
+		case Key::U:
+			for (auto [assetHandle, assetMetaData] : Project::GetEditorAssetsManager()->GetAssetRegistry())
+			{
+				if (assetMetaData.Type == AssetType::Script)
+				{
+					BOREALIS_CORE_INFO("{}", assetMetaData.SourcePath.string());
+					ScriptingSystem::PushCSharpQueue(assetMetaData.SourcePath.string());
+				}
+			}
+			ScriptingSystem::CompileCSharpQueue(Project::GetProjectPath() + "/Cache/CSharp_Assembly.dll");
+			ScriptingSystem::LoadScriptAssemblies(Project::GetProjectPath() + "/Cache/CSharp_Assembly.dll");
+			break;
 		case Key::N:
 		{
 			if (control)
@@ -1062,6 +1118,28 @@ namespace Borealis {
 		SCPanel.SetContext(mEditorScene);
 	}
 
+	void EditorLayer::LoadProjectBackground(const std::string& filepath)
+	{
+
+		isLoading.store(true);
+		SceneManager::ClearSceneLibrary();
+		std::string activeSceneName;
+		if (Project::SetProjectPath(filepath.c_str(), activeSceneName))
+		{
+			AssetManager::RegisterAllAsset();
+			mAssetImporter.LoadRegistry(Project::GetProjectInfo());
+
+			activeScName = activeSceneName;
+		}
+
+		// Clear Scenes in Scene Manager
+		// Clear Assets in Assets Manager
+		// Load Scenes in Assets Manager
+		// Load Assets in Assets Manager
+		loadComplete.store(true);  // Mark loading complete
+		isLoading.store(false);  // Reset loading flag
+	}
+
 	void EditorLayer::LoadProject()
 	{
 		if (mSceneState != SceneState::Edit)
@@ -1073,33 +1151,11 @@ namespace Borealis {
 		std::string filepath = FileDialogs::OpenFile("Borealis Project File (*.brproj)\0*.brproj\0");
 		if (!filepath.empty())
 		{
-			SceneManager::ClearSceneLibrary();
-			std::string activeSceneName;
-			if (Project::SetProjectPath(filepath.c_str(), activeSceneName))
-			{
-				mAssetImporter.LoadRegistry(Project::GetProjectInfo());
-				EditorSerialiser serialiser(nullptr);
-				SceneManager::SetActiveScene(activeSceneName, serialiser);
-
-				for (auto [handle,meta] : Project::GetEditorAssetsManager()->GetAssetRegistry())
-				{
-					if (meta.Type == AssetType::Prefab)
-					{
-						PrefabManager::DeserialisePrefab(meta.SourcePath.string());
-					}
-				}
-			}
-		
-
-
-			std::string assetsPath = Project::GetProjectPath() + "\\Assets";
-			CBPanel.SetCurrDir(assetsPath);
-			DeserialiseEditorScene();
-			hasRuntimeCamera = false;
-			// Clear Scenes in Scene Manager
-			// Clear Assets in Assets Manager
-			// Load Scenes in Assets Manager
-			// Load Assets in Assets Manager
+			ScriptingSystem::DetachAppDomain();
+			std::thread loadingThread([this, filepath]() {
+				LoadProjectBackground(filepath);  // Pass the argument via lambda
+				});
+			loadingThread.detach();
 		}
 	}
 

@@ -26,6 +26,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scene/SceneCamera.hpp>
 #include "Graphics/Light.hpp"
 #include <Physics/PhysicsSystem.hpp>
+#include <Core/LayerList.hpp>
 
 namespace Borealis
 {
@@ -140,6 +141,7 @@ namespace Borealis
 	{
 		if (hasRuntimeStarted)
 		{
+			
 			{
 				mRegistry.view<NativeScriptComponent>().each([=](auto entity, auto& component)
 					{
@@ -558,7 +560,7 @@ namespace Borealis
 	Ref<FrameBuffer> Scene::GetEditorFB()
 	{
 		//move to rendergraph
-		if (!mViewportFrameBuffer || !mRuntimeFrameBuffer || !mGFrameBuffer)
+		if (!mViewportFrameBuffer || !mRuntimeFrameBuffer || !mGFrameBuffer || !mPixelBuffer)
 		{
 			FrameBufferProperties props{ 1280, 720, false };
 			props.Attachments = { FramebufferTextureFormat::RGBA8,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
@@ -583,8 +585,16 @@ namespace Borealis
 			FrameBufferProperties propsShadowMapBuffer{ 2024, 2024, false };
 			propsShadowMapBuffer.Attachments = { FramebufferTextureFormat::Depth };
 			mShadowMapBuffer = FrameBuffer::Create(propsShadowMapBuffer);
+
+			PixelBufferProperties propsPixelBuffer{ 1280, 720 };
+			mPixelBuffer = PixelBuffer::Create(propsPixelBuffer);
 		}
 		return mViewportFrameBuffer;
+	}
+
+	Ref<PixelBuffer> Scene::GetPixelBuffer()
+	{
+		return mPixelBuffer;
 	}
 
 	void Scene::SetRenderGraphConfig(RenderGraphConfig renderGraphConfig)
@@ -641,6 +651,9 @@ namespace Borealis
 			FrameBufferProperties propsShadowMapBuffer{ 2024, 2024,false };
 			propsShadowMapBuffer.Attachments = { FramebufferTextureFormat::Depth };
 			mShadowMapBuffer = FrameBuffer::Create(propsShadowMapBuffer);
+
+			PixelBufferProperties propsPixelBuffer{ 1280, 720 };
+			mPixelBuffer = PixelBuffer::Create(propsPixelBuffer);
 		}
 
 		Camera* mainCamera = nullptr; // camera not found
@@ -673,6 +686,12 @@ namespace Borealis
 
 		RenderTargetSource shadowMapBuffer("ShadowMapBuffer", mShadowMapBuffer);
 		mRenderGraph.SetGlobalSource(MakeRef<RenderTargetSource>(shadowMapBuffer));
+
+		PixelBufferSource pixelBuffer("PixelBuffer", mPixelBuffer);
+		mRenderGraph.SetGlobalSource(MakeRef<PixelBufferSource>(pixelBuffer));
+
+		//PixelBufferSource nullPixelBuffer("NullPixelBuffer", nullptr);
+		//mRenderGraph.SetGlobalSource(MakeRef<PixelBufferSource>(nullPixelBuffer));
 
 		if (mainCamera)
 		{
@@ -1030,6 +1049,12 @@ namespace Borealis
 			auto [character, transform] = characterGroup.get<CharacterControlComponent, TransformComponent>(entity);
 			PhysicsSystem::addCharacter(character, transform);
 		}
+
+		auto IDView = mRegistry.view<IDComponent>();
+		for (auto entity : IDView)
+		{
+			LayerList::initializeEntity({ entity,this });
+		}
 	}
 
 	void Scene::RuntimeEnd()
@@ -1059,6 +1084,7 @@ namespace Borealis
 			}
 		}
 		PhysicsSystem::EndScene();
+		LayerList::resetEntities();
 	}
 
 	Entity Scene::GetPrimaryCameraEntity()

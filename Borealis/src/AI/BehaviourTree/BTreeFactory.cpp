@@ -208,5 +208,10 @@ namespace Borealis
         return newTree;
     }
 
+    Ref<Asset> BTreeFactory::Load(AssetMetaData const& assetMetaData)
+    {
+        return Instance().LoadBehaviourTree(assetMetaData.SourcePath.string());
+    }
+
 }
 

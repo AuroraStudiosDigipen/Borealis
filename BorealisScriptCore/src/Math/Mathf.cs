@@ -2,7 +2,7 @@
 
 namespace Borealis
 {
-    struct Mathf
+    public struct Mathf
     {
         public static float Deg2Rad
         {

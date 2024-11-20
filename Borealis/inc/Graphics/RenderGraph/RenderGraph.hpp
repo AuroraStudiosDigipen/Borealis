@@ -18,6 +18,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/Core.hpp>
 #include <Graphics/EditorCamera.hpp>
 #include <Graphics/Framebuffer.hpp>
+#include <Graphics/Pixelbuffer.hpp>
 #include <Graphics/Shader.hpp>
 
 #include <string>
@@ -31,6 +32,7 @@ namespace Borealis
 	{
 		RenderTargetColor,
 		GBuffer,
+		PixelBuffer,
 		Texture2D,
 		UniformBuffers,
 		Camera
@@ -55,6 +57,8 @@ namespace Borealis
 		void BindDepthBuffer(int index);
 
 		Ref<FrameBuffer> buffer;
+		uint32_t Width, Height;
+
 	};
 
 	class GBufferSource : public RenderSource
@@ -81,6 +85,18 @@ namespace Borealis
 		void BindDepthBuffer(int index);
 
 		Ref<FrameBuffer> buffer;
+	};
+
+	class PixelBufferSource : public RenderSource
+	{
+	public:
+		PixelBufferSource(std::string name, Ref<PixelBuffer> pixelbuffer);
+		void ReadTexture(uint32_t index);
+		void Bind() override;
+		void Unbind() override;
+		void Resize(uint32_t width, uint32_t height);
+		Ref<PixelBuffer> buffer;
+		uint32_t Width, Height;
 	};
 
 	class CameraSource : public RenderSource
@@ -199,7 +215,7 @@ namespace Borealis
 		std::vector<SinkLinkageInfo> mSinkLinkageList;
 
 		RenderPassConfig(RenderPassType type, std::string passName);
-		void AddSinkLinkage(std::string sinkName, std::string sourceName);
+		RenderPassConfig& AddSinkLinkage(std::string sinkName, std::string sourceName);
 	};
 
 	class RenderGraphConfig

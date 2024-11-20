@@ -72,4 +72,8 @@ namespace Borealis
 		}
 		return mDefault;
 	}
+	Ref<Asset> Texture2D::Load(AssetMetaData const& assetMetaData)
+	{
+		return Create(assetMetaData.CachePath.string());
+	}
 }

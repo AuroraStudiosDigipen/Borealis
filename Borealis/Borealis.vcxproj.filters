@@ -253,6 +253,9 @@
     <ClInclude Include="inc\Core\ApplicationManager.hpp">
       <Filter>inc\Core</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Core\BitSet32.hpp">
+      <Filter>inc\Core</Filter>
+    </ClInclude>
     <ClInclude Include="inc\Core\Core.hpp">
       <Filter>inc\Core</Filter>
     </ClInclude>
@@ -271,6 +274,9 @@
     <ClInclude Include="inc\Core\Layer.hpp">
       <Filter>inc\Core</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Core\LayerList.hpp">
+      <Filter>inc\Core</Filter>
+    </ClInclude>
     <ClInclude Include="inc\Core\LayerSystem.hpp">
       <Filter>inc\Core</Filter>
     </ClInclude>
@@ -281,9 +287,6 @@
       <Filter>inc\Core</Filter>
     </ClInclude>
     <ClInclude Include="inc\Core\ProjectInfo.hpp">
-      <Filter>inc\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\Core\TagList.hpp">
       <Filter>inc\Core</Filter>
     </ClInclude>
     <ClInclude Include="inc\Core\TimeManager.hpp">
@@ -370,6 +373,9 @@
     <ClInclude Include="inc\Graphics\OpenGL\GraphicsContextOpenGLImpl.hpp">
       <Filter>inc\Graphics\OpenGL</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Graphics\OpenGL\PixelBufferOpenGLImpl.hpp">
+      <Filter>inc\Graphics\OpenGL</Filter>
+    </ClInclude>
     <ClInclude Include="inc\Graphics\OpenGL\RendererAPIOpenGLImpl.hpp">
       <Filter>inc\Graphics\OpenGL</Filter>
     </ClInclude>
@@ -383,6 +389,9 @@
       <Filter>inc\Graphics\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="inc\Graphics\OrthographicCamera.hpp">
+      <Filter>inc\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Graphics\PixelBuffer.hpp">
       <Filter>inc\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="inc\Graphics\RenderCommand.hpp">
@@ -2094,10 +2103,16 @@
     <ClCompile Include="src\Core\ApplicationManager.cpp">
       <Filter>src\Core</Filter>
     </ClCompile>
+    <ClCompile Include="src\Core\BitSet32.cpp">
+      <Filter>src\Core</Filter>
+    </ClCompile>
     <ClCompile Include="src\Core\InputSystem.cpp">
       <Filter>src\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Core\Layer.cpp">
+      <Filter>src\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\LayerList.cpp">
       <Filter>src\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Core\LayerSystem.cpp">
@@ -2107,9 +2122,6 @@
       <Filter>src\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Core\Project.cpp">
-      <Filter>src\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Core\TagList.cpp">
       <Filter>src\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Core\TimeManager.cpp">
@@ -2187,6 +2199,9 @@
     <ClCompile Include="src\Graphics\OpenGL\GraphicsContextOpenGLImpl.cpp">
       <Filter>src\Graphics\OpenGL</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\OpenGL\PixelBufferOpenGLImpl.cpp">
+      <Filter>src\Graphics\OpenGL</Filter>
+    </ClCompile>
     <ClCompile Include="src\Graphics\OpenGL\RendererAPIOpenGLImpl.cpp">
       <Filter>src\Graphics\OpenGL</Filter>
     </ClCompile>
@@ -2200,6 +2215,9 @@
       <Filter>src\Graphics\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\OrthographicCamera.cpp">
+      <Filter>src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\PixelBuffer.cpp">
       <Filter>src\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\RenderCommand.cpp">

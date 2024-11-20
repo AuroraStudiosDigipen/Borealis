@@ -22,6 +22,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/InputSystem.hpp>
 #include <Core/ApplicationManager.hpp>
 #include <Core/TimeManager.hpp>
+#include <Core/LayerList.hpp>
+#include <mono/metadata/appdomain.h>
 
 
 namespace Borealis
@@ -80,6 +82,11 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(ScriptComponent_AddComponent);
 		BOREALIS_ADD_INTERNAL_CALL(ScriptComponent_RemoveComponent);
 		BOREALIS_ADD_INTERNAL_CALL(ScriptComponent_HasComponent);
+
+		BOREALIS_ADD_INTERNAL_CALL(LayerMask_GetMask);
+		BOREALIS_ADD_INTERNAL_CALL(LayerMask_LayerToName);
+		BOREALIS_ADD_INTERNAL_CALL(LayerMask_NameToLayer);
+
 	}
 	uint64_t GenerateUUID()
 	{
@@ -572,5 +579,54 @@ namespace Borealis
 		std::string className = mono_class_get_name(klass);
 
 		return Entity.GetComponent<ScriptComponent>().HasScript(className);
+	}
+	void LayerMask_LayerToName(int layer, MonoString* name)
+	{
+		if (LayerList::HasIndex(layer))
+		{
+			std::string layerName = LayerList::IndexToLayer(layer);
+			name = mono_string_new(mono_domain_get(), layerName.c_str());
+		}
+		else
+		{
+			APP_LOG_WARN("Layer does not exist");
+		}
+	}
+	void LayerMask_NameToLayer(MonoString* name, int* layer)
+	{
+		std::string layerName = mono_string_to_utf8(name);
+		if (LayerList::HasLayer(layerName))
+		{
+			*layer = LayerList::LayerToIndex(layerName);
+		}
+		else
+		{
+			APP_LOG_WARN("Layer does not exist");
+			*layer = 0;
+		}
+	}
+	void LayerMask_GetMask(int* layer, MonoArray* stringArray)
+	{
+		int size = mono_array_length(stringArray);
+		std::vector<std::string> layerNames;
+		for (int i = 0; i < size; i++)
+		{
+			MonoString* str = (MonoString*)mono_array_get(stringArray, MonoString*, i);
+			char* message = mono_string_to_utf8(str);
+			std::string layerName = message;
+			layerNames.push_back(layerName);
+		}
+		*layer = 0;
+		for (auto& name : layerNames)
+		{
+			if (LayerList::HasLayer(name))
+			{
+				*layer |= 1 << LayerList::LayerToIndex(name);
+			}
+			else
+			{
+				APP_LOG_WARN("Layer does not exist");
+			}
+		}
 	}
 }

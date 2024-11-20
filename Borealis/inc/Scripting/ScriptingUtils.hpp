@@ -53,6 +53,8 @@ namespace Borealis
 	*************************************************************************/
 	MonoAssembly* LoadCSharpAssembly(const std::string& path);
 
+	MonoAssembly* LoadCSharpAssembly(char* bytes, uint32_t size, const char* assemblyName);
+
 	/*!***********************************************************************
 		\brief
 			Get a class from an assembly

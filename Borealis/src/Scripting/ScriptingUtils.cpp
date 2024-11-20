@@ -62,6 +62,18 @@ namespace Borealis
 		return assembly;
 	}
 
+	MonoAssembly* LoadCSharpAssembly(char* buffer, uint32_t size, const char* assemblyName)
+	{
+		MonoImageOpenStatus status;
+		MonoImage* image = mono_image_open_from_data_full(buffer, size, 1, &status, 0);
+		BOREALIS_CORE_ASSERT(!status, mono_image_strerror(status));
+
+		MonoAssembly* assembly = mono_assembly_load_from_full(image, assemblyName, &status, 0);
+		mono_image_close(image);
+
+		return assembly;
+	}
+
 	void PrintAssemblyTypes(MonoAssembly* assembly)
 	{
 		MonoImage* image = mono_assembly_get_image(assembly);

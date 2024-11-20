@@ -38,7 +38,8 @@ namespace Borealis
 		Scene,
 		Material,
 		Prefab,
-		BehaviourTree
+		BehaviourTree,
+		Script
 	};
 
 	class Asset
@@ -47,9 +48,7 @@ namespace Borealis
 		AssetHandle mAssetHandle{};
 		AssetType mAssetType{AssetType::None};
 
-		static AssetType GetAssetTypeFromExtention(std::filesystem::path path);
-		static std::string AssetTypeToString(AssetType type);
-		static AssetType StringToAssetType(std::string const& type);
+
 
 		RTTR_ENABLE()
 	};

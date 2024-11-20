@@ -17,6 +17,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <string>
 #include <Core/Core.hpp>
 #include <Assets/Asset.hpp>
+#include <Assets/AssetMetaData.hpp>
 
 namespace Borealis
 {
@@ -128,6 +129,8 @@ namespace Borealis
 		static Ref<Texture2D> Create(const std::string& path);
 
 		static Ref<Texture2D> GetDefaultTexture();
+
+		static Ref<Asset> Load(AssetMetaData const& assetMetaData);
 
 	private:
 		static Ref<Texture2D> mDefault;

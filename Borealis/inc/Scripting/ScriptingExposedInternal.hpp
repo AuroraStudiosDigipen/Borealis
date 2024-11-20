@@ -325,7 +325,11 @@ namespace Borealis
 	*************************************************************************/
 	bool ScriptComponent_HasComponent(uint64_t entityID, MonoReflectionType* reflectionType);
 
+	void LayerMask_LayerToName(int layer, MonoString* name);
 
+	void LayerMask_NameToLayer(MonoString* name, int* layer);
+
+	void LayerMask_GetMask(int* layer, MonoArray* stringArray);
 
 }
 

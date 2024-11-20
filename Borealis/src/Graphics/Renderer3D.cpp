@@ -130,9 +130,31 @@ namespace Borealis
 		Mesh::DrawQuad();
 	}
 
+	void Renderer3D::BeginCommonShapes(glm::mat4 const& viewProj)
+	{
+		s3dData->mCommonShader->Bind();
+		s3dData->mCommonShader->Set("u_ViewProjection", viewProj);
+		s3dData->mCommonShader->Unbind();
+	}
+
 	void Renderer3D::DrawCube(glm::vec3 translation, glm::vec3 minExtent, glm::vec3 maxExtent, glm::vec4 color, bool wireframe)
 	{
 		Mesh::DrawCube(translation, minExtent, maxExtent, color, wireframe, s3dData->mCommonShader);
+	}
+
+	void Renderer3D::DrawSphere(glm::vec3 center, float radius, glm::vec4 color, bool wireframe)
+	{
+		Mesh::DrawSphere(center, radius, color, wireframe, s3dData->mCommonShader);
+	}
+
+	void Renderer3D::DrawCylinder(glm::vec3 center, float radius, float height, glm::vec4 color, bool wireframe)
+	{
+		Mesh::DrawCylinder(center, radius, height, color, wireframe, s3dData->mCommonShader);
+	}
+
+	void Renderer3D::DrawCapsule(glm::vec3 center, float radius, float height, glm::vec4 color, bool wireframe)
+	{
+		Mesh::DrawCapsule(center, radius, height, color, wireframe, s3dData->mCommonShader);
 	}
 
 	void Renderer3D::SetGlobalWireFrameMode(bool wireFrameMode)

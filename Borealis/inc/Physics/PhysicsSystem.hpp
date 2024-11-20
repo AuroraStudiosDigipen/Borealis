@@ -48,72 +48,33 @@ namespace Borealis
    * \param bodyID The ID of the body.
    * \param transform The transform component of the body.
    */
-		static void PushTransform(RigidBodyComponent& rigidbody, TransformComponent& transform, Entity entity);
+		static void PushTransform(ColliderComponent& collider, TransformComponent& transform, RigidBodyComponent* rigidbody, Entity entity);
 
 		/**
    * \brief Pulls the transform of the specified body from the physics system.
    * \param bodyID The ID of the body.
    * \param transform The transform component of the body.
    */
-		static void PullTransform(RigidBodyComponent& rigidbody, TransformComponent& transform, Entity& entity);
-
-		/**
-   * \brief Adds a square body to the physics system.
-   * \param radius The half-extent of the square body.
-   * \param position The position of the square body.
-   * \param rigidbody The rigid body component of the square body.
-   */
-		static void addSquareBody(glm::vec3 size, glm::vec3 position, RigidBodyComponent& rigidbody);
-
-			/**
-	* \brief Adds a sphere body to the physics system.
-	* \param radius The ardius of the sphere body.
-	* \param position The position of the sphere body.
-	* \param rigidbody The rigid body component of the sphere body.
-	*/
-		static void addSphereBody(float radius, glm::vec3 position, RigidBodyComponent& rigidbody);
-
-    /**
-    * \brief Adds a capsule body to the physics system.
-    * \param radius The radius of the capsule body.
-    * \param halfHeight The half height of the capsule body.
-    * \param position The position of the capsule body.
-    * \param rigidbody The rigid body component of the capsule body.
-    */
-        static void addCapsuleBody(float radius, float halfHeight, glm::vec3 position, RigidBodyComponent& rigidbody);
-
-
+		static void PullTransform(ColliderComponent& collider, TransformComponent& transform, Entity& entity);
 
         /**
         * \brief Adds a body to the physics system.
         * \param position The position of the body.
         * \param rigidbody The rigid body component of the body.
         */
-        static void addBody(TransformComponent& transform, RigidBodyComponent& rigidbody, MeshFilterComponent& mesh, UUID entityID);
-
-		/**
-   * \brief Updates the sphere values of the specified rigid body.
-   * \param rigidbody The rigid body component to update.
-   */
-		static void UpdateSphereValues(RigidBodyComponent& rigidbody);
-
-			/**
-	* \brief Updates the box values of the specified rigid body.
-	* \param rigidbody The rigid body component to update.
-	*/
-		static void UpdateBoxValues(RigidBodyComponent& rigidbody);
+        static void addBody(TransformComponent& transform, RigidBodyComponent* rigidbody, ColliderComponent& collider, UUID entityID);
 		
 		static void EndScene();
 
-		static void FreeRigidBody(RigidBodyComponent& rigidbody);
+		static void FreeRigidBody(ColliderComponent& collider);
 
-		static void calculateBoundingVolume(const Model& model, TransformComponent& transform, RigidBodyComponent& rigidbody);
+		static std::pair<glm::vec3, glm::vec3> calculateBoundingVolume(const Model& model);
 
 		static glm::vec3 calculateBoxSize(glm::vec3 minExtent, glm::vec3 maxExtent);
 
-		static float calculateSphereRadius(glm::vec3 minExtent, glm::vec3 maxExtent);
+		static float calculateSphereRadius(glm::vec3 boundingVolume);
 
-		static std::pair<float, float> calculateCapsuleDimensions(glm::vec3 minExtent, glm::vec3 maxExtent);
+		static std::pair<float, float> calculateCapsuleDimensions(glm::vec3 boundingVolume);
 
 		static void AddForce(unsigned int bodyID, glm::vec3 force);
 
@@ -136,7 +97,19 @@ namespace Borealis
 		static std::queue<CollisionPair>& GetCollisionPersistQueue();
 		static std::queue<CollisionPair>& GetCollisionExitQueue();
 
-		static void move(RigidBodyComponent& rigidbody, glm::vec3 motion);
+		static void move(ColliderComponent& rigidbody, glm::vec3 motion);
+
+		static void addCharacter(CharacterControlComponent& character, TransformComponent& transform);
+
+		static void FreeCharacter(CharacterControlComponent& character);
+
+		static void HandleInput(glm::vec3 inMovementDirection, bool inJump, float inDeltaTime, void* Character);
+
+		static void PrePhysicsUpdate(float dt, void* Character);
+
+		static void PushCharacterTransform(CharacterControlComponent& character, glm::vec3 position, glm::vec3 rotation);
+
+		static void PullCharacterTransform(CharacterControlComponent& character, glm::vec3& position, glm::vec3& rotation);
 	};
 
 }

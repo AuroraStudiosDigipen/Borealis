@@ -41,7 +41,10 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Jolt/Physics/Body/BodyActivationListener.h>
 #include <Jolt/Physics/Collision/Shape/RotatedTranslatedShape.h>
 #include <Jolt/Physics/Character/Character.h>
+#include <Jolt/Physics/Character/CharacterVirtual.h>
 #include <Jolt/Physics/Character/CharacterBase.h>
+#include <Jolt/Physics/Collision/Shape/ScaledShape.h>
+
 
 
 JPH_SUPPRESS_WARNINGS
@@ -269,7 +272,8 @@ namespace Borealis
 			sData.onCollisionPairRemovedQueue.pop();
 		}
 	}
-void PhysicsSystem::Init()
+
+	void PhysicsSystem::Init()
 {
 	sData.broad_phase_layer_interface = new BPLayerInterfaceImpl();
 	sData.object_vs_broadphase_layer_filter = new ObjectVsBroadPhaseLayerFilterImpl();
@@ -344,12 +348,26 @@ void PhysicsSystem::Init()
 	sData.mSystem->OptimizeBroadPhase();
 }
 
-	void PhysicsSystem::PushTransform(RigidBodyComponent& rigidbody, TransformComponent& transform, Entity entity)
+	void PhysicsSystem::PushTransform(ColliderComponent& collider, TransformComponent& transform, RigidBodyComponent* rigidbody, Entity entity)
 	{
 		auto entityTransform = TransformComponent::GetGlobalTransform(entity);
-		auto modelCenter = rigidbody.modelCenter;
+		auto modelCenter = collider.center;
 		auto actualCenterVec4 = entityTransform * glm::vec4(modelCenter, 1.0f);
 		auto actualCenter = glm::vec3(actualCenterVec4.x, actualCenterVec4.y, actualCenterVec4.z);
+
+		//TODO Fix scaling
+		//// Assuming `body` is a pointer to an existing body
+		//ShapeRefC oldShape = sData.body_interface->GetShape((BodyID(rigidbody.bodyID)));
+	
+		//// Specify the new scale factor as a Vec3
+		//Vec3 newScale(transform.Scale.x,transform.Scale.y,transform.Scale.z); // Example: scaling by 1.5 on all axes
+
+		//// Create a scaled shape
+		//ScaledShape* scaledShape = new ScaledShape(oldShape, newScale);
+
+		//// Replace the body’s shape with the scaled shape
+		//sData.body_interface->SetShape((BodyID(rigidbody.bodyID)), scaledShape, true, EActivation::Activate);
+	
 		// Convert position (glm::vec3 to Jolt's RVec3)
 		JPH::RVec3 newPosition = JPH::RVec3(actualCenter.x, actualCenter.y, actualCenter.z);
 
@@ -360,17 +378,39 @@ void PhysicsSystem::Init()
 		JPH::Quat newRotation = JPH::Quat(rotation.x, rotation.y, rotation.z, rotation.w);
 
 		// Set position and rotation in the physics system
-		sData.body_interface->SetPosition((BodyID)rigidbody.bodyID, newPosition, EActivation::Activate);
-		sData.body_interface->SetRotation((BodyID)rigidbody.bodyID, newRotation, EActivation::Activate);
+		sData.body_interface->SetPosition((BodyID)collider.bodyID, newPosition, EActivation::Activate);
+		sData.body_interface->SetRotation((BodyID)collider.bodyID, newRotation, EActivation::Activate);
+
+		//Set motion type if necceassary
+		if (rigidbody)
+		{
+			if (rigidbody->movement == MovementType::Kinematic)
+			{
+				sData.body_interface->SetObjectLayer((BodyID)collider.bodyID, Layers::MOVING);
+				sData.body_interface->SetMotionType((BodyID)collider.bodyID, EMotionType::Kinematic, EActivation::Activate);
+			}
+			else if (rigidbody->movement == MovementType::Static)
+			{
+				sData.body_interface->SetObjectLayer((BodyID)collider.bodyID, Layers::NON_MOVING);
+				sData.body_interface->SetMotionType((BodyID)collider.bodyID, EMotionType::Static, EActivation::Activate);
+
+			}
+			else if (rigidbody->movement == MovementType::Dynamic)
+			{
+				sData.body_interface->SetObjectLayer((BodyID)collider.bodyID, Layers::MOVING);
+				sData.body_interface->SetMotionType((BodyID)collider.bodyID, EMotionType::Dynamic, EActivation::Activate);
+
+			}
+		}
 	}
 
-	void PhysicsSystem::PullTransform(RigidBodyComponent& rigidbody, TransformComponent& transform, Entity& entity)
+	void PhysicsSystem::PullTransform(ColliderComponent& collider, TransformComponent& transform, Entity& entity)
 	{
 		// Get position from the physics system (JPH::RVec3 to glm::vec3)
-		JPH::RVec3 newPosition = sData.body_interface->GetPosition((BodyID)rigidbody.bodyID);
+		JPH::RVec3 newPosition = sData.body_interface->GetPosition((BodyID)collider.bodyID);
 		glm::vec3 newTranslate = glm::vec3(newPosition.GetX(), newPosition.GetY(), newPosition.GetZ());
 		// Get rotation from the physics system (JPH::Quat to glm::quat)
-		JPH::Quat newRotation = sData.body_interface->GetRotation((BodyID)rigidbody.bodyID);
+		JPH::Quat newRotation = sData.body_interface->GetRotation((BodyID)collider.bodyID);
 		glm::quat rotation = glm::quat(newRotation.GetW(), newRotation.GetX(), newRotation.GetY(), newRotation.GetZ());
 		// Convert quaternion to Euler angles (quat to vec3) in degrees
 		glm::vec3 newRotate = glm::degrees(glm::eulerAngles(rotation));  // Euler angles in degrees
@@ -380,7 +420,7 @@ void PhysicsSystem::Init()
 		glm::mat4 translationMatrix = glm::mat4(1.f);
 		glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.f), newScale);
 		glm::mat4 modelMatrix = translationMatrix * rotationMatrix * scaleMatrix;
-		auto offsetCenter = modelMatrix * glm::vec4(rigidbody.modelCenter, 1.0f);
+		auto offsetCenter = modelMatrix * glm::vec4(collider.center, 1.0f);
 
 		newTranslate -= glm::vec3(offsetCenter.x, offsetCenter.y, offsetCenter.z);
 
@@ -409,14 +449,37 @@ void PhysicsSystem::Init()
 			}
 
 		}
+	}
 
-		//TODO
-		/*if (transform.ParentID != 0)
-		{
-			auto parentEntity = SceneManager::GetEntityByUUID(transform.ParentID);
-			auto parentTransform = TransformComponent::GetGlobalTransform(parentEntity);
-			auto localTransform = glm::inverse(parentTransform) * glm::vec4(transform.transform);
-		}*/
+	void PhysicsSystem::PushCharacterTransform(CharacterControlComponent& character, glm::vec3 position, glm::vec3 rotation)
+	{
+		// Convert position (glm::vec3 to Jolt's RVec3)
+		JPH::RVec3 newPosition = JPH::RVec3(position.x, position.y, position.z);
+
+		// Convert Euler angles (vec3) to quaternion (quat)
+		glm::quat rotationQuat = glm::quat(glm::radians(rotation));  // Assuming Rotation is in degrees
+
+		// Convert glm::quat to Jolt's Quat (JPH::Quat)
+		JPH::Quat newRotation = JPH::Quat(rotationQuat.x, rotationQuat.y, rotationQuat.z, rotationQuat.w);
+
+		// Set position and rotation in the physics system
+		reinterpret_cast<CharacterVirtual*>(character.controller)->SetPosition(newPosition);
+		reinterpret_cast<CharacterVirtual*>(character.controller)->SetRotation(newRotation);
+	}
+
+	void PhysicsSystem::PullCharacterTransform(CharacterControlComponent& character, glm::vec3& position, glm::vec3& rotation)
+	{
+		// Get position from the physics system (JPH::RVec3 to glm::vec3)
+		JPH::RVec3 newPosition = reinterpret_cast<CharacterVirtual*>(character.controller)->GetPosition();
+		position = glm::vec3(newPosition.GetX(), newPosition.GetY(), newPosition.GetZ());
+
+		// Get rotation from the physics system (JPH::Quat to glm::quat)
+		JPH::Quat newRotation = reinterpret_cast<CharacterVirtual*>(character.controller)->GetRotation();
+		glm::quat rotationQuat = glm::quat(newRotation.GetW(), newRotation.GetX(), newRotation.GetY(), newRotation.GetZ());
+
+		// Convert quaternion to Euler angles (quat to vec3) in degrees
+		rotation = glm::degrees(glm::eulerAngles(rotationQuat));  // Euler angles in degrees
+
 	}
 
 	void PhysicsSystem::Update(float dt)
@@ -443,7 +506,7 @@ void PhysicsSystem::Init()
 		return bodyIDMapUUID[bodyID];
 	}
 
-	void PhysicsSystem::calculateBoundingVolume(const Model& model, TransformComponent& transform, RigidBodyComponent& rigidbody)
+	std::pair<glm::vec3, glm::vec3> PhysicsSystem::calculateBoundingVolume(const Model& model)
 	{
 		glm::vec3 minExtent{}, maxExtent{};
 
@@ -461,19 +524,12 @@ void PhysicsSystem::Init()
 				maxExtent.z = std::max(maxExtent.z, vertex.Position.z);
 			}
 		}
-		minExtent *= transform.Scale;
-		maxExtent *= transform.Scale;
+
 
 		glm::vec3 boundingVolumeCenter = (minExtent + maxExtent) * 0.5f;
-		rigidbody.modelCenter = boundingVolumeCenter;
 
-		rigidbody.offset = transform.Translate - boundingVolumeCenter;
+		return { boundingVolumeCenter, maxExtent - minExtent };
 
-		rigidbody.minExtent = minExtent;
-		rigidbody.maxExtent = maxExtent;
-
-		/*cout << "Min Extent: " << minExtent.x << ", " << minExtent.y << ", " << minExtent.z << endl;
-		cout << "Max Extent: " << maxExtent.x << ", " << maxExtent.y << ", " << maxExtent.z << endl;*/
 	}
 
 	glm::vec3 PhysicsSystem::calculateBoxSize(glm::vec3 minExtent, glm::vec3 maxExtent)
@@ -482,22 +538,18 @@ void PhysicsSystem::Init()
 		return maxExtent - minExtent;
 	}
 
-	float PhysicsSystem::calculateSphereRadius(glm::vec3 minExtent, glm::vec3 maxExtent)
+	float PhysicsSystem::calculateSphereRadius(glm::vec3 boundingVolume)
 	{
-		glm::vec3 dimensions = maxExtent - minExtent;
-		return (glm::length(dimensions) * 0.5f);
+		return (glm::length(boundingVolume) * 0.5f);
 	}
 
-	std::pair<float, float> PhysicsSystem::calculateCapsuleDimensions(glm::vec3 minExtent, glm::vec3 maxExtent)
+	std::pair<float, float> PhysicsSystem::calculateCapsuleDimensions(glm::vec3 boundingVolume)
 	{
-		// Calculate the extents of the bounding box
-		glm::vec3 extent = maxExtent - minExtent;
-
 		// Radius is half of the smallest width in the X or Z dimensions
-		float radius = 0.5f * std::min(extent.x, extent.z);
+		float radius = 0.5f * std::min(boundingVolume.x, boundingVolume.z);
 
 		// Half-height is half of the height (Y dimension), minus the radius
-		float halfHeight = 0.5f * extent.y - radius;
+		float halfHeight = 0.5f * boundingVolume.y - radius;
 
 		return { radius, halfHeight };
 	}
@@ -559,7 +611,8 @@ void PhysicsSystem::Init()
 	void PhysicsSystem::SetRotation(unsigned int bodyID, glm::vec3 rotation)
 	{
 	}
-	void PhysicsSystem::move(RigidBodyComponent& rigidbody, glm::vec3 motion)
+
+	void PhysicsSystem::move(ColliderComponent& rigidbody, glm::vec3 motion)
 	{
 		// Get the current position of the body
 		JPH::RVec3 JoltMotion = JPH::RVec3(motion.x, motion.y, motion.z);
@@ -568,73 +621,216 @@ void PhysicsSystem::Init()
 		sData.body_interface->SetLinearVelocity((BodyID)rigidbody.bodyID, JoltMotion);
 	}
 
-	void PhysicsSystem::addBody(TransformComponent& transform, RigidBodyComponent& rigidbody, MeshFilterComponent& mesh, UUID entityID) {
+	void PhysicsSystem::addCharacter(CharacterControlComponent& character, TransformComponent& transform)
+	{
+		CharacterVirtualSettings settings;
 		ShapeRefC shape;
 		ShapeSettings::ShapeResult shape_result;
 
+		// Create capsule shape settings
+		float radius = 1.f;
+		float halfHeight = 1.f;
+		CapsuleShapeSettings capsule_shape_settings(radius, halfHeight);
+		capsule_shape_settings.SetEmbedded();
+		shape_result = capsule_shape_settings.Create();
+		shape = shape_result.Get();
 
-		calculateBoundingVolume(*mesh.Model, transform, rigidbody);
+		settings.mMaxSlopeAngle = JPH::DegreesToRadians(character.slopeAngle);
+		settings.mMaxStrength = character.strength;
+		settings.mMass = character.mass;
+		settings.mShape = shape;
+		settings.SetEmbedded();
 
-		switch (rigidbody.shape) {
-		case RigidBodyType::Box: {
-			// Create box shape settings
-			glm::vec3 size = calculateBoxSize(rigidbody.minExtent, rigidbody.maxExtent) * 0.5f;
-			rigidbody.size = size;
+		character.controller = new CharacterVirtual(&settings, RVec3(transform.Translate.x, transform.Translate.y,transform.Translate.z), Quat::sIdentity(), sData.mSystem);
+	}
+
+	void PhysicsSystem::PrePhysicsUpdate(float dt, void* Character)
+	{
+		CharacterVirtual* mCharacter = reinterpret_cast<CharacterVirtual*>(Character);
+		bool sEnableStickToFloor = true;
+		bool sEnableWalkStairs = true;
+
+		// Settings for our update function
+		CharacterVirtual::ExtendedUpdateSettings update_settings;
+		if (!sEnableStickToFloor)
+			update_settings.mStickToFloorStepDown = Vec3::sZero();
+		else
+			update_settings.mStickToFloorStepDown = -mCharacter->GetUp() * update_settings.mStickToFloorStepDown.Length();
+		if (!sEnableWalkStairs)
+			update_settings.mWalkStairsStepUp = Vec3::sZero();
+		else
+			update_settings.mWalkStairsStepUp = mCharacter->GetUp() * update_settings.mWalkStairsStepUp.Length();
+
+		// Update the character position
+		mCharacter->ExtendedUpdate(dt,
+			-mCharacter->GetUp() * sData.mSystem->GetGravity().Length(),
+			update_settings,
+			sData.mSystem->GetDefaultBroadPhaseLayerFilter(Layers::MOVING),
+			sData.mSystem->GetDefaultLayerFilter(Layers::MOVING),
+			{ },
+			{ },
+			*sData.temp_allocator);
+
+	}
+
+	void PhysicsSystem::HandleInput(glm::vec3 inMovementDirection, bool inJump, float inDeltaTime, void* Character)
+	{
+		static bool mAllowSliding;
+		static float sCharacterSpeed = 5;
+		static float sJumpSpeed = 10;
+		static glm::vec3 mDesiredVelocity(0.f);
+		static bool sControlMovementDuringJump = true;
+		static bool sEnableCharacterInertia = true;
+
+		CharacterVirtual* mCharacter = reinterpret_cast<CharacterVirtual*>(Character);
+		bool player_controls_horizontal_velocity = sEnableCharacterInertia || mCharacter->IsSupported();
+		if (player_controls_horizontal_velocity)
+		{
+			// Smooth the player input : Enable character inertia
+			mDesiredVelocity = true ? 0.25f * inMovementDirection * sCharacterSpeed + 0.75f * mDesiredVelocity : inMovementDirection * sCharacterSpeed;
+
+			// True if the player intended to mov
+			mAllowSliding = glm::all(glm::lessThan(glm::abs(inMovementDirection), glm::vec3(glm::epsilon<float>())));
+		}
+		else
+		{
+			// While in air we allow sliding
+			mAllowSliding = true;
+		}
+
+		// Update the character rotation and its up vector to match the up vector set by the user settings
+		Quat character_up_rotation = Quat::sEulerAngles(Vec3(0, 0, 0));
+		mCharacter->SetUp(character_up_rotation.RotateAxisY());
+		mCharacter->SetRotation(character_up_rotation);
+
+		// A cheaper way to update the character's ground velocity,
+		// the platforms that the character is standing on may have changed velocity
+		mCharacter->UpdateGroundVelocity();
+
+		// Determine new basic velocity
+		Vec3 current_vertical_velocity = mCharacter->GetLinearVelocity().Dot(mCharacter->GetUp()) * mCharacter->GetUp();
+		Vec3 ground_velocity = mCharacter->GetGroundVelocity();
+		Vec3 new_velocity;
+		bool moving_towards_ground = (current_vertical_velocity.GetY() - ground_velocity.GetY()) < 0.1f;
+		if (mCharacter->GetGroundState() == CharacterVirtual::EGroundState::OnGround	// If on ground
+			&& (sEnableCharacterInertia ?
+				moving_towards_ground													// Inertia enabled: And not moving away from ground
+				: !mCharacter->IsSlopeTooSteep(mCharacter->GetGroundNormal())))			// Inertia disabled: And not on a slope that is too steep
+		{
+			// Assume velocity of ground when on ground
+			new_velocity = ground_velocity;
+
+			// Jump
+			if (inJump && moving_towards_ground)
+				new_velocity += sJumpSpeed * mCharacter->GetUp();
+		}
+		else
+			new_velocity = current_vertical_velocity;
+
+		// Gravity
+		new_velocity += (character_up_rotation * sData.mSystem->GetGravity()) * inDeltaTime;
+
+		if (player_controls_horizontal_velocity)
+		{
+			// Player input
+			new_velocity += character_up_rotation * JPH::Vec3(mDesiredVelocity.x, mDesiredVelocity.y, mDesiredVelocity.z);
+		}
+		else
+		{
+			// Preserve horizontal velocity
+			Vec3 current_horizontal_velocity = mCharacter->GetLinearVelocity() - current_vertical_velocity;
+			new_velocity += current_horizontal_velocity;
+		}
+
+		// Update character velocity
+		mCharacter->SetLinearVelocity(new_velocity);
+
+		// Stance switch
+		/*if (inSwitchStance)
+		{
+			bool is_standing = mCharacter->GetShape() == mStandingShape;
+			const Shape* shape = is_standing ? mCrouchingShape : mStandingShape;
+			if (mCharacter->SetShape(shape, 1.5f * mPhysicsSystem->GetPhysicsSettings().mPenetrationSlop, mPhysicsSystem->GetDefaultBroadPhaseLayerFilter(Layers::MOVING), mPhysicsSystem->GetDefaultLayerFilter(Layers::MOVING), { }, { }, *mTempAllocator))
+			{
+				const Shape* inner_shape = is_standing ? mInnerCrouchingShape : mInnerStandingShape;
+				mCharacter->SetInnerBodyShape(inner_shape);
+			}
+		}*/
+	}
+
+	void PhysicsSystem::FreeCharacter(CharacterControlComponent& character)
+	{
+		if(character.controller)
+		delete character.controller;
+
+		character.controller = nullptr;
+	}
+
+	void PhysicsSystem::addBody(TransformComponent& transform, RigidBodyComponent* rigidbody, ColliderComponent& collider, UUID entityID)
+	{
+		ShapeRefC shape;
+		ShapeSettings::ShapeResult shape_result;
+
+		BoxColliderComponent* boxPtr = dynamic_cast<BoxColliderComponent*>(&collider);
+		SphereColliderComponent* spherePtr = dynamic_cast<SphereColliderComponent*>(&collider);
+		CapsuleColliderComponent* capsulePtr = dynamic_cast<CapsuleColliderComponent*>(&collider);
+		if (boxPtr)
+		{
+			glm::vec3 size = { boxPtr->size.x * 0.5f * transform.Scale.x, boxPtr->size.y * 0.5f * transform.Scale.y, boxPtr->size.z * 0.5f * transform.Scale.z };
 			BoxShapeSettings box_shape_settings(Vec3(size.x, size.y, size.z));
 			box_shape_settings.SetEmbedded();
 			shape_result = box_shape_settings.Create();
 			shape = shape_result.Get();
-			break;
 		}
-		case RigidBodyType::Sphere: {
-			// Create sphere shape settings
-			float radius = calculateSphereRadius(rigidbody.minExtent, rigidbody.maxExtent); // Assuming size.x represents the radius for a sphere
-			SphereShapeSettings sphere_shape_settings(radius);
+		else if (spherePtr)
+		{
+			SphereShapeSettings sphere_shape_settings(spherePtr->radius);
 			sphere_shape_settings.SetEmbedded();
 			shape_result = sphere_shape_settings.Create();
 			shape = shape_result.Get();
-			break;
 		}
-		case RigidBodyType::Capsule: {
-			// Create capsule shape settings
-			auto [radius, halfHeight] = calculateCapsuleDimensions(rigidbody.minExtent, rigidbody.maxExtent);
-			CapsuleShapeSettings capsule_shape_settings(radius, halfHeight);
+		else if (capsulePtr)
+		{
+			CapsuleShapeSettings capsule_shape_settings(capsulePtr->radius, capsulePtr->height);
 			capsule_shape_settings.SetEmbedded();
 			shape_result = capsule_shape_settings.Create();
 			shape = shape_result.Get();
-			break;
-		}
-		default:
-			// Handle error for unsupported shape type
-			return;
 		}
 
-		if (!shape) {
-			// Handle error (e.g., failed to create shape)
-			return;
-		}
+		auto entityTransform = transform.GetTransform();
+		auto modelCenter = collider.center;
+		auto actualCenterVec4 = entityTransform * glm::vec4(modelCenter, 1.0f);
+		auto actualCenter = glm::vec3(actualCenterVec4.x, actualCenterVec4.y, actualCenterVec4.z);
 
-		// Create the settings for the body itself, including other properties like restitution and friction
-		BodyCreationSettings body_settings(shape, RVec3(transform.Translate.x, transform.Translate.y, transform.Translate.z), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
+		BodyCreationSettings body_settings(shape, RVec3(actualCenter.x, actualCenter.y, actualCenter.z), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
 
-		if (rigidbody.movement == MovementType::Dynamic) {
-			body_settings.mMotionType = EMotionType::Dynamic;
-			body_settings.mObjectLayer = Layers::MOVING;
+		
+
+		if (rigidbody)
+		{
+			if (rigidbody->movement == MovementType::Dynamic) {
+				body_settings.mMotionType = EMotionType::Dynamic;
+				body_settings.mObjectLayer = Layers::MOVING;
+			}
+			else if (rigidbody->movement == MovementType::Kinematic)
+			{
+				body_settings.mMotionType = EMotionType::Kinematic;
+				body_settings.mObjectLayer = Layers::MOVING;
+			}
+			else
+			{
+				body_settings.mMotionType = EMotionType::Static;
+				body_settings.mObjectLayer = Layers::NON_MOVING;
+			}
+			body_settings.mAllowDynamicOrKinematic = true;
+			body_settings.mFriction = rigidbody->friction;
+			body_settings.mRestitution = rigidbody->bounciness;
 		}
 		else
 		{
 			body_settings.mMotionType = EMotionType::Static;
 			body_settings.mObjectLayer = Layers::NON_MOVING;
 		}
-
-		if (rigidbody.movement == MovementType::Kinematic)
-		{
-			body_settings.mMotionType = EMotionType::Kinematic;
-			body_settings.mObjectLayer = Layers::MOVING;
-		}
-
-		body_settings.mFriction = rigidbody.friction;
-		body_settings.mRestitution = rigidbody.bounciness;
 
 		// Create the actual rigid body
 		Body* body = sData.body_interface->CreateBody(body_settings); // Handle nullptr in a real scenario
@@ -646,136 +842,20 @@ void PhysicsSystem::Init()
 		// Add it to the world
 		sData.body_interface->AddBody(body->GetID(), EActivation::Activate);
 
-		// Store the BodyID in the RigidBodyComponent
-		rigidbody.bodyID = body->GetID().GetIndexAndSequenceNumber();
-		bodyIDMapUUID[rigidbody.bodyID] = entityID;
-
-	}
-
-	void PhysicsSystem::addSquareBody(glm::vec3 size, glm::vec3 position, RigidBodyComponent& rigidbody) {
-
-		// Create the settings for the collision volume (the shape).
-		BoxShapeSettings box_shape_settings(Vec3(size.x, size.y, size.z)); // Use radius as half extents
-
-		// Mark it as embedded (prevent it from being freed when reference count goes to 0)
-		box_shape_settings.SetEmbedded();
-
-		// Create the shape
-		ShapeSettings::ShapeResult box_shape_result = box_shape_settings.Create();
-		ShapeRefC box_shape = box_shape_result.Get(); // Check for errors in a real-world scenario
-
-		// Create the settings for the body itself. Note that here you can also set other properties like restitution/friction.
-		BodyCreationSettings box_settings(box_shape, RVec3(position.x, position.y, position.z), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
-		box_settings.mFriction = rigidbody.friction;
-		box_settings.mRestitution = rigidbody.bounciness;
-		if(rigidbody.dynamicBody)
+		if (collider.isTrigger)
 		{
-			box_settings.mMotionType = EMotionType::Dynamic;
-			box_settings.mObjectLayer = Layers::MOVING;
-		}
-		// Create the actual rigid body
-		Body* box = sData.body_interface->CreateBody(box_settings); // Make sure to handle potential nullptr errors
-
-		// Add it to the world
-		sData.body_interface->AddBody(box->GetID(), EActivation::Activate);
-
-		// Store the BodyID in the RigidBodyComponent
-		rigidbody.bodyID = box->GetID().GetIndexAndSequenceNumber();
-	}
-
-
-	void PhysicsSystem::addSphereBody(float radius, glm::vec3 position, RigidBodyComponent& rigidbody)
-	{
-		// Create the settings for the collision volume (the shape).
-		SphereShapeSettings sphere_shape_settings(radius); // Use radius as half extents
-
-		// Mark it as embedded (prevent it from being freed when reference count goes to 0)
-		sphere_shape_settings.SetEmbedded();
-
-		// Create the shape
-		ShapeSettings::ShapeResult sphere_shape_result = sphere_shape_settings.Create();
-		ShapeRefC sphere_shape = sphere_shape_result.Get(); // Check for errors in a real-world scenario
-
-		// Create the settings for the body itself. Note that here you can also set other properties like restitution/friction.
-		BodyCreationSettings sphere_settings(sphere_shape, RVec3(position.x, position.y, position.z), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
-		sphere_settings.mFriction = rigidbody.friction;
-		sphere_settings.mRestitution = rigidbody.bounciness;
-		if (rigidbody.dynamicBody)
-		{
-			sphere_settings.mMotionType = EMotionType::Dynamic;
-			sphere_settings.mObjectLayer = Layers::MOVING;
+			body->SetIsSensor(true);
 		}
 
-		// Create the actual rigid body
-		Body* sphere = sData.body_interface->CreateBody(sphere_settings); // Make sure to handle potential nullptr errors
-
-		// Add it to the world
-		sData.body_interface->AddBody(sphere->GetID(), EActivation::Activate);
-
 		// Store the BodyID in the RigidBodyComponent
-		rigidbody.bodyID = sphere->GetID().GetIndexAndSequenceNumber();
+		collider.bodyID = body->GetID().GetIndexAndSequenceNumber();
+		bodyIDMapUUID[collider.bodyID] = entityID;
+		
 	}
 
-	void PhysicsSystem::addCapsuleBody(float radius, float halfHeight, glm::vec3 position, RigidBodyComponent& rigidbody)
+	void PhysicsSystem::FreeRigidBody(ColliderComponent& collider)
 	{
-		// Create the settings for the collision volume (the shape).
-		CapsuleShapeSettings capsule_shape_settings(radius, halfHeight); // Use radius as half extents
-
-		// Mark it as embedded (prevent it from being freed when reference count goes to 0)
-		capsule_shape_settings.SetEmbedded();
-
-		// Create the shape
-		ShapeSettings::ShapeResult capsule_shape_result = capsule_shape_settings.Create();
-		ShapeRefC capsule_shape = capsule_shape_result.Get(); // Check for errors in a real-world scenario
-
-		// Create the settings for the body itself. Note that here you can also set other properties like restitution/friction.
-		BodyCreationSettings capsule_settings(capsule_shape, RVec3(position.x, position.y, position.z), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
-		if (rigidbody.dynamicBody)
-		{
-			capsule_settings.mMotionType = EMotionType::Dynamic;
-			capsule_settings.mObjectLayer = Layers::MOVING;
-		}
-		// Create the actual rigid body
-		Body* capsule = sData.body_interface->CreateBody(capsule_settings); // Make sure to handle potential nullptr errors
-
-		// Add it to the world
-		sData.body_interface->AddBody(capsule->GetID(), EActivation::Activate);
-
-		// Store the BodyID in the RigidBodyComponent
-		rigidbody.bodyID = capsule->GetID().GetIndexAndSequenceNumber();
-	}
-
-	void PhysicsSystem::UpdateSphereValues(RigidBodyComponent& rigidbody)
-	{
-		// Create the settings for the collision volume (the shape).
-		SphereShapeSettings sphere_shape_settings(rigidbody.radius);
-		sphere_shape_settings.SetEmbedded(); // A ref counted object on the stack (base class RefTarget) should be marked as such to prevent it from being freed when its reference count goes to 0.
-
-		// Create the shape
-		ShapeSettings::ShapeResult sphere_shape_result = sphere_shape_settings.Create();
-		ShapeRefC sphere_shape = sphere_shape_result.Get(); // We don't expect an error here, but you can check sphere_shape_result for HasError() / GetError()
-
-		// Create the settings for the body itself. Note that here you can also set other properties like the restitution / friction.
-		sData.body_interface->SetShape(JPH::BodyID(rigidbody.bodyID), sphere_shape, true, EActivation::Activate);
-	}
-
-	void PhysicsSystem::UpdateBoxValues(RigidBodyComponent& rigidbody)
-	{		
-		// Create the settings for the collision volume (the shape).
-		BoxShapeSettings box_shape_settings(Vec3(rigidbody.size.x, rigidbody.size.y, rigidbody.size.z)); // Use radius as half extents
-		box_shape_settings.SetEmbedded(); // A ref counted object on the stack (base class RefTarget) should be marked as such to prevent it from being freed when its reference count goes to 0.
-
-		// Create the shape
-		ShapeSettings::ShapeResult box_shape_result = box_shape_settings.Create();
-		ShapeRefC box_shape = box_shape_result.Get(); // We don't expect an error here, but you can check sphere_shape_result for HasError() / GetError()
-
-		// Create the settings for the body itself. Note that here you can also set other properties like the restitution / friction.
-		sData.body_interface->SetShape(JPH::BodyID(rigidbody.bodyID), box_shape, true, EActivation::Activate);
-	}
-
-	void PhysicsSystem::FreeRigidBody(RigidBodyComponent& rigidbody)
-	{
-		sData.body_interface->RemoveBody(JPH::BodyID(rigidbody.bodyID));
-		bodyIDMapUUID.erase(rigidbody.bodyID);
+		sData.body_interface->RemoveBody(JPH::BodyID(collider.bodyID));
+		bodyIDMapUUID.erase(collider.bodyID);
 	}
 }

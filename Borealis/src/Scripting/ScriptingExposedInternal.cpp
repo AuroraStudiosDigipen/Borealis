@@ -24,6 +24,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/TimeManager.hpp>
 #include <Core/LayerList.hpp>
 #include <mono/metadata/appdomain.h>
+#include <Physics/PhysicsSystem.hpp>
 
 
 namespace Borealis
@@ -627,6 +628,36 @@ namespace Borealis
 			{
 				APP_LOG_WARN("Layer does not exist");
 			}
+		}
+	}
+	bool Physics_Raycast(glm::vec3 origin, glm::vec3 direction, float maxDistance, int layerMask, uint64_t* entityID, float* distance, glm::vec3* normal, glm::vec3* point)
+	{
+		RaycastHit result;
+		bool output = PhysicsSystem::RayCast(origin, direction, &result, maxDistance, layerMask);
+		if (output)
+		{
+			*entityID = result.ID;
+			*distance = result.distance;
+			*normal = result.normal;
+			*point = result.point;
+		}
+		return output;
+	}
+	void Physics_RaycastAll(glm::vec3 origin, glm::vec3 direction, float maxDistance, int layerMask, MonoArray* entityIDArray, MonoArray* distanceArray, MonoArray* normalArray, MonoArray* pointArray)
+	{
+		std::vector<RaycastHit> results = PhysicsSystem::RayCastAll(origin, direction, maxDistance, layerMask);
+
+		entityIDArray = mono_array_new(mono_domain_get(), mono_get_uint64_class(), results.size());
+		distanceArray = mono_array_new(mono_domain_get(), mono_get_single_class(), results.size());
+		normalArray = mono_array_new(mono_domain_get(), mono_get_single_class(), results.size() * 3);  // 3 floats for each glm::vec3
+		pointArray = mono_array_new(mono_domain_get(), mono_get_single_class(), results.size() * 3);  // 3 floats for each glm::vec3
+
+		for (int i = 0; i < results.size(); i++)
+		{
+			mono_array_set(entityIDArray, uint64_t, i, results[i].ID);
+			mono_array_set(distanceArray, float, i, results[i].distance);
+			mono_array_set(normalArray, glm::vec3, i, results[i].normal);
+			mono_array_set(pointArray, glm::vec3, i, results[i].point);
 		}
 	}
 }

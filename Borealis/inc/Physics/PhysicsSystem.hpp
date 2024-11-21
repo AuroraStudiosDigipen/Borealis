@@ -17,10 +17,21 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include <glm/glm.hpp>
 #include <Scene/Components.hpp>
+#include <Core/BitSet32.hpp>
 
 
 namespace Borealis
 {
+
+	struct RaycastHit
+	{
+		uint64_t ID;
+		uint32_t colliderID;
+		float distance;
+		glm::vec3 normal;
+		glm::vec3 point;
+	};
+
 	using CollisionPair = std::pair<UUID, UUID>;
 
 	class Entity;
@@ -112,6 +123,11 @@ namespace Borealis
 		static void PullCharacterTransform(CharacterControlComponent& character, glm::vec3& position, glm::vec3& rotation);
 
 		static bool RayCast(glm::vec3 origin, glm::vec3 direction, float maxDistance, Bitset32 LayerMask);
+
+		static bool RayCast(glm::vec3 origin, glm::vec3 direction, RaycastHit* hitInfo, float maxDistance, Bitset32 LayerMask);
+
+		static std::vector<RaycastHit> RayCastAll(glm::vec3 origin, glm::vec3 direction, float maxDistance, Bitset32 LayerMask);
+
 	};
 
 }

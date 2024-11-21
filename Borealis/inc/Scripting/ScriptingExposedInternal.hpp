@@ -331,6 +331,12 @@ namespace Borealis
 
 	void LayerMask_GetMask(int* layer, MonoArray* stringArray);
 
+	bool Physics_Raycast(glm::vec3 origin, glm::vec3 direction, float maxDistance, int layerMask,
+			uint64_t* entityID, float* distance, glm::vec3* normal, glm::vec3* point);
+
+	void Physics_RaycastAll(glm::vec3 origin, glm::vec3 direction, float maxDistance, int layerMask,
+			MonoArray* entityIDArray, MonoArray* distanceArray, MonoArray* normalArray, MonoArray* pointArray);
+
 }
 
 #endif

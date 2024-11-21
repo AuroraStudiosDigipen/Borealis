@@ -844,16 +844,8 @@ namespace Borealis
 		return narrowPhaseQuery.CastRay(ray, result, {}, ObjectLayerFilterImpl(LayerMask));
 	}
 
-	struct RaycastHit
-	{
-		UUID ID;
-		BodyID colliderID;
-		float distance;
-		glm::vec3 normal;
-		glm::vec3 point;
-	};
 
-	static bool Raycast(glm::vec3 origin, glm::vec3 direction, RaycastHit* hitInfo, float maxDistance, Bitset32 LayerMask)
+	bool PhysicsSystem::RayCast(glm::vec3 origin, glm::vec3 direction, RaycastHit* hitInfo, float maxDistance, Bitset32 LayerMask)
 	{
 		direction = glm::normalize(direction);
 
@@ -862,7 +854,7 @@ namespace Borealis
 		RayCastResult result;
 		bool output = narrowPhaseQuery.CastRay(ray, result, {}, ObjectLayerFilterImpl(LayerMask));
 
-		hitInfo->colliderID = result.mBodyID;
+		hitInfo->colliderID = *(reinterpret_cast<uint32_t*>(&result.mBodyID));
 		hitInfo->distance = maxDistance;
 		hitInfo->ID = PhysicsSystem::BodyIDToUUID(result.mBodyID.GetIndexAndSequenceNumber());
 
@@ -893,7 +885,7 @@ namespace Borealis
 		std::vector<RayCastResult> hits;
 	};
 
-	static std::vector<RaycastHit> RayCastAll(glm::vec3 origin, glm::vec3 direction, float maxDistance, Bitset32 LayerMask)
+	std::vector<RaycastHit> PhysicsSystem::RayCastAll(glm::vec3 origin, glm::vec3 direction, float maxDistance, Bitset32 LayerMask)
 	{
 		direction = glm::normalize(direction);
 		RayCollector collector;
@@ -906,7 +898,7 @@ namespace Borealis
 		for (auto hitResult : collector.hits)
 		{
 			RaycastHit hit;
-			hit.colliderID = hitResult.mBodyID;
+			hit.colliderID = *(reinterpret_cast<uint32_t*>(&hitResult.mBodyID));
 			hit.distance = maxDistance;
 			hit.ID = PhysicsSystem::BodyIDToUUID(hitResult.mBodyID.GetIndexAndSequenceNumber());
 			JPH::BodyLockWrite lock(sData.mSystem->GetBodyLockInterface(), hitResult.mBodyID);

@@ -189,6 +189,15 @@ namespace Borealis
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void RigidbodyComponent_Move(ulong id, ref Vector3 vec);
 
+        #region Physics
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool Physics_Raycast(Vector3 origin, Vector3 direction, float maxDistance, int layerMask,
+            out ulong entityID, out float distance, out Vector3 normal, out Vector3 point);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void Physics_RaycastAll(Vector3 origin, Vector3 direction, float maxDistance, int layerMask, 
+            out ulong[] entityID, out float[] distance, out Vector3[] normal, out Vector3[] point);
+        #endregion
 
         #endregion
     }

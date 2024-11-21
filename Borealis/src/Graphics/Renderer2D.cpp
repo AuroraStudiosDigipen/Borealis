@@ -394,7 +394,8 @@ namespace Borealis
 		{
 			DrawQuad(transform, sprite.Texture, sprite.TilingFactor, sprite.Colour, entityID);
 		}
-		DrawQuad(transform, sprite.Colour, entityID);
+		else
+			DrawQuad(transform, sprite.Colour, entityID);
 	}
 
 	void Renderer2D::DrawHighlightedSprite(const glm::mat4& transform, const SpriteRendererComponent& sprite, Ref<Shader> shader)

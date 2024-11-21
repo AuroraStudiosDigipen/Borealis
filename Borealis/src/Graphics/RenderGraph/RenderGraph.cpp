@@ -1297,8 +1297,6 @@ namespace Borealis
 			UIFBO->Resize(renderTarget->Width, renderTarget->Height);
 		}
 
-		const float baseScreenWidth = 1920.0f;
-		const float baseScreenHeight = 1080.0f;
 		viewProjMatrix = glm::ortho(0.0f, (float)renderTarget->Width, (float)renderTarget->Height, 0.0f, -100.0f, 100.0f);
 		Renderer2D::Begin(viewProjMatrix);
 
@@ -1323,7 +1321,7 @@ namespace Borealis
 				glm::mat4 canvasTransform = glm::translate(glm::mat4(1.0f), canvasPosition) *
 					glm::scale(glm::mat4(1.0f), glm::vec3(scaleFactor, scaleFactor * -1.f, 1.f));
 
-				////Render clear alpha
+				////Render Debug Canvas
 				//{
 				//	SpriteRendererComponent spriteRenderer;
 				//	//spriteRenderer.Colour = { 0.f,0.f,100.f,0.2f };

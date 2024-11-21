@@ -186,6 +186,12 @@ namespace Borealis
 
 		glm::vec2 GetViewPortSize() const override;
 
+		float GetFOV() const override;
+
+		float GetNearPlane() const override;
+		float GetFarPlane() const override;
+		float GetAspectRatio() const override;
+
 	private:
 		/*!***********************************************************************
 			\brief

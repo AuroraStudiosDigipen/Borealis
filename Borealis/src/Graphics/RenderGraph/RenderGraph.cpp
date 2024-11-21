@@ -176,6 +176,10 @@ namespace Borealis
 		position = camera.GetPosition();
 		lookAt = camera.GetForwardDirection();
 		editor = true;
+		fov = camera.GetFOV();
+		nearPlane = camera.GetNearPlane();
+		farPlane = camera.GetFarPlane();
+		aspectRatio = camera.GetAspectRatio();
 	}
 
 	CameraSource::CameraSource(std::string name, const Camera& camera, const glm::mat4& transform)
@@ -191,6 +195,10 @@ namespace Borealis
 		lookAt = -glm::normalize(glm::vec3(transform[2]));
 
 		editor = false;
+
+		fov = camera.GetFOV();
+		nearPlane = camera.GetNearPlane();
+		farPlane = camera.GetFarPlane();
 	}
 
 	glm::mat4 CameraSource::GetViewProj()
@@ -284,7 +292,29 @@ namespace Borealis
 		shader = nullptr;
 	}
 
-	void SetShadowVariable(LightComponent const& lightComponent, Ref<Shader> shader, glm::mat4 const& camViewProjMtx)
+	glm::mat4 GetLightViewProj(LightComponent const& lightComponent, Ref<CameraSource> camera, float farPlane)
+	{
+		const glm::mat4 proj = glm::perspective(
+			glm::radians(camera->fov), camera->aspectRatio, 
+			camera->nearPlane,
+			farPlane);
+
+		glm::vec3 upVector = { 0.f,1.f,0.f };
+		glm::mat4 lightView = glm::lookAt(lightComponent.position, lightComponent.position + lightComponent.direction, upVector);
+
+		Frustum frustum = ComputeFrustum(proj * camera->viewMtx);
+		FrustumCorners frustumCorners = GetCorners(frustum);
+		FrustumCorners lightSpaceFrustumCorners = frustumCorners;
+		lightSpaceFrustumCorners.Transform(lightView);
+		AABB aabb = lightSpaceFrustumCorners.GetAABB();
+
+		//glm::mat4 lightProjection = glm::ortho(-40.f, 40.f, -40.f, 40.f, 0.f, 400.f);
+		glm::mat4 lightProjection = glm::ortho(aabb.minExtent.x, aabb.maxExtent.x, aabb.minExtent.y, aabb.maxExtent.y, aabb.minExtent.z, aabb.maxExtent.z);
+
+		return lightProjection * lightView;
+	}
+
+	void SetShadowVariable(LightComponent const& lightComponent, Ref<Shader> shader, Ref<CameraSource> camera)
 	{
 		if (lightComponent.type == LightComponent::Type::Spot)
 		{
@@ -346,24 +376,15 @@ namespace Borealis
 			//}
 			//const glm::mat4 lightProjection = glm::ortho(minX, maxX, minY, maxY, minZ, maxZ);
 
+			std::vector<float> shadowCascadeLevels{ camera->farPlane / 50.0f, camera->farPlane / 25.0f, camera->farPlane / 10.0f, camera->farPlane / 2.0f };
 
-			glm::vec3 upVector = { 0.f,1.f,0.f };
-			glm::mat4 lightView = glm::lookAt(lightComponent.position, lightComponent.position + lightComponent.direction, upVector);
+			glm::mat4 lightViewProj = GetLightViewProj(lightComponent, camera, shadowCascadeLevels[1]);
 
-			Frustum frustum = ComputeFrustum(camViewProjMtx);
-			FrustumCorners frustumCorners = GetCorners(frustum); // corners are off prob
-			FrustumCorners lightSpaceFrustumCorners = frustumCorners;
-			lightSpaceFrustumCorners.Transform(lightView);
-			AABB aabb = lightSpaceFrustumCorners.GetAABB();
-
-			//glm::mat4 lightProjection = glm::ortho(-40.f, 40.f, -40.f, 40.f, 0.f, 400.f);
-			glm::mat4 lightProjection = glm::ortho(aabb.minExtent.x, aabb.maxExtent.x, aabb.minExtent.y, aabb.maxExtent.y, aabb.minExtent.z, aabb.maxExtent.z);
-
-			shader->Set("u_LightViewProjection", lightProjection * lightView);
+			shader->Set("u_LightViewProjection", lightViewProj);
 		}
 	}
 
-	void SetShadowAndLight(Ref<RenderTargetSource> renderTarget, Ref<RenderTargetSource> shadowMap, Ref<Shader> shader,  entt::registry* registryPtr, glm::mat4 const& camViewProjMtx)
+	void SetShadowAndLight(Ref<RenderTargetSource> renderTarget, Ref<RenderTargetSource> shadowMap, Ref<Shader> shader,  entt::registry* registryPtr, Ref<CameraSource> camera)
 	{
 		if (shadowMap)
 		{
@@ -387,7 +408,7 @@ namespace Borealis
 				auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
 				Renderer3D::AddLight(lightComponent);
 
-				SetShadowVariable(lightComponent, shader, camViewProjMtx);
+				SetShadowVariable(lightComponent, shader, camera);
 			}
 		}
 	}
@@ -397,6 +418,7 @@ namespace Borealis
 		glm::mat4 viewProjMatrix{};
 		bool editor{};
 
+		Ref<CameraSource> camera = nullptr;
 		Ref<RenderTargetSource> renderTarget = nullptr;
 		Ref<RenderTargetSource> shadowMap = nullptr;
 		Ref<PixelBufferSource> pixelBuffer = nullptr;
@@ -409,6 +431,8 @@ namespace Borealis
 				viewProjMatrix = std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj();
 				editor = std::dynamic_pointer_cast<CameraSource>(sink->source)->editor;
 				camPos = std::dynamic_pointer_cast<CameraSource>(sink->source)->position;
+
+				camera = std::dynamic_pointer_cast<CameraSource>(sink->source);
 			}
 
 			if (sink->source->sourceType == RenderSourceType::RenderTargetColor)
@@ -457,7 +481,7 @@ namespace Borealis
 				Renderer3D::Begin(viewProjMatrix, materialShader);
 
 
-				SetShadowAndLight(renderTarget, shadowMap, materialShader, registryPtr, viewProjMatrix);
+				SetShadowAndLight(renderTarget, shadowMap, materialShader, registryPtr, camera);
 
 				Renderer3D::SetLights(materialShader);
 				Renderer3D::DrawMesh(TransformComponent::GetGlobalTransform(brEntity), meshFilter, meshRenderer, materialShader, (int)entity);
@@ -502,7 +526,7 @@ namespace Borealis
 				materialShader->Bind();
 				materialShader->Set("u_HasAnimation", false);
 
-				SetShadowAndLight(renderTarget, shadowMap, materialShader, registryPtr, viewProjMatrix);
+				SetShadowAndLight(renderTarget, shadowMap, materialShader, registryPtr, camera);
 
 				if (registryPtr->storage<AnimatorComponent>().contains(entity))
 				{
@@ -783,6 +807,8 @@ namespace Borealis
 		glm::mat4 viewProjMatrix{};
 		Ref<FrameBuffer> shadowMap = nullptr;
 		glm::vec3 cameraPosition{};
+
+		Ref<CameraSource> camera = nullptr;
 		for (auto sink : sinkList)
 		{
 			if (sink->source)
@@ -800,6 +826,8 @@ namespace Borealis
 				{
 					cameraPosition = std::dynamic_pointer_cast<CameraSource>(sourcePtr)->position;
 					viewProjMatrix = std::dynamic_pointer_cast<CameraSource>(sourcePtr)->GetViewProj();
+
+					camera = std::dynamic_pointer_cast<CameraSource>(sourcePtr);
 				}
 			}
 		}
@@ -818,7 +846,7 @@ namespace Borealis
 				lightComponent.direction = TransformComponent::GetGlobalRotation(brEntity);
 				if (!lightComponent.castShadow) continue;
 
-				SetShadowVariable(lightComponent, shader, viewProjMatrix);
+				SetShadowVariable(lightComponent, shader, camera);
 			}
 
 			{

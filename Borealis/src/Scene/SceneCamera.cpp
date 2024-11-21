@@ -50,6 +50,31 @@ namespace Borealis
 	{
 		return glm::vec2(mWidth, mHeight);
 	}
+	float SceneCamera::GetFOV() const
+	{
+		if (mCameraType == CameraType::Perspective)
+			return GetPerspFOV();
+		else
+			return 90.f;
+	}
+	float SceneCamera::GetNearPlane() const
+	{
+		if (mCameraType == CameraType::Perspective)
+			return GetPerspNear();
+		else
+			return GetOrthoNear();
+	}
+	float SceneCamera::GetFarPlane() const
+	{
+		if (mCameraType == CameraType::Perspective)
+			return GetPerspFar();
+		else
+			return GetOrthoFar();
+	}
+	float SceneCamera::GetAspectRatio() const
+	{
+		return mAspectRatio;
+	}
 	void SceneCamera::RecalculateProjection()
 	{
 		if (mCameraType == CameraType::Perspective)

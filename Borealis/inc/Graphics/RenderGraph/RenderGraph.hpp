@@ -160,6 +160,10 @@ namespace Borealis
 		glm::mat4 viewMtx;
 		glm::mat4 viewProj;
 		glm::vec2 viewPortSize;
+		float fov;
+		float nearPlane;
+		float farPlane;
+		float aspectRatio;
 		
 		void Bind() override {};
 		glm::mat4 GetViewProj();

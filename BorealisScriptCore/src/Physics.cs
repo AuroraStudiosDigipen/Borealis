@@ -85,10 +85,16 @@ namespace Borealis
 
         public static RaycastHit[] RaycastAll(Ray ray, float maxDistance = Mathf.Infinity, int layerMask = DefaultRaycastLayers)
         {
+
             InternalCalls.Physics_RaycastAll(ray.origin, ray.direction, maxDistance, layerMask,
                             out ulong[] entityID, out float[] distance, out Vector3[] normal, out Vector3[] point);
 
+            if (entityID == null)
+            {
+                return new RaycastHit[0];
+            }
             RaycastHit[] hitInfos = new RaycastHit[entityID.Length];
+
             for (int i = 0; i < entityID.Length; i++)
             {
                 RaycastHit hitInfo = new RaycastHit();
@@ -98,6 +104,7 @@ namespace Borealis
                 hitInfo.transform = new Transform(entityID[i]);
                 hitInfos[i] = hitInfo;
             }
+
             return hitInfos;
         }
     }

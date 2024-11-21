@@ -187,8 +187,6 @@ namespace Borealis
             (metadata("Component", true))
             .constructor<>()
             .property("Mass", &CharacterControlComponent::mass)
-            .property("Movement Speed", &CharacterControlComponent::speed)
-            .property("Jump Speed", &CharacterControlComponent::jumpSpeed)
             .property("Max Slope Angle", &CharacterControlComponent::slopeAngle)
             .property("Max Strength", &CharacterControlComponent::strength)
             .property("Inertia", &CharacterControlComponent::enableInertia)

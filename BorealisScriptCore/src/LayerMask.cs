@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Reflection.Emit;
 
 namespace Borealis
@@ -27,6 +28,11 @@ namespace Borealis
         {
             InternalCalls.LayerMask_NameToLayer(layerName, out int id);
             return id;
+        }
+
+        public static implicit operator int(LayerMask mask)
+        {
+            return mask.value;
         }
     }
 }

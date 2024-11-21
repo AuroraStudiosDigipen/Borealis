@@ -261,17 +261,8 @@ namespace Borealis
 					}
 					auto [transform, character] = characterGroup.get<TransformComponent, CharacterControlComponent>(entity);
 					PhysicsSystem::PushCharacterTransform(character, transform.Translate, transform.Rotation);
-					PhysicsSystem::HandleInput(glm::vec3(0, 0, 0), false, dt, character.controller);
+					PhysicsSystem::HandleInput(dt, character);
 				}
-
-				Bitset32 bitset;
-				bitset.set(5);
-				bitset.set(3);
-				if (PhysicsSystem::RayCast(glm::vec3(0, 0, 0), glm::vec3(0, -1, 0), 5.f, bitset))
-				{
-					BOREALIS_CORE_INFO("Ray hit");
-				}
-
 
 				auto boxGroup = mRegistry.group<>(entt::get<TransformComponent, BoxColliderComponent, RigidBodyComponent>);
 				for (auto entity : boxGroup)
@@ -1005,7 +996,11 @@ namespace Borealis
 		auto boxGroup = mRegistry.group<>(entt::get<TransformComponent, BoxColliderComponent>);
 		for (auto entity : boxGroup)
 		{
-			auto mesh = mRegistry.get<MeshFilterComponent>(entity);
+			Entity brEntity{ entity, this };
+			if (!brEntity.IsActive())
+			{
+				continue;
+			}
 			auto [transform, box] = boxGroup.get<TransformComponent, BoxColliderComponent>(entity);
 			auto entityID = mRegistry.get<IDComponent>(entity).ID;
 			if (mRegistry.storage<RigidBodyComponent>().contains(entity))
@@ -1022,7 +1017,11 @@ namespace Borealis
 		auto sphereGroup = mRegistry.group<>(entt::get<TransformComponent, SphereColliderComponent>);
 		for (auto entity : sphereGroup)
 		{
-			auto mesh = mRegistry.get<MeshFilterComponent>(entity);
+			Entity brEntity{ entity, this };
+			if (!brEntity.IsActive())
+			{
+				continue;
+			}
 			auto [transform, sphere] = sphereGroup.get<TransformComponent, SphereColliderComponent>(entity);
 			auto entityID = mRegistry.get<IDComponent>(entity).ID;
 			if (mRegistry.storage<RigidBodyComponent>().contains(entity))
@@ -1039,7 +1038,11 @@ namespace Borealis
 		auto capsuleGroup = mRegistry.group<>(entt::get<TransformComponent, CapsuleColliderComponent>);
 		for (auto entity : capsuleGroup)
 		{
-			auto mesh = mRegistry.get<MeshFilterComponent>(entity);
+			Entity brEntity { entity, this };
+			if (!brEntity.IsActive())
+			{
+				continue;
+			}
 			auto [transform, capsule] = capsuleGroup.get<TransformComponent, CapsuleColliderComponent>(entity);
 			auto entityID = mRegistry.get<IDComponent>(entity).ID;
 			if (mRegistry.storage<RigidBodyComponent>().contains(entity))
@@ -1053,17 +1056,57 @@ namespace Borealis
 			}
 		}
 
-		auto characterGroup = mRegistry.group<>(entt::get<TransformComponent, CharacterControlComponent>);
-		for (auto entity : characterGroup)
+		auto CapsulecharacterGroup = mRegistry.group<>(entt::get<TransformComponent, CharacterControlComponent, CapsuleColliderComponent>);
+		for (auto entity : CapsulecharacterGroup)
 		{
-			auto [character, transform] = characterGroup.get<CharacterControlComponent, TransformComponent>(entity);
-			PhysicsSystem::addCharacter(character, transform);
+			Entity brEntity{ entity, this };
+			if (!brEntity.IsActive())
+			{
+				continue;
+			}
+			PhysicsSystem::addCharacter(brEntity.GetComponent<CharacterControlComponent>(), brEntity.GetComponent<TransformComponent>(), brEntity.GetComponent<CapsuleColliderComponent>());
+		}
+		auto BoxcharacterGroup = mRegistry.group<>(entt::get<TransformComponent, CharacterControlComponent, BoxColliderComponent>);
+		for (auto entity : BoxcharacterGroup)
+		{
+			Entity brEntity{ entity, this };
+			if (!brEntity.IsActive())
+			{
+				continue;
+			}
+			PhysicsSystem::addCharacter(brEntity.GetComponent<CharacterControlComponent>(), brEntity.GetComponent<TransformComponent>(), brEntity.GetComponent<BoxColliderComponent>());
+		}
+		auto SpherecharacterGroup = mRegistry.group<>(entt::get<TransformComponent, CharacterControlComponent, SphereColliderComponent>);
+		for (auto entity : SpherecharacterGroup)
+		{
+			Entity brEntity{ entity, this };
+			if (!brEntity.IsActive())
+			{
+				continue;
+			}
+			PhysicsSystem::addCharacter(brEntity.GetComponent<CharacterControlComponent>(), brEntity.GetComponent<TransformComponent>(), brEntity.GetComponent<SphereColliderComponent>());
 		}
 
 		auto IDView = mRegistry.view<IDComponent>();
 		for (auto entity : IDView)
 		{
 			LayerList::initializeEntity({ entity,this });
+		}
+
+		auto scriptGroup = mRegistry.group<>(entt::get<ScriptComponent>);
+		for (auto entity : scriptGroup)
+		{
+			Entity brEntity{ entity, this };
+			if (!brEntity.IsActive())
+			{
+				continue;
+			}
+			auto& scriptComponent = scriptGroup.get<ScriptComponent>(entity);
+			for (auto& [name, script] : scriptComponent.mScripts)
+			{
+				script->Start();
+			}
+		
 		}
 	}
 

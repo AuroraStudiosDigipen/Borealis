@@ -290,8 +290,6 @@ namespace Borealis
 		float mass = 1.f;
 		float strength = 1.f;
 		float slopeAngle = 45.f;
-		float speed = 1.f;
-		float jumpSpeed = 1.f;
 		bool enableInertia = true;
 		bool moveInAir = true;
 		bool sliding = true;
@@ -299,6 +297,7 @@ namespace Borealis
 
 		void* controller = nullptr;
 		glm::vec3 targetVelocity = { 0,0,0 };
+		glm::vec3 inMovementDirection = { 0,0,0 };
 
 		CharacterControlComponent() = default;
 		~CharacterControlComponent()

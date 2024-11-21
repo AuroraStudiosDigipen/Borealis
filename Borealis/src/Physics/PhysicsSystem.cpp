@@ -662,19 +662,37 @@ namespace Borealis
 		sData.body_interface->SetLinearVelocity((BodyID)rigidbody.bodyID, JoltMotion);
 	}
 
-	void PhysicsSystem::addCharacter(CharacterControlComponent& character, TransformComponent& transform)
+	void PhysicsSystem::addCharacter(CharacterControlComponent& character, TransformComponent& transform, ColliderComponent& collider)
 	{
 		CharacterVirtualSettings settings;
 		ShapeRefC shape;
 		ShapeSettings::ShapeResult shape_result;
 
-		// Create capsule shape settings
-		float radius = 1.f;
-		float halfHeight = 1.f;
-		CapsuleShapeSettings capsule_shape_settings(radius, halfHeight);
-		capsule_shape_settings.SetEmbedded();
-		shape_result = capsule_shape_settings.Create();
-		shape = shape_result.Get();
+		BoxColliderComponent* boxPtr = dynamic_cast<BoxColliderComponent*>(&collider);
+		SphereColliderComponent* spherePtr = dynamic_cast<SphereColliderComponent*>(&collider);
+		CapsuleColliderComponent* capsulePtr = dynamic_cast<CapsuleColliderComponent*>(&collider);
+		if (boxPtr)
+		{
+			glm::vec3 size = { boxPtr->size.x * 0.5f * transform.Scale.x, boxPtr->size.y * 0.5f * transform.Scale.y, boxPtr->size.z * 0.5f * transform.Scale.z };
+			BoxShapeSettings box_shape_settings(Vec3(size.x, size.y, size.z));
+			box_shape_settings.SetEmbedded();
+			shape_result = box_shape_settings.Create();
+			shape = shape_result.Get();
+		}
+		else if (spherePtr)
+		{
+			SphereShapeSettings sphere_shape_settings(spherePtr->radius);
+			sphere_shape_settings.SetEmbedded();
+			shape_result = sphere_shape_settings.Create();
+			shape = shape_result.Get();
+		}
+		else if (capsulePtr)
+		{
+			CapsuleShapeSettings capsule_shape_settings(capsulePtr->radius, capsulePtr->height);
+			capsule_shape_settings.SetEmbedded();
+			shape_result = capsule_shape_settings.Create();
+			shape = shape_result.Get();
+		}
 
 		settings.mMaxSlopeAngle = JPH::DegreesToRadians(character.slopeAngle);
 		settings.mMaxStrength = character.strength;
@@ -714,29 +732,30 @@ namespace Borealis
 
 	}
 
-	void PhysicsSystem::HandleInput(glm::vec3 inMovementDirection, bool inJump, float inDeltaTime, void* Character)
+	bool PhysicsSystem::IsCharacterOnGround(void* Character)
 	{
-		static bool mAllowSliding;
-		static float sCharacterSpeed = 5;
-		static float sJumpSpeed = 10;
-		static glm::vec3 mDesiredVelocity(0.f);
-		static bool sControlMovementDuringJump = true;
-		static bool sEnableCharacterInertia = true;
-
 		CharacterVirtual* mCharacter = reinterpret_cast<CharacterVirtual*>(Character);
-		bool player_controls_horizontal_velocity = sEnableCharacterInertia || mCharacter->IsSupported();
+		return mCharacter->GetGroundState() != CharacterVirtual::EGroundState::InAir;
+	}
+
+	void PhysicsSystem::HandleInput(float inDeltaTime, CharacterControlComponent& controllerComp)
+	{
+		CharacterVirtual* mCharacter = reinterpret_cast<CharacterVirtual*>(controllerComp.controller);
+
+		mCharacter->GetGroundState();
+		bool player_controls_horizontal_velocity = controllerComp.enableInertia || mCharacter->IsSupported();
 		if (player_controls_horizontal_velocity)
 		{
 			// Smooth the player input : Enable character inertia
-			mDesiredVelocity = true ? 0.25f * inMovementDirection * sCharacterSpeed + 0.75f * mDesiredVelocity : inMovementDirection * sCharacterSpeed;
+			controllerComp.targetVelocity = true ? 0.25f * controllerComp.inMovementDirection + 0.75f * controllerComp.targetVelocity : controllerComp.inMovementDirection;
 
 			// True if the player intended to mov
-			mAllowSliding = glm::all(glm::lessThan(glm::abs(inMovementDirection), glm::vec3(glm::epsilon<float>())));
+			controllerComp.sliding = glm::all(glm::lessThan(glm::abs(controllerComp.inMovementDirection), glm::vec3(glm::epsilon<float>())));
 		}
 		else
 		{
 			// While in air we allow sliding
-			mAllowSliding = true;
+			controllerComp.sliding = true;
 		}
 
 		// Update the character rotation and its up vector to match the up vector set by the user settings
@@ -754,16 +773,12 @@ namespace Borealis
 		Vec3 new_velocity;
 		bool moving_towards_ground = (current_vertical_velocity.GetY() - ground_velocity.GetY()) < 0.1f;
 		if (mCharacter->GetGroundState() == CharacterVirtual::EGroundState::OnGround	// If on ground
-			&& (sEnableCharacterInertia ?
+			&& (controllerComp.enableInertia ?
 				moving_towards_ground													// Inertia enabled: And not moving away from ground
 				: !mCharacter->IsSlopeTooSteep(mCharacter->GetGroundNormal())))			// Inertia disabled: And not on a slope that is too steep
 		{
 			// Assume velocity of ground when on ground
 			new_velocity = ground_velocity;
-
-			// Jump
-			if (inJump && moving_towards_ground)
-				new_velocity += sJumpSpeed * mCharacter->GetUp();
 		}
 		else
 			new_velocity = current_vertical_velocity;
@@ -774,7 +789,7 @@ namespace Borealis
 		if (player_controls_horizontal_velocity)
 		{
 			// Player input
-			new_velocity += character_up_rotation * JPH::Vec3(mDesiredVelocity.x, mDesiredVelocity.y, mDesiredVelocity.z);
+			new_velocity += character_up_rotation * JPH::Vec3(controllerComp.targetVelocity.x, controllerComp.targetVelocity.y, controllerComp.targetVelocity.z);
 		}
 		else
 		{

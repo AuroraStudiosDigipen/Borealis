@@ -110,11 +110,11 @@ namespace Borealis
 
 		static void move(ColliderComponent& rigidbody, glm::vec3 motion);
 
-		static void addCharacter(CharacterControlComponent& character, TransformComponent& transform);
+		static void addCharacter(CharacterControlComponent& character, TransformComponent& transform, ColliderComponent& collider);
 
 		static void FreeCharacter(CharacterControlComponent& character);
 
-		static void HandleInput(glm::vec3 inMovementDirection, bool inJump, float inDeltaTime, void* Character);
+		static void HandleInput(float inDeltaTime, CharacterControlComponent& controllerComp);
 
 		static void PrePhysicsUpdate(float dt, void* Character);
 
@@ -127,6 +127,8 @@ namespace Borealis
 		static bool RayCast(glm::vec3 origin, glm::vec3 direction, RaycastHit* hitInfo, float maxDistance, Bitset32 LayerMask);
 
 		static std::vector<RaycastHit> RayCastAll(glm::vec3 origin, glm::vec3 direction, float maxDistance, Bitset32 LayerMask);
+
+		static bool IsCharacterOnGround(void* Character);
 
 	};
 

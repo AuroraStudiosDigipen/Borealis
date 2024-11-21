@@ -680,7 +680,7 @@ namespace Borealis
 		}
 		else if (spherePtr)
 		{
-			SphereShapeSettings sphere_shape_settings(spherePtr->radius * glm::compMax(transform.Scale)); //For sphere scaling of xyz should be equal.
+			SphereShapeSettings sphere_shape_settings(spherePtr->radius *((transform.Scale.x + transform.Scale.y + transform.Scale.z) * 0.33f)); //For sphere scaling of xyz should be equal. 
 			sphere_shape_settings.SetEmbedded();
 			shape_result = sphere_shape_settings.Create();
 			shape = shape_result.Get();
@@ -947,7 +947,7 @@ namespace Borealis
 		}
 		else if (spherePtr)
 		{
-			SphereShapeSettings sphere_shape_settings(spherePtr->radius * glm::compMax(transform.Scale)); //For sphere scaling of xy
+			SphereShapeSettings sphere_shape_settings(spherePtr->radius * ((transform.Scale.x + transform.Scale.y + transform.Scale.z) * 0.33f)); //For sphere scaling of xy
 			sphere_shape_settings.SetEmbedded();
 			shape_result = sphere_shape_settings.Create();
 			shape = shape_result.Get();

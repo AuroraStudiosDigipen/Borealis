@@ -284,11 +284,13 @@ namespace Borealis
 			farPlane);
 
 		glm::vec3 upVector = { 0.f,1.f,0.f };
-		glm::mat4 lightView = glm::lookAt(camera->position, camera->position + lightComponent.direction, upVector);
 
 		Frustum frustum = ComputeFrustum(proj * camera->viewMtx);
 		FrustumCorners frustumCorners = GetCorners(frustum);
 		FrustumCorners lightSpaceFrustumCorners = frustumCorners;
+		AABB centerAABB = lightSpaceFrustumCorners.GetAABB();
+		glm::vec3 center = (centerAABB.maxExtent + centerAABB.minExtent) * 0.5f;
+		glm::mat4 lightView = glm::lookAt(center, center + lightComponent.direction, upVector);
 		lightSpaceFrustumCorners.Transform(lightView);
 		AABB aabb = lightSpaceFrustumCorners.GetAABB();
 
@@ -828,6 +830,7 @@ namespace Borealis
 		}
 
 		{
+			bool directionalLight = false;
 			entt::basic_group group = registryPtr->group<>(entt::get<TransformComponent, LightComponent>);
 			for (auto& entity : group)
 			{
@@ -841,7 +844,13 @@ namespace Borealis
 				lightComponent.position = TransformComponent::GetGlobalTranslate(brEntity);
 				lightComponent.direction = TransformComponent::GetGlobalRotation(brEntity);
 
+				if (lightComponent.type == LightComponent::Type::Directional)
+				{
+					directionalLight = true;
+				}
+
 				SetShadowVariable(lightComponent, shader, camera);
+				break; //TODO 1 shadow for now
 			}
 
 			shadowMap->Bind();
@@ -861,23 +870,26 @@ namespace Borealis
 			}
 			shadowMap->Unbind();
 
-			mCascadeShadowMapBuffer->Bind();
+			if(directionalLight)
 			{
-				RenderCommand::Clear();
-				auto group = registryPtr->group<>(entt::get<TransformComponent, MeshFilterComponent, MeshRendererComponent>);
-				for (auto& entity : group)
+				mCascadeShadowMapBuffer->Bind();
 				{
-					Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
-					if (!brEntity.IsActive())
+					RenderCommand::Clear();
+					auto group = registryPtr->group<>(entt::get<TransformComponent, MeshFilterComponent, MeshRendererComponent>);
+					for (auto& entity : group)
 					{
-						continue;
-					}
-					auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
+						Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
+						if (!brEntity.IsActive())
+						{
+							continue;
+						}
+						auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
 
-					Renderer3D::DrawHighlightedMesh(TransformComponent::GetGlobalTransform(brEntity), meshFilter, cascade_shadow_shader);
+						Renderer3D::DrawHighlightedMesh(TransformComponent::GetGlobalTransform(brEntity), meshFilter, cascade_shadow_shader);
+					}
 				}
+				mCascadeShadowMapBuffer->Unbind();
 			}
-			mCascadeShadowMapBuffer->Unbind();
 		}
 
 		RenderCommand::EnableBackFaceCull();

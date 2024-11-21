@@ -153,7 +153,7 @@ namespace Borealis
 
 	void GraphicsUtils::AttachDepthTextureArray(uint32_t id, int samples, unsigned format, unsigned attachmentType, uint32_t width, uint32_t height)
 	{
-		glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, format, width, height, 3/*cascade map levels*/, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+		glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, format, width, height, 4/*cascade map levels*/, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
 		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);

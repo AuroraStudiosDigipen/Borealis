@@ -566,7 +566,6 @@ namespace Borealis
 			}
 		}
 
-
 		glm::vec3 boundingVolumeCenter = (minExtent + maxExtent) * 0.5f;
 
 		return { boundingVolumeCenter, maxExtent - minExtent };

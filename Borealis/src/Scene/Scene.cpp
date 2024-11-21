@@ -840,6 +840,7 @@ namespace Borealis
 		CopyComponent<AnimatorComponent>(newEntity,entity);
 		CopyComponent<BoxColliderComponent>(newEntity,entity);
 		CopyComponent<CapsuleColliderComponent>(newEntity,entity);
+		CopyComponent<SphereColliderComponent>(newEntity, entity);
 		CopyComponent<RigidBodyComponent>(newEntity, entity);
 		CopyComponent<CharacterControlComponent>(newEntity, entity);
 		CopyComponent<LightComponent>(newEntity, entity);
@@ -976,6 +977,7 @@ namespace Borealis
 		CopyComponent<AnimatorComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<BoxColliderComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<CapsuleColliderComponent>(newRegistry, originalRegistry, UUIDtoENTT);
+		CopyComponent<SphereColliderComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<RigidBodyComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<LightComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<CharacterControlComponent>(newRegistry, originalRegistry, UUIDtoENTT);

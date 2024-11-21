@@ -1851,6 +1851,7 @@ namespace Borealis
 			isEdited = SearchBar<MeshRendererComponent	  >(search_text, entity,"Mesh Renderer", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<BoxColliderComponent	  >(search_text, entity,"Box Collider", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<CapsuleColliderComponent>(search_text, entity,"Capsule Collider", search_buffer) ? true : isEdited;
+			isEdited = SearchBar<SphereColliderComponent>(search_text, entity, "Sphere Collider", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<RigidBodyComponent	  >(search_text, entity,"Rigidbody", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<CharacterControlComponent>(search_text, entity, "Character Controller", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<LightComponent		  >(search_text, entity,"Light", search_buffer) ? true : isEdited;
@@ -1892,6 +1893,7 @@ namespace Borealis
 		isEdited = DrawComponentLayout<MeshRendererComponent>("Mesh Renderer", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<BoxColliderComponent>("Box Collider", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<CapsuleColliderComponent>("Capsule Collider", entity) ? true : isEdited;
+		isEdited = DrawComponentLayout<SphereColliderComponent>("Sphere Collider", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<RigidBodyComponent>("Rigidbody", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<CharacterControlComponent>("Character Controller", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<LightComponent>("Light", entity) ? true : isEdited;

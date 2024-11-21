@@ -463,9 +463,9 @@ namespace Borealis
 			}
 		}
 
-		Renderer3D::DrawCapsule({ 0.f,0.f,0.f }, 3.f, 3.f, { 0.f,1.f,0.f,1.f }, true);
+		//Renderer3D::DrawCapsule({ 0.f,0.f,0.f }, 3.f, 3.f, { 0.f,1.f,0.f,1.f }, true);
 
-		Renderer3D::DrawSphere({ 2.f,0.f,0.f }, 1.f, { 0.f,1.f,0.f,1.f }, true);
+		//Renderer3D::DrawSphere({ 2.f,0.f,0.f }, 1.f, { 0.f,1.f,0.f,1.f }, true);
 
 		//if (shadowMap)
 		//{

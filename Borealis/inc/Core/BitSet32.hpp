@@ -35,7 +35,7 @@ namespace Borealis
 		bool operator[](uint32_t index) const;
 		uint32_t to_ulong() const;
 	private:
-		uint32_t data = 0;
+		uint32_t data = 1;
 	};
 }
 #endif

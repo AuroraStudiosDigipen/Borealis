@@ -1059,7 +1059,7 @@ namespace Borealis
 				RenderCommand::EnableStencilTest();
 
 				glm::mat4 transform = TransformComponent::GetGlobalTransform(brEntity);
-				transform = glm::translate(transform, glm::normalize(cameraLookAt) * -0.5f);
+				transform = glm::translate(transform, glm::normalize(cameraLookAt) * -0.01f);
 
 				if (brEntity.HasComponent<SpriteRendererComponent>())
 				{
@@ -1323,23 +1323,23 @@ namespace Borealis
 				glm::mat4 canvasTransform = glm::translate(glm::mat4(1.0f), canvasPosition) *
 					glm::scale(glm::mat4(1.0f), glm::vec3(scaleFactor, scaleFactor * -1.f, 1.f));
 
-				//Render clear alpha
-				{
-					SpriteRendererComponent spriteRenderer;
-					//spriteRenderer.Colour = { 0.f,0.f,100.f,0.2f };
-					spriteRenderer.Colour = { 0.f,0.f,0.f,0.0f };
+				////Render clear alpha
+				//{
+				//	SpriteRendererComponent spriteRenderer;
+				//	//spriteRenderer.Colour = { 0.f,0.f,100.f,0.2f };
+				//	spriteRenderer.Colour = { 0.f,0.f,0.f,0.0f };
 
-					glm::vec3 screenPosition(renderTarget->Width * 0.5f, renderTarget->Height * 0.5f, 0.0f);
+				//	glm::vec3 screenPosition(renderTarget->Width * 0.5f, renderTarget->Height * 0.5f, 0.0f);
 
-					glm::vec3 scale = glm::vec3(
-						canvas.canvasSize.x * scaleFactor,
-						canvas.canvasSize.y * scaleFactor,
-						1.f
-					);
-					glm::mat4 screenTransform = glm::translate(glm::mat4(1.0f), screenPosition) *
-						glm::scale(glm::mat4(1.0f), scale);
-					Renderer2D::DrawSprite(screenTransform, spriteRenderer);
-				}
+				//	glm::vec3 scale = glm::vec3(
+				//		canvas.canvasSize.x * scaleFactor,
+				//		canvas.canvasSize.y * scaleFactor,
+				//		1.f
+				//	);
+				//	glm::mat4 screenTransform = glm::translate(glm::mat4(1.0f), screenPosition) *
+				//		glm::scale(glm::mat4(1.0f), scale);
+				//	Renderer2D::DrawSprite(screenTransform, spriteRenderer);
+				//}
 
 				RenderCanvasRecursive(brEntity, glm::mat4(1.0f), canvasTransform);
 				UIexist = true;

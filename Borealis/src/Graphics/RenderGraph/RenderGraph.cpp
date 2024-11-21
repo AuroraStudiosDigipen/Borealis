@@ -203,6 +203,7 @@ namespace Borealis
 		fov = camera.GetFOV();
 		nearPlane = camera.GetNearPlane();
 		farPlane = camera.GetFarPlane();
+		aspectRatio = camera.GetAspectRatio();
 	}
 
 	glm::mat4 CameraSource::GetViewProj()
@@ -1245,12 +1246,21 @@ namespace Borealis
 	void RenderCanvasRecursive(Entity parent, const glm::mat4& parentTransform, const glm::mat4& canvasTransform)
 	{
 		glm::mat4 globalTansform = (glm::mat4)parent.GetComponent<TransformComponent>();
-		if (parent.HasComponent<CanvasRendererComponent>() && parent.HasComponent<SpriteRendererComponent>())
+		if (parent.HasComponent<CanvasRendererComponent>())
 		{
-
 			glm::mat4 transform = canvasTransform * parentTransform * globalTansform;
+			if (parent.HasComponent<SpriteRendererComponent>())
+			{
 
-			Renderer2D::DrawSprite(transform, parent.GetComponent<SpriteRendererComponent>());
+				Renderer2D::DrawSprite(transform, parent.GetComponent<SpriteRendererComponent>(), (int)parent);
+			}
+
+			if (parent.HasComponent<TextComponent>())
+			{
+				TextComponent const& text = parent.GetComponent<TextComponent>();
+
+				Renderer2D::DrawString(text.text, text.font, transform, (int)parent);
+			}
 		}
 
 		for (UUID childID : parent.GetComponent<TransformComponent>().ChildrenID)
@@ -1292,6 +1302,8 @@ namespace Borealis
 		viewProjMatrix = glm::ortho(0.0f, (float)renderTarget->Width, (float)renderTarget->Height, 0.0f, -100.0f, 100.0f);
 		Renderer2D::Begin(viewProjMatrix);
 
+		bool UIexist = false;
+
 		{
 			auto group = registryPtr->group<>(entt::get<TransformComponent, CanvasComponent>);
 			for (auto& entity : group)
@@ -1303,7 +1315,7 @@ namespace Borealis
 				}
 				auto [transform, canvas] = group.get<TransformComponent, CanvasComponent>(entity);
 
-				float scaleFactor = 1 / canvas.scaleFactor * 0.95;
+				float scaleFactor = 1 / canvas.scaleFactor /* * 0.95f */;
 
 				glm::vec3 canvasPosition(renderTarget->Width * 0.5f, renderTarget->Height * 0.5f, 0.0f);
 				glm::vec3 canvasScale(canvas.canvasSize.x * scaleFactor, canvas.canvasSize.y * scaleFactor, 1.0f);
@@ -1311,10 +1323,11 @@ namespace Borealis
 				glm::mat4 canvasTransform = glm::translate(glm::mat4(1.0f), canvasPosition) *
 					glm::scale(glm::mat4(1.0f), glm::vec3(scaleFactor, scaleFactor * -1.f, 1.f));
 
-				//render debug canvas
+				//Render clear alpha
 				{
 					SpriteRendererComponent spriteRenderer;
-					spriteRenderer.Colour = { 0.f,0.f,100.f,0.2f };
+					//spriteRenderer.Colour = { 0.f,0.f,100.f,0.2f };
+					spriteRenderer.Colour = { 0.f,0.f,0.f,0.0f };
 
 					glm::vec3 screenPosition(renderTarget->Width * 0.5f, renderTarget->Height * 0.5f, 0.0f);
 
@@ -1329,45 +1342,33 @@ namespace Borealis
 				}
 
 				RenderCanvasRecursive(brEntity, glm::mat4(1.0f), canvasTransform);
-
-				//for (UUID childID : transform.ChildrenID)
-				//{
-				//	Entity child = SceneManager::GetActiveScene()->GetEntityByUUID(childID);
-
-				//	if (!child.HasComponent<CanvasRendererComponent>()) continue;
-				//	if (!child.HasComponent<SpriteRendererComponent>()) continue;
-
-				//	glm::mat4 childTransform = child.GetComponent<TransformComponent>();
-				//	//childTransform = glm::translate(childTransform, canvasPosition);
-				//	//childTransform = glm::scale(childTransform, glm::vec3(scaleFactor));
-
-				//	childTransform = canvasTransform * childTransform;
-
-				//	Renderer2D::DrawSprite(childTransform, child.GetComponent<SpriteRendererComponent>());
-				//}
+				UIexist = true;
 			}
 		}
 
-		UIFBO->Bind();
-		RenderCommand::Clear();
+		if(UIexist)
+		{
+			UIFBO->Bind();
+			RenderCommand::SetClearColor(glm::vec4{ 0.f });
+			RenderCommand::Clear();
+			RenderCommand::DisableDepthTest();
+			Renderer2D::End();
+			UIFBO->Unbind();
 
-		RenderCommand::DisableDepthTest();
-		Renderer2D::End();
-		UIFBO->Unbind();
+			//std::swap(UIFBO, renderTarget->buffer);
 
-		//std::swap(UIFBO, renderTarget->buffer);
+			RenderCommand::DisableDepthTest();
+			UIFBO->BindTexture(0, 0);
+			shader->Bind();
+			shader->Set("u_Texture0", 0);
 
-		RenderCommand::DisableDepthTest();
-		UIFBO->BindTexture(0, 0);
-		shader->Bind();
-		shader->Set("u_Texture0", 0);
+			renderTarget->Bind();
+			Renderer3D::DrawQuad();
+			renderTarget->Unbind();
 
-		renderTarget->Bind();
-		Renderer3D::DrawQuad();
-		renderTarget->Unbind();
-
-		shader->Unbind();
-		RenderCommand::EnableDepthTest();
+			shader->Unbind();
+			RenderCommand::EnableDepthTest();
+		}
 	}
 
 	EditorUIPass::EditorUIPass(std::string name) : EntityPass(name)

@@ -93,8 +93,8 @@ static bool AssertFailedImpl(const char* inExpression, const char* inMessage, co
 namespace Layers
 {
 	static constexpr ObjectLayer NON_MOVING = 0;
-	static constexpr ObjectLayer MOVING = 1;
-	static constexpr ObjectLayer NUM_LAYERS = 2;
+	static constexpr ObjectLayer MOVING = 31;
+	static constexpr ObjectLayer NUM_LAYERS = 32;
 };
 
 /// Class that determines if two object layers can collide
@@ -137,6 +137,10 @@ public:
 	{
 		// Create a mapping table from object to broad phase layer
 		mObjectToBroadPhase[Layers::NON_MOVING] = BroadPhaseLayers::NON_MOVING;
+		for (int i = 1; i < 31; i++)
+		{
+			mObjectToBroadPhase[i] = BroadPhaseLayers::MOVING;
+		}
 		mObjectToBroadPhase[Layers::MOVING] = BroadPhaseLayers::MOVING;
 	}
 
@@ -171,7 +175,7 @@ private:
 class ObjectVsBroadPhaseLayerFilterImpl : public ObjectVsBroadPhaseLayerFilter
 {
 public:
-	virtual bool				ShouldCollide(ObjectLayer inLayer1, BroadPhaseLayer inLayer2) const override
+	virtual bool ShouldCollide(ObjectLayer inLayer1, BroadPhaseLayer inLayer2) const override
 	{
 		switch (inLayer1)
 		{
@@ -364,7 +368,6 @@ namespace Borealis
 	// Now we can create the actual physics system.
 	sData.mSystem = new JPH::PhysicsSystem();
 	sData.mSystem->Init(cMaxBodies, cNumBodyMutexes, cMaxBodyPairs, cMaxContactConstraints, *sData.broad_phase_layer_interface, *sData.object_vs_broadphase_layer_filter, *sData.object_vs_object_layer_filter);
-	
 	// A body activation listener gets notified when bodies activate and go to sleep
 	// Note that this is called from a job so whatever you do here needs to be thread safe.
 	// Registering one is entirely optional.
@@ -804,6 +807,32 @@ namespace Borealis
 		character.controller = nullptr;
 	}
 
+	class ObjectLayerFilterImpl : public ObjectLayerFilter
+	{
+	public:
+		ObjectLayerFilterImpl(Bitset32 l) : bitset(l)
+		{
+
+		}
+		bool ShouldCollide(ObjectLayer inLayer) const override
+		{
+			// some function to extract the bitset to index numbers;
+			// for example: bitset contains index 3 and 6 (layer 3 & 6)
+
+			for (int index : bitset.ToBitsList())
+			{
+				if (index == inLayer)
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+	private:
+		Bitset32 bitset;
+	};
+	
+
 	bool PhysicsSystem::RayCast(glm::vec3 origin, glm::vec3 direction, float maxDistance, Bitset32 LayerMask)
 	{
 		direction = glm::normalize(direction);
@@ -812,7 +841,7 @@ namespace Borealis
 		auto& narrowPhaseQuery = sData.mSystem->GetNarrowPhaseQuery();
 		RayCastResult result;
 		//result.mFraction = maxDistance;
-		return narrowPhaseQuery.CastRay(ray, result);
+		return narrowPhaseQuery.CastRay(ray, result, {}, ObjectLayerFilterImpl(LayerMask));
 	}
 
 	struct RaycastHit
@@ -831,7 +860,7 @@ namespace Borealis
 		RRayCast ray{ Vec3(origin.x, origin.y, origin.z), Vec3(direction.x, direction.y, direction.z) };
 		auto& narrowPhaseQuery = sData.mSystem->GetNarrowPhaseQuery();
 		RayCastResult result;
-		bool output = narrowPhaseQuery.CastRay(ray, result);
+		bool output = narrowPhaseQuery.CastRay(ray, result, {}, ObjectLayerFilterImpl(LayerMask));
 
 		hitInfo->colliderID = result.mBodyID;
 		hitInfo->distance = maxDistance;
@@ -871,7 +900,7 @@ namespace Borealis
 		RayCastSettings settings;
 		RRayCast ray{ Vec3(origin.x, origin.y, origin.z), Vec3(direction.x, direction.y, direction.z) };
 		auto& narrowPhaseQuery = sData.mSystem->GetNarrowPhaseQuery();
-		narrowPhaseQuery.CastRay(ray, settings, collector);
+		narrowPhaseQuery.CastRay(ray, settings, collector, {}, ObjectLayerFilterImpl(LayerMask));
 
 		std::vector<RaycastHit> output;
 		for (auto hitResult : collector.hits)
@@ -932,24 +961,23 @@ namespace Borealis
 
 		BodyCreationSettings body_settings(shape, RVec3(actualCenter.x, actualCenter.y, actualCenter.z), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
 
-		
+		auto brEntity = SceneManager::GetActiveScene()->GetEntityByUUID(entityID);
+		auto tagComponent = brEntity.GetComponent<TagComponent>();
 
 		if (rigidbody)
 		{
 			if (rigidbody->movement == MovementType::Dynamic) {
 				body_settings.mMotionType = EMotionType::Dynamic;
-				body_settings.mObjectLayer = Layers::MOVING;
 			}
 			else if (rigidbody->movement == MovementType::Kinematic)
 			{
 				body_settings.mMotionType = EMotionType::Kinematic;
-				body_settings.mObjectLayer = Layers::MOVING;
 			}
 			else
 			{
 				body_settings.mMotionType = EMotionType::Static;
-				body_settings.mObjectLayer = Layers::NON_MOVING;
 			}
+			body_settings.mObjectLayer = tagComponent.mLayer.toUint16();
 			body_settings.mAllowDynamicOrKinematic = true;
 			body_settings.mFriction = rigidbody->friction;
 			body_settings.mRestitution = rigidbody->bounciness;
@@ -957,7 +985,7 @@ namespace Borealis
 		else
 		{
 			body_settings.mMotionType = EMotionType::Static;
-			body_settings.mObjectLayer = Layers::NON_MOVING;
+			body_settings.mObjectLayer = tagComponent.mLayer.toUint16();
 		}
 
 		// Create the actual rigid body

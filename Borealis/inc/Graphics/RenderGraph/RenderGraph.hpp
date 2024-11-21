@@ -102,7 +102,7 @@ namespace Borealis
 		void Bind() override;
 		void Unbind() override;
 
-		void BindDepthBuffer(int index);
+		void BindDepthBuffer(int index, bool is3D = false);
 
 		Ref<FrameBuffer> buffer;
 		uint32_t Width, Height;

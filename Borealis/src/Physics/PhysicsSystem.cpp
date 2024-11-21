@@ -831,11 +831,10 @@ namespace Borealis
 		RRayCast ray{ Vec3(origin.x, origin.y, origin.z), Vec3(direction.x, direction.y, direction.z) };
 		auto& narrowPhaseQuery = sData.mSystem->GetNarrowPhaseQuery();
 		RayCastResult result;
-		result.mFraction = maxDistance; // Assuming this is how you set max distance
 		bool output = narrowPhaseQuery.CastRay(ray, result);
 
 		hitInfo->colliderID = result.mBodyID;
-		hitInfo->distance = result.mFraction * maxDistance;
+		hitInfo->distance = maxDistance;
 		hitInfo->ID = PhysicsSystem::BodyIDToUUID(result.mBodyID.GetIndexAndSequenceNumber());
 
 		// If you want the surface normal of the hit use 
@@ -879,7 +878,7 @@ namespace Borealis
 		{
 			RaycastHit hit;
 			hit.colliderID = hitResult.mBodyID;
-			hit.distance = hitResult.mFraction * maxDistance;
+			hit.distance = maxDistance;
 			hit.ID = PhysicsSystem::BodyIDToUUID(hitResult.mBodyID.GetIndexAndSequenceNumber());
 			JPH::BodyLockWrite lock(sData.mSystem->GetBodyLockInterface(), hitResult.mBodyID);
 			if (lock.Succeeded())

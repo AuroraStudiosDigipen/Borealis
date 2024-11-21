@@ -58,4 +58,21 @@ namespace Borealis
 	uint32_t Bitset32::to_ulong() const {
 		return data;
 	}
+	std::vector<int> Bitset32::ToBitsList() const
+	{
+		std::vector<int> output;
+		for (int i = 0; i < 32; i++)
+		{
+			if (data & (1 << i))
+			{
+				output.push_back(i);
+			}
+		}
+		return output;
+	}
+
+	uint16_t Bitset32::toUint16()
+	{
+		return (uint16_t)(*ToBitsList().begin());
+	}
 }

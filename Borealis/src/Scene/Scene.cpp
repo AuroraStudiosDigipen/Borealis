@@ -264,6 +264,14 @@ namespace Borealis
 					PhysicsSystem::HandleInput(glm::vec3(0, 0, 0), false, dt, character.controller);
 				}
 
+				Bitset32 bitset;
+				bitset.set(5);
+				bitset.set(3);
+				if (PhysicsSystem::RayCast(glm::vec3(0, 0, 0), glm::vec3(0, -1, 0), 5.f, bitset))
+				{
+					BOREALIS_CORE_INFO("Ray hit");
+				}
+
 
 				auto boxGroup = mRegistry.group<>(entt::get<TransformComponent, BoxColliderComponent, RigidBodyComponent>);
 				for (auto entity : boxGroup)
@@ -829,6 +837,8 @@ namespace Borealis
 		std::string name = entity.GetName();
 		name+= " (clone)";
 		Entity newEntity = CreateEntity(name);
+		CopyComponent<TagComponent>(newEntity, entity);
+		newEntity.GetName() = name;
 		CopyComponent<TransformComponent>(newEntity, entity);
 		CopyComponent<SpriteRendererComponent>(newEntity, entity);
 		CopyComponent<CameraComponent>(newEntity, entity);
@@ -963,8 +973,8 @@ namespace Borealis
 			UUIDtoENTT[uuid] = newScene->CreateEntityWithUUID(name, uuid);
 			Entity newEntity = newScene->GetEntityByUUID(uuid);
 			newEntity.GetComponent<TagComponent>().active = originalRegistry.get<TagComponent>(entity).active;
+			newEntity.GetComponent<TagComponent>().mLayer = originalRegistry.get<TagComponent>(entity).mLayer;
 		}
-
 		CopyComponent<TransformComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<SpriteRendererComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<CameraComponent>(newRegistry, originalRegistry, UUIDtoENTT);

@@ -25,6 +25,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Jolt/Jolt.h>
 #include <Scene/Entity.hpp>
 #include <Scene/SceneManager.hpp>
+#include <Core/LayerList.hpp>
+#include <Core/BitSet32.hpp>
 
 
 // Jolt includes
@@ -44,6 +46,9 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Jolt/Physics/Character/CharacterVirtual.h>
 #include <Jolt/Physics/Character/CharacterBase.h>
 #include <Jolt/Physics/Collision/Shape/ScaledShape.h>
+#include <Jolt/Physics/Collision/RayCast.h>
+#include <Jolt/Physics/Collision/CastResult.h>
+
 
 
 
@@ -88,8 +93,8 @@ static bool AssertFailedImpl(const char* inExpression, const char* inMessage, co
 namespace Layers
 {
 	static constexpr ObjectLayer NON_MOVING = 0;
-	static constexpr ObjectLayer MOVING = 1;
-	static constexpr ObjectLayer NUM_LAYERS = 2;
+	static constexpr ObjectLayer MOVING = 31;
+	static constexpr ObjectLayer NUM_LAYERS = 32;
 };
 
 /// Class that determines if two object layers can collide
@@ -132,6 +137,10 @@ public:
 	{
 		// Create a mapping table from object to broad phase layer
 		mObjectToBroadPhase[Layers::NON_MOVING] = BroadPhaseLayers::NON_MOVING;
+		for (int i = 1; i < 31; i++)
+		{
+			mObjectToBroadPhase[i] = BroadPhaseLayers::MOVING;
+		}
 		mObjectToBroadPhase[Layers::MOVING] = BroadPhaseLayers::MOVING;
 	}
 
@@ -166,7 +175,7 @@ private:
 class ObjectVsBroadPhaseLayerFilterImpl : public ObjectVsBroadPhaseLayerFilter
 {
 public:
-	virtual bool				ShouldCollide(ObjectLayer inLayer1, BroadPhaseLayer inLayer2) const override
+	virtual bool ShouldCollide(ObjectLayer inLayer1, BroadPhaseLayer inLayer2) const override
 	{
 		switch (inLayer1)
 		{
@@ -233,6 +242,9 @@ namespace Borealis
 		std::queue<CollisionPair> onCollisionPairAddedQueue;
 		std::queue<CollisionPair> onCollisionPairRemovedQueue;
 		std::queue<CollisionPair> onCollisionPairPersistedQueue;
+		std::queue<CollisionPair> onTriggerPairAddedQueue;
+		std::queue<CollisionPair> onTriggerPairRemovedQueue;
+		std::queue<CollisionPair> onTriggerPairPersistedQueue;
 	};
 
 	static PhysicsSystemData sData;
@@ -240,17 +252,47 @@ namespace Borealis
 
 	void MyContactListener::OnContactAdded(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings)
 	{
-		//sData.onCollisionPairAddedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
+		if (inBody1.IsSensor() || inBody2.IsSensor())
+		{
+			sData.onTriggerPairAddedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
+			spdlog::info("Trigger pair added");
+		}
+		else
+		{
+			sData.onCollisionPairAddedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
+		}
 	}
 
 	void MyContactListener::OnContactPersisted(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings)
 	{
-		//sData.onCollisionPairPersistedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
+		if (inBody1.IsSensor() || inBody2.IsSensor())
+		{
+			sData.onTriggerPairPersistedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
+			spdlog::info("Trigger pair persisted");
+		}
+		else
+		{
+			sData.onCollisionPairPersistedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
+		}
+	}
+
+	static bool IsBodySensor(const JPH::BodyID& bodyID)
+	{
+		// Get the body lock interface (read-lock to ensure thread safety)
+		JPH::BodyLockRead lock(sData.mSystem->GetBodyLockInterface(), bodyID);
+		if (lock.Succeeded()) {
+			// Check if the body is a sensor
+			return lock.GetBody().IsSensor();
+		}
+
+		// If the body doesn't exist or is invalid, return false
+		return false;
 	}
 
 	void MyContactListener::OnContactRemoved(const SubShapeIDPair& inSubShapePair)
 	{
-		//sData.onCollisionPairRemovedQueue.push({ PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody1ID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody2ID().GetIndexAndSequenceNumber())});
+		sData.onCollisionPairRemovedQueue.push({ PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody1ID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody2ID().GetIndexAndSequenceNumber())});
+		spdlog::info("Collision pair removed");
 	}
 
 	std::queue<CollisionPair>& PhysicsSystem::GetCollisionEnterQueue() {return sData.onCollisionPairAddedQueue; }
@@ -326,7 +368,6 @@ namespace Borealis
 	// Now we can create the actual physics system.
 	sData.mSystem = new JPH::PhysicsSystem();
 	sData.mSystem->Init(cMaxBodies, cNumBodyMutexes, cMaxBodyPairs, cMaxContactConstraints, *sData.broad_phase_layer_interface, *sData.object_vs_broadphase_layer_filter, *sData.object_vs_object_layer_filter);
-	
 	// A body activation listener gets notified when bodies activate and go to sleep
 	// Note that this is called from a job so whatever you do here needs to be thread safe.
 	// Registering one is entirely optional.
@@ -766,6 +807,122 @@ namespace Borealis
 		character.controller = nullptr;
 	}
 
+	class ObjectLayerFilterImpl : public ObjectLayerFilter
+	{
+	public:
+		ObjectLayerFilterImpl(Bitset32 l) : bitset(l)
+		{
+
+		}
+		bool ShouldCollide(ObjectLayer inLayer) const override
+		{
+			// some function to extract the bitset to index numbers;
+			// for example: bitset contains index 3 and 6 (layer 3 & 6)
+
+			for (int index : bitset.ToBitsList())
+			{
+				if (index == inLayer)
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+	private:
+		Bitset32 bitset;
+	};
+	
+
+	bool PhysicsSystem::RayCast(glm::vec3 origin, glm::vec3 direction, float maxDistance, Bitset32 LayerMask)
+	{
+		direction = glm::normalize(direction);
+		direction *= maxDistance; //set distance of ray
+		RRayCast ray { Vec3(origin.x, origin.y, origin.z), Vec3(direction.x, direction.y, direction.z) };
+		auto& narrowPhaseQuery = sData.mSystem->GetNarrowPhaseQuery();
+		RayCastResult result;
+		//result.mFraction = maxDistance;
+		return narrowPhaseQuery.CastRay(ray, result, {}, ObjectLayerFilterImpl(LayerMask));
+	}
+
+	struct RaycastHit
+	{
+		UUID ID;
+		BodyID colliderID;
+		float distance;
+		glm::vec3 normal;
+		glm::vec3 point;
+	};
+
+	static bool Raycast(glm::vec3 origin, glm::vec3 direction, RaycastHit* hitInfo, float maxDistance, Bitset32 LayerMask)
+	{
+		direction = glm::normalize(direction);
+
+		RRayCast ray{ Vec3(origin.x, origin.y, origin.z), Vec3(direction.x, direction.y, direction.z) };
+		auto& narrowPhaseQuery = sData.mSystem->GetNarrowPhaseQuery();
+		RayCastResult result;
+		bool output = narrowPhaseQuery.CastRay(ray, result, {}, ObjectLayerFilterImpl(LayerMask));
+
+		hitInfo->colliderID = result.mBodyID;
+		hitInfo->distance = maxDistance;
+		hitInfo->ID = PhysicsSystem::BodyIDToUUID(result.mBodyID.GetIndexAndSequenceNumber());
+
+		// If you want the surface normal of the hit use 
+		// Body::GetWorldSpaceSurfaceNormal(ioHit.mSubShapeID2, 
+		// inRay.GetPointOnRay(ioHit.mFraction)) on body with ID ioHit.mBodyID.
+
+		JPH::BodyLockRead lock(sData.mSystem->GetBodyLockInterface(), result.mBodyID);
+		if (lock.Succeeded())
+		{
+			const JPH::Body& body = lock.GetBody();
+			auto normals = body.GetWorldSpaceSurfaceNormal(result.mSubShapeID2, ray.GetPointOnRay(result.mFraction));
+			hitInfo->normal = { normals.GetX(), normals.GetY(), normals.GetZ() };
+		}
+		hitInfo->point = origin + direction * hitInfo->distance;
+
+		return output;
+	}
+
+	class RayCollector : public CastRayCollector
+	{
+	public:
+
+		void AddHit(const ResultType& inResult) override
+		{
+			hits.push_back(inResult);
+		}
+		std::vector<RayCastResult> hits;
+	};
+
+	static std::vector<RaycastHit> RayCastAll(glm::vec3 origin, glm::vec3 direction, float maxDistance, Bitset32 LayerMask)
+	{
+		direction = glm::normalize(direction);
+		RayCollector collector;
+		RayCastSettings settings;
+		RRayCast ray{ Vec3(origin.x, origin.y, origin.z), Vec3(direction.x, direction.y, direction.z) };
+		auto& narrowPhaseQuery = sData.mSystem->GetNarrowPhaseQuery();
+		narrowPhaseQuery.CastRay(ray, settings, collector, {}, ObjectLayerFilterImpl(LayerMask));
+
+		std::vector<RaycastHit> output;
+		for (auto hitResult : collector.hits)
+		{
+			RaycastHit hit;
+			hit.colliderID = hitResult.mBodyID;
+			hit.distance = maxDistance;
+			hit.ID = PhysicsSystem::BodyIDToUUID(hitResult.mBodyID.GetIndexAndSequenceNumber());
+			JPH::BodyLockWrite lock(sData.mSystem->GetBodyLockInterface(), hitResult.mBodyID);
+			if (lock.Succeeded())
+			{
+				JPH::Body& body = lock.GetBody();
+				auto normals = body.GetWorldSpaceSurfaceNormal(hitResult.mSubShapeID2, ray.GetPointOnRay(hitResult.mFraction));
+				hit.normal = { normals.GetX(), normals.GetY(), normals.GetZ() };
+			}
+			hit.point = origin + direction * hit.distance;
+			output.push_back(hit);
+		}
+
+		return output;
+	}
+
 	void PhysicsSystem::addBody(TransformComponent& transform, RigidBodyComponent* rigidbody, ColliderComponent& collider, UUID entityID)
 	{
 		ShapeRefC shape;
@@ -804,24 +961,23 @@ namespace Borealis
 
 		BodyCreationSettings body_settings(shape, RVec3(actualCenter.x, actualCenter.y, actualCenter.z), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
 
-		
+		auto brEntity = SceneManager::GetActiveScene()->GetEntityByUUID(entityID);
+		auto tagComponent = brEntity.GetComponent<TagComponent>();
 
 		if (rigidbody)
 		{
 			if (rigidbody->movement == MovementType::Dynamic) {
 				body_settings.mMotionType = EMotionType::Dynamic;
-				body_settings.mObjectLayer = Layers::MOVING;
 			}
 			else if (rigidbody->movement == MovementType::Kinematic)
 			{
 				body_settings.mMotionType = EMotionType::Kinematic;
-				body_settings.mObjectLayer = Layers::MOVING;
 			}
 			else
 			{
 				body_settings.mMotionType = EMotionType::Static;
-				body_settings.mObjectLayer = Layers::NON_MOVING;
 			}
+			body_settings.mObjectLayer = tagComponent.mLayer.toUint16();
 			body_settings.mAllowDynamicOrKinematic = true;
 			body_settings.mFriction = rigidbody->friction;
 			body_settings.mRestitution = rigidbody->bounciness;
@@ -829,7 +985,7 @@ namespace Borealis
 		else
 		{
 			body_settings.mMotionType = EMotionType::Static;
-			body_settings.mObjectLayer = Layers::NON_MOVING;
+			body_settings.mObjectLayer = tagComponent.mLayer.toUint16();
 		}
 
 		// Create the actual rigid body

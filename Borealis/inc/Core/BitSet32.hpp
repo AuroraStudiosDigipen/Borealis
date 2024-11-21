@@ -34,6 +34,11 @@ namespace Borealis
 		bool none() const;
 		bool operator[](uint32_t index) const;
 		uint32_t to_ulong() const;
+
+		std::vector<int> ToBitsList() const;
+		uint16_t toUint16();
+
+
 	private:
 		uint32_t data = 1;
 	};

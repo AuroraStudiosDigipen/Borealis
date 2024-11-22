@@ -414,22 +414,34 @@ namespace Borealis
 
 	}
 
+	struct LineInfo
+	{
+		glm::vec3 p0;
+		glm::vec3 p1;
+		glm::vec4 color;
+	};
+
+	static std::vector<LineInfo> lineQueue;
+
 	void Renderer2D::DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& colour)
 	{
-		PROFILE_FUNCTION();
+		//PROFILE_FUNCTION();
 
-		//if (sData->QuadIndexCount + 6 >= Renderer2DData::MaxIndices)
-		//	FlushReset();
+		////if (sData->QuadIndexCount + 6 >= Renderer2DData::MaxIndices)
+		////	FlushReset();
 
-		sData->LineBufferPtr->Position = p0;
-		sData->LineBufferPtr->Colour = colour;
-		sData->LineBufferPtr++;
+		//sData->LineBufferPtr->Position = p0;
+		//sData->LineBufferPtr->Colour = colour;
+		//sData->LineBufferPtr++;
 
-		sData->LineBufferPtr->Position = p1;
-		sData->LineBufferPtr->Colour = colour;
-		sData->LineBufferPtr++;
+		//sData->LineBufferPtr->Position = p1;
+		//sData->LineBufferPtr->Colour = colour;
+		//sData->LineBufferPtr++;
 
-		sData->LineVertexCount += 2;
+		//sData->LineVertexCount += 2;
+
+		LineInfo info{ p0, p1, colour };
+		lineQueue.push_back(info);
 	}
 
 	void Renderer2D::DrawBox(const glm::vec3& pMin, const glm::vec3& pMax, const glm::vec4& colour)
@@ -455,6 +467,29 @@ namespace Borealis
 		DrawLine(p2, p6, colour);
 		DrawLine(p3, p7, colour);
 		DrawLine(p4, p8, colour);
+	}
+
+	void Renderer2D::DrawLineFromQueue()
+	{
+		PROFILE_FUNCTION();
+
+		//if (sData->QuadIndexCount + 6 >= Renderer2DData::MaxIndices)
+		//	FlushReset();
+
+		for (LineInfo const& info : lineQueue)
+		{
+			sData->LineBufferPtr->Position = info.p0;
+			sData->LineBufferPtr->Colour = info.color;
+			sData->LineBufferPtr++;
+
+			sData->LineBufferPtr->Position = info.p1;
+			sData->LineBufferPtr->Colour = info.color;
+			sData->LineBufferPtr++;
+
+			sData->LineVertexCount += 2;
+		}
+
+		lineQueue.clear();
 	}
 
 	void Renderer2D::DrawRotatedQuad(const glm::vec2& position, const float& rotation, const glm::vec2& size, const glm::vec4& colour)

@@ -93,6 +93,9 @@ namespace Borealis {
 	static std::atomic<bool> loadComplete(false);  // Flag to track completion
 	static std::string activeScName("");  // Flag to track completion
 
+	static int viewportMouseXCurr = 0;
+	static int viewportMouseYCurr = 0;
+
 	void EditorLayer::Init()
 	{
 
@@ -279,23 +282,9 @@ namespace Borealis {
 		glm::vec2 viewportSize { mViewportBounds[1].x - mViewportBounds[0].x, mViewportBounds[1].y - mViewportBounds[0].y };
 		my = viewportSize.y - my;
 
-		int mouseX = (int)mx;
-		int mouseY = (int)my;
-		//SceneManager::GetActiveScene()->GetEditorFB()->Bind();
-		if (mViewportHovered)
-		{
-			if (SceneManager::GetActiveScene()->GetPixelBuffer()->ReadPixel(mouseX, mouseY) != -1)
-			{
-				//int id_ent = mViewportFrameBuffer->ReadPixel(1, mouseX, mouseY);
-				mHoveredEntity = { (entt::entity)SceneManager::GetActiveScene()->GetPixelBuffer()->ReadPixel(mouseX, mouseY), SceneManager::GetActiveScene().get()};
-				//BOREALIS_CORE_INFO("picking id {}", mHoveredEntity.GetName());
-				//BOREALIS_CORE_INFO("Name : {}", mHoveredEntity.GetName());
-			}
-			else
-			{
-				mHoveredEntity = {};
-			}
-		}
+		viewportMouseXCurr = (int)mx;
+		viewportMouseYCurr = (int)my;
+
 		//SceneManager::GetActiveScene()->GetEditorFB()->Unbind();
 
 		SceneManager::GetActiveScene()->UpdateRuntime(dt); //update physics, scripts and audio
@@ -773,11 +762,16 @@ namespace Borealis {
 			{
 				if (!(InputSystem::IsKeyPressed(Key::LeftAlt) || InputSystem::IsKeyPressed(Key::RightAlt)))
 				{
-					if (mViewportHovered && mHoveredEntity && !ImGuizmo::IsOver())
+					if (mViewportHovered && !ImGuizmo::IsOver())
 					{
-						if(mHoveredEntity.IsValid())
+
+						if (SceneManager::GetActiveScene()->GetPixelBuffer()->ReadPixel(viewportMouseXCurr, viewportMouseYCurr) != -1)
 						{
-							SCPanel.SetSelectedEntity(mHoveredEntity);
+							SCPanel.SetSelectedEntity({ (entt::entity)SceneManager::GetActiveScene()->GetPixelBuffer()->ReadPixel(viewportMouseXCurr, viewportMouseYCurr), SceneManager::GetActiveScene().get()});
+						}
+						else
+						{
+							SCPanel.SetSelectedEntity({});
 						}
 					}
 					else if (mViewportHovered && !ImGuizmo::IsOver())

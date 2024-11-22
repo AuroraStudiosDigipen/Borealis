@@ -1213,8 +1213,11 @@ namespace Borealis
 	{
 		if (entity.HasComponent<MeshFilterComponent>())
 		{
-			component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).first;
-			component.size = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).second;
+			if (entity.GetComponent<MeshFilterComponent>().Model)
+			{
+				component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).first;
+				component.size = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).second;
+			}
 		}
 		else
 		{
@@ -1227,10 +1230,14 @@ namespace Borealis
 	{
 		if (entity.HasComponent<MeshFilterComponent>())
 		{
-			component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).first;
-			glm::vec3 data = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).second;
-			component.radius = PhysicsSystem::calculateCapsuleDimensions(data).first;
-			component.height = PhysicsSystem::calculateCapsuleDimensions(data).second;
+			if (entity.GetComponent<MeshFilterComponent>().Model)
+			
+			{
+				component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).first;
+				glm::vec3 data = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).second;
+				component.radius = PhysicsSystem::calculateCapsuleDimensions(data).first;
+				component.height = PhysicsSystem::calculateCapsuleDimensions(data).second;
+			}
 		}
 		else
 		{
@@ -1245,9 +1252,12 @@ namespace Borealis
 	{
 		if (entity.HasComponent<MeshFilterComponent>())
 		{
-			component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).first;
-			glm::vec3 data = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).second;
-			component.radius = PhysicsSystem::calculateSphereRadius(data);
+			if (entity.GetComponent<MeshFilterComponent>().Model)
+			{
+				component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).first;
+				glm::vec3 data = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).second;
+				component.radius = PhysicsSystem::calculateSphereRadius(data);
+			}
 		}
 		else
 		{

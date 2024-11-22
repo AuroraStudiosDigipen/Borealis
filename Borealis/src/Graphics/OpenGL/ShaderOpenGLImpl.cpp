@@ -107,7 +107,7 @@ namespace Borealis
 	}
 	void OpenGLShader::PushUniform(const char* name, const int& value)
 	{
-		auto location = glGetUniformLocation(mRendererID, name);
+		auto location = GetUniformLocation(name);
 		if (location == -1)
 		{
 			BOREALIS_CORE_ERROR("Invalid uniform name: {}", name);
@@ -117,7 +117,7 @@ namespace Borealis
 	}
 	void OpenGLShader::PushUniform(const char* name, const int* values, const uint32_t count)
 	{
-		auto location = glGetUniformLocation(mRendererID, name);
+		auto location = GetUniformLocation(name);
 		if (location == -1)
 		{
 			BOREALIS_CORE_ERROR("Invalid uniform name: {}", name);
@@ -127,7 +127,7 @@ namespace Borealis
 	}
 	void OpenGLShader::PushUniform(const char* name, const float& value)
 	{
-		auto location = glGetUniformLocation(mRendererID, name);
+		auto location = GetUniformLocation(name);
 		if (location == -1)
 		{
 			BOREALIS_CORE_ERROR("Invalid uniform name: {}", name);
@@ -137,7 +137,7 @@ namespace Borealis
 	}
 	void OpenGLShader::PushUniform(const char* name, const glm::vec2& value)
 	{
-		auto location = glGetUniformLocation(mRendererID, name);
+		auto location = GetUniformLocation(name);
 		if (location == -1)
 		{
 			BOREALIS_CORE_ERROR("Invalid uniform name: {}", name);
@@ -147,7 +147,7 @@ namespace Borealis
 	}
 	void OpenGLShader::PushUniform(const char* name, const glm::vec3& value)
 	{
-		auto location = glGetUniformLocation(mRendererID, name);
+		auto location = GetUniformLocation(name);
 		if (location == -1)
 		{
 			BOREALIS_CORE_ERROR("Invalid uniform name: {}", name);
@@ -157,7 +157,7 @@ namespace Borealis
 	}
 	void OpenGLShader::PushUniform(const char* name, const glm::vec4& value)
 	{
-		auto location = glGetUniformLocation(mRendererID, name);
+		auto location = GetUniformLocation(name);
 		if (location == -1)
 		{
 			BOREALIS_CORE_ERROR("Invalid uniform name: {}", name);
@@ -167,7 +167,7 @@ namespace Borealis
 	}
 	void OpenGLShader::PushUniform(const char* name, const glm::mat3& value)
 	{
-		auto location = glGetUniformLocation(mRendererID, name);
+		auto location = GetUniformLocation(name);
 		if (location == -1)
 		{
 			BOREALIS_CORE_ERROR("Invalid uniform name: {}", name);
@@ -177,12 +177,12 @@ namespace Borealis
 	}
 	void OpenGLShader::PushUniform(const char* name, const glm::mat4& value)
 	{
-		auto location = glGetUniformLocation(mRendererID, name);
+		auto location = GetUniformLocation(name);
 		if (location == -1)
 		{
 			BOREALIS_CORE_ERROR("Invalid uniform name: {}", name);
 		}
-		glUniformMatrix4fv(glGetUniformLocation(mRendererID, name), 1, GL_FALSE, glm::value_ptr(value));
+		glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, glm::value_ptr(value));
 		BOREALIS_CORE_ASSERT(glGetError() == GL_NO_ERROR, "Error pushing uniform into shader");
 	}
 	GLenum OpenGLShader::ShaderTypeFromString(const std::string& type)
@@ -325,5 +325,17 @@ namespace Borealis
 			glDetachShader(program,id);
 		}
 		mRendererID = program;
+	}
+
+	int OpenGLShader::GetUniformLocation(std::string const& uniformName)
+	{
+		if (mUniformLocations.contains(uniformName))
+		{
+			return mUniformLocations[uniformName];
+		}
+
+		GLint location = glGetUniformLocation(mRendererID, uniformName.c_str());
+		mUniformLocations[uniformName] = location;
+		return location;
 	}
 }

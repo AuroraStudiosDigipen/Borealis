@@ -18,8 +18,14 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include "Importer/AssetImporter.hpp"
 #include "MetaSerializer.hpp"
 
+#include "Importer/TextureImporter.hpp"
+
 int main(int argc, char** argv)
 {
+    //BorealisAssetCompiler::TextureImporter::CreateCubeMap();
+
+    //return 1;
+
     if (argc != 2) 
     {
         std::cerr << "Usage: " << argv[0] << " <filepath>" << std::endl;
@@ -28,6 +34,7 @@ int main(int argc, char** argv)
 
     std::filesystem::path filePath = argv[1];
     //std::filesystem::path filePath = "C:\\Users\\Owner\\Documents\\Digipen\\GAM300\\Test\\Assets\\test4\\dragon.fbx";
+
     filePath = filePath.string() + ".meta";
 
     BorealisAssetCompiler::AssetMetaData data = BorealisAssetCompiler::MetaSerializer::GetAssetMetaDataFile(filePath);

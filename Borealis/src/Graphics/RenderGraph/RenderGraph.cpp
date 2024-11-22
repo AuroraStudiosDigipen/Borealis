@@ -33,6 +33,7 @@ namespace Borealis
 	Ref<Shader> cascade_shadow_shader = nullptr;
 	Ref<Shader> common_shader = nullptr;
 	Ref<Shader> quad_shader = nullptr;
+	Ref<Shader> cube_map_shader = nullptr;
 
 
 	Ref<FrameBuffer> mCascadeShadowMapBuffer = nullptr;
@@ -1130,6 +1131,57 @@ namespace Borealis
 		}
 	}
 
+	SkyboxPass::SkyboxPass(std::string name) : RenderPass(name)
+	{
+		shader = cube_map_shader;
+	}
+
+	void SkyboxPass::Execute(float dt)
+	{
+		static Ref<TextureCubeMap> cubeMap = nullptr;
+
+		PROFILE_FUNCTION();
+		Ref<RenderTargetSource> renderTarget = nullptr;
+
+		glm::mat4 viewMatrix, projMatrix;
+
+		for (auto sink : sinkList)
+		{
+			if (sink->source->sourceType == RenderSourceType::RenderTargetColor)
+			{
+				if (sink->sinkName == "renderTarget")
+				{
+					renderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
+				}
+			}
+
+			if (sink->source->sourceType == RenderSourceType::Camera)
+			{
+				viewMatrix = std::dynamic_pointer_cast<CameraSource>(sink->source)->viewMtx;
+				projMatrix = std::dynamic_pointer_cast<CameraSource>(sink->source)->projMtx;
+			}
+		}
+
+		if(!cubeMap)
+		{
+			cubeMap = TextureCubeMap::Create("skybox.dds");
+		}
+
+		glm::mat4 view = glm::mat4(glm::mat3(viewMatrix));
+
+		RenderCommand::DisableDepthTest();
+		shader->Bind();
+		shader->Set("u_ViewProjection", projMatrix * view);
+		renderTarget->Bind();
+		cubeMap->Bind(0);
+		shader->Set("u_Skybox", 0);
+		Renderer3D::DrawCubeMap();
+		renderTarget->Unbind();
+		shader->Unbind();
+
+		RenderCommand::EnableDepthTest();
+	}
+
 	HighlightPass::HighlightPass(std::string name) : EntityPass(name)
 	{
 		shader = common_shader;
@@ -1469,6 +1521,9 @@ namespace Borealis
 		if (!quad_shader)
 			quad_shader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_Quad.glsl");
 
+		if (!cube_map_shader)
+			cube_map_shader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_CubeMap.glsl");
+
 		if (!mCascadeShadowMapBuffer)
 		{
 			FrameBufferProperties propsShadowMapBuffer{ 2024, 2024, false };
@@ -1561,6 +1616,7 @@ namespace Borealis
 				break;
 			case RenderPassType::ObjectPicking:
 			case RenderPassType::EditorHighlightPass:
+			case RenderPassType::SkyboxPass:
 				AddRenderPassConfig(passesConfig);
 				break;
 			default:
@@ -1603,6 +1659,9 @@ namespace Borealis
 			break;
 		case RenderPassType::EditorHighlightPass:
 			renderPass = MakeRef<EditorHighlightPass>(renderPassConfig.mPassName);
+			break;
+		case RenderPassType::SkyboxPass:
+			renderPass = MakeRef<SkyboxPass>(renderPassConfig.mPassName);
 			break;
 		}
 

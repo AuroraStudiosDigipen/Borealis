@@ -18,6 +18,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include "stb_image.h"
 //#include "ispc_texcomp.h"
 #include <cmp_compressonatorlib/compressonator.h>
+#include <gli.hpp>
 
 #define FOURCC_DXT5 0x35545844  // 'DXT5' in ASCII
 #define FOURCC_DX10 0x30315844  // 'DX10' in ASCII
@@ -101,6 +102,70 @@ namespace BorealisAssetCompiler
 
         CMP_FreeMipSet(&MipSetIn);
         CMP_FreeMipSet(&MipSetCmp);
+    }
+
+    std::vector<unsigned char> loadImage(const char* filePath, int& width, int& height, int& channels) {
+        unsigned char* data = stbi_load(filePath, &width, &height, &channels, 4); // Force RGBA
+        if (!data) {
+            std::cerr << "Failed to load image: " << filePath << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        std::vector<unsigned char> imageData(data, data + (width * height * 4));
+        stbi_image_free(data);
+        return imageData;
+    }
+
+    gli::texture2d load_texture(const std::string& file_path) {
+        gli::texture texture = gli::load(file_path);
+        if (texture.empty()) {
+            throw std::runtime_error("Failed to load texture: " + file_path);
+        }
+        return gli::texture2d(texture);
+    }
+
+    void TextureImporter::CreateCubeMap()
+    {
+        std::string faces[6] = 
+        {
+            "bluecloud_rt.DDS", // +X (right)
+            "bluecloud_lf.DDS", // -X (left)
+            "bluecloud_up.DDS", // +Y (top/up)
+            "bluecloud_dn.DDS", // -Y (bottom/down)
+            "bluecloud_ft.DDS", // +Z (front)
+            "bluecloud_bk.DDS", // -Z (back)
+        };
+
+        // Load the 6 textures
+        gli::texture2d face_textures[6];
+        for (int i = 0; i < 6; ++i) {
+            face_textures[i] = load_texture(faces[i]);
+        }
+
+        gli::extent2d dimensions = face_textures[0].extent();
+        gli::format format = face_textures[0].format();
+        for (int i = 1; i < 6; ++i) {
+            if (face_textures[i].extent() != dimensions || face_textures[i].format() != format) {
+                throw std::runtime_error("All textures must have the same dimensions and format");
+            }
+        }
+
+        // Create a cubemap texture
+        gli::texture_cube cubemap(format, dimensions);
+
+        // Copy each face into the cubemap
+        for (int i = 0; i < 6; ++i) {
+            std::memcpy(
+                cubemap[i].data(),
+                face_textures[i].data(),
+                face_textures[i].size()
+            );
+        }
+
+        // Save the cubemap to a DDS file
+        std::string output_file = "skybox.dds";
+        if (!gli::save(cubemap, output_file)) {
+            throw std::runtime_error("Failed to save cubemap to file: " + output_file);
+        }
     }
 
     void TextureImporter::SaveDDSFile(const std::string& filePath, int width, int height, const std::vector<uint8_t>& compressedData)

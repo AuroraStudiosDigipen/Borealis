@@ -76,4 +76,28 @@ namespace Borealis
 	{
 		return Create(assetMetaData.CachePath.string());
 	}
+
+	Ref<TextureCubeMap> TextureCubeMap::Create(std::filesystem::path const& path)
+	{
+		Ref<TextureCubeMap> texture = nullptr;
+		switch (Renderer::GetAPI())
+		{
+		case RendererAPI::API::None: BOREALIS_CORE_ASSERT(false, "RendererAPI::None is not supported"); break;
+		case RendererAPI::API::OpenGL:
+			texture = MakeRef<OpenGLTextureCubeMap>(path);
+			if (!texture->IsValid())
+			{
+				texture = nullptr;
+			}
+			break;
+		}
+		return texture;
+
+		return Ref<TextureCubeMap>();
+	}
+
+	Ref<TextureCubeMap> TextureCubeMap::Load(AssetMetaData const& assetMetaData)
+	{
+		return Create(assetMetaData.CachePath);
+	}
 }

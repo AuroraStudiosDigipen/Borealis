@@ -359,6 +359,61 @@ namespace Borealis
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
 
+	void Mesh::DrawCubeMap()
+	{
+		static unsigned int CubeMapVAO = 0, CubeMapVBO = 0, CubeMapEBO = 0;
+		if (CubeMapVAO == 0)
+		{
+			const GLfloat cubeVertices[] =
+			{
+				// Positions        
+				-1.f, -1.f, -1.f,
+				 1.f, -1.f, -1.f,
+				 1.f,  1.f, -1.f,
+				-1.f,  1.f, -1.f,
+
+				-1.f, -1.f,  1.f,
+				 1.f, -1.f,  1.f,
+				 1.f,  1.f,  1.f,
+				-1.f,  1.f,  1.f
+			};
+
+			const GLuint cubeIndices[] =
+			{
+				0, 1, 2, 2, 3, 0, // Front face
+				4, 5, 6, 6, 7, 4, // Back face
+				4, 5, 1, 1, 0, 4, // Bottom face
+				3, 2, 6, 6, 7, 3, // Top face
+				4, 0, 3, 3, 7, 4, // Left face
+				5, 1, 2, 2, 6, 5  // Right face
+			};
+
+			glGenVertexArrays(1, &CubeMapVAO);
+			glGenBuffers(1, &CubeMapVBO);
+			glGenBuffers(1, &CubeMapEBO);
+
+			glBindVertexArray(CubeMapVAO);
+			glBindBuffer(GL_ARRAY_BUFFER, CubeMapVBO);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
+
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, CubeMapEBO);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cubeIndices), cubeIndices, GL_STATIC_DRAW);
+
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0); // Vertex positions
+			glEnableVertexAttribArray(0);
+		}
+
+		glBindVertexArray(CubeMapVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, CubeMapVBO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, CubeMapEBO);
+
+		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	}
+
 	void Mesh::DrawSphere(glm::vec3 center, float radius, glm::vec4 color, bool wireframe, Ref<Shader> shader, SphereSides side)
 	{
 		PROFILE_FUNCTION();

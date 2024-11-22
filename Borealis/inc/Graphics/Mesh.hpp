@@ -117,6 +117,8 @@ namespace Borealis
 
 		static void DrawCube(glm::vec3 translation, glm::vec3 minExtent, glm::vec3 maxExtent, glm::vec4 color, bool wireframe, Ref<Shader> shader);
 
+		static void DrawCubeMap();
+
 		enum class SphereSides
 		{
 			BOTH,

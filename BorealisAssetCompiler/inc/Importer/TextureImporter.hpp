@@ -68,6 +68,9 @@ namespace BorealisAssetCompiler
 
         template <typename T>
         static void SaveFile(const T * bitmap, int width, int height, std::filesystem::path& cachePath);
+
+        static void CreateCubeMap();
+
     private:
         static void SaveDDSFile(const std::string& filePath, int width, int height, const std::vector<uint8_t>& compressedData);
     };

@@ -105,8 +105,12 @@ namespace Borealis
 		template<typename T>
 		void RemoveComponent()
 		{
-			if (typeid(T) == typeid(RigidBodyComponent))
-				PhysicsSystem::FreeRigidBody(GetComponent<RigidBodyComponent>());
+			if (typeid(T) == typeid(CapsuleColliderComponent))
+				PhysicsSystem::FreeRigidBody(GetComponent<CapsuleColliderComponent>());
+			else if (typeid(T) == typeid(BoxColliderComponent))
+				PhysicsSystem::FreeRigidBody(GetComponent<BoxColliderComponent>());
+			else if (typeid(T) == typeid(SphereColliderComponent))
+				PhysicsSystem::FreeRigidBody(GetComponent<SphereColliderComponent>());
 
 			mScene->mRegistry.remove<T>(mID);
 		}

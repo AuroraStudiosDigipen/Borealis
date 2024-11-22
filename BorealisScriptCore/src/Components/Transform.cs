@@ -1,15 +1,18 @@
 ﻿
 
+using System.IO;
+
 namespace Borealis
 {
     public class Transform : Component
     {
         //public int childCount;
-        internal Transform(ulong id)
+        public Transform(ulong id)
         {
             InstanceID = id;
         }
-        public Vector3 localRotation
+
+        public Vector3 rotation
         {
             get
             {
@@ -19,6 +22,18 @@ namespace Borealis
             set
             {
                 InternalCalls.TransformComponent_SetRotation(GetInstanceID(), ref value);
+            }
+        }
+        public Vector3 localRotation
+        {
+            get
+            {
+                InternalCalls.TransformComponent_GetLocalRotation(GetInstanceID(), out Vector3 rotation);
+                return rotation;
+            }
+            set
+            {
+                InternalCalls.TransformComponent_SetLocalRotation(GetInstanceID(), ref value);
             }
         }
 
@@ -36,19 +51,7 @@ namespace Borealis
             }
         }
 
-        //public Quaternion localRotation
-        //{
-        //    get
-        //    {
-
-        //    }
-        //    set
-        //    {
-
-        //    }
-        //}
-
-        public Vector3 localScale
+        public Vector3 scale
         {
             get
             {
@@ -58,6 +61,19 @@ namespace Borealis
             set
             {
                 InternalCalls.TransformComponent_SetScale(GetInstanceID(), ref value);
+            }
+        }
+
+        public Vector3 localScale
+        {
+            get
+            {
+                InternalCalls.TransformComponent_GetLocalScale(GetInstanceID(), out Vector3 scale);
+                return scale;
+            }
+            set
+            {
+                InternalCalls.TransformComponent_SetLocalScale(GetInstanceID(), ref value);
             }
         }
         public Vector3 position
@@ -71,6 +87,20 @@ namespace Borealis
             {
                 InternalCalls.TransformComponent_SetTranslation(GetInstanceID(), ref value);
             }
+        }
+
+
+        public Vector3 localPosition
+        {
+            get
+            {
+                InternalCalls.TransformComponent_GetLocalTranslation(GetInstanceID(), out Vector3 translation);
+                return translation;
+            }
+            set
+            {
+                InternalCalls.TransformComponent_SetLocalTranslation(GetInstanceID(), ref value);
+            }
 
         }
 
@@ -78,14 +108,14 @@ namespace Borealis
         {
             get
             {
-                Quaternion rotation = Quaternion.Euler(localRotation.x, localRotation.y, localRotation.z);
-                return rotation * Vector3.forward;
+                Quaternion quat = new Quaternion(rotation);
+                return quat * Vector3.forward;
             }
             set
             {
-                Quaternion rotation = new Quaternion();
-                rotation.SetLookRotation(value);
-                localRotation = rotation.eulerAngles;
+                Quaternion quat = new Quaternion();
+                quat.SetLookRotation(value);
+                rotation = quat.eulerAngles;
             }
         }
 
@@ -93,8 +123,8 @@ namespace Borealis
         {
             get
             {
-                Quaternion rotation = Quaternion.Euler(localRotation.x, localRotation.y, localRotation.z);
-                return rotation * Vector3.right;
+                Quaternion quat = new Quaternion(rotation);
+                return quat * Vector3.right;
             }
         }
 
@@ -102,8 +132,8 @@ namespace Borealis
         {
             get
             {
-                Quaternion rotation = Quaternion.Euler(localRotation.x, localRotation.y, localRotation.z);
-                return rotation * Vector3.up;
+                Quaternion quat = new Quaternion(rotation);
+                return quat * Vector3.up;
             }
         }
     }

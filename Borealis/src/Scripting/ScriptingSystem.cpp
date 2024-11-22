@@ -18,6 +18,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <mono/jit/jit.h>
 #include <mono/metadata/assembly.h>
 #include <mono/metadata/metadata.h>
+#include <mono/metadata/threads.h>
 #include <Scripting/ScriptingSystem.hpp>
 #include <Scripting/ScriptingUtils.hpp>
 #include <Scripting/ScriptingExposedInternal.hpp>
@@ -104,10 +105,10 @@ namespace Borealis
 
 	void ScriptingSystem::CompileCSharpQueue(std::string cSharpPath)
 	{
+		auto thread = mono_thread_attach(sData->mAppDomain);
 		// Compile the C# script
-		MonoObject* monoCompiler = (MonoObject*)InitCoreAssembly();
-
 		mono_domain_set(sData->mAppDomain, true);
+		MonoObject* monoCompiler = (MonoObject*)InitCoreAssembly();
 		MonoArray* monoFilePaths = mono_array_new(mono_domain_get(), mono_get_string_class(), sData->mCSharpList.size());
 
 		for (size_t i = 0; i < sData->mCSharpList.size(); ++i) {
@@ -136,6 +137,7 @@ namespace Borealis
 		}
 
 		sData->mCSharpList.clear();
+		mono_thread_detach(thread);
 	}
 
 	void ScriptingSystem::PushCSharpQueue(std::string filepath)
@@ -198,6 +200,8 @@ namespace Borealis
 			return;
 		}
 
+
+		auto thread = mono_thread_attach(sData->mRootDomain);
 		mono_domain_set(sData->mRootDomain, true);
 		mono_domain_unload(sData->mAppDomain);
 		char friendlyName[] = "BorealisAppDomain";
@@ -215,8 +219,6 @@ namespace Borealis
 		int32_t numTypes = mono_table_info_get_rows(typeDefinitionsTable);
 
 		MonoClass* monoBehaviour = GetScriptClassUtils("MonoBehaviour")->GetMonoClass();
-
-		auto test = mono_class_from_name(assemblyImage, "Borealis", "CameraController");
 
 		for (int32_t i = 0; i < numTypes; i++)
 		{
@@ -238,6 +240,18 @@ namespace Borealis
 				continue;
 			}
 		}
+
+		mono_thread_detach(thread);
+	}
+
+	void ScriptingSystem::AttachAppDomain()
+	{
+		mono_domain_set(sData->mAppDomain, true);
+	}
+
+	void ScriptingSystem::DetachAppDomain()
+	{
+		mono_domain_set(sData->mRootDomain, true);
 	}
 
 
@@ -343,11 +357,11 @@ namespace Borealis
 
 	void ScriptingSystem::Reload(AssetMetaData const& assetMetaData)
 	{
-		for (auto [assetHandle, assetMetaData] : Project::GetEditorAssetsManager()->GetAssetRegistry())
+		for (auto [assetHandle, assetMetaDataFromRegistry] : Project::GetEditorAssetsManager()->GetAssetRegistry())
 		{
-			if (assetMetaData.Type == AssetType::Script)
+			if (assetMetaDataFromRegistry.Type == AssetType::Script)
 			{
-				ScriptingSystem::PushCSharpQueue(assetMetaData.SourcePath.string());
+				ScriptingSystem::PushCSharpQueue(assetMetaDataFromRegistry.SourcePath.string());
 			}
 		}
 		ScriptingSystem::CompileCSharpQueue(Project::GetProjectPath() + "/Cache/CSharp_Assembly.dll");

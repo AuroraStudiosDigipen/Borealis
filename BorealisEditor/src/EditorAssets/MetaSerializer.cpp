@@ -19,7 +19,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include <yaml-cpp/yaml.h>
 #include <thread>
-#include <zlib.h>
+#include <assimp/zlib.h>
 
 namespace Borealis
 {
@@ -80,8 +80,10 @@ namespace Borealis
 	MeshConfig DeserializeMeshConfig(YAML::Node& node)
 	{
 		MeshConfig config;
-
-		config.skinMesh = node["IsSkinnedMesh"].as<bool>();
+		if (node["IsSkinnedMesh"])
+			config.skinMesh = node["IsSkinnedMesh"].as<bool>();
+		else
+			config.skinMesh = false;
 
 		return config;
 	}
@@ -228,6 +230,8 @@ namespace Borealis
 
 	AssetMetaData MetaFileSerializer::CreateAssetMetaFile(std::filesystem::path const& path)
 	{
+
+		// Check if asset registry exists
 		AssetMetaData metaData = GetAssetMetaData(path);
 
 		std::filesystem::path metaFilePath = path.string() + ".meta";
@@ -282,7 +286,7 @@ namespace Borealis
 		SaveAsFile(assetRegistryPath, out.c_str());
 	}
 
-	void MetaFileSerializer::DeserializeRegistry(std::string const& registryFileString, std::unordered_map<AssetHandle, AssetMetaData>& AssetRegistry)
+	void MetaFileSerializer::DeserializeRegistry(std::string const& registryFileString, AssetRegistry& AssetRegistry, AssetRegistrySrcLoc& RegistrySrcLoc)
 	{
 		YAML::Node registryRoot = YAML::Load(registryFileString);
 
@@ -296,6 +300,7 @@ namespace Borealis
 				AssetMetaData metaData = DeserializeMetaFile(metaInfo, pathToAssetFolder);
 
 				AssetRegistry.insert({ metaData.Handle, metaData });
+				RegistrySrcLoc.insert({ metaData.SourcePath.string(), metaData.Handle });
 			}
 		}
 	}

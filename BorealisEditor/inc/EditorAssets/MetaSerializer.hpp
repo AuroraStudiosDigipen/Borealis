@@ -58,7 +58,7 @@ namespace Borealis
 			\brief
 				deserialize registry
 		*************************************************************************/
-		static void DeserializeRegistry(std::string const& registryFileString, std::unordered_map<AssetHandle, AssetMetaData>& AssetRegistry);
+		static void DeserializeRegistry(std::string const& registryFileString, std::unordered_map<AssetHandle, AssetMetaData>& AssetRegistry, AssetRegistrySrcLoc& RegistrySrcLoc);
 
 		static uint32_t HashFile(std::filesystem::path const& path);
 

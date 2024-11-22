@@ -253,6 +253,9 @@
     <ClInclude Include="inc\Core\ApplicationManager.hpp">
       <Filter>inc\Core</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Core\BitSet32.hpp">
+      <Filter>inc\Core</Filter>
+    </ClInclude>
     <ClInclude Include="inc\Core\Core.hpp">
       <Filter>inc\Core</Filter>
     </ClInclude>
@@ -271,6 +274,9 @@
     <ClInclude Include="inc\Core\Layer.hpp">
       <Filter>inc\Core</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Core\LayerList.hpp">
+      <Filter>inc\Core</Filter>
+    </ClInclude>
     <ClInclude Include="inc\Core\LayerSystem.hpp">
       <Filter>inc\Core</Filter>
     </ClInclude>
@@ -281,9 +287,6 @@
       <Filter>inc\Core</Filter>
     </ClInclude>
     <ClInclude Include="inc\Core\ProjectInfo.hpp">
-      <Filter>inc\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\Core\TagList.hpp">
       <Filter>inc\Core</Filter>
     </ClInclude>
     <ClInclude Include="inc\Core\TimeManager.hpp">
@@ -2100,10 +2103,16 @@
     <ClCompile Include="src\Core\ApplicationManager.cpp">
       <Filter>src\Core</Filter>
     </ClCompile>
+    <ClCompile Include="src\Core\BitSet32.cpp">
+      <Filter>src\Core</Filter>
+    </ClCompile>
     <ClCompile Include="src\Core\InputSystem.cpp">
       <Filter>src\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Core\Layer.cpp">
+      <Filter>src\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\LayerList.cpp">
       <Filter>src\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Core\LayerSystem.cpp">
@@ -2113,9 +2122,6 @@
       <Filter>src\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Core\Project.cpp">
-      <Filter>src\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Core\TagList.cpp">
       <Filter>src\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Core\TimeManager.cpp">

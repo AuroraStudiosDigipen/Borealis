@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Runtime.CompilerServices;
 
 namespace Borealis
@@ -19,6 +20,16 @@ namespace Borealis
             this.w = w;
         }
 
+        public Quaternion (Vector3 rotation)
+        {
+            Vector3 c = new Vector3( Mathf.Cos(Mathf.Deg2Rad * rotation.x * 0.5f), Mathf.Cos(Mathf.Deg2Rad * rotation.y * 0.5f), Mathf.Cos(Mathf.Deg2Rad * rotation.z * 0.5f) );
+            Vector3 s = new Vector3(Mathf.Sin(Mathf.Deg2Rad * rotation.x * 0.5f), Mathf.Sin(Mathf.Deg2Rad * rotation.y * 0.5f), Mathf.Sin(Mathf.Deg2Rad * rotation.z * 0.5f));
+
+            w = c.x * c.y * c.z + s.x * s.y * s.z;
+            x = s.x * c.y * c.z - c.x * s.y * s.z;
+            y = c.x * s.y * c.z + s.x * c.y * s.z;
+            z = c.x * c.y * s.z - s.x * s.y * c.z;
+        }
         public static Quaternion QuaternionFromAxes(Vector3 right, Vector3 up, Vector3 forward)
         {
             float m00 = right.x;
@@ -83,11 +94,39 @@ namespace Borealis
         {
             get
             {
-                float yaw = Mathf.Atan2(2.0f * (w * y - x * z), 1.0f - 2.0f * (y * y + z * z));
-                float pitch = Mathf.Asin(2.0f * (w * x + y * z));
-                float roll = Mathf.Atan2(2.0f * (w * z - x * y), 1.0f - 2.0f * (z * z + y * y));
+                float pitch, yaw, roll;
 
-                return new Vector3(Mathf.Rad2Deg * pitch, Mathf.Rad2Deg * yaw, Mathf.Rad2Deg * roll);
+                //roll
+                float y3 = 2f * (x * y + w * z);
+                float x3 = w * w + x * x - y * y - z * z;
+
+                if (Mathf.Epsilon < Mathf.Abs(y3) && Mathf.Epsilon < Mathf.Abs(x3))
+                {
+                    roll = Mathf.Atan2(y3, x3);
+                }
+                else
+                {
+                    roll = 0f;
+                }
+
+                float y2 = 2f * (y * z + w * x);
+                float x2 = w * w - x * x - y * y + z * z;
+
+                if (Mathf.Epsilon < Mathf.Abs(y2) && Mathf.Epsilon < Mathf.Abs(x2))
+                {
+                    pitch = Mathf.Atan2(y2, x2);
+                }
+                else
+                {
+                    pitch = 2f * Mathf.Atan2(x, w);
+                }
+
+                Mathf.Atan2(y2, x2);
+
+
+                yaw = Mathf.Asin(Mathf.Clamp(-2f * (x * z - w * y), -1f, 1f));
+
+                return new Vector3(pitch/ Mathf.Deg2Rad, yaw/ Mathf.Deg2Rad, roll/ Mathf.Deg2Rad);
             }
             set
             {
@@ -315,7 +354,7 @@ namespace Borealis
             float dot = Dot(a, b);
             dot = Mathf.Clamp(dot, -1.0f, 1.0f);
 
-            float theta = Mathf.Acos(dot) * Mathf.Rad2Deg;
+            float theta = Mathf.Acos(dot);
             float sinTheta = Mathf.Sin(theta);
 
             if (Mathf.Abs(sinTheta) < 0.001f)

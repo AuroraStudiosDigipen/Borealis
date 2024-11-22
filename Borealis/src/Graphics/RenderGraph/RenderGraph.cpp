@@ -446,6 +446,11 @@ namespace Borealis
 				}
 			}
 		}
+
+		Renderer3D::BeginCommonShapes(viewProjMatrix);
+
+		renderTarget->Bind();
+
 		//mesh pass
 		{
 			auto group = registryPtr->group<>(entt::get<TransformComponent, MeshFilterComponent, MeshRendererComponent>);
@@ -487,12 +492,14 @@ namespace Borealis
 				{
 					AABB modelAABB = meshFilter.Model->mAABB;
 					modelAABB.Transform(TransformComponent::GetGlobalTransform(brEntity));
-					if (brEntity.HasComponent<RigidBodyComponent>())
+					if (brEntity.HasComponent<BoxColliderComponent>())
 					{
-						auto& rigidbody = brEntity.GetComponent<RigidBodyComponent>();
-						rigidbody.minExtent = modelAABB.minExtent;
-						rigidbody.maxExtent = modelAABB.maxExtent;
-						Renderer3D::DrawCube(transform.Translate, rigidbody.minExtent, rigidbody.maxExtent, { 0.f,1.f,0.f,1.f }, true);
+						auto& rigidbody = brEntity.GetComponent<BoxColliderComponent>();
+						glm::vec3 half = {rigidbody.size.x/2, rigidbody.size.y/2, rigidbody.size.z/2};
+						Renderer3D::DrawCube(rigidbody.center, -half, half, { 0.f,1.f,0.f,1.f }, true);
+						//rigidbody.minExtent = modelAABB.minExtent;
+						//rigidbody.maxExtent = modelAABB.maxExtent;
+						//Renderer3D::DrawCube(transform.Translate, rigidbody.minExtent, rigidbody.maxExtent, { 0.f,1.f,0.f,1.f }, true);
 					}
 				}
 

@@ -22,7 +22,6 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <EditorAssets/AssetImporter.hpp>
 #include <EditorAssets/MetaSerializer.hpp>
 
-#include <zlib.h>
 #include <Scripting/ScriptingSystem.hpp>
 #include <thread>
 
@@ -57,12 +56,13 @@ namespace Borealis
 
 		MetaFileSerializer::SetAssetFolderPath(projectInfo.AssetsRegistryPath);
 		AssetRegistry& assetRegistry = Project::GetEditorAssetsManager()->GetAssetRegistry();
-
+		AssetRegistrySrcLoc& RegistrySrcLoc = Project::GetEditorAssetsManager()->GetAssetRegistrySrcLoc();
 		//Deserialize metadata within registry into map
-		DeserializeRegistry(registryStream.str(), assetRegistry); //checked
+		DeserializeRegistry(registryStream.str(), assetRegistry, RegistrySrcLoc); //checked
 
 		//Compare the metadata within registry with actual metadata for error checks
-		RegisterAllAssets(projectInfo.AssetsPath, assetRegistry);
+		std::set<AssetHandle> assetChecker;
+		RegisterAllAssets(projectInfo.AssetsPath, assetRegistry, assetChecker);
 
 		std::string originalPath = projectInfo.AssetsPath.string();
 		originalPath.replace(originalPath.find("Assets"), std::string("Assets").length(), "Cache");
@@ -70,6 +70,21 @@ namespace Borealis
 		//ScriptingSystem::CompileCSharpQueue(originalPath + "/CSharp_Assembly.dll");
 		//ScriptingSystem::LoadScriptAssemblies(originalPath + "/CSharp_Assembly.dll");
 		ScriptingSystem::Reload({});
+
+		std::set<AssetHandle> registryAssetHandles;
+		for (auto& [handle, meta] : assetRegistry)
+		{
+			registryAssetHandles.insert(handle);
+		}
+
+		std::set<AssetHandle> result;
+		auto list = std::set_difference(registryAssetHandles.begin(), registryAssetHandles.end(), assetChecker.begin(), assetChecker.end(),
+						std::inserter(result, result.begin()));
+
+		for (auto& handle : result)
+		{
+			assetRegistry.erase(handle);
+		}
 
 		SerializeRegistry();
 
@@ -113,12 +128,12 @@ namespace Borealis
 		MetaFileSerializer::SerialzeRegistry(mAssetRegistryPath, Project::GetEditorAssetsManager()->GetAssetRegistry());
 	}
 
-	void AssetImporter::DeserializeRegistry(std::string const& registryFileString, AssetRegistry& assetRegistry)
+	void AssetImporter::DeserializeRegistry(std::string const& registryFileString, AssetRegistry& assetRegistry, AssetRegistrySrcLoc& RegistrySrcLoc)
 	{
-		MetaFileSerializer::DeserializeRegistry(registryFileString, assetRegistry);
+		MetaFileSerializer::DeserializeRegistry(registryFileString, assetRegistry, RegistrySrcLoc);
 	}
 
-	void AssetImporter::RegisterAsset(std::filesystem::path path, AssetRegistry& assetRegistry)
+	AssetHandle AssetImporter::RegisterAsset(std::filesystem::path path, AssetRegistry& assetRegistry)
 	{
 		//if failed to pass all error check, recompile if needed
 		MetaErrorType errorType = VerifyMetaFile(path, assetRegistry);
@@ -128,7 +143,16 @@ namespace Borealis
 			AssetMetaData meta;
 			if (errorType == MetaErrorType::META_FILE_NOT_FOUND)
 			{
-				meta = MetaFileSerializer::CreateAssetMetaFile(path);
+				// If src does exist in Registry, use the same Asset Handle as before
+				AssetRegistrySrcLoc& srcLocRegistry = Project::GetEditorAssetsManager()->GetAssetRegistrySrcLoc();
+				if (srcLocRegistry.contains(path.string()))
+				{
+					meta = MetaFileSerializer::CreateAssetMetaFile(path, srcLocRegistry[path.string()]);
+				}
+				else
+				{
+					meta = MetaFileSerializer::CreateAssetMetaFile(path);
+				}
 			}
 			else if (errorType == MetaErrorType::SOURCE_FILE_MODIFIED)
 			{
@@ -160,9 +184,10 @@ namespace Borealis
 			assetRegistry[meta.Handle] = meta;
 			VerifyMetaFile(path, assetRegistry);
 		}
+		return GetAssetHandle(path);
 	}
 
-	void AssetImporter::RegisterAllAssets(std::filesystem::path path, AssetRegistry& assetRegistry)
+	void AssetImporter::RegisterAllAssets(std::filesystem::path path, AssetRegistry& assetRegistry, std::set<AssetHandle>& assetChecker)
 	{
 		if (!std::filesystem::exists(path))
 		{
@@ -176,9 +201,9 @@ namespace Borealis
 				//check for existing meta file
 				//if exist, check last modified date
 				//if anything is wrong, create meta file
-				RegisterAsset(entry, assetRegistry);
+				assetChecker.insert(RegisterAsset(entry, assetRegistry));
 
-				RegisterAllAssets(entry.path(), assetRegistry);
+				RegisterAllAssets(entry.path(), assetRegistry, assetChecker);
 			}
 			else if (std::filesystem::is_regular_file(entry))
 			{
@@ -187,7 +212,7 @@ namespace Borealis
 					continue;
 				}
 
-				RegisterAsset(entry.path(), assetRegistry);
+				assetChecker.insert(RegisterAsset(entry.path(), assetRegistry));
 			}
 		}
 	}

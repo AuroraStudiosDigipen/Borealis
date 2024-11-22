@@ -46,6 +46,7 @@ namespace Borealis
 
 	void SkinnedMesh::Draw(const glm::mat4& transform, Ref<Shader> shader, int entityID)
 	{
+		PROFILE_FUNCTION();
 		shader->Bind();
 
 		shader->Set("u_ModelTransform", transform);

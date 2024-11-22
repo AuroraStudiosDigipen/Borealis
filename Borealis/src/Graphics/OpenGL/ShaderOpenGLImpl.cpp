@@ -61,7 +61,15 @@ namespace Borealis
 	{
 		PROFILE_FUNCTION();
 
-		PushUniform(name, value);
+		auto location = GetUniformLocation(name);
+		if (location == -1)
+		{
+			BOREALIS_CORE_ERROR("Invalid uniform name: {}", name);
+		}
+		glUniform1i(location, value);
+		BOREALIS_CORE_ASSERT(glGetError() == GL_NO_ERROR, "Error pushing uniform into shader");
+
+		//PushUniform(name, value);
 	}
 	void OpenGLShader::Set(const char* name, const int* values, const uint32_t& count)
 	{

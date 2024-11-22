@@ -412,6 +412,7 @@ namespace Borealis
 	
 	void Render3D::Execute(float dt)
 	{
+		PROFILE_FUNCTION();
 		glm::mat4 viewProjMatrix{};
 		bool editor{};
 
@@ -586,6 +587,7 @@ namespace Borealis
 
 	void Render2D::Execute(float dt)
 	{
+		PROFILE_FUNCTION();
 		if (shader) shader->Bind();
 
 		Ref<RenderTargetSource> renderTarget = nullptr;
@@ -651,6 +653,8 @@ namespace Borealis
 				Renderer2D::DrawString(text.text, text.font, TransformComponent::GetGlobalTransform(brEntity), (int)entity);
 			}
 		}
+
+		Renderer2D::DrawLineFromQueue();
 		
 
 		Renderer2D::End();
@@ -667,6 +671,7 @@ namespace Borealis
 
 	void GeometryPass::Execute(float dt)
 	{
+		PROFILE_FUNCTION();
 		if (shader) shader->Bind();
 		shader->Set("u_lightPass", false);
 		Ref<FrameBuffer> gBuffer = nullptr;
@@ -725,6 +730,7 @@ namespace Borealis
 
 	void LightingPass::Execute(float dt)
 	{
+		PROFILE_FUNCTION();
 		if (shader) shader->Bind();
 		shader->Set("u_lightPass", true);
 
@@ -804,6 +810,7 @@ namespace Borealis
 
 	void ShadowPass::Execute(float dt)
 	{
+		PROFILE_FUNCTION();
 		shader->Bind();
 		shader->Set("shadowPass", true);
 
@@ -921,6 +928,7 @@ namespace Borealis
 
 	void ObjectPickingPass::Execute(float dt)
 	{
+		PROFILE_FUNCTION();
 		Ref<PixelBufferSource> pixelBuffer = nullptr;
 		Ref<IntSource> entityID = nullptr;
 		Ref<Vec2IntSource> mouse = nullptr;
@@ -998,6 +1006,7 @@ namespace Borealis
 
 	void EditorHighlightPass::Execute(float dt)
 	{
+		PROFILE_FUNCTION();
 		Ref<RenderTargetSource> renderTarget = nullptr;
 		glm::vec3 cameraLookAt{};
 
@@ -1128,6 +1137,7 @@ namespace Borealis
 
 	void HighlightPass::Execute(float dt)
 	{
+		PROFILE_FUNCTION();
 		Ref<RenderTargetSource> renderTarget = nullptr;
 		glm::vec3 cameraLookAt{};
 
@@ -1280,6 +1290,7 @@ namespace Borealis
 
 	void UIPass::Execute(float dt)
 	{
+		PROFILE_FUNCTION();
 		Ref<RenderTargetSource> renderTarget = nullptr;
 		glm::mat4 viewProjMatrix{};
 
@@ -1383,6 +1394,7 @@ namespace Borealis
 
 	void EditorUIPass::Execute(float dt)
 	{
+		PROFILE_FUNCTION();
 		Ref<RenderTargetSource> renderTarget = nullptr;
 		Ref<RenderTargetSource> runTimeRenderTarget = nullptr;
 

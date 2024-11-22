@@ -144,6 +144,8 @@ namespace Borealis
 
 	void Mesh::Draw(const glm::mat4& transform, Ref<Shader> shader, int entityID)
 	{
+		PROFILE_FUNCTION();
+
 		shader->Bind();
 
 		shader->Set("u_ModelTransform", transform);
@@ -237,6 +239,7 @@ namespace Borealis
 
 	void Mesh::DrawQuad()
 	{
+		PROFILE_FUNCTION();
 		if (QuadVAO == 0)
 		{
 			// Define the vertex positions and texture coordinates for a fullscreen quad
@@ -279,6 +282,7 @@ namespace Borealis
 
 	void Mesh::DrawCube(glm::vec3 translation, glm::vec3 minExtent, glm::vec3 maxExtent, glm::vec4 color, bool wireframe, Ref<Shader> shader)
 	{
+		PROFILE_FUNCTION();
 		if (CubeVAO == 0)
 		{
 			const GLfloat cubeVertices[] = 
@@ -357,6 +361,7 @@ namespace Borealis
 
 	void Mesh::DrawSphere(glm::vec3 center, float radius, glm::vec4 color, bool wireframe, Ref<Shader> shader, SphereSides side)
 	{
+		PROFILE_FUNCTION();
 		static GLuint SphereVAO = 0, SphereVBO = 0, SphereEBO = 0;
 		static int sphereIndexCount = 0;
 		static std::vector<GLuint> fullIndices;
@@ -499,6 +504,7 @@ namespace Borealis
 
 	void Mesh::DrawCylinder(glm::vec3 center, float radius, float height, glm::vec4 color, bool wireframe, Ref<Shader> shader)
 	{
+		PROFILE_FUNCTION();
 		static GLuint CylinderVAO = 0, CylinderVBO = 0, CylinderEBO = 0;
 		const int segments = 16; // Adjust for detail level
 
@@ -617,6 +623,7 @@ namespace Borealis
 
 	void Mesh::DrawCapsule(glm::vec3 center, float radius, float height, glm::vec4 color, bool wireframe, Ref<Shader> shader)
 	{
+		PROFILE_FUNCTION();
 		// Draw cylinder
 		DrawCylinder(center, radius, height, color, wireframe, shader);
 

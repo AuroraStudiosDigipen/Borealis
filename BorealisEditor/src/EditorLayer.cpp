@@ -1161,7 +1161,6 @@ namespace Borealis {
 		std::string activeSceneName;
 		if (Project::SetProjectPath(filepath.c_str(), activeSceneName))
 		{
-			AssetManager::RegisterAllAsset();
 			mAssetImporter.LoadRegistry(Project::GetProjectInfo());
 
 			activeScName = activeSceneName;

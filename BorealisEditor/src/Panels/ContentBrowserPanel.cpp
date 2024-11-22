@@ -162,10 +162,10 @@ namespace Borealis
 				//move creation of assets to assets importer?
 				//AssetHandle AsseetImporter::CreateAsset(AssetType Material, Path materialPath)
 				Ref<Material> material = Material::CreateNewMaterial(materialPath);
-				AssetMetaData data = MetaFileSerializer::CreateAssetMetaFile(materialPath);
-				AssetManager::InsertMetaData(data);
-				AssetImporter::InsertAssetHandle(materialPath, data.Handle);
-				MaterialEditor::SetMaterial(data.Handle);
+				//AssetMetaData data = MetaFileSerializer::CreateAssetMetaFile(materialPath);
+				//AssetManager::InsertMetaData(data);
+				//AssetImporter::InsertAssetHandle(materialPath, data.Handle);
+				//MaterialEditor::SetMaterial(data.Handle);
 			}
 
 			if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {

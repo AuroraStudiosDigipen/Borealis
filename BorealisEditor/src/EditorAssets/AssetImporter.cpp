@@ -19,6 +19,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/Project.hpp>
 
 #include <Assets/Asset.hpp>
+#include <Assets/AssetManager.hpp>
 #include <EditorAssets/AssetImporter.hpp>
 #include <EditorAssets/MetaSerializer.hpp>
 
@@ -48,6 +49,8 @@ namespace Borealis
 
 		mAssetPath = projectInfo.AssetsPath;
 		mAssetRegistryPath = projectInfo.AssetsRegistryPath;
+
+		AssetManager::RegisterAllAsset();
 
 		std::ifstream registryFile(projectInfo.AssetsRegistryPath);
 		std::stringstream registryStream;
@@ -116,8 +119,12 @@ namespace Borealis
 		std::filesystem::path compilerPath = std::filesystem::canonical("BorealisAssetCompiler.exe");
 		std::string sourcePath = metaData.SourcePath.string();
 
-		std::string command = compilerPath.string() + " " + sourcePath;
+		// Enclose the paths in quotes to handle spaces
+		std::string command = compilerPath.string() + " \"" + sourcePath + "\"";
 
+		BOREALIS_CORE_INFO("{}", command);
+
+		// Execute the command
 		int result = system(command.c_str());
 
 		return false;

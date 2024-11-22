@@ -341,7 +341,7 @@ namespace Borealis
 			uint64_t* entityID, float* distance, glm::vec3* normal, glm::vec3* point);
 
 	void Physics_RaycastAll(glm::vec3 origin, glm::vec3 direction, float maxDistance, int layerMask,
-			MonoArray* entityIDArray, MonoArray* distanceArray, MonoArray* normalArray, MonoArray* pointArray);
+			MonoArray** entityIDArray, MonoArray** distanceArray, MonoArray** normalArray, MonoArray** pointArray);
 
 	void CharacterController_Move(uint64_t id, glm::vec3* motion);
 

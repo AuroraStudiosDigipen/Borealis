@@ -109,7 +109,7 @@ namespace Borealis
             get
             {
                 Quaternion quat = new Quaternion(rotation);
-                return quat * Vector3.forward;
+                return -(quat * Vector3.forward);
             }
             set
             {

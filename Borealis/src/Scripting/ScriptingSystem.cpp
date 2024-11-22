@@ -367,4 +367,8 @@ namespace Borealis
 		ScriptingSystem::CompileCSharpQueue(Project::GetProjectPath() + "/Cache/CSharp_Assembly.dll");
 		ScriptingSystem::LoadScriptAssemblies(Project::GetProjectPath() + "/Cache/CSharp_Assembly.dll");
 	}
+	void* ScriptingSystem::GetScriptDomain()
+	{
+		return sData->mAppDomain;
+	}
 }

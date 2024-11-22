@@ -40,72 +40,42 @@ namespace Borealis
 
         public static bool Raycast(Ray ray, float maxDistance = Mathf.Infinity, int layerMask = DefaultRaycastLayers)
         {
-            return InternalCalls.Physics_Raycast(ray.origin, ray.direction, maxDistance, layerMask, out ulong entityID, out float distance, out Vector3 normal, out Vector3 point);
+            return Raycast(ray.origin, ray.direction, maxDistance, layerMask);
         }
 
 
         public static bool Raycast(Ray ray, out RaycastHit hitInfo, float maxDistance = Mathf.Infinity, int layerMask = DefaultRaycastLayers)
         {
-            bool output = InternalCalls.Physics_Raycast(ray.origin, ray.direction, maxDistance, layerMask, out ulong entityID, out float distance, out Vector3 normal, out Vector3 point);
-            if (output)
-            { 
-                hitInfo.distance = distance;
-                hitInfo.normal = normal;
-                hitInfo.point = point;
-                hitInfo.transform = new Transform(entityID);
-            }
-            else
-            {
-                hitInfo.distance = 0;
-                hitInfo.normal = Vector3.zero;
-                hitInfo.point = Vector3.zero;
-                hitInfo.transform = new Transform(0);
-            }
-
-            return output;
+            return Raycast(ray.origin, ray.direction, out hitInfo, maxDistance, layerMask);
         }
 
         public static RaycastHit[] RaycastAll(Vector3 origin, Vector3 direction, float maxDistance = Mathf.Infinity, int layerMask = DefaultRaycastLayers)
         {
             InternalCalls.Physics_RaycastAll(origin, direction, maxDistance, layerMask,
-                out ulong[] entityID, out float[] distance, out Vector3[] normal, out Vector3[] point);
+                             out ulong[] entityID, out float[] distance, out Vector3[] normal, out Vector3[] point);
 
-            RaycastHit[] hitInfos = new RaycastHit[entityID.Length];
-            for (int i = 0; i < entityID.Length; i++)
+            if (distance == null)
+            {
+                return new RaycastHit[0];
+            }
+            RaycastHit[] hitInfos = new RaycastHit[distance.Length];
+
+            for (int i = 0; i < distance.Length; i++)
             {
                 RaycastHit hitInfo = new RaycastHit();
                 hitInfo.distance = distance[i];
+                hitInfo.transform = new Transform(entityID[i]);
                 hitInfo.normal = normal[i];
                 hitInfo.point = point[i];
-                hitInfo.transform = new Transform(entityID[i]);
                 hitInfos[i] = hitInfo;
             }
+
             return hitInfos;
         }
 
         public static RaycastHit[] RaycastAll(Ray ray, float maxDistance = Mathf.Infinity, int layerMask = DefaultRaycastLayers)
         {
-
-            InternalCalls.Physics_RaycastAll(ray.origin, ray.direction, maxDistance, layerMask,
-                            out ulong[] entityID, out float[] distance, out Vector3[] normal, out Vector3[] point);
-
-            if (entityID == null)
-            {
-                return new RaycastHit[0];
-            }
-            RaycastHit[] hitInfos = new RaycastHit[entityID.Length];
-
-            for (int i = 0; i < entityID.Length; i++)
-            {
-                RaycastHit hitInfo = new RaycastHit();
-                hitInfo.distance = distance[i];
-                hitInfo.normal = normal[i];
-                hitInfo.point = point[i];
-                hitInfo.transform = new Transform(entityID[i]);
-                hitInfos[i] = hitInfo;
-            }
-
-            return hitInfos;
+            return RaycastAll(ray.origin, ray.direction, maxDistance, layerMask);
         }
     }
 }

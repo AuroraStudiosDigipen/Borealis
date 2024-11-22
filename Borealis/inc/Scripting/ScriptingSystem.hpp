@@ -87,6 +87,8 @@ namespace Borealis
 
 		static void Reload(AssetMetaData const& assetMetaData);
 
+		static void* GetScriptDomain();
+
 	private:
 
 		/*!***********************************************************************

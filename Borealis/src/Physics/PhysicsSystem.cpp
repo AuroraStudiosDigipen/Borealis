@@ -49,6 +49,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Jolt/Physics/Collision/RayCast.h>
 #include <Jolt/Physics/Collision/CastResult.h>
 
+#include <Graphics/Renderer2D.hpp>
 
 
 
@@ -870,7 +871,7 @@ namespace Borealis
 		bool output = narrowPhaseQuery.CastRay(ray, result, {}, ObjectLayerFilterImpl(LayerMask));
 
 		hitInfo->colliderID = *(reinterpret_cast<uint32_t*>(&result.mBodyID));
-		hitInfo->distance = maxDistance;
+		hitInfo->distance = maxDistance * result.mFraction;
 		hitInfo->ID = PhysicsSystem::BodyIDToUUID(result.mBodyID.GetIndexAndSequenceNumber());
 
 		// If you want the surface normal of the hit use 
@@ -903,19 +904,21 @@ namespace Borealis
 	std::vector<RaycastHit> PhysicsSystem::RayCastAll(glm::vec3 origin, glm::vec3 direction, float maxDistance, Bitset32 LayerMask)
 	{
 		direction = glm::normalize(direction);
+		direction *= maxDistance;
 		RayCollector collector;
-		RayCastSettings settings;
 		RRayCast ray{ Vec3(origin.x, origin.y, origin.z), Vec3(direction.x, direction.y, direction.z) };
 		auto& narrowPhaseQuery = sData.mSystem->GetNarrowPhaseQuery();
-		narrowPhaseQuery.CastRay(ray, settings, collector, {}, ObjectLayerFilterImpl(LayerMask));
-
+		narrowPhaseQuery.CastRay(ray, {}, collector, {}, ObjectLayerFilterImpl(LayerMask));
 		std::vector<RaycastHit> output;
+
+		Renderer2D::DrawLine(origin, origin + direction, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
 		for (auto hitResult : collector.hits)
 		{
 			RaycastHit hit;
 			hit.colliderID = *(reinterpret_cast<uint32_t*>(&hitResult.mBodyID));
-			hit.distance = maxDistance;
+			hit.distance = maxDistance * hitResult.mFraction;
 			hit.ID = PhysicsSystem::BodyIDToUUID(hitResult.mBodyID.GetIndexAndSequenceNumber());
+			
 			JPH::BodyLockWrite lock(sData.mSystem->GetBodyLockInterface(), hitResult.mBodyID);
 			if (lock.Succeeded())
 			{
@@ -924,6 +927,7 @@ namespace Borealis
 				hit.normal = { normals.GetX(), normals.GetY(), normals.GetZ() };
 			}
 			hit.point = origin + direction * hit.distance;
+
 			output.push_back(hit);
 		}
 
@@ -966,10 +970,17 @@ namespace Borealis
 		auto actualCenterVec4 = entityTransform * glm::vec4(modelCenter, 1.0f);
 		auto actualCenter = glm::vec3(actualCenterVec4.x, actualCenterVec4.y, actualCenterVec4.z);
 
-		BodyCreationSettings body_settings(shape, RVec3(actualCenter.x, actualCenter.y, actualCenter.z), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
 
 		auto brEntity = SceneManager::GetActiveScene()->GetEntityByUUID(entityID);
+		auto rotation = TransformComponent::GetGlobalRotation(brEntity);
 		auto tagComponent = brEntity.GetComponent<TagComponent>();
+
+		glm::quat quatRot = glm::quat(glm::radians(rotation));  // Assuming Rotation is in degrees
+
+		// Convert glm::quat to Jolt's Quat (JPH::Quat)
+		JPH::Quat newRotation = JPH::Quat(quatRot.x, quatRot.y, quatRot.z, quatRot.w);
+
+		BodyCreationSettings body_settings(shape, RVec3(actualCenter.x, actualCenter.y, actualCenter.z), newRotation, EMotionType::Static, Layers::NON_MOVING);
 
 		if (rigidbody)
 		{

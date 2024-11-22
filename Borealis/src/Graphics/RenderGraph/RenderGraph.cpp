@@ -642,7 +642,7 @@ namespace Borealis
 			for (auto& entity : group)
 			{
 				Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
-				if (!brEntity.IsActive())
+				if (!brEntity.IsActive() || (!editor && brEntity.HasComponent<CanvasRendererComponent>()))
 				{
 					continue;
 				}
@@ -1066,7 +1066,7 @@ namespace Borealis
 				RenderCommand::EnableStencilTest();
 
 				glm::mat4 transform = TransformComponent::GetGlobalTransform(brEntity);
-				transform = glm::translate(transform, glm::normalize(cameraLookAt) * -0.01f);
+				transform = glm::translate(transform, glm::normalize(cameraLookAt) * -0.03f);
 
 				if (brEntity.HasComponent<SpriteRendererComponent>())
 				{
@@ -1265,7 +1265,7 @@ namespace Borealis
 			if (parent.HasComponent<TextComponent>())
 			{
 				TextComponent const& text = parent.GetComponent<TextComponent>();
-
+				
 				Renderer2D::DrawString(text.text, text.font, transform, (int)parent);
 			}
 		}

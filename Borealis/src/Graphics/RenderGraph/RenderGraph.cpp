@@ -585,6 +585,8 @@ namespace Borealis
 			}
 		}
 
+		Renderer2D::DrawLineFromQueue();
+
 		Renderer2D::End();
 
 		if (pixelBuffer)

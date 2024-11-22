@@ -161,7 +161,6 @@ namespace Borealis {
 			}
 		}
 
-
 		if (mViewportHovered)
 		{
 			mCamera.UpdateFn(dt);

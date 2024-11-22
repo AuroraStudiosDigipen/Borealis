@@ -954,7 +954,7 @@ namespace Borealis
 		}
 		else if (capsulePtr)
 		{
-			CapsuleShapeSettings capsule_shape_settings(capsulePtr->radius, capsulePtr->height);
+			CapsuleShapeSettings capsule_shape_settings(capsulePtr->radius * ((transform.Scale.x + transform.Scale.z) * 0.5f), capsulePtr->height * transform.Scale.y);
 			capsule_shape_settings.SetEmbedded();
 			shape_result = capsule_shape_settings.Create();
 			shape = shape_result.Get();

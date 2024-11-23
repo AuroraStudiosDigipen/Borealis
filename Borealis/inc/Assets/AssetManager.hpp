@@ -46,11 +46,6 @@ namespace Borealis
 		template<typename T>
 		static Ref<T> GetAsset(AssetHandle handle)
 		{
-			if(mRunTime)
-			{
-				Ref<Asset> asset = mAssetManager.GetAsset(handle);
-				return std::static_pointer_cast<T>(asset);
-			}
 			Ref<Asset> asset = Project::GetEditorAssetsManager()->GetAsset(handle);
 			return std::static_pointer_cast<T>(asset);
 		}
@@ -61,10 +56,6 @@ namespace Borealis
 		*************************************************************************/
 		static AssetMetaData const& GetMetaData(AssetHandle handle)
 		{
-			if (mRunTime)
-			{
-				return mAssetManager.GetMetaData(handle);
-			}
 			return Project::GetEditorAssetsManager()->GetMetaData(handle);
 		}
 
@@ -78,24 +69,17 @@ namespace Borealis
 		//===============================================================
 		static void InsertMetaData(AssetMetaData data)
 		{
-			if (!mRunTime)
-			{
-				Project::GetEditorAssetsManager()->GetAssetRegistry().insert({ data.Handle, data });
-			}
+			Project::GetEditorAssetsManager()->GetAssetRegistry().insert({ data.Handle, data });
 		}
 
 		static void SetRunTime()
 		{
-			mRunTime = true;
 			AssetManager::RegisterAllAsset();
 			Project::GetEditorAssetsManager()->LoadAssetRegistryRunTime("AssetRegistry.brdb");
 			ScriptingSystem::LoadScriptAssembliesNonThreaded("Cache/CSharp_Assembly.dll");
 		}
 
 	private:
-		inline static bool mRunTime = false;
-		inline static EditorAssetManager mAssetManager;
-
 		inline static std::unordered_map<std::string, AssetType> extensionToAssetType;
 		inline static std::unordered_map<AssetType, std::string> assetTypeToString;
 		inline static std::unordered_map<std::string, AssetType> stringToAssetType;

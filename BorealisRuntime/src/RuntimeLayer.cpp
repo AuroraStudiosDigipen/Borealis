@@ -15,11 +15,16 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <RuntimeLayer.hpp>
 
 #include <Graphics/RenderGraph/RenderGraph.hpp>
+#include <Scene/ComponentRegistry.hpp>
 #include <Scene/Serialiser.hpp>
 namespace BorealisRuntime
 {
 	void RuntimeLayer::Init()
 	{
+
+		// Retrieve the list of component names
+		std::vector<std::string> properties = Borealis::ComponentRegistry::GetComponentNames();
+
 		// Search for extension in current directory
 		std::filesystem::path path = std::filesystem::current_path();
 		std::string extension = ".brls";
@@ -47,7 +52,6 @@ namespace BorealisRuntime
 			Borealis::AssetManager::SetRunTime();
 			Borealis::Serialiser serialiser(nullptr);
 			Borealis::SceneManager::SetActiveScene(activeSceneName, serialiser);
-			Borealis::ScriptingSystem::InitCoreAssembly();
 
 			auto view = Borealis::SceneManager::GetActiveScene()->GetRegistry().view<Borealis::CameraComponent>();
 			for (auto entity : view)

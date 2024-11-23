@@ -18,6 +18,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/Core.hpp>
 #include <Core/Project.hpp>
 #include <Core/ApplicationManager.hpp>
+#include <Scripting/ScriptingSystem.hpp>
 
 namespace Borealis
 {
@@ -86,7 +87,9 @@ namespace Borealis
 		static void SetRunTime()
 		{
 			mRunTime = true;
-			mAssetManager.LoadAssetRegistryRunTime("AssetRegistry.brdb");
+			AssetManager::RegisterAllAsset();
+			Project::GetEditorAssetsManager()->LoadAssetRegistryRunTime("AssetRegistry.brdb");
+			ScriptingSystem::LoadScriptAssembliesNonThreaded("Cache/CSharp_Assembly.dll");
 		}
 
 	private:

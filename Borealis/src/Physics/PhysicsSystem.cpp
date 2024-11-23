@@ -910,8 +910,6 @@ namespace Borealis
 		auto& narrowPhaseQuery = sData.mSystem->GetNarrowPhaseQuery();
 		narrowPhaseQuery.CastRay(ray, {}, collector, {}, ObjectLayerFilterImpl(LayerMask));
 		std::vector<RaycastHit> output;
-
-		Renderer2D::DrawLine(origin, origin + direction, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
 		for (auto hitResult : collector.hits)
 		{
 			RaycastHit hit;

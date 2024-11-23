@@ -58,6 +58,7 @@ namespace Borealis
 	void Log(MonoString* text);
 	void LogWarning(MonoString* text);
 	void LogError(MonoString* text);
+	void DrawLine(glm::vec3 start, glm::vec3 end, glm::vec4 color);
 
 	void SetActive(bool value, uint64_t* outEntityID);
 

@@ -25,7 +25,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/LayerList.hpp>
 #include <mono/metadata/appdomain.h>
 #include <Physics/PhysicsSystem.hpp>
-
+#include <Graphics/Renderer2D.hpp>
 
 namespace Borealis
 {
@@ -38,6 +38,9 @@ namespace Borealis
 		//BOREALIS_ADD_INTERNAL_CALL(GetComponent<TransformComponent>);
 		BOREALIS_ADD_INTERNAL_CALL(GenerateUUID);
 		BOREALIS_ADD_INTERNAL_CALL(Log);
+		BOREALIS_ADD_INTERNAL_CALL(LogError);
+		BOREALIS_ADD_INTERNAL_CALL(LogWarning);
+		BOREALIS_ADD_INTERNAL_CALL(DrawLine);
 		BOREALIS_ADD_INTERNAL_CALL(CreateEntity);
 		BOREALIS_ADD_INTERNAL_CALL(SetActive);
 
@@ -127,6 +130,11 @@ namespace Borealis
 		std::string logMessage = message;
 		mono_free(message);
 		APP_LOG_WARN(logMessage.c_str());
+	}
+
+	void DrawLine(glm::vec3 start, glm::vec3 end, glm::vec4 color)
+	{
+		Renderer2D::DrawLine(start, end, color);
 	}
 
 	uint64_t CreateEntity(MonoString* text)

@@ -805,28 +805,27 @@ namespace Borealis {
 	{
 		switch (e.GetMouseButton())
 		{
-			case Mouse::ButtonLeft:
+		case Mouse::ButtonLeft:
+		{
+			if (!(InputSystem::IsKeyPressed(Key::LeftAlt) || InputSystem::IsKeyPressed(Key::RightAlt)))
 			{
-				if (!(InputSystem::IsKeyPressed(Key::LeftAlt) || InputSystem::IsKeyPressed(Key::RightAlt)))
+				if (mViewportHovered && mHoveredEntity && !ImGuizmo::IsOver())
 				{
-					if (mViewportHovered && !ImGuizmo::IsOver())
+					if (mHoveredEntity.IsValid())
 					{
-
-						if (SceneManager::GetActiveScene()->GetPixelBuffer()->ReadPixel(viewportMouseXCurr, viewportMouseYCurr) != -1)
-						{
-							SCPanel.SetSelectedEntity(mHoveredEntity);
-							mSelectedEntities.clear();
-							mSelectedEntities.push_back((uint32_t)mHoveredEntity);
-						}
-					}
-					else if (mViewportHovered && !ImGuizmo::IsOver())
-					{
-						SCPanel.SetSelectedEntity({});
+						SCPanel.SetSelectedEntity(mHoveredEntity);
 						mSelectedEntities.clear();
+						mSelectedEntities.push_back((uint32_t)mHoveredEntity);
 					}
 				}
-				break;
+				else if (mViewportHovered && !ImGuizmo::IsOver())
+				{
+					SCPanel.SetSelectedEntity({});
+					mSelectedEntities.clear();
+				}
 			}
+		}
+		break;
 		}
 		return true;
 	}
@@ -968,6 +967,7 @@ namespace Borealis {
 			{
 				mEditorCamera.SetFocalPoint(TransformComponent::GetGlobalTranslate(SCPanel.GetSelectedEntity()));
 			}
+			break;
 		}
 
 		case Key::Escape:
@@ -976,6 +976,7 @@ namespace Borealis {
 			{
 				ApplicationManager::Get().GetWindow()->SetCursorVisibility(true);
 			}
+			break;
 		}
 
 		}

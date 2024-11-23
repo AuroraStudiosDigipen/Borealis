@@ -56,7 +56,6 @@ namespace Borealis
 		for (std::string const& extension : assetInfo.extensions)
 		{
 			extensionToAssetType.insert({ extension, assetInfo.type });
-			BOREALIS_CORE_INFO("Registering {}", extension);
 		}
 
 		assetTypeToString.insert({ assetInfo.type , assetInfo.name });

@@ -126,6 +126,10 @@ namespace Borealis
 
 		void DisableWireFrameMode() override;
 
+		void EnablePolygonOffset() override;
+		void SetPolygonOffset(float factor, float units) override;
+		void DisablePolygonOffset() override;
+
 		void IgnoreNextError() override;
 
 		unsigned GetError(std::string const& errorMsg) override;

@@ -128,6 +128,12 @@ namespace Borealis
 
 		inline static void DisableWireFrameMode() { sRendererAPI->DisableWireFrameMode(); }
 
+		inline static void EnablePolygonOffset() { sRendererAPI->EnablePolygonOffset(); }
+
+		inline static void SetPolygonOffset(float factor, float units) { sRendererAPI->SetPolygonOffset(factor, units); }
+
+		inline static void DisablePolygonOffset() { sRendererAPI->DisablePolygonOffset(); }
+
 		inline static void IgnoreNextError() { sRendererAPI->IgnoreNextError(); }
 		inline static unsigned GetError(std::string const& errorMsg) { return sRendererAPI->GetError(errorMsg); }
 	private:

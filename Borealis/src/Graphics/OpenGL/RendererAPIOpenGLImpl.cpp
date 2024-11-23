@@ -143,6 +143,21 @@ namespace Borealis
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 
+	void OpenGLRendererAPI::EnablePolygonOffset()
+	{
+		glEnable(GL_POLYGON_OFFSET_FILL);
+	}
+
+	void OpenGLRendererAPI::SetPolygonOffset(float factor, float units)
+	{
+		glPolygonOffset(factor, units);
+	}
+
+	void OpenGLRendererAPI::DisablePolygonOffset()
+	{
+		glDisable(GL_POLYGON_OFFSET_FILL);
+	}
+
 	void OpenGLRendererAPI::IgnoreNextError()
 	{
 		ignoreNextError = true;

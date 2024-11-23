@@ -157,6 +157,8 @@ namespace Borealis
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, (int)mIndices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
+
+		shader->Unbind();
 	}
 
 	float DistanceSquared(const glm::vec3& a, const glm::vec3& b)
@@ -357,6 +359,7 @@ namespace Borealis
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		shader->Unbind();
 	}
 
 	void Mesh::DrawSphere(glm::vec3 center, float radius, glm::vec4 color, bool wireframe, Ref<Shader> shader, SphereSides side)
@@ -500,6 +503,8 @@ namespace Borealis
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 		glBindVertexArray(0);
+
+		shader->Unbind();
 	}
 
 	void Mesh::DrawCylinder(glm::vec3 center, float radius, float height, glm::vec4 color, bool wireframe, Ref<Shader> shader)
@@ -619,6 +624,7 @@ namespace Borealis
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 		glBindVertexArray(0);
+		shader->Unbind();
 	}
 
 	void Mesh::DrawCapsule(glm::vec3 center, float radius, float height, glm::vec4 color, bool wireframe, Ref<Shader> shader)

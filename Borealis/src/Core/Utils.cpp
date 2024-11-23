@@ -207,4 +207,44 @@ namespace Borealis
 
 	}
 
+	std::string StringUtils::SplitAndCapitalize(const std::string& str)
+	{
+		std::vector<std::string> words;
+		std::string currentWord;
+
+		for (char ch : str) {
+			if (std::isupper(ch)) {
+				// If current word is not empty, push it to words and start a new word
+				if (!currentWord.empty()) {
+					words.push_back(currentWord);
+				}
+				currentWord = ch;  // Start new word with uppercase letter
+			}
+			else {
+				currentWord += ch;  // Continue current word
+			}
+		}
+
+		// Push the last word if it exists
+		if (!currentWord.empty()) {
+			words.push_back(currentWord);
+		}
+
+		// Capitalize the first letter of each word and join them with spaces
+		for (auto& word : words) {
+			word[0] = std::toupper(word[0]);
+		}
+
+		// Join words with spaces
+		std::stringstream result;
+		for (size_t i = 0; i < words.size(); ++i) {
+			result << words[i];
+			if (i != words.size() - 1) {
+				result << " ";
+			}
+		}
+
+		return result.str();
+	}
+
 }

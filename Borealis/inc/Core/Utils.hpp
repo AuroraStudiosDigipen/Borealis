@@ -121,6 +121,11 @@ namespace Borealis
 		static void AttachDepthTexture(uint32_t id, int samples, unsigned format, unsigned attachmentType, uint32_t width, uint32_t height);
 	};
 
+	struct StringUtils
+	{
+		static std::string SplitAndCapitalize(const std::string& str);
+	};
+
 	struct Math
 	{
 		static glm::vec3 QuatToEuler(glm::quat quat, bool radians = false);

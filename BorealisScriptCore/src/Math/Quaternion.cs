@@ -297,7 +297,7 @@ namespace Borealis
             // Ensure forward and upwards are normalized
             Vector3 normalizedForward = forward.normalized;
             Vector3 normalizedUpwards = upwards.normalized;
-
+            
             // Compute the right vector (cross product of up and forward)
             Vector3 right = Vector3.Cross(normalizedUpwards, normalizedForward);
 

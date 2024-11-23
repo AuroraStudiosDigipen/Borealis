@@ -668,7 +668,6 @@ namespace Borealis
 		}
 
 		Renderer2D::DrawLineFromQueue();
-		
 		Renderer2D::End();
 
 		renderTarget->Unbind();

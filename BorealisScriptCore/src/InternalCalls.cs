@@ -27,6 +27,9 @@ namespace Borealis
         internal extern static void LogError(string text);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void DrawLine(Vector3 start, Vector3 end, Color color);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static ulong CreateEntity(string text);
         #region LayerMask
         [MethodImplAttribute(MethodImplOptions.InternalCall)]

@@ -93,6 +93,9 @@ namespace Borealis {
 	static std::atomic<bool> loadComplete(false);  // Flag to track completion
 	static std::string activeScName("");  // Flag to track completion
 
+	static int viewportMouseXCurr = 0;
+	static int viewportMouseYCurr = 0;
+
 	void EditorLayer::Init()
 	{
 
@@ -806,9 +809,10 @@ namespace Borealis {
 			{
 				if (!(InputSystem::IsKeyPressed(Key::LeftAlt) || InputSystem::IsKeyPressed(Key::RightAlt)))
 				{
-					if (mViewportHovered && mHoveredEntity && !ImGuizmo::IsOver())
+					if (mViewportHovered && !ImGuizmo::IsOver())
 					{
-						if(mHoveredEntity.IsValid())
+
+						if (SceneManager::GetActiveScene()->GetPixelBuffer()->ReadPixel(viewportMouseXCurr, viewportMouseYCurr) != -1)
 						{
 							SCPanel.SetSelectedEntity(mHoveredEntity);
 							mSelectedEntities.clear();

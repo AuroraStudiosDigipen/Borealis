@@ -333,37 +333,37 @@ namespace Borealis
 		}
 		else if (lightComponent.type == LightComponent::Type::Directional)
 		{
-			std::vector<float> shadowCascadeLevels{ camera->farPlane / 50.0f, camera->farPlane / 25.0f, camera->farPlane / 10.0f, camera->farPlane / 2.0f };
+			//std::vector<float> shadowCascadeLevels{ camera->farPlane / 50.0f, camera->farPlane / 25.0f, camera->farPlane / 10.0f, camera->farPlane / 2.0f };
 
-			std::array<glm::mat4, 4> lightViewProjMatrices;
+			//std::array<glm::mat4, 4> lightViewProjMatrices;
 
-			for (int i{}; i < lightViewProjMatrices.size(); ++i)
-			{
-				lightViewProjMatrices[i] = GetLightViewProj(lightComponent, camera, shadowCascadeLevels[i]);
+			//for (int i{}; i < lightViewProjMatrices.size(); ++i)
+			//{
+			//	lightViewProjMatrices[i] = GetLightViewProj(lightComponent, camera, shadowCascadeLevels[i]);
 
-				std::string str = "u_LightSpaceMatrices[" + std::to_string(i) + "]";
-				shader->Set(str.c_str(), lightViewProjMatrices[i]);
-			}
+			//	std::string str = "u_LightSpaceMatrices[" + std::to_string(i) + "]";
+			//	shader->Set(str.c_str(), lightViewProjMatrices[i]);
+			//}
 
-			for (size_t i = 0; i < shadowCascadeLevels.size(); ++i)
-			{
-				std::string str = "u_CascadePlaneDistances[" + std::to_string(i) + "]";
-				shader->Set(str.c_str(), shadowCascadeLevels[i]);
-			}
+			//for (size_t i = 0; i < shadowCascadeLevels.size(); ++i)
+			//{
+			//	std::string str = "u_CascadePlaneDistances[" + std::to_string(i) + "]";
+			//	shader->Set(str.c_str(), shadowCascadeLevels[i]);
+			//}
 
-			shader->Set("u_View", camera->viewMtx);
+			//shader->Set("u_View", camera->viewMtx);
 
-			shader->Set("cascadeCount", 4);
+			//shader->Set("cascadeCount", 4);
 
-			cascade_shadow_shader->Bind();
+			//cascade_shadow_shader->Bind();
 
-			for (int i{}; i < lightViewProjMatrices.size(); ++i)
-			{
-				std::string str = "u_LightSpaceMatrices[" + std::to_string(i) + "]";
-				cascade_shadow_shader->Set(str.c_str(), lightViewProjMatrices[i]);
-			}
+			//for (int i{}; i < lightViewProjMatrices.size(); ++i)
+			//{
+			//	std::string str = "u_LightSpaceMatrices[" + std::to_string(i) + "]";
+			//	cascade_shadow_shader->Set(str.c_str(), lightViewProjMatrices[i]);
+			//}
 
-			cascade_shadow_shader->Unbind();
+			//cascade_shadow_shader->Unbind();
 		}
 	}
 
@@ -396,11 +396,11 @@ namespace Borealis
 				}
 				else if(lightComponent.type == LightComponent::Type::Directional)
 				{
-					if (mCascadeShadowMapBuffer)
-					{
-						mCascadeShadowMapBuffer->BindDepthBuffer(0, true);
-						shader->Set("u_CascadeShadowMap", 0);
-					}
+					//if (mCascadeShadowMapBuffer)
+					//{
+					//	mCascadeShadowMapBuffer->BindDepthBuffer(0, true);
+					//	shader->Set("u_CascadeShadowMap", 0);
+					//}
 				}
 
 				shader->Set("shadowPass", false);
@@ -887,30 +887,30 @@ namespace Borealis
 			}
 			shadowMap->Unbind();
 
-			mCascadeShadowMapBuffer->Bind();
-			RenderCommand::Clear();
-			mCascadeShadowMapBuffer->Unbind();
+			//mCascadeShadowMapBuffer->Bind();
+			//RenderCommand::Clear();
+			//mCascadeShadowMapBuffer->Unbind();
 
-			if(directionalLight)
-			{
-				mCascadeShadowMapBuffer->Bind();
-				{
-					RenderCommand::Clear();
-					auto group = registryPtr->group<>(entt::get<TransformComponent, MeshFilterComponent, MeshRendererComponent>);
-					for (auto& entity : group)
-					{
-						Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
-						if (!brEntity.IsActive())
-						{
-							continue;
-						}
-						auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
+			//if(directionalLight)
+			//{
+			//	mCascadeShadowMapBuffer->Bind();
+			//	{
+			//		RenderCommand::Clear();
+			//		auto group = registryPtr->group<>(entt::get<TransformComponent, MeshFilterComponent, MeshRendererComponent>);
+			//		for (auto& entity : group)
+			//		{
+			//			Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
+			//			if (!brEntity.IsActive())
+			//			{
+			//				continue;
+			//			}
+			//			auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
 
-						Renderer3D::DrawHighlightedMesh(TransformComponent::GetGlobalTransform(brEntity), meshFilter, cascade_shadow_shader);
-					}
-				}
-				mCascadeShadowMapBuffer->Unbind();
-			}
+			//			Renderer3D::DrawHighlightedMesh(TransformComponent::GetGlobalTransform(brEntity), meshFilter, cascade_shadow_shader);
+			//		}
+			//	}
+			//	mCascadeShadowMapBuffer->Unbind();
+			//}
 		}
 
 		RenderCommand::EnableBackFaceCull();
@@ -1458,16 +1458,16 @@ namespace Borealis
 			s_shader = Shader::Create("engineResources/Shaders/Renderer3D_DeferredLighting.glsl");
 
 		if (!material_shader)
-			material_shader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_Material.glsl");
+			material_shader = Shader::Create("engineResources/Shaders/Renderer3D_Material.glsl");
 
 		if (!cascade_shadow_shader)
-			cascade_shadow_shader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_CascadeShadow.glsl");
+			cascade_shadow_shader = Shader::Create("engineResources/Shaders/Renderer3D_CascadeShadow.glsl");
 
 		if (!common_shader)
-			common_shader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_Common.glsl");
+			common_shader = Shader::Create("engineResources/Shaders/Renderer3D_Common.glsl");
 
 		if (!quad_shader)
-			quad_shader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_Quad.glsl");
+			quad_shader = Shader::Create("engineResources/Shaders/Renderer3D_Quad.glsl");
 
 		if (!mCascadeShadowMapBuffer)
 		{

@@ -298,9 +298,10 @@ vec3 ComputeDirectionalLight(Light light, vec3 normal, vec3 viewDir)
         vec3 specular = light.specular * spec * GetSpecular() * metallic; 
 
 		//temp
-		float shadowFactor = GetCascadeShadowFactor(lightDir, normal);
+		//float shadowFactor = GetCascadeShadowFactor(lightDir, normal);
 
-        color = ambient + shadowFactor * (diffuse + specular + emission);
+        //color = ambient + shadowFactor * (diffuse + specular + emission);
+		color = ambient + (diffuse + specular + emission);
     }
 	return color;
 }

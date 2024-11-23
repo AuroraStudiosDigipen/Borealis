@@ -413,8 +413,9 @@ namespace Borealis
 				{
 					if (mCascadeShadowMapBuffer)
 					{
-						mCascadeShadowMapBuffer->BindDepthBuffer(0, true);
-						shader->Set("u_CascadeShadowMap", 0);
+
+						mCascadeShadowMapBuffer->BindDepthBuffer(1, true);
+						shader->Set("u_CascadeShadowMap", 1);
 					}
 				}
 

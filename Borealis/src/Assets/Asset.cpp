@@ -35,7 +35,7 @@ namespace Borealis
 		if (extension == ".mp3")	return AssetType::Audio;
 		if (extension == ".wav")	return AssetType::Audio;
 		if (extension == ".prefab")	return AssetType::Prefab;
-		if (extension == ".btree")	return AssetType::BehaviourTree;
+		if (extension == ".btree")	return AssetType::BehaviourTreeData;
 		if (extension == ".cs")		return AssetType::Script;
 
 
@@ -46,19 +46,19 @@ namespace Borealis
 	{
 		switch (type)
 		{
-		case AssetType::None:			return "AssetType::None";
-		case AssetType::Audio:			return "AssetType::Audio";
-		case AssetType::Animation:		return "AssetType::Animation";
-		case AssetType::Mesh:			return "AssetType::Mesh";
-		case AssetType::Shader:			return "AssetType::Shader";
-		case AssetType::Texture2D:		return "AssetType::Texture2D";
-		case AssetType::Folder:			return "AssetType::Folder";
-		case AssetType::Font:			return "AssetType::Font";
-		case AssetType::Scene:			return "AssetType::Scene";
-		case AssetType::Material:		return "AssetType::Material";
-		case AssetType::Prefab:			return "AssetType::Prefab";
-		case AssetType::BehaviourTree:	return "AssetType::BehaviourTree";
-		case AssetType::Script:			return "AssetType::Script";
+		case AssetType::None:				return "AssetType::None";
+		case AssetType::Audio:				return "AssetType::Audio";
+		case AssetType::Animation:			return "AssetType::Animation";
+		case AssetType::Mesh:				return "AssetType::Mesh";
+		case AssetType::Shader:				return "AssetType::Shader";
+		case AssetType::Texture2D:			return "AssetType::Texture2D";
+		case AssetType::Folder:				return "AssetType::Folder";
+		case AssetType::Font:				return "AssetType::Font";
+		case AssetType::Scene:				return "AssetType::Scene";
+		case AssetType::Material:			return "AssetType::Material";
+		case AssetType::Prefab:				return "AssetType::Prefab";
+		case AssetType::BehaviourTreeData:	return "AssetType::BehaviourTreeData";
+		case AssetType::Script:				return "AssetType::Script";
 		}
 
 		return "AssetType::<Invalid>";
@@ -66,19 +66,19 @@ namespace Borealis
 
 	AssetType Asset::StringToAssetType(std::string const& type)
 	{
-		if (type == "AssetType::None")			return AssetType::None;
-		if (type == "AssetType::Audio")			return AssetType::Audio;
-		if (type == "AssetType::Animation")		return AssetType::Animation;
-		if (type == "AssetType::Mesh")			return AssetType::Mesh;
-		if (type == "AssetType::Shader")		return AssetType::Shader;
-		if (type == "AssetType::Texture2D")		return AssetType::Texture2D;
-		if (type == "AssetType::Folder")		return AssetType::Folder;
-		if (type == "AssetType::Font")			return AssetType::Font;
-		if (type == "AssetType::Scene")			return AssetType::Scene;
-		if (type == "AssetType::Material")		return AssetType::Material;
-		if (type == "AssetType::Prefab")		return AssetType::Prefab;
-		if (type == "AssetType::BehaviourTree")	return AssetType::BehaviourTree;
-		if (type == "AssetType::Script")		return AssetType::Script;
+		if (type == "AssetType::None")				return AssetType::None;
+		if (type == "AssetType::Audio")				return AssetType::Audio;
+		if (type == "AssetType::Animation")			return AssetType::Animation;
+		if (type == "AssetType::Mesh")				return AssetType::Mesh;
+		if (type == "AssetType::Shader")			return AssetType::Shader;
+		if (type == "AssetType::Texture2D")			return AssetType::Texture2D;
+		if (type == "AssetType::Folder")			return AssetType::Folder;
+		if (type == "AssetType::Font")				return AssetType::Font;
+		if (type == "AssetType::Scene")				return AssetType::Scene;
+		if (type == "AssetType::Material")			return AssetType::Material;
+		if (type == "AssetType::Prefab")			return AssetType::Prefab;
+		if (type == "AssetType::BehaviourTreeData")	return AssetType::BehaviourTreeData;
+		if (type == "AssetType::Script")			return AssetType::Script;
 
 		return AssetType::None;
 	}

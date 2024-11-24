@@ -38,7 +38,7 @@ namespace Borealis
 		Scene,
 		Material,
 		Prefab,
-		BehaviourTree,
+		BehaviourTreeData,
 		Script
 	};
 

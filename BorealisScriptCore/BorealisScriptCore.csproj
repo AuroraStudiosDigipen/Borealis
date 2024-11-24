@@ -21,8 +21,7 @@
     <OutputPath>..\BorealisEditor\Resources\Scripts\Core\</OutputPath>
     <BaseIntermediateOutputPath>..\BorealisEditor\Resources\Scripts\Core\Intermediate\Debug\BorealisScriptCore\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
-    <DefineConstants>
-    </DefineConstants>
+    <DefineConstants></DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -34,8 +33,7 @@
     <OutputPath>..\BorealisEditor\Resources\Scripts\Core\</OutputPath>
     <BaseIntermediateOutputPath>..\BorealisEditor\Resources\Scripts\Core\Intermediate\Release\BorealisScriptCore\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
-    <DefineConstants>
-    </DefineConstants>
+    <DefineConstants></DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -47,8 +45,7 @@
     <OutputPath>..\BorealisEditor\Resources\Scripts\Core\</OutputPath>
     <BaseIntermediateOutputPath>..\BorealisEditor\Resources\Scripts\Core\Intermediate\Distribution\BorealisScriptCore\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
-    <DefineConstants>
-    </DefineConstants>
+    <DefineConstants></DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -153,11 +150,11 @@
     <Compile Include="src\GameObject.cs" />
     <Compile Include="src\Input.cs" />
     <Compile Include="src\InternalCalls.cs" />
-    <Compile Include="src\L_IsEnemyWithinBoundary.cs" />
     <Compile Include="src\IsPlayerWithinLOS.cs" />
     <Compile Include="src\KeyCode.cs" />
     <Compile Include="src\L_Idle.cs" />
     <Compile Include="src\L_IsCheeseWithinRange.cs" />
+    <Compile Include="src\L_IsEnemyWithinBoundary.cs" />
     <Compile Include="src\L_MoveTowardsCheese.cs" />
     <Compile Include="src\L_Patrol.cs" />
     <Compile Include="src\Math\Color.cs" />

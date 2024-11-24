@@ -856,13 +856,13 @@ namespace Borealis
 		}
 
 		auto behaviourTreeGroup = mRegistry.group<>(entt::get<TransformComponent, BehaviourTreeComponent>);
-		for (auto entity : physicsGroup)
+		for (auto entity : behaviourTreeGroup)
 		{
 			//construct the behaviour tree using the components' behavioourtreedata, using recursive function calls 
-			/*auto mesh = mRegistry.get<MeshFilterComponent>(entity);
-			auto [transform, btree] = physicsGroup.get<TransformComponent, BehaviourTreeComponent>(entity);
-			auto entityID = mRegistry.get<IDComponent>(entity).ID;
-			BehaviourNode mRoot(btree.NameList.first());*/
+			//auto mesh = mRegistry.get<MeshFilterComponent>(entity);
+			//auto [transform, btree] = behaviourTreeGroup.get<TransformComponent, BehaviourTreeComponent>(entity);
+			//auto entityID = mRegistry.get<IDComponent>(entity).ID;
+			//BehaviourNode mRoot(btree.NameList.first());
 
 			////creating the nodes and building the tree
 			//for (element : nameList)

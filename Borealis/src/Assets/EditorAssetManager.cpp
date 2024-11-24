@@ -217,7 +217,7 @@ namespace Borealis
 		case AssetType::Mesh:
 			asset = GetModel(metaData.Config, metaData.CachePath.string());
 			break;
-		case AssetType::BehaviourTree:
+		case AssetType::BehaviourTreeData:
 			asset = BTreeFactory::Instance().LoadBehaviourTree(metaData.SourcePath.string());
 			break;
 		default:

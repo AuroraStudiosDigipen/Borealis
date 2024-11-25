@@ -169,6 +169,13 @@ namespace Borealis
 				value("Kinematic", MovementType::Kinematic)
 				);
 
+		registration::enumeration<CapsuleColliderComponent::Direction>("Capsule Direction")
+			(
+				value("X", CapsuleColliderComponent::Direction::X),
+				value("Y", CapsuleColliderComponent::Direction::Y),
+				value("Z", CapsuleColliderComponent::Direction::Z)
+				);
+
         registration::class_<RigidBodyComponent>("Rigid Body Component")
             (metadata("Component", true))
             .constructor<>()

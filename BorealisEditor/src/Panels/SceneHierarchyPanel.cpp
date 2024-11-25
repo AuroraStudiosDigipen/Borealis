@@ -1060,9 +1060,20 @@ namespace Borealis
 				entity.RemoveComponent<AnimatorComponent>();
 			}
 
-			if (component.animation)
+			if (component.animation) // temp 
 			{
-				ImGui::Checkbox("Loop##Animation", &component.animator.mLoop);
+				ImGui::Button("Blend Animation");
+				if (ImGui::BeginDragDropTarget())
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropAnimationItem"))
+					{
+						AssetHandle data = *(const uint64_t*)payload->Data;
+						component.animator.mNextAnimation = AssetManager::GetAsset<Animation>(data);
+					}
+					ImGui::EndDragDropTarget();
+				}
+
+				ImGui::SliderFloat("Blend Factor", &component.animator.mBlendFactor, 0.0f, 1.0f, "%.2f");
 			}
 		}
 		return isEdited;

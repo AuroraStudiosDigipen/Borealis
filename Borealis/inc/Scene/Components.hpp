@@ -171,6 +171,8 @@ namespace Borealis
 	{
 		Ref<Animation> animation = nullptr;
 		Animator animator{};
+		bool loop = false;
+		float speed = 1.f;
 		AssetHandle currentAnimationHandle;
 
 		AnimatorComponent() = default;

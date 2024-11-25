@@ -144,7 +144,9 @@ namespace Borealis
             (metadata("Component", true))
             .constructor<>()
             .property("Animation", &AnimatorComponent::animation)
-            .property("Animator", &AnimatorComponent::animator);
+            .property("Animator", &AnimatorComponent::animator)
+            .property("Loop", &AnimatorComponent::loop)
+            .property("Speed", &AnimatorComponent::speed);
 
         registration::enumeration<RigidBodyType>("Rigidbody Collider Type")
             (

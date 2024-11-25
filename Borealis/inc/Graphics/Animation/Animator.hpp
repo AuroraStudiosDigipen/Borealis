@@ -26,10 +26,14 @@ namespace Borealis
 		std::vector<glm::mat4> GetFinalBoneMatrices() { return mFinalBoneMatrices; }
 
 		bool mLoop;
+		float mSpeed;
+		float mBlendFactor;
+		Ref<Animation> mNextAnimation;
 
 	private:
 		std::vector<glm::mat4> mFinalBoneMatrices;
 		Ref<Animation> mCurrentAnimation;
+		
 		bool mPlayed;
 		float mCurrentTime;
 		float mDeltaTime;

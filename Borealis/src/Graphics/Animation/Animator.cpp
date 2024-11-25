@@ -49,23 +49,36 @@ namespace Borealis
 	void Animator::UpdateAnimation(float dt)
 	{
 		mDeltaTime = dt;
+
+		if (mPlayed && mLoop)
+		{
+			mCurrentTime = fmod(mCurrentTime, mCurrentAnimation->mDuration);
+			mPlayed = false;
+		}
+
 		if (mCurrentAnimation && !mPlayed)
 		{
-			mCurrentTime += mCurrentAnimation->mTicksPerSecond * dt;
+			if (!mNextAnimation)
+			{
+				mCurrentTime += mCurrentAnimation->mTicksPerSecond * dt * mSpeed;
 
-			if (mLoop)
-			{
-				mCurrentTime = fmod(mCurrentTime, mCurrentAnimation->mDuration);
-			}
-			else if (mCurrentTime >= mCurrentAnimation->mDuration)
-			{
-				mCurrentTime = mCurrentAnimation->mDuration;
-				mPlayed = true;
-			}
+				if (mLoop)
+				{
+					mCurrentTime = fmod(mCurrentTime, mCurrentAnimation->mDuration);
+				}
+				else if (mCurrentTime >= mCurrentAnimation->mDuration)
+				{
+					mCurrentTime = mCurrentAnimation->mDuration;
+					mPlayed = true;
+				}
 
-			if (!mPlayed)
+				if (!mPlayed)
+				{
+					CalculateBoneTransform(&mCurrentAnimation->mRootNode, glm::mat4(1.0f));
+				}
+			} else
 			{
-				CalculateBoneTransform(&mCurrentAnimation->mRootNode, glm::mat4(1.0f));
+				BlendTwoAnimations(mCurrentAnimation, mNextAnimation, mBlendFactor, dt);
 			}
 		}
 	}
@@ -147,7 +160,7 @@ namespace Borealis
 			mFinalBoneMatrices[index] = globalTransformation * offset;
 		}
 
-		for (int i = 0; i < node->childrenCount; i++)
+		for (int i = 0; i < node->children.size(); i++)
 		{
 			CalculateBlendedBoneTransform(animationBase, &node->children[i], 
 				animationLayer, &nodeLayer->children[i], 
@@ -166,11 +179,11 @@ namespace Borealis
 		float animSpeedMultiplierDown = (1.f - blendFactor) * a + b * blendFactor;
 
 		static float currentTimeBase = 0.f;
-		currentTimeBase += baseAnimation->GetTicksPerSecond() * deltaTime * animSpeedMultiplierUp;
+		currentTimeBase += baseAnimation->GetTicksPerSecond() * deltaTime * mSpeed * animSpeedMultiplierUp;
 		currentTimeBase = fmod(currentTimeBase, baseAnimation->GetDuration());
 
 		static float currentTimeLayer = 0.f;
-		currentTimeLayer += layerAnimation->GetTicksPerSecond() * deltaTime * animSpeedMultiplierDown;
+		currentTimeLayer += layerAnimation->GetTicksPerSecond() * deltaTime * mSpeed * animSpeedMultiplierDown;
 		currentTimeLayer = fmod(currentTimeLayer, layerAnimation->GetDuration());
 
 		CalculateBlendedBoneTransform(baseAnimation, &baseAnimation->GetRootNode(), 

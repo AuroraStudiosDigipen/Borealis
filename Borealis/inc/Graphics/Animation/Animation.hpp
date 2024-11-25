@@ -32,7 +32,7 @@ namespace Borealis
 		std::map<std::string, BoneData> GetBoneDataMap() const { return mBoneDataMap; }
 		float GetDuration() const { return mDuration; }
 		float GetTicksPerSecond() const { return mTicksPerSecond; }
-		AssimpNodeData GetRootNode() const { return mRootNode; }
+		AssimpNodeData& GetRootNode() { return mRootNode; }
 
 		float mDuration;
 		float mTicksPerSecond;

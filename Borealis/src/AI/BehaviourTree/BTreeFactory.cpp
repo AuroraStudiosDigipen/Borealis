@@ -101,6 +101,55 @@ namespace Borealis
             std::cout << "\n";
         }
     }
+    // Function to build the behavior tree using NodeRelationships
+// Function to build the behavior tree using NodeRelationships
+    void BTreeFactory::BuildBehaviourTreeFromData(const std::shared_ptr<BehaviourTreeData>& treeData, BehaviourNode& rootNode)
+    {
+        std::unordered_map<std::string, BehaviourNode> nodeMap;
 
+        // Create the root node
+        rootNode = BehaviourNode(treeData->RootNodeName);
+        nodeMap[treeData->RootNodeName] = rootNode;
+
+        // Build the tree
+        for (const auto& [parentName, childNames] : treeData->NodeRelationships)
+        {
+            // Get or create parent node
+            BehaviourNode parentNode;
+            auto parentIt = nodeMap.find(parentName);
+            if (parentIt != nodeMap.end())
+            {
+                parentNode = parentIt->second;
+            }
+            else
+            {
+                parentNode = BehaviourNode(parentName);
+                nodeMap[parentName] = parentNode;
+            }
+
+            // For each child
+            for (const auto& childName : childNames)
+            {
+                // Get or create child node
+                BehaviourNode childNode;
+                auto childIt = nodeMap.find(childName);
+                if (childIt != nodeMap.end())
+                {
+                    childNode = childIt->second;
+                }
+                else
+                {
+                    childNode = BehaviourNode(childName);
+                    nodeMap[childName] = childNode;
+                }
+
+                // Add child to parent
+                parentNode.AddChild(childNode);
+            }
+        }
+
+        // Update root node
+        rootNode = nodeMap[treeData->RootNodeName];
+    }
 }
 

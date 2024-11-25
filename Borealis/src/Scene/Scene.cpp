@@ -858,25 +858,23 @@ namespace Borealis
 		auto behaviourTreeGroup = mRegistry.group<>(entt::get<TransformComponent, BehaviourTreeComponent>);
 		for (auto entity : behaviourTreeGroup)
 		{
-			//construct the behaviour tree using the components' behavioourtreedata, using recursive function calls 
-			auto mesh = mRegistry.get<MeshFilterComponent>(entity);
 			auto [transform, btree] = behaviourTreeGroup.get<TransformComponent, BehaviourTreeComponent>(entity);
 			auto entityID = mRegistry.get<IDComponent>(entity).ID;
 
 			BTreeFactory::Instance().PrintBehaviourTreeData(btree.mBehaviourTreeData);
+			if (btree.mBehaviourTreeData)
+			{
+				// Build the behavior tree
+				BehaviourNode rootNode;
+				BTreeFactory::Instance().BuildBehaviourTreeFromData(btree.mBehaviourTreeData, rootNode);
 
-			////creating the nodes and building the tree
-			//for (element : nameList)
-			//{
-			//	parent->addChild(current);
-			//	BehaviourNode current(element);
-
-			//}
-			////print out tree name with depth to test
-			//for ()
-			//{
-			//	BOREALIS_CORE_INFO(mRoot.GetDepth() + mRoot.GetName());
-			//}
+				// Assign to btree.mBehaviourTrees
+				btree.mBehaviourTrees->SetRootNode(rootNode);
+			}
+			else
+			{
+				BOREALIS_CORE_ERROR("BehaviourTreeData is null for entity {}", entityID);
+			}
 		}
 
 	}

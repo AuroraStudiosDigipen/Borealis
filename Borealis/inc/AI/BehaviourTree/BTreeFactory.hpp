@@ -36,7 +36,7 @@ namespace Borealis
     \brief      Singleton factory class responsible for extracting the data
                 from the btree file
     *************************************************************************/
-    class BTreeFactory : public Asset
+    class BTreeFactory 
     {
     public:
 
@@ -66,6 +66,7 @@ namespace Borealis
         Ref<Asset> LoadBehaviourTree(const std::string& filepath);
         
         void PrintBehaviourTreeData(const std::shared_ptr<BehaviourTreeData>& treeData);
+        void BuildBehaviourTreeFromData(const std::shared_ptr<BehaviourTreeData>& treeData, BehaviourNode& rootNode);
 
 
         std::unordered_set<std::string> mControlFlowNames;

@@ -37,7 +37,7 @@ namespace Borealis
 
             foreach (var hit in hits)
             {
-                if (hit.Transform != null && hit.Transform.position == targetPosition)
+                if (hit.transform != null && hit.transform.position == targetPosition)
                 {
                     hasLineOfSight = true;
                     break;

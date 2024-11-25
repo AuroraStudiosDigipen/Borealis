@@ -18,7 +18,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scene/Entity.hpp>
 namespace Borealis
 {
-    BehaviourTree::BehaviourTree() : mRootNode(nullptr), mTreeName("")
+    BehaviourTree::BehaviourTree() : mTreeName("")
     {}
 
     BehaviourTree::~BehaviourTree(){}

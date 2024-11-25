@@ -25,32 +25,28 @@ namespace Borealis
 
         // Parse the nodes
         const YAML::Node& nodes = behaviourTreeNode["Nodes"];
-        std::unordered_map<int, std::string> nodeIdToName;
-        std::unordered_map<int, std::vector<int>> parentChildMap;
 
         for (const auto& node : nodes) {
             int id = node["ID"].as<int>();
             std::string name = node["Name"].as<std::string>();
-            nodeIdToName[id] = name;
 
+            // Store the node name in the NodeNames map
+            treeData->NodeNames[id] = name;
+
+            // Check if this node is the root node (Depth 0)
             if (node["Depth"].as<int>() == 0) {
-                // The root node will have depth 0
-                treeData->RootNodeName = name;
+                treeData->RootNodeID = id;
             }
 
+            // Store the children relationships
             if (node["ChildrenIDs"]) {
                 auto childrenIDs = node["ChildrenIDs"].as<std::vector<int>>();
-                parentChildMap[id] = childrenIDs;
+                treeData->NodeRelationships[id] = childrenIDs;
             }
-        }
-
-        // Build NodeRelationships
-        for (const auto& [parentId, childrenIds] : parentChildMap) {
-            std::vector<std::string> childNames;
-            for (int childId : childrenIds) {
-                childNames.push_back(nodeIdToName[childId]);
+            else {
+                // Ensure the node exists in the relationships map, even if it has no children
+                treeData->NodeRelationships[id] = {};
             }
-            treeData->NodeRelationships[nodeIdToName[parentId]] = childNames;
         }
     }
 
@@ -87,60 +83,53 @@ namespace Borealis
 
         return treeData;
     }
-    
-    void BTreeFactory::PrintBehaviourTreeData(const std::shared_ptr<BehaviourTreeData>& treeData) 
-    {
-        std::cout << "Tree Name: " << treeData->TreeName << "\n";
-        std::cout << "Root Node Name: " << treeData->RootNodeName << "\n";
-        std::cout << "Node Relationships:\n";
-        for (const auto& [parent, children] : treeData->NodeRelationships) {
-            std::cout << "  Parent: " << parent << " -> Children: ";
-            for (const auto& child : children) {
-                std::cout << child << ", ";
+
+    void BTreeFactory::PrintTree(const Ref<BehaviourTreeData>& treeData, int nodeID, int depth) {
+        // Indentation for hierarchy
+        std::string indent(depth * 2, ' ');
+        std::cout << indent << treeData->NodeNames.at(nodeID) << " (ID: " << nodeID << ")\n";
+
+        // Recursively print children
+        if (treeData->NodeRelationships.count(nodeID)) {
+            for (int childID : treeData->NodeRelationships.at(nodeID)) {
+                PrintTree(treeData, childID, depth + 1);
             }
-            std::cout << "\n";
         }
     }
+
     // Function to build the behavior tree using NodeRelationships
-// Function to build the behavior tree using NodeRelationships
-    void BTreeFactory::BuildBehaviourTreeFromData(const std::shared_ptr<BehaviourTreeData>& treeData, BehaviourNode& rootNode)
+    void BTreeFactory::BuildBehaviourTreeFromData(const std::shared_ptr<BehaviourTreeData>& treeData, BehaviourNode& rootNode) 
     {
-        std::unordered_map<std::string, BehaviourNode> nodeMap;
+        std::unordered_map<int, BehaviourNode> nodeMap;
 
         // Create the root node
-        rootNode = BehaviourNode(treeData->RootNodeName);
-        nodeMap[treeData->RootNodeName] = rootNode;
+        rootNode = BehaviourNode(treeData->NodeNames.at(treeData->RootNodeID));
+        nodeMap[treeData->RootNodeID] = rootNode;
 
         // Build the tree
-        for (const auto& [parentName, childNames] : treeData->NodeRelationships)
-        {
-            // Get or create parent node
+        for (const auto& [parentID, childIDs] : treeData->NodeRelationships) {
+            // Get or create the parent node
             BehaviourNode parentNode;
-            auto parentIt = nodeMap.find(parentName);
-            if (parentIt != nodeMap.end())
-            {
+            auto parentIt = nodeMap.find(parentID);
+            if (parentIt != nodeMap.end()) {
                 parentNode = parentIt->second;
             }
-            else
-            {
-                parentNode = BehaviourNode(parentName);
-                nodeMap[parentName] = parentNode;
+            else {
+                parentNode = BehaviourNode(treeData->NodeNames.at(parentID));
+                nodeMap[parentID] = parentNode;
             }
 
             // For each child
-            for (const auto& childName : childNames)
-            {
-                // Get or create child node
+            for (int childID : childIDs) {
+                // Get or create the child node
                 BehaviourNode childNode;
-                auto childIt = nodeMap.find(childName);
-                if (childIt != nodeMap.end())
-                {
+                auto childIt = nodeMap.find(childID);
+                if (childIt != nodeMap.end()) {
                     childNode = childIt->second;
                 }
-                else
-                {
-                    childNode = BehaviourNode(childName);
-                    nodeMap[childName] = childNode;
+                else {
+                    childNode = BehaviourNode(treeData->NodeNames.at(childID));
+                    nodeMap[childID] = childNode;
                 }
 
                 // Add child to parent
@@ -148,24 +137,8 @@ namespace Borealis
             }
         }
 
-        // Update root node
-        rootNode = nodeMap[treeData->RootNodeName];
-    }
-
-    Ref<BehaviourTree> BTreeFactory::CloneBehaviourTree(const Ref<BehaviourTree>& originalTree)
-    {
-        // Create a new BehaviourTree instance
-        Ref<BehaviourTree> newTree = std::make_shared<BehaviourTree>();
-        newTree->SetBehaviourTreeName(originalTree->GetBehaviourTreeName());
-
-        // Clone the root node and its subtree
-        if (originalTree->GetRootNode())
-        {
-            Ref<BehaviourNode> clonedRootNode = CloneNodeRecursive(originalTree->GetRootNode());
-            newTree->SetRootNode(clonedRootNode);
-        }
-
-        return newTree;
+        // Update the root node
+        rootNode = nodeMap[treeData->RootNodeID];
     }
 
     Ref<Asset> BTreeFactory::Load(AssetMetaData const& assetMetaData)

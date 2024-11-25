@@ -3,6 +3,8 @@ using System.Collections.Generic;
 
 namespace Borealis
 {
+    [BTNodeClass(NodeType.CONTROLFLOW)]
+
     public class Sequencer : BehaviourNode
     {
         private int currentIndex;

@@ -16,6 +16,13 @@ namespace Borealis
 
         protected override void OnEnter()
         {
+
+            // Find the cheese
+            // auto cheeseEntities = GameObject.GetEntitiesByLayer(string);
+            // for (auto entity: cheeseEntities)
+            // {
+                //entity.transform <distance>
+            //}
             // Called when the node is first executed
             OnLeafEnter(); // Indicating the node's initial entry
         }
@@ -24,7 +31,7 @@ namespace Borealis
         {
 
             // Calculate the distance between the enemy and the cheese
-            float distanceToCheese = Vector3.Distance(gameobject.GetComponent<Rigidbody>().position, cheesePosition);
+            float distanceToCheese = Vector3.Distance(gameobject.transform.position, cheesePosition);
 
             // Check if the distance is within the specified radius
             if (distanceToCheese <= detectionRadius)
@@ -37,6 +44,11 @@ namespace Borealis
                 Debug.Log($"Cheese is outside radius: {distanceToCheese} > {detectionRadius}");
                 OnFailure(); // Condition failed
             }
+
+            //motion -> Direction(normalized) * speed
+            gameobject.GetComponent<CharacterController>().Move();
+
+
         }
 
         protected override void OnExit()

@@ -26,12 +26,14 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace Borealis
 {
-    struct BehaviourTreeData : public Asset
+    struct BehaviourTreeData : public Asset 
     {
-        std::string TreeName;
-        std::string RootNodeName;
-        std::unordered_map<std::string, std::vector<std::string>> NodeRelationships;
+        std::string TreeName; // Name of the behavior tree
+        int RootNodeID; // ID of the root node
+        std::unordered_map<int, std::string> NodeNames; // Map of node ID to node name
+        std::unordered_map<int, std::vector<int>> NodeRelationships; // Parent ID to child IDs
     };
+
 
     /*!***********************************************************************
     \class      BTreeFactory
@@ -67,7 +69,7 @@ namespace Borealis
         *************************************************************************/
         Ref<Asset> LoadBehaviourTree(const std::string& filepath);
         
-        void PrintBehaviourTreeData(const std::shared_ptr<BehaviourTreeData>& treeData);
+        void PrintTree(const Ref<BehaviourTreeData>& treeData, int nodeID, int depth=0);
         void BuildBehaviourTreeFromData(const std::shared_ptr<BehaviourTreeData>& treeData, BehaviourNode& rootNode);
 
 
@@ -77,13 +79,6 @@ namespace Borealis
         static Ref<Asset> Load(AssetMetaData const& assetMetaData);
 
     private:
-        /*!***********************************************************************
-        \brief  Recursively clones a behavior node and all of its children.
-        \param  originalNode The behavior node to clone.
-        \return A reference to the newly cloned behavior node.
-        *************************************************************************/
-        Ref<BehaviourNode> CloneNodeRecursive(const Ref<BehaviourNode>& originalNode);
-
         /*!***********************************************************************
         \brief  Private constructor to enforce singleton pattern.
         *************************************************************************/

@@ -28,20 +28,20 @@ namespace Borealis
 	void AssetManager::RegisterAllAsset()
 	{
 		std::vector<AssetInfo> infos{
-		//Asset Type				//Asset Name				//extensions			//load function			//Reload function
-		{ AssetType::None,			"AssetType::None",			{},						nullptr},
-		{ AssetType::Animation,		"AssetType::Animation",		{ ".anim" },			Animation::Load },
-		{ AssetType::Audio,			"AssetType::Audio",			{ ".mp3", ".wav" },		AudioEngine::Load },
-		{ AssetType::BehaviourTree,	"AssetType::BehaviourTree", { ".btree" },			BTreeFactory::Load },
-		{ AssetType::Folder,		"AssetType::Folder",		{},						nullptr},
-		{ AssetType::Font,			"AssetType::Font",			{ ".ttf"},				nullptr},
-		{ AssetType::Material,		"AssetType::Material",		{ ".mat" },				Material::Load },
-		{ AssetType::Mesh,			"AssetType::Mesh",			{ ".fbx"},				Model::Load },
-		{ AssetType::Prefab,		"AssetType::Prefab",		{ ".prefab"},			nullptr},
-		{ AssetType::Scene,			"AssetType::Scene",			{ ".sc"},				nullptr},
-		{ AssetType::Script,		"AssetType::Script",		{ ".cs"},				nullptr,				ScriptingSystem::Reload},
-		{ AssetType::Shader,		"AssetType::Shader",		{ ".glsl"},				nullptr},
-		{ AssetType::Texture2D,		"AssetType::Texture2D",		{ ".png"},				Texture2D::Load }
+		//Asset Type					//Asset Name				//extensions			//load function			//Reload function
+		{ AssetType::None,				"AssetType::None",			{},						nullptr},
+		{ AssetType::Animation,			"AssetType::Animation",		{ ".anim" },			Animation::Load },
+		{ AssetType::Audio,				"AssetType::Audio",			{ ".mp3", ".wav" },		AudioEngine::Load },
+		{ AssetType::BehaviourTreeData,	"AssetType::BehaviourTree", { ".btree" },			BTreeFactory::Load },
+		{ AssetType::Folder,			"AssetType::Folder",		{},						nullptr},
+		{ AssetType::Font,				"AssetType::Font",			{ ".ttf"},				nullptr},
+		{ AssetType::Material,			"AssetType::Material",		{ ".mat" },				Material::Load },
+		{ AssetType::Mesh,				"AssetType::Mesh",			{ ".fbx"},				Model::Load },
+		{ AssetType::Prefab,			"AssetType::Prefab",		{ ".prefab"},			nullptr},
+		{ AssetType::Scene,				"AssetType::Scene",			{ ".sc"},				nullptr},
+		{ AssetType::Script,			"AssetType::Script",		{ ".cs"},				nullptr,				ScriptingSystem::Reload},
+		{ AssetType::Shader,			"AssetType::Shader",		{ ".glsl"},				nullptr},
+		{ AssetType::Texture2D,			"AssetType::Texture2D",		{ ".png"},				Texture2D::Load }
 		};
 
 

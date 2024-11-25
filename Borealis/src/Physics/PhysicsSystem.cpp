@@ -586,7 +586,7 @@ namespace Borealis
 	std::pair<float, float> PhysicsSystem::calculateCapsuleDimensions(glm::vec3 boundingVolume)
 	{
 		// Radius is half of the smallest width in the X or Z dimensions
-		float radius = 0.5f * std::max(boundingVolume.x, boundingVolume.z);
+		float radius = 0.5f * std::min(boundingVolume.x, boundingVolume.z);
 
 		// Half-height is half of the height (Y dimension), minus the radius
 		float halfHeight = 0.5f * boundingVolume.y - radius;
@@ -687,7 +687,7 @@ namespace Borealis
 		}
 		else if (capsulePtr)
 		{
-			CapsuleShapeSettings capsule_shape_settings(capsulePtr->radius * ((transform.Scale.x + transform.Scale.z) * 0.5f), capsulePtr->height * transform.Scale.y); //For capsule scaling when Y is up, X and Z is the width and Y is the height.
+			CapsuleShapeSettings capsule_shape_settings(capsulePtr->radius * (transform.Scale.x + transform.Scale.z) * 0.5f, capsulePtr->height * transform.Scale.y); //For capsule scaling when Y is up, X and Z is the width and Y is the height.
 			capsule_shape_settings.SetEmbedded();
 			shape_result = capsule_shape_settings.Create();
 			shape = shape_result.Get();
@@ -954,7 +954,7 @@ namespace Borealis
 		}
 		else if (capsulePtr)
 		{
-			CapsuleShapeSettings capsule_shape_settings(capsulePtr->radius * ((transform.Scale.x + transform.Scale.z) * 0.5f), capsulePtr->height * transform.Scale.y);
+			CapsuleShapeSettings capsule_shape_settings(capsulePtr->radius * (transform.Scale.x+transform.Scale.z) * 0.5f, capsulePtr->height * transform.Scale.y);
 			capsule_shape_settings.SetEmbedded();
 			shape_result = capsule_shape_settings.Create();
 			shape = shape_result.Get();

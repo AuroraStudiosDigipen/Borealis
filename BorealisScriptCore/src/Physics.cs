@@ -8,6 +8,7 @@ namespace Borealis
         public float distance;
         public Vector3 normal;
         public Vector3 point;
+        public Collider collider;
     }
     public class Physics
     {
@@ -23,6 +24,7 @@ namespace Borealis
             bool output = InternalCalls.Physics_Raycast(origin, direction, maxDistance, layerMask, out ulong entityID, out float distance, out Vector3 normal, out Vector3 point);
             if (output)
             {
+                hitInfo = new RaycastHit();
                 hitInfo.distance = distance;
                 hitInfo.normal = normal;
                 hitInfo.point = point;
@@ -30,6 +32,7 @@ namespace Borealis
             }
             else
             {
+                hitInfo = new RaycastHit();
                 hitInfo.distance = 0;
                 hitInfo.normal = Vector3.zero;
                 hitInfo.point = Vector3.zero;

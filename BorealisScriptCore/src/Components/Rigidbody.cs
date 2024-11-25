@@ -140,6 +140,32 @@ namespace Borealis
             InternalCalls.RigidbodyComponent_AddTorque(GetInstanceID(), ref torque);
         }
 
+        public bool isKinematic
+        {
+            get
+            {
+                InternalCalls.RigidbodyComponent_GetIsKinematic(GetInstanceID(), out bool kinematic);
+                return kinematic;
+            }
+            set
+            {
+                InternalCalls.RigidbodyComponent_SetIsKinematic(GetInstanceID(), ref value);
+            }
+        }
+
+        public bool useGravity
+        {
+            get
+            {
+                InternalCalls.RigidbodyComponent_GetUseGravity(GetInstanceID(), out bool gravity);
+                return gravity;
+            }
+            set
+            {
+                InternalCalls.RigidbodyComponent_SetUseGravity(GetInstanceID(), ref value);
+            }
+        }
+
         public void Move(Vector3 vec)
         {
             InternalCalls.RigidbodyComponent_Move(GetInstanceID(), ref vec);

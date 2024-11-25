@@ -36,22 +36,19 @@ namespace Borealis
         virtual public void OnAnimatorMove() { }
         virtual public void OnAnimatorIK() { }
 
-        virtual public void OnCollisionEnter(ulong entityID) { }
-        virtual public void OnCollisionExit(ulong entityID) { }
-        virtual public void OnCollisionStay(ulong entityID) { }
+        virtual public void OnCollisionEnter(Collider other) { }
+        virtual public void OnCollisionExit(Collider other) { }
+        virtual public void OnCollisionStay(Collider other) { }
 
+        virtual public void OnTriggerEnter(Collider other) { }
+        virtual public void OnTriggerExit(Collider other) { }
+        virtual public void OnTriggerStay(Collider other) { }
         private void SetInstanceID(ulong id)
         {
             InstanceID = id;
             gameObject = new GameObject(id);
         }
-        protected T GetComponent<T>() where T : Component, new()
-        {
-            T output = new T();
-            output.gameObject = gameObject;
-            output.transform = gameObject.transform;
-            return output;
-        }
+       
         new private ulong GetInstanceID()
         {
             return InstanceID;

@@ -95,6 +95,9 @@ namespace Borealis
         internal extern static void Entity_GetActive(ulong id, out bool active);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void Entity_SetActive(ulong id, ref bool active);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void Entity_FindEntity(string name, out ulong foundID);
         #endregion
 
         #region TransformComponent
@@ -129,12 +132,31 @@ namespace Borealis
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void TransformComponent_SetLocalRotation(ulong id, ref Vector3 rotation);
-
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void TransformComponent_GetChildCount(ulong instanceID,  out int count);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void TransformComponent_GetChild(ulong instanceID, int index, out ulong childID);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void TransformComponent_SetParentID(ulong id, ref ulong parentID);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void TransformComponent_GetParentID(ulong id, out ulong parentID);
+        #endregion
+
+        #region TextComponent
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+
+        internal extern static void TextComponent_GetText(ulong id, out string text);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+
+        internal extern static void TextComponent_SetText(ulong id, ref string value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+
+        internal extern static void TextComponent_GetColor(ulong id, out Color color);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+
+        internal extern static void TextComponent_SetColor(ulong id, ref Color value);
+
         #endregion
 
         #region SpriteRendererComponent
@@ -143,6 +165,29 @@ namespace Borealis
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void SpriteRendererComponent_SetColor(ulong id, ref Color color);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void SpriteRendererComponent_GetSprite(ulong id, out ulong spriteID);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void SpriteRendererComponent_SetSprite(ulong id, ref ulong spriteID);
+
+        #endregion
+
+        #region MeshRenderer
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void MeshRendererComponent_GetMaterial(ulong id, out ulong MaterialID);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void MeshRendererComponent_SetMaterial(ulong id, ref ulong MaterialID);
+        #endregion
+
+        #region ColliderComponent
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ColliderComponent_GetBounds(ulong id, out Vector3 center, out Vector3 extents, out Vector3 max, out Vector3 min, out Vector3 size);
+
+        #endregion
+
+        #region Material
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void Material_GetSprite(ulong id, out ulong spriteID);
         #endregion
 
         #region ScriptComponent

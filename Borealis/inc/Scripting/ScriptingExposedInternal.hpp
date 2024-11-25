@@ -107,6 +107,8 @@ namespace Borealis
 	void Entity_SetActive(uint64_t entityID, bool* active);
 	void Entity_GetActive(uint64_t entityID, bool* active);
 
+	void Entity_FindEntity(MonoString* name, UUID* ID);
+
 	float Time_GetDeltaTime();
 
 	/*!***********************************************************************
@@ -262,6 +264,14 @@ namespace Borealis
 	void TransformComponent_GetParentID(UUID uuid, UUID* parentID);
 	void TransformComponent_SetParentID(UUID uuid, UUID* parentID);
 
+	void TransformComponent_GetChildCount(UUID uuid, int* count);
+	void TransformComponent_GetChild(UUID uuid, int index, UUID* count);
+
+	void TextComponent_GetText(UUID uuid, MonoString** text);
+	void TextComponent_SetText(UUID uuid, MonoString* text);
+	void TextComponent_GetColor(UUID uuid, glm::vec4* color);
+	void TextComponent_SetColor(UUID uuid, glm::vec4* color);
+
 	void RigidbodyComponent_AddForce(UUID uuid, glm::vec3* force);
 
 	void RigidbodyComponent_AddImpulse(UUID uuid, glm::vec3* force);
@@ -298,6 +308,16 @@ namespace Borealis
 			Pointer to the color
 	*************************************************************************/
 	void SpriteRendererComponent_SetColor(UUID uuid, glm::vec4* color);
+
+	void SpriteRendererComponent_GetSprite(UUID uuid, UUID* spriteID);
+	void SpriteRendererComponent_SetSprite(UUID uuid, UUID* spriteID);
+
+	void MeshRendererComponent_GetMaterial(UUID uuid, UUID* materialID);
+	void MeshRendererComponent_SetMaterial(UUID uuid, UUID* materialID);
+
+	void ColliderComponent_GetBounds(UUID uuid, glm::vec3* center, glm::vec3* extents, glm::vec3* min, glm::vec3* max, glm::vec3* size);
+
+	void Material_GetSprite(UUID uuid, UUID* spriteID);
 
 
 	/*!***********************************************************************

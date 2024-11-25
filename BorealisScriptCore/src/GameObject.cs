@@ -11,6 +11,11 @@ namespace Borealis
         //public bool activeSelf => true; // Use internal call
         public Transform transform;
 
+        static public GameObject Find(string name)
+        {
+            InternalCalls.Entity_FindEntity(name, out ulong ID);
+            return new GameObject(ID);
+        }
         public bool activeSelf
         {
             get
@@ -97,6 +102,7 @@ namespace Borealis
             if (HasComponent<T>() || HasComponent(typeof(T)))
             {
                 T component = new T { gameObject = this };
+                component.InstanceID = GetInstanceID();
                 return component;
             }
             else

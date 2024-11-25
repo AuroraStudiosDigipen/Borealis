@@ -26,6 +26,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <mono/metadata/appdomain.h>
 #include <Physics/PhysicsSystem.hpp>
 #include <Graphics/Renderer2D.hpp>
+#include <Assets/AssetManager.hpp>
 
 namespace Borealis
 {
@@ -49,6 +50,7 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(Entity_RemoveComponent);
 		BOREALIS_ADD_INTERNAL_CALL(Entity_SetActive);
 		BOREALIS_ADD_INTERNAL_CALL(Entity_GetActive);
+		BOREALIS_ADD_INTERNAL_CALL(Entity_FindEntity);
 
 		BOREALIS_ADD_INTERNAL_CALL(Time_GetDeltaTime);
 
@@ -80,9 +82,25 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(TransformComponent_SetLocalScale);
 		BOREALIS_ADD_INTERNAL_CALL(TransformComponent_GetParentID);
 		BOREALIS_ADD_INTERNAL_CALL(TransformComponent_SetParentID);
+		BOREALIS_ADD_INTERNAL_CALL(TransformComponent_GetChildCount);
+		BOREALIS_ADD_INTERNAL_CALL(TransformComponent_GetChild);
+
+		BOREALIS_ADD_INTERNAL_CALL(TextComponent_GetText);
+		BOREALIS_ADD_INTERNAL_CALL(TextComponent_SetText);
+		BOREALIS_ADD_INTERNAL_CALL(TextComponent_GetColor);
+		BOREALIS_ADD_INTERNAL_CALL(TextComponent_SetColor);
 
 		BOREALIS_ADD_INTERNAL_CALL(SpriteRendererComponent_GetColor);
 		BOREALIS_ADD_INTERNAL_CALL(SpriteRendererComponent_SetColor);
+		BOREALIS_ADD_INTERNAL_CALL(SpriteRendererComponent_GetSprite);
+		BOREALIS_ADD_INTERNAL_CALL(SpriteRendererComponent_SetSprite);
+
+		BOREALIS_ADD_INTERNAL_CALL(MeshRendererComponent_GetMaterial);
+		BOREALIS_ADD_INTERNAL_CALL(MeshRendererComponent_SetMaterial);
+
+		BOREALIS_ADD_INTERNAL_CALL(ColliderComponent_GetBounds);
+
+		BOREALIS_ADD_INTERNAL_CALL(Material_GetSprite);
 
 		BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_AddForce);
 		BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_AddTorque);
@@ -262,6 +280,22 @@ namespace Borealis
 		Entity entity = scene->GetEntityByUUID(entityID);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		*active = entity.GetComponent<TagComponent>().active;
+	}
+	void Entity_FindEntity(MonoString* name, UUID* ID)
+	{
+		char* message = mono_string_to_utf8(name);
+		std::string entityName = message;
+		auto entityList = SceneManager::GetActiveScene()->GetRegistry().view<TagComponent>();
+		for (auto entity : entityList)
+		{
+			auto tag = entityList.get<TagComponent>(entity);
+			if (tag.Tag == entityName)
+			{
+				*ID = SceneManager::GetActiveScene()->GetRegistry().get<IDComponent>(entity).ID;
+				return;
+			}
+		}
+		*ID = 0;
 	}
 	glm::vec3 Input_GetMousePosition()
 	{
@@ -466,6 +500,66 @@ namespace Borealis
 		if (*parentID != 0)
 			TransformComponent::SetParent(entity, parent);
 	}
+	void TransformComponent_GetChildCount(UUID uuid, int* count)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*count = (int)entity.GetComponent<TransformComponent>().ChildrenID.size();
+	}
+	void TransformComponent_GetChild(UUID uuid, int index, UUID* count)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		if (index < entity.GetComponent<TransformComponent>().ChildrenID.size())
+		{
+			auto it = entity.GetComponent<TransformComponent>().ChildrenID.begin();
+			// Advance the iterator 4 steps to reach the 5th element (index 4)
+			std::advance(it, index);
+			*count = *it;
+		}
+		else
+		{
+			*count = 0;
+		}
+	}
+	void TextComponent_GetText(UUID uuid, MonoString** text)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		std::string str = entity.GetComponent<TextComponent>().text;
+		*text = mono_string_new(mono_domain_get(), str.c_str());
+	}
+	void TextComponent_SetText(UUID uuid, MonoString* text)
+	{
+		char* message = mono_string_to_utf8(text);
+		std::string str = message;
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		entity.GetComponent<TextComponent>().text = str;
+	}
+	void TextComponent_GetColor(UUID uuid, glm::vec4* color)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*color = entity.GetComponent<TextComponent>().colour;
+	}
+	void TextComponent_SetColor(UUID uuid, glm::vec4* color)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<TextComponent>().colour = *color;
+	}
 	void RigidbodyComponent_AddForce(UUID uuid, glm::vec3* force)
 	{
 		Scene* scene = SceneManager::GetActiveScene().get();
@@ -589,6 +683,75 @@ namespace Borealis
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		entity.GetComponent<SpriteRendererComponent>().Colour = *color;
+	}
+	void SpriteRendererComponent_GetSprite(UUID uuid, UUID* spriteID)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*spriteID = entity.GetComponent<SpriteRendererComponent>().Texture->mAssetHandle;
+	}
+	void SpriteRendererComponent_SetSprite(UUID uuid, UUID* spriteID)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<SpriteRendererComponent>().Texture = AssetManager::GetAsset<Texture2D>(*spriteID);
+	}
+	void MeshRendererComponent_GetMaterial(UUID uuid, UUID* materialID)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*materialID = entity.GetComponent<MeshRendererComponent>().Material->mAssetHandle;
+	}
+	void MeshRendererComponent_SetMaterial(UUID uuid, UUID* materialID)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<MeshRendererComponent>().Material = AssetManager::GetAsset<Material>(*materialID);
+	}
+	void ColliderComponent_GetBounds(UUID uuid, glm::vec3* center, glm::vec3* extents, glm::vec3* min, glm::vec3* max, glm::vec3* size)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		if (entity.HasComponent<CapsuleColliderComponent>())
+		{
+			auto& collider = entity.GetComponent<CapsuleColliderComponent>();
+			*center = collider.center;
+			//*extents = collider.Extents;
+			//*min = collider.Min;
+			//*max = collider.Max;
+			//*size = collider.Size;
+		}
+		else if (entity.HasComponent<BoxColliderComponent>())
+		{
+			auto& collider = entity.GetComponent<BoxColliderComponent>();
+			*center = collider.center;
+			//*extents = collider.Extents;
+			//*min = collider.Min;
+			//*max = collider.Max;
+			*size = collider.size;
+		}
+		else if (entity.HasComponent<SphereColliderComponent>())
+		{
+			auto& collider = entity.GetComponent<SphereColliderComponent>();
+			*center = collider.center;
+			/*	*extents = collider.Extents;
+				*min = collider.Min;
+				*max = collider.Max;
+				*size = collider.size;*/
+		}
+	}
+	void Material_GetSprite(UUID uuid, UUID* spriteID)
+	{
+		*spriteID = AssetManager::GetAsset<Material>(uuid)->GetTextureMaps().at(Material::Albedo)->mAssetHandle;
 	}
 	void ScriptComponent_AddComponent(uint64_t entityID, MonoReflectionType* reflectionType)
 	{

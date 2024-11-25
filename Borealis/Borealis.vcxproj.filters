@@ -100,9 +100,6 @@
     <Filter Include="lib\imGuizmo">
       <UniqueIdentifier>{3C1EE4FC-2881-73A1-D106-AC57BD483F24}</UniqueIdentifier>
     </Filter>
-    <Filter Include="lib\stb_image">
-      <UniqueIdentifier>{D6B71C87-4278-98BD-0BB3-E13A7732DD99}</UniqueIdentifier>
-    </Filter>
     <Filter Include="lib\tracy">
       <UniqueIdentifier>{4E867DEB-BAF0-3162-032F-E3076FD80FB7}</UniqueIdentifier>
     </Filter>
@@ -1912,9 +1909,6 @@
     <ClInclude Include="lib\imGuizmo\imGuizmo.h">
       <Filter>lib\imGuizmo</Filter>
     </ClInclude>
-    <ClInclude Include="lib\stb_image\stb_image.h">
-      <Filter>lib\stb_image</Filter>
-    </ClInclude>
     <ClInclude Include="lib\tracy\Tracy.hpp">
       <Filter>lib\tracy</Filter>
     </ClInclude>
@@ -2048,9 +2042,6 @@
   <ItemGroup>
     <ClCompile Include="lib\imGuizmo\imGuizmo.cpp">
       <Filter>lib\imGuizmo</Filter>
-    </ClCompile>
-    <ClCompile Include="lib\stb_image\stb_image.cpp">
-      <Filter>lib\stb_image</Filter>
     </ClCompile>
     <ClCompile Include="src\AI\BehaviourTree\BTreeFactory.cpp">
       <Filter>src\AI\BehaviourTree</Filter>

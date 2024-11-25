@@ -23,7 +23,6 @@ workspace "Borealis"
 	IncludeDir["ImGuizmo"] = "Borealis/lib/ImGuizmo"
 	IncludeDir["FMOD"] = "Borealis/lib/FMOD"
 	IncludeDir["Tracy"] = "Borealis/lib/tracy"
-	IncludeDir["STBI"] = "Borealis/lib/stb_image"
 	IncludeDir["JoltPhysics"] = "Borealis/lib/JoltPhysics"
 	IncludeDir["Mono"] = "Borealis/lib/mono/include"
 	IncludeDir["xproperty"] = "Borealis/lib/xproperty/include"
@@ -131,9 +130,7 @@ workspace "Borealis"
 			"%{prj.name}/lib/glm/glm/**.hpp",
 			"%{prj.name}/lib/glm/glm/**.inl",
 			"%{prj.name}/lib/imGuizmo/imGuizmo.h",
-			"%{prj.name}/lib/imGuizmo/imGuizmo.cpp",
-			"%{prj.name}/lib/stb_image/**.h",
-			"%{prj.name}/lib/stb_image/**.cpp"
+			"%{prj.name}/lib/imGuizmo/imGuizmo.cpp"
 		}
 
 		defines
@@ -159,7 +156,6 @@ workspace "Borealis"
 			"%{IncludeDir.ImGuizmo}",
 			"%{IncludeDir.FMOD}",
 			"%{IncludeDir.Tracy}",
-			"%{IncludeDir.STBI}",
 			"%{IncludeDir.JoltPhysics}",
 			"%{IncludeDir.Mono}",
 			"%{IncludeDir.xproperty}",

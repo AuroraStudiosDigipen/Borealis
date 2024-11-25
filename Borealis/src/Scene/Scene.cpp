@@ -26,7 +26,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scene/SceneCamera.hpp>
 #include "Graphics/Light.hpp"
 #include <Physics/PhysicsSystem.hpp>
-
+#include <AI/BehaviourTree/BTreeFactory.hpp>
 namespace Borealis
 {
 	Scene::Scene(std::string name, std::string path) : mName(name), mScenePath(path)
@@ -859,10 +859,11 @@ namespace Borealis
 		for (auto entity : behaviourTreeGroup)
 		{
 			//construct the behaviour tree using the components' behavioourtreedata, using recursive function calls 
-			//auto mesh = mRegistry.get<MeshFilterComponent>(entity);
-			//auto [transform, btree] = behaviourTreeGroup.get<TransformComponent, BehaviourTreeComponent>(entity);
-			//auto entityID = mRegistry.get<IDComponent>(entity).ID;
-			//BehaviourNode mRoot(btree.NameList.first());
+			auto mesh = mRegistry.get<MeshFilterComponent>(entity);
+			auto [transform, btree] = behaviourTreeGroup.get<TransformComponent, BehaviourTreeComponent>(entity);
+			auto entityID = mRegistry.get<IDComponent>(entity).ID;
+
+			BTreeFactory::Instance().PrintBehaviourTreeData(btree.mBehaviourTreeData);
 
 			////creating the nodes and building the tree
 			//for (element : nameList)

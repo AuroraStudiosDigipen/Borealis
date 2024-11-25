@@ -21,25 +21,16 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/Core.hpp>
 #include <AI/BehaviourTree/BehaviourNode.hpp>
 #include <AI/BehaviourTree/BehaviourTree.hpp>
-#include <Assets/Asset.hpp>
-#include <yaml-cpp/yaml.h>
 
 namespace Borealis
 {
-    struct NodeInfo
-    {
-        int ID;
-        std::string Name;
-        int Depth;
-        std::vector<int> ChildrenIds;
-    };
-
     struct BehaviourTreeData : public Asset
     {
-        int RootNodeId;
-        std::unordered_map<int, NodeInfo> NodesMap; // Map from node ID to NodeInfo
-        std::vector<int> SortedNodeIds; // Node IDs sorted topologically
+        std::string TreeName;
+        std::string RootNodeName;
+        std::unordered_map<std::string, std::vector<std::string>> NodeRelationships;
     };
+
     /*!***********************************************************************
     \class      BTreeFactory
     \brief      Singleton factory class responsible for extracting the data
@@ -65,7 +56,7 @@ namespace Borealis
         \param  behaviourTreeNode The root YAML node containing the tree structure.
         \param  tree              Reference to the behavior tree to populate.
         *************************************************************************/
-        void BuildBehaviourTree(const YAML::Node& behaviourTreeNode, Ref<BehaviourTreeData>& treeData);
+        //void BuildBehaviourTree(const YAML::Node& behaviourTreeNode, Ref<BehaviourTreeData>& treeData);
 
         /*!***********************************************************************
         \brief  Loads a behavior tree from a specified YAML file.
@@ -73,11 +64,10 @@ namespace Borealis
         \return A reference to the loaded behavior tree. Returns nullptr if loading fails.
         *************************************************************************/
         Ref<Asset> LoadBehaviourTree(const std::string& filepath);
+        
+        void PrintBehaviourTreeData(const std::shared_ptr<BehaviourTreeData>& treeData);
 
-        void BuildTreeRecursive(
-            BehaviourNode& currentNode,
-            int nodeId,
-            const std::unordered_map<int, NodeInfo>& nodesMap);
+
         std::unordered_set<std::string> mControlFlowNames;
         std::unordered_set<std::string> mDecoratorNames;
         std::unordered_set<std::string> mLeafNames;

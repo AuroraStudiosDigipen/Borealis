@@ -15,92 +15,69 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <BorealisPCH.hpp>
 #include <Core/LoggerSystem.hpp>
 #include <AI/BehaviourTree/BTreeFactory.hpp>
+#include <yaml-cpp/yaml.h>
 
 namespace Borealis
 {
-    void BTreeFactory::BuildBehaviourTree(const YAML::Node& behaviourTreeNode, Ref<BehaviourTreeData>& treeData)
-    {
-        const YAML::Node& nodesNode = behaviourTreeNode["Nodes"];
-        if (!nodesNode || !nodesNode.IsSequence())
-        {
-            BOREALIS_CORE_ERROR("Error: 'Nodes' not found or not a sequence in the YAML file.");
-            return;
-        }
+    void BuildBehaviourTree(const YAML::Node& behaviourTreeNode, std::shared_ptr<BehaviourTreeData>& treeData) {
+        // Extract the tree name
+        treeData->TreeName = behaviourTreeNode["Tree Name"].as<std::string>();
 
-        int rootNodeId = -1;
+        // Parse the nodes
+        const YAML::Node& nodes = behaviourTreeNode["Nodes"];
+        std::unordered_map<int, std::string> nodeIdToName;
+        std::unordered_map<int, std::vector<int>> parentChildMap;
 
-        for (const auto& nodeData : nodesNode)
-        {
-            NodeInfo nodeInfo;
-            nodeInfo.ID = nodeData["ID"].as<int>();
-            nodeInfo.Name = nodeData["Name"].as<std::string>();
-            nodeInfo.Depth = nodeData["Depth"].as<int>();
+        for (const auto& node : nodes) {
+            int id = node["ID"].as<int>();
+            std::string name = node["Name"].as<std::string>();
+            nodeIdToName[id] = name;
 
-            // Identify the root node (Depth == 0)
-            if (nodeInfo.Depth == 0)
-            {
-                if (rootNodeId != -1)
-                {
-                    BOREALIS_CORE_WARN("Warning: Multiple root nodes found. Using the first one encountered.");
-                }
-                else
-                {
-                    rootNodeId = nodeInfo.ID;
-                }
+            if (node["Depth"].as<int>() == 0) {
+                // The root node will have depth 0
+                treeData->RootNodeName = name;
             }
 
-            // Extract child IDs
-            const YAML::Node& childrenIDsNode = nodeData["ChildrenIDs"];
-            if (childrenIDsNode && childrenIDsNode.IsSequence())
-            {
-                for (const auto& childIDNode : childrenIDsNode)
-                {
-                    int childId = childIDNode.as<int>();
-                    nodeInfo.ChildrenIds.push_back(childId);
-                }
+            if (node["ChildrenIDs"]) {
+                auto childrenIDs = node["ChildrenIDs"].as<std::vector<int>>();
+                parentChildMap[id] = childrenIDs;
             }
-
-            // Store the node information
-            treeData->NodesMap[nodeInfo.ID] = nodeInfo;
         }
 
-        if (rootNodeId == -1)
-        {
-            BOREALIS_CORE_ERROR("Error: No root node found (node with Depth 0).");
-            return;
+        // Build NodeRelationships
+        for (const auto& [parentId, childrenIds] : parentChildMap) {
+            std::vector<std::string> childNames;
+            for (int childId : childrenIds) {
+                childNames.push_back(nodeIdToName[childId]);
+            }
+            treeData->NodeRelationships[nodeIdToName[parentId]] = childNames;
         }
-
-        treeData->RootNodeId = rootNodeId;
     }
 
-    Ref<Asset> BTreeFactory::LoadBehaviourTree(const std::string& filepath)
-    {
+
+    Ref<Asset> BTreeFactory::LoadBehaviourTree(const std::string& filepath) {
         Ref<BehaviourTreeData> treeData = std::make_shared<BehaviourTreeData>();
 
         // Load and parse the YAML file
         YAML::Node data;
-        try
-        {
+        try {
             data = YAML::LoadFile(filepath);
         }
-        catch (const YAML::Exception& e)
-        {
+        catch (const YAML::Exception& e) {
             BOREALIS_CORE_ERROR("Failed to load behaviour tree from {}: {}", filepath, e.what());
             return treeData;
         }
 
         // Extract the BehaviourTreeComponent
         const YAML::Node& behaviourTreeComponent = data["BehaviourTreeComponent"];
-        if (!behaviourTreeComponent)
-        {
+        if (!behaviourTreeComponent) {
             BOREALIS_CORE_ERROR("Error: 'BehaviourTreeComponent' not found in {}", filepath);
             return treeData;
         }
 
         // Extract the BehaviourTree node
         const YAML::Node& behaviourTreeNode = behaviourTreeComponent["BehaviourTree"];
-        if (!behaviourTreeNode)
-        {
+        if (!behaviourTreeNode) {
             BOREALIS_CORE_ERROR("Error: 'BehaviourTree' not found in {}", filepath);
             return treeData;
         }
@@ -110,46 +87,20 @@ namespace Borealis
 
         return treeData;
     }
-    void BTreeFactory::BuildTreeRecursive(
-        BehaviourNode& currentNode,
-        int nodeId,
-        const std::unordered_map<int, NodeInfo>& nodesMap)
+    
+    void BTreeFactory::PrintBehaviourTreeData(const std::shared_ptr<BehaviourTreeData>& treeData) 
     {
-        // Find the node in the nodesMap
-        auto it = nodesMap.find(nodeId);
-        if (it == nodesMap.end())
-        {
-            std::cerr << "Node with ID " << nodeId << " not found.\n";
-            return;
-        }
-
-        const NodeInfo& nodeInfo = it->second;
-
-        // Create the current node with the node's name
-        currentNode = BehaviourNode(nodeInfo.Name);
-
-        // Recursively build and add child nodes
-        for (int childId : nodeInfo.ChildrenIds)
-        {
-            // Find the child node's info
-            auto childIt = nodesMap.find(childId);
-            if (childIt == nodesMap.end())
-            {
-                std::cerr << "Child node with ID " << childId << " not found.\n";
-                continue;
+        std::cout << "Tree Name: " << treeData->TreeName << "\n";
+        std::cout << "Root Node Name: " << treeData->RootNodeName << "\n";
+        std::cout << "Node Relationships:\n";
+        for (const auto& [parent, children] : treeData->NodeRelationships) {
+            std::cout << "  Parent: " << parent << " -> Children: ";
+            for (const auto& child : children) {
+                std::cout << child << ", ";
             }
-
-            const NodeInfo& childNodeInfo = childIt->second;
-
-            // Create a child node with the child's name
-            BehaviourNode childNode(childNodeInfo.Name);
-
-            // Recursively build the child node
-            BuildTreeRecursive(childNode, childId, nodesMap);
-
-            // Add the child node to the current node
-            currentNode.AddChild(childNode);
+            std::cout << "\n";
         }
     }
+
 }
 

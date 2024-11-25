@@ -668,11 +668,11 @@ namespace Borealis
 			return false;
 		}
 
-		if (propType == rttr::type::get<Ref<BehaviourTree>>())
+		if (propType == rttr::type::get<Ref<BehaviourTreeData>>())
 		{
 
 			rttr::variant value = Property.get_value(rInstance);
-			Ref<BehaviourTree> Data = value.get_value<Ref<BehaviourTree>>();
+			Ref<BehaviourTreeData> Data = value.get_value<Ref<BehaviourTreeData>>();
 			if (Data)
 			{
 				AssetMetaData meta = AssetManager::GetMetaData(Data->mAssetHandle);
@@ -682,7 +682,7 @@ namespace Borealis
 				{
 					if (ImGui::MenuItem("Remove Behaviour Tree"))
 					{
-						Property.set_value(rInstance, Ref<BehaviourTree>());
+						Property.set_value(rInstance, Ref<BehaviourTreeData>());
 					}
 					ImGui::EndPopup();
 				}
@@ -701,7 +701,7 @@ namespace Borealis
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropBehaviourTreeItem"))
 				{
 					AssetHandle data = *(const uint64_t*)payload->Data;
-					rttr::variant setValue(AssetManager::GetAsset<BehaviourTree>(data));
+					rttr::variant setValue(AssetManager::GetAsset<BehaviourTreeData>(data));
 					Property.set_value(rInstance, setValue);
 					return true;
 				}

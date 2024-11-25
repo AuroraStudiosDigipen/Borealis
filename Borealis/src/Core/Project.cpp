@@ -18,6 +18,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/LoggerSystem.hpp>
 #include <Core/LoggerSystem.hpp>
 #include <Scene/SceneManager.hpp>
+#include <Core/LayerList.hpp>
+
 
 namespace Borealis
 {
@@ -70,6 +72,7 @@ namespace Borealis
 				mProjectInfo.AssetsPath = projectFilePath + mProjectInfo.AssetsDirectoryName;
 				mProjectInfo.AssetsRegistryPath = projectFilePath + mProjectInfo.AssetsRegistryName;
 
+				LayerList::Reset();
 				////pass in project info
 				//GetEditorAssetsManager()->LoadRegistry(mProjectInfo);
 
@@ -80,6 +83,14 @@ namespace Borealis
 
 				YAML::Node data = YAML::Load(ss.str());
 				mProjectInfo.ProjectName = data["ProjectName"].as<std::string>();
+
+				if (data["LayerNames"])
+				{
+					for (const auto& item : data["LayerNames"])
+					{
+						LayerList::SetLayer(item.first.as<int>(), item.second.as<std::string>());
+					}
+				}
 
 				// Load Scenes
 				if (data["Scenes"])
@@ -157,7 +168,17 @@ namespace Borealis
 		out << YAML::EndSeq;
 		out << YAML::Key << "ActiveScene" << YAML::Value << SceneManager::GetActiveScene()->GetName();
 
-		
+
+		out << YAML::Key << "LayerNames";
+		out << YAML::BeginMap;
+		for (int i = 6; i < 32; i++)
+		{
+			if (LayerList::HasIndex(i))
+			{
+				out << YAML::Key << i << YAML::Value << LayerList::IndexToLayer(i);
+			}
+		}
+		out << YAML::EndMap;
 
 		std::string projectFilePath = mProjectInfo.ProjectPath.string();
 		projectFilePath += "/Project.brproj";

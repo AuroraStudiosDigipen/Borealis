@@ -27,8 +27,22 @@ namespace Borealis
         internal extern static void LogError(string text);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void DrawLine(Vector3 start, Vector3 end, Color color);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static ulong CreateEntity(string text);
-        
+        #region LayerMask
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void LayerMask_LayerToName(int layerNum, out string layerName);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void LayerMask_NameToLayer(string layerName, out int layerNum);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void LayerMask_GetMask(out int mask, params string[] layerNames);
+
+        #endregion
+
         #region Time
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static float Time_GetDeltaTime();
@@ -99,6 +113,23 @@ namespace Borealis
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void TransformComponent_SetRotation(ulong id, ref Vector3 rotation);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void TransformComponent_GetLocalTranslation(ulong id, out Vector3 translation);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void TransformComponent_SetLocalTranslation(ulong id, ref Vector3 translation);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void TransformComponent_GetLocalScale(ulong id, out Vector3 scale);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void TransformComponent_SetLocalScale(ulong id, ref Vector3 scale);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void TransformComponent_GetLocalRotation(ulong id, out Vector3 rotation);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void TransformComponent_SetLocalRotation(ulong id, ref Vector3 rotation);
+
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void TransformComponent_SetParentID(ulong id, ref ulong parentID);
@@ -177,8 +208,24 @@ namespace Borealis
         internal extern static void RigidbodyComponent_AddImpulse(ulong id, ref Vector3 force);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void RigidbodyComponent_Move(ulong id, ref Vector3 vec);
+        #endregion
 
+        #region Physics
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool Physics_Raycast(Vector3 origin, Vector3 direction, float maxDistance, int layerMask,
+            out ulong entityID, out float distance, out Vector3 normal, out Vector3 point);
 
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void Physics_RaycastAll(Vector3 origin, Vector3 direction, float maxDistance, int layerMask, 
+            out ulong[] entityID, out float[] distance, out Vector3[] normal, out Vector3[] point);
+        #endregion
+
+        #region CharacterController
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void CharacterController_Move(ulong id, ref Vector3 motion);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void CharacterController_IsGrounded(ulong id, out bool grounded);
         #endregion
     }
 }

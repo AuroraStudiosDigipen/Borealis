@@ -24,6 +24,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scripting/ScriptField.hpp>
 #include <Scripting/ScriptingSystem.hpp>
 #include <imgui.h>
+#include <Core/BitSet32.hpp>
 
 namespace YAML
 {
@@ -248,6 +249,12 @@ namespace Borealis
 			return true;
 		}
 
+		if (propType == rttr::type::get<Bitset32>())
+		{
+			out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<Bitset32>().to_ulong();
+			return true;
+		}
+
 		if (propType == rttr::type::get<glm::vec4>())
 		{
 			out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<glm::vec4>();
@@ -283,6 +290,10 @@ namespace Borealis
 			auto wrappedType = propType.get_wrapped_type();
 			if (wrappedType.is_derived_from<Asset>())
 			{
+				if (propValue.get_value<Ref<Asset>>() == nullptr)
+				{
+					return false;
+				}
 				out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<Ref<Asset>>()->mAssetHandle;
 				return true;
 			}
@@ -420,6 +431,12 @@ namespace Borealis
 			if (propType == rttr::type::get<glm::vec4>())
 			{
 				prop.set_value(instance, propData.as<glm::vec4>());
+				return true;
+			}
+
+			if (propType == rttr::type::get<Bitset32>())
+			{
+				prop.set_value(instance, Bitset32(propData.as<uint32_t>()));
 				return true;
 			}
 

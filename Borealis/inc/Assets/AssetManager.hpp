@@ -18,12 +18,27 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/Core.hpp>
 #include <Core/Project.hpp>
 #include <Core/ApplicationManager.hpp>
+#include <Scripting/ScriptingSystem.hpp>
 
 namespace Borealis
 {
+	struct AssetInfo
+	{
+		AssetType type;
+		std::string name;
+		std::vector<std::string> extensions;
+		AssetLoaderFunc loadFunc;
+		AssetReloadFunc reloadFunc = nullptr;
+	};
+
 	class AssetManager
 	{
 	public:
+		static void RegisterAllAsset();
+
+		static void RegisterAsset(AssetInfo const& assetInfo);
+		
+
 		/*!***********************************************************************
 			\brief
 				Get Asset by handle
@@ -31,11 +46,6 @@ namespace Borealis
 		template<typename T>
 		static Ref<T> GetAsset(AssetHandle handle)
 		{
-			if(mRunTime)
-			{
-				Ref<Asset> asset = mAssetManager.GetAsset(handle);
-				return std::static_pointer_cast<T>(asset);
-			}
 			Ref<Asset> asset = Project::GetEditorAssetsManager()->GetAsset(handle);
 			return std::static_pointer_cast<T>(asset);
 		}
@@ -46,32 +56,33 @@ namespace Borealis
 		*************************************************************************/
 		static AssetMetaData const& GetMetaData(AssetHandle handle)
 		{
-			if (mRunTime)
-			{
-				return mAssetManager.GetMetaData(handle);
-			}
 			return Project::GetEditorAssetsManager()->GetMetaData(handle);
 		}
+
+		static AssetType GetAssetTypeFromExtension(std::filesystem::path path);
+
+		static std::string AssetTypeToString(AssetType type);
+
+		static AssetType StringToAssetType(std::string const& type);
 
 		//TEMP
 		//===============================================================
 		static void InsertMetaData(AssetMetaData data)
 		{
-			if (!mRunTime)
-			{
-				Project::GetEditorAssetsManager()->GetAssetRegistry().insert({ data.Handle, data });
-			}
+			Project::GetEditorAssetsManager()->GetAssetRegistry().insert({ data.Handle, data });
 		}
 
 		static void SetRunTime()
 		{
-			mRunTime = true;
-			mAssetManager.LoadAssetRegistryRunTime("AssetRegistry.brdb");
+			AssetManager::RegisterAllAsset();
+			Project::GetEditorAssetsManager()->LoadAssetRegistryRunTime("AssetRegistry.brdb");
+			ScriptingSystem::LoadScriptAssembliesNonThreaded("Cache/CSharp_Assembly.dll");
 		}
 
 	private:
-		inline static bool mRunTime = false;
-		inline static EditorAssetManager mAssetManager;
+		inline static std::unordered_map<std::string, AssetType> extensionToAssetType;
+		inline static std::unordered_map<AssetType, std::string> assetTypeToString;
+		inline static std::unordered_map<std::string, AssetType> stringToAssetType;
 	};
 }
 

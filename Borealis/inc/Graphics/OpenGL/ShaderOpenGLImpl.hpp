@@ -135,6 +135,7 @@ namespace Borealis
 		*************************************************************************/
 		std::unordered_map<GLenum, std::string> PreProcess(const std::string& source);
 
+
 		/*!***********************************************************************
 			\brief
 				Compiles the shader
@@ -143,8 +144,12 @@ namespace Borealis
 		*************************************************************************/
 		void Compile(const std::unordered_map<GLenum, std::string>& shaderSources);
 
+		int GetUniformLocation(std::string const& uniformName);
+
 		std::string mName; // Name of the shader
 		unsigned int mRendererID; // ID of the shader
+		std::unordered_map<std::string, int> mUniformLocations{};
+
 	};
 
 }

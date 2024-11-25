@@ -18,6 +18,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/Core.hpp>
 #include <Graphics/EditorCamera.hpp>
 #include <Graphics/Framebuffer.hpp>
+#include <Graphics/Pixelbuffer.hpp>
 #include <Graphics/Shader.hpp>
 
 #include <string>
@@ -29,8 +30,13 @@ namespace Borealis
 {
 	enum class RenderSourceType
 	{
+		Bool,
+		IntRef,
+		Vec2Int,
+		IntList,
 		RenderTargetColor,
 		GBuffer,
+		PixelBuffer,
 		Texture2D,
 		UniformBuffers,
 		Camera
@@ -45,6 +51,50 @@ namespace Borealis
 		virtual void Unbind() {};
 	};
 
+	class BoolSource : public RenderSource
+	{
+	public:
+		BoolSource(std::string name, bool ref);
+
+		void Bind() override;
+		void Unbind() override;
+
+		bool mRef;
+	};
+
+	class IntSource : public RenderSource
+	{
+	public:
+		IntSource(std::string name, int& ref);
+
+		void Bind() override;
+		void Unbind() override;
+
+		int& mRef;
+	};
+
+	class Vec2IntSource : public RenderSource
+	{
+	public:
+		Vec2IntSource(std::string name, int refX, int refY);
+
+		void Bind() override;
+		void Unbind() override;
+
+		int mRefX;
+		int mRefY;
+	};
+
+	class IntListSource : public RenderSource
+	{
+	public:
+		IntListSource(std::string name, std::list<int> const& intList);
+		void Bind() override;
+		void Unbind() override;
+
+		std::list<int> mList;
+	};
+
 	class RenderTargetSource : public RenderSource
 	{
 	public:
@@ -52,9 +102,11 @@ namespace Borealis
 		void Bind() override;
 		void Unbind() override;
 
-		void BindDepthBuffer(int index);
+		void BindDepthBuffer(int index, bool is3D = false);
 
 		Ref<FrameBuffer> buffer;
+		uint32_t Width, Height;
+
 	};
 
 	class GBufferSource : public RenderSource
@@ -83,6 +135,18 @@ namespace Borealis
 		Ref<FrameBuffer> buffer;
 	};
 
+	class PixelBufferSource : public RenderSource
+	{
+	public:
+		PixelBufferSource(std::string name, Ref<PixelBuffer> pixelbuffer);
+		void ReadTexture(uint32_t index);
+		void Bind() override;
+		void Unbind() override;
+		void Resize(uint32_t width, uint32_t height);
+		Ref<PixelBuffer> buffer;
+		uint32_t Width, Height;
+	};
+
 	class CameraSource : public RenderSource
 	{
 	public:
@@ -91,10 +155,15 @@ namespace Borealis
 
 		bool editor;
 		glm::vec3 position;
+		glm::vec3 lookAt;
 		glm::mat4 projMtx;
 		glm::mat4 viewMtx;
 		glm::mat4 viewProj;
 		glm::vec2 viewPortSize;
+		float fov;
+		float nearPlane;
+		float farPlane;
+		float aspectRatio;
 		
 		void Bind() override {};
 		glm::mat4 GetViewProj();
@@ -117,7 +186,12 @@ namespace Borealis
 		Render2D,
 		Geometry,
 		Lighting,
-		Shadow
+		Shadow,
+		ObjectPicking,
+		HighlightPass,
+		EditorHighlightPass,
+		UIPass,
+		EditorUIPass
 	};
 
 	class RenderPass 
@@ -135,6 +209,22 @@ namespace Borealis
 		std::vector<Ref<RenderSink>> sinkList;
 		std::vector<Ref<RenderSource>> sourceList;
 		Ref<Shader> shader;
+	};
+
+	class ObjectPickingPass : public RenderPass
+	{
+	public:
+		ObjectPickingPass(std::string name);
+
+		void Execute(float dt) override;
+	};
+
+	class EditorHighlightPass : public RenderPass
+	{
+	public:
+		EditorHighlightPass(std::string name);
+
+		void Execute(float dt) override;
 	};
 
 	class EntityPass : public RenderPass
@@ -185,6 +275,30 @@ namespace Borealis
 		void Execute(float dt) override;
 	};
 
+	class HighlightPass : public EntityPass
+	{
+	public:
+		HighlightPass(std::string name);
+
+		void Execute(float dt) override;
+	};
+
+	class UIPass : public EntityPass
+	{
+	public:
+		UIPass(std::string name);
+
+		void Execute(float dt) override;
+	};
+
+	class EditorUIPass : public EntityPass
+	{
+	public:
+		EditorUIPass(std::string name);
+
+		void Execute(float dt) override;
+	};
+
 	struct RenderPassConfig
 	{
 		RenderPassType mType;
@@ -199,7 +313,7 @@ namespace Borealis
 		std::vector<SinkLinkageInfo> mSinkLinkageList;
 
 		RenderPassConfig(RenderPassType type, std::string passName);
-		void AddSinkLinkage(std::string sinkName, std::string sourceName);
+		RenderPassConfig& AddSinkLinkage(std::string sinkName, std::string sourceName);
 	};
 
 	class RenderGraphConfig
@@ -224,6 +338,8 @@ namespace Borealis
 		void Finalize();
 
 		Ref<RenderSource> FindSource(std::string sourceName);
+
+		void AddRenderPassConfig(RenderPassConfig const& renderPassConfig);
 
 		void AddEntityPassConfig(RenderPassConfig const& renderPassConfig);
 

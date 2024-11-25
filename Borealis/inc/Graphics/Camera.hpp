@@ -58,6 +58,12 @@ namespace Borealis
 		const glm::mat4& GetProjectionMatrix() const { return mProjectionMatrix; };
 
 		virtual glm::vec2 GetViewPortSize() const = 0;
+
+		virtual float GetFOV() const = 0;
+		virtual float GetNearPlane() const = 0;
+		virtual float GetFarPlane() const = 0;
+
+		virtual float GetAspectRatio() const = 0;
 	protected:
 		glm::mat4 mProjectionMatrix; //!< Projection matrix for the camera
 	}; // class Camera

@@ -308,6 +308,8 @@ namespace Borealis
         shader->Set("u_Material.offset", mPropertiesVec2[Offset]);
         shader->Set("u_Material.smoothness", mPropertiesFloat[Smoothness]);
         shader->Set("u_Material.shininess", mPropertiesFloat[Shininess]);
+
+        shader->Unbind();
 	}
 
     std::string Material::TextureMapToString(TextureMaps map)
@@ -386,5 +388,11 @@ namespace Borealis
         }
         BOREALIS_CORE_ASSERT(false, "Invalid string for Properties.");
         return UnknownProperty;
+    }
+
+    Ref<Asset> Material::Load(AssetMetaData const& assetMetaData)
+    {
+        Material material(assetMetaData.SourcePath);
+        return MakeRef<Material>(material);
     }
 }

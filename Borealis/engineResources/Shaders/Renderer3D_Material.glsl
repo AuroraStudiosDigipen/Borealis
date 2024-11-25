@@ -159,6 +159,7 @@ in vec4 v_LightPos;
 //in vec3 v_Normal;
 
 uniform mat4 u_ViewProjection;
+uniform mat4 u_View;
 uniform vec3 u_ViewPos;
 uniform Material u_Material;
 const int MAX_LIGHTS = 20;
@@ -167,7 +168,11 @@ uniform int u_LightsCount;
 			
 
 uniform sampler2D u_ShadowMap;
+uniform sampler2DArray u_CascadeShadowMap;
 uniform bool shadowPass = false;
+uniform mat4 u_LightSpaceMatrices[4];
+uniform float u_CascadePlaneDistances[4];
+uniform int cascadeCount;
 
 vec2 GetTexCoord() 
 {
@@ -222,6 +227,56 @@ float GetShadowFactor(vec3 lightDir, vec3 normal)
 	}
 }
 
+float GetCascadeShadowFactor(vec3 lightDir, vec3 normal)
+{
+	vec4 fragPosViewSpace = u_View * vec4(v_FragPos, 1.0);
+	float depthValue = abs(fragPosViewSpace.z);
+
+	int layer = -1;
+    for (int i = 0; i < cascadeCount; ++i)
+    {
+        if (depthValue < u_CascadePlaneDistances[i])
+        {
+            layer = i;
+            break;
+        }
+    }
+    if (layer == -1)
+    {
+        layer = cascadeCount;
+    }
+
+	vec4 LightPos = u_LightSpaceMatrices[layer] * vec4(v_FragPos, 1.0);
+
+	vec3 projCoord = LightPos.xyz / LightPos.w;
+	vec2 UVCoord;
+	UVCoord.x = 0.5 * projCoord.x + 0.5;
+	UVCoord.y = 0.5 * projCoord.y + 0.5;
+	float z = 0.5 * projCoord.z + 0.5;
+
+	float currentDepth = projCoord.z;
+
+    // keep the shadow at 0.0 when outside the far_plane region of the light's frustum.
+    if (currentDepth > 1.0)
+    {
+        return 0.0;
+    }
+
+	float depth = texture(u_CascadeShadowMap, vec3(UVCoord, layer)).x;
+
+	float diffuseFactor = dot(normal, -lightDir);
+	float bias = 0.0025;//mix(0.0025f, 0.00f, diffuseFactor);
+
+	if(depth + bias < z)
+	{
+		return 0.5;
+	}
+	else
+	{
+		return 1.f;
+	}
+}
+
 vec3 ComputeDirectionalLight(Light light, vec3 normal, vec3 viewDir) 
 {
 	vec3 lightDir = normalize(-light.direction);
@@ -243,7 +298,7 @@ vec3 ComputeDirectionalLight(Light light, vec3 normal, vec3 viewDir)
         vec3 specular = light.specular * spec * GetSpecular() * metallic; 
 
 		//temp
-		float shadowFactor = GetShadowFactor(lightDir, normal);
+		float shadowFactor = GetCascadeShadowFactor(lightDir, normal);
 
         color = ambient + shadowFactor * (diffuse + specular + emission);
     }

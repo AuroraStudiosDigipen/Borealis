@@ -58,6 +58,7 @@ namespace Borealis
 	void Log(MonoString* text);
 	void LogWarning(MonoString* text);
 	void LogError(MonoString* text);
+	void DrawLine(glm::vec3 start, glm::vec3 end, glm::vec4 color);
 
 	void SetActive(bool value, uint64_t* outEntityID);
 
@@ -201,6 +202,7 @@ namespace Borealis
 			Pointer to the translation
 	*************************************************************************/
 	void TransformComponent_GetTranslation(UUID uuid, glm::vec3* outTranslation);
+	void TransformComponent_GetLocalTranslation(UUID uuid, glm::vec3* outTranslation);
 
 	/*!***********************************************************************
 		\brief
@@ -211,6 +213,7 @@ namespace Borealis
 			Pointer to the translation
 	*************************************************************************/
 	void TransformComponent_SetTranslation(UUID uuid, glm::vec3* translation);
+	void TransformComponent_SetLocalTranslation(UUID uuid, glm::vec3* translation);
 
 	/*!***********************************************************************
 		\brief
@@ -221,6 +224,7 @@ namespace Borealis
 			Pointer to the rotation
 	*************************************************************************/
 	void TransformComponent_GetRotation(UUID uuid, glm::vec3* outRotation);
+	void TransformComponent_GetLocalRotation(UUID uuid, glm::vec3* outRotation);
 
 	/*!***********************************************************************
 		\brief
@@ -231,6 +235,7 @@ namespace Borealis
 			Pointer to the rotation
 	*************************************************************************/
 	void TransformComponent_SetRotation(UUID uuid, glm::vec3* rotation);
+	void TransformComponent_SetLocalRotation(UUID uuid, glm::vec3* rotation);
 
 	/*!***********************************************************************
 		\brief
@@ -241,6 +246,7 @@ namespace Borealis
 			Pointer to the scale
 	*************************************************************************/
 	void TransformComponent_GetScale(UUID uuid, glm::vec3* outScale);
+	void TransformComponent_GetLocalScale(UUID uuid, glm::vec3* outScale);
 
 	/*!***********************************************************************
 		\brief
@@ -251,6 +257,7 @@ namespace Borealis
 			Pointer to the scale
 	*************************************************************************/
 	void TransformComponent_SetScale(UUID uuid, glm::vec3* scale);
+	void TransformComponent_SetLocalScale(UUID uuid, glm::vec3* scale);
 
 	void TransformComponent_GetParentID(UUID uuid, UUID* parentID);
 	void TransformComponent_SetParentID(UUID uuid, UUID* parentID);
@@ -325,7 +332,21 @@ namespace Borealis
 	*************************************************************************/
 	bool ScriptComponent_HasComponent(uint64_t entityID, MonoReflectionType* reflectionType);
 
+	void LayerMask_LayerToName(int layer, MonoString* name);
 
+	void LayerMask_NameToLayer(MonoString* name, int* layer);
+
+	void LayerMask_GetMask(int* layer, MonoArray* stringArray);
+
+	bool Physics_Raycast(glm::vec3 origin, glm::vec3 direction, float maxDistance, int layerMask,
+			uint64_t* entityID, float* distance, glm::vec3* normal, glm::vec3* point);
+
+	void Physics_RaycastAll(glm::vec3 origin, glm::vec3 direction, float maxDistance, int layerMask,
+			MonoArray** entityIDArray, MonoArray** distanceArray, MonoArray** normalArray, MonoArray** pointArray);
+
+	void CharacterController_Move(uint64_t id, glm::vec3* motion);
+
+	void CharacterController_IsGrounded(uint64_t id, bool* grounded);
 
 }
 

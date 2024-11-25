@@ -22,7 +22,10 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/InputSystem.hpp>
 #include <Core/ApplicationManager.hpp>
 #include <Core/TimeManager.hpp>
-
+#include <Core/LayerList.hpp>
+#include <mono/metadata/appdomain.h>
+#include <Physics/PhysicsSystem.hpp>
+#include <Graphics/Renderer2D.hpp>
 
 namespace Borealis
 {
@@ -35,6 +38,9 @@ namespace Borealis
 		//BOREALIS_ADD_INTERNAL_CALL(GetComponent<TransformComponent>);
 		BOREALIS_ADD_INTERNAL_CALL(GenerateUUID);
 		BOREALIS_ADD_INTERNAL_CALL(Log);
+		BOREALIS_ADD_INTERNAL_CALL(LogError);
+		BOREALIS_ADD_INTERNAL_CALL(LogWarning);
+		BOREALIS_ADD_INTERNAL_CALL(DrawLine);
 		BOREALIS_ADD_INTERNAL_CALL(CreateEntity);
 		BOREALIS_ADD_INTERNAL_CALL(SetActive);
 
@@ -66,6 +72,12 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(TransformComponent_SetRotation);
 		BOREALIS_ADD_INTERNAL_CALL(TransformComponent_GetScale);
 		BOREALIS_ADD_INTERNAL_CALL(TransformComponent_SetScale);
+		BOREALIS_ADD_INTERNAL_CALL(TransformComponent_GetLocalTranslation);
+		BOREALIS_ADD_INTERNAL_CALL(TransformComponent_SetLocalTranslation);
+		BOREALIS_ADD_INTERNAL_CALL(TransformComponent_GetLocalRotation);
+		BOREALIS_ADD_INTERNAL_CALL(TransformComponent_SetLocalRotation);
+		BOREALIS_ADD_INTERNAL_CALL(TransformComponent_GetLocalScale);
+		BOREALIS_ADD_INTERNAL_CALL(TransformComponent_SetLocalScale);
 		BOREALIS_ADD_INTERNAL_CALL(TransformComponent_GetParentID);
 		BOREALIS_ADD_INTERNAL_CALL(TransformComponent_SetParentID);
 
@@ -80,6 +92,17 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(ScriptComponent_AddComponent);
 		BOREALIS_ADD_INTERNAL_CALL(ScriptComponent_RemoveComponent);
 		BOREALIS_ADD_INTERNAL_CALL(ScriptComponent_HasComponent);
+
+		BOREALIS_ADD_INTERNAL_CALL(LayerMask_GetMask);
+		BOREALIS_ADD_INTERNAL_CALL(LayerMask_LayerToName);
+		BOREALIS_ADD_INTERNAL_CALL(LayerMask_NameToLayer);
+
+		BOREALIS_ADD_INTERNAL_CALL(Physics_Raycast);
+		BOREALIS_ADD_INTERNAL_CALL(Physics_RaycastAll);
+
+		BOREALIS_ADD_INTERNAL_CALL(CharacterController_Move);
+		BOREALIS_ADD_INTERNAL_CALL(CharacterController_IsGrounded);
+
 	}
 	uint64_t GenerateUUID()
 	{
@@ -107,6 +130,11 @@ namespace Borealis
 		std::string logMessage = message;
 		mono_free(message);
 		APP_LOG_WARN(logMessage.c_str());
+	}
+
+	void DrawLine(glm::vec3 start, glm::vec3 end, glm::vec4 color)
+	{
+		Renderer2D::DrawLine(start, end, color);
 	}
 
 	uint64_t CreateEntity(MonoString* text)
@@ -312,7 +340,7 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		*outTranslation = entity.GetComponent<TransformComponent>().Translate;
+		*outTranslation = TransformComponent::GetGlobalTranslate(entity);
 	}
 	void TransformComponent_SetTranslation(UUID uuid, glm::vec3* translation)
 	{
@@ -320,7 +348,11 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		entity.GetComponent<TransformComponent>().Translate = *translation;
+
+		auto rotation = TransformComponent::GetGlobalRotation(entity);
+		auto scale = TransformComponent::GetGlobalScale(entity);
+		glm::mat4 transform = glm::translate(glm::mat4(1.0f), *translation) * glm::toMat4(glm::quat(rotation)) * glm::scale(glm::mat4(1.0f), scale);
+		TransformComponent::SetGlobalTransform(entity, transform);
 	}
 	void TransformComponent_GetRotation(UUID uuid, glm::vec3* outRotation)
 	{
@@ -328,7 +360,7 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		*outRotation = entity.GetComponent<TransformComponent>().Rotation;
+		*outRotation = TransformComponent::GetGlobalRotation(entity);
 	
 	}
 	void TransformComponent_SetRotation(UUID uuid, glm::vec3* rotation)
@@ -337,7 +369,12 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		entity.GetComponent<TransformComponent>().Rotation = *rotation;
+
+		auto translate = TransformComponent::GetGlobalTranslate(entity);
+		auto scale = TransformComponent::GetGlobalScale(entity);
+		glm::mat4 transform = glm::translate(glm::mat4(1.0f), translate) * glm::toMat4(glm::quat(glm::radians(*rotation))) * glm::scale(glm::mat4(1.0f), scale);
+		TransformComponent::SetGlobalTransform(entity, transform);
+
 	}
 	void TransformComponent_GetScale(UUID uuid, glm::vec3* outScale)
 	{
@@ -345,7 +382,7 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		*outScale = entity.GetComponent<TransformComponent>().Scale;
+		*outScale = TransformComponent::GetGlobalScale(entity);
 	}
 	void TransformComponent_SetScale(UUID uuid, glm::vec3* scale)
 	{
@@ -353,8 +390,63 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+
+		auto translate = TransformComponent::GetGlobalTranslate(entity);
+		auto rotation = TransformComponent::GetGlobalRotation(entity);
+		glm::mat4 transform = glm::translate(glm::mat4(1.0f), translate) * glm::toMat4(glm::quat(rotation)) * glm::scale(glm::mat4(1.0f), *scale);
+		TransformComponent::SetGlobalTransform(entity, transform);
+	}
+
+	void TransformComponent_GetLocalTranslation(UUID uuid, glm::vec3* outTranslation)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*outTranslation = entity.GetComponent<TransformComponent>().Translate;
+	}
+	void TransformComponent_SetLocalTranslation(UUID uuid, glm::vec3* translation)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<TransformComponent>().Translate = *translation;
+	}
+	void TransformComponent_GetLocalRotation(UUID uuid, glm::vec3* outRotation)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*outRotation = entity.GetComponent<TransformComponent>().Rotation;
+
+	}
+	void TransformComponent_SetLocalRotation(UUID uuid, glm::vec3* rotation)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<TransformComponent>().Rotation = *rotation;
+	}
+	void TransformComponent_GetLocalScale(UUID uuid, glm::vec3* outScale)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*outScale = entity.GetComponent<TransformComponent>().Scale;
+	}
+	void TransformComponent_SetLocalScale(UUID uuid, glm::vec3* scale)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		entity.GetComponent<TransformComponent>().Scale = *scale;
 	}
+
 	void TransformComponent_GetParentID(UUID uuid, UUID* parentID)
 	{
 		Scene* scene = SceneManager::GetActiveScene().get();
@@ -380,7 +472,7 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		PhysicsSystem::AddForce(entity.GetComponent<RigidBodyComponent>().bodyID, *force);
+		//PhysicsSystem::AddForce(entity.GetComponent<RigidBodyComponent>().bodyID, *force);
 
 	}
 	void RigidbodyComponent_AddImpulse(UUID uuid, glm::vec3* force)
@@ -390,7 +482,7 @@ namespace Borealis
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		auto& rb = entity.GetComponent<RigidBodyComponent>();
-		PhysicsSystem::AddForce(entity.GetComponent<RigidBodyComponent>().bodyID, *force);
+		//PhysicsSystem::AddForce(entity.GetComponent<RigidBodyComponent>().bodyID, *force);
 	}
 	void RigidbodyComponent_AddTorque(UUID uuid, glm::vec3* force)
 	{
@@ -399,7 +491,7 @@ namespace Borealis
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		auto& rb = entity.GetComponent<RigidBodyComponent>();
-		PhysicsSystem::AddForce(entity.GetComponent<RigidBodyComponent>().bodyID, *force);
+		//PhysicsSystem::AddForce(entity.GetComponent<RigidBodyComponent>().bodyID, *force);
 	}
 	void RigidbodyComponent_Move(UUID uuid, glm::vec3* vec)
 	{
@@ -408,7 +500,7 @@ namespace Borealis
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		auto& rb = entity.GetComponent<RigidBodyComponent>();
-		PhysicsSystem::move(rb, *vec);
+		//PhysicsSystem::move(rb, *vec);
 	}
 	void RigidbodyComponent_GetLinearVelocity(UUID uuid, glm::vec3* velocity)
 	{
@@ -417,7 +509,7 @@ namespace Borealis
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		auto& rb = entity.GetComponent<RigidBodyComponent>();
-		*velocity = PhysicsSystem::GetLinearVelocity(entity.GetComponent<RigidBodyComponent>().bodyID);
+		//*velocity = PhysicsSystem::GetLinearVelocity(entity.GetComponent<RigidBodyComponent>().bodyID);
 	}
 	void RigidbodyComponent_SetLinearVelocity(UUID uuid, glm::vec3* velocity)
 	{
@@ -426,7 +518,7 @@ namespace Borealis
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		auto& rb = entity.GetComponent<RigidBodyComponent>();
-		PhysicsSystem::SetLinearVelocity(entity.GetComponent<RigidBodyComponent>().bodyID, *velocity);
+		//PhysicsSystem::SetLinearVelocity(entity.GetComponent<RigidBodyComponent>().bodyID, *velocity);
 	}
 	void RigidbodyComponent_GetAngularVelocity(UUID uuid, glm::vec3* velocity)
 	{
@@ -435,7 +527,7 @@ namespace Borealis
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		auto& rb = entity.GetComponent<RigidBodyComponent>();
-		*velocity = PhysicsSystem::GetAngularVelocity(entity.GetComponent<RigidBodyComponent>().bodyID);
+		//*velocity = PhysicsSystem::GetAngularVelocity(entity.GetComponent<RigidBodyComponent>().bodyID);
 	}
 	void RigidbodyComponent_SetAngularVelocity(UUID uuid, glm::vec3* velocity)
 	{
@@ -444,7 +536,7 @@ namespace Borealis
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		auto& rb = entity.GetComponent<RigidBodyComponent>();
-		PhysicsSystem::SetAngularVelocity(entity.GetComponent<RigidBodyComponent>().bodyID, *velocity);
+		//PhysicsSystem::SetAngularVelocity(entity.GetComponent<RigidBodyComponent>().bodyID, *velocity);
 	}
 	void RigidbodyComponent_GetPosition(UUID uuid, glm::vec3* position)
 	{
@@ -453,7 +545,7 @@ namespace Borealis
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		auto& rb = entity.GetComponent<RigidBodyComponent>();
-		*position = PhysicsSystem::GetPosition(entity.GetComponent<RigidBodyComponent>().bodyID);
+		//*position = PhysicsSystem::GetPosition(entity.GetComponent<RigidBodyComponent>().bodyID);
 	}
 	void RigidbodyComponent_SetPosition(UUID uuid, glm::vec3* position)
 	{
@@ -462,7 +554,7 @@ namespace Borealis
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		auto& rb = entity.GetComponent<RigidBodyComponent>();
-		PhysicsSystem::SetPosition(entity.GetComponent<RigidBodyComponent>().bodyID, *position);
+		//PhysicsSystem::SetPosition(entity.GetComponent<RigidBodyComponent>().bodyID, *position);
 	}
 	void RigidbodyComponent_GetRotation(UUID uuid, glm::vec3* rotation)
 	{
@@ -471,7 +563,7 @@ namespace Borealis
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		auto& rb = entity.GetComponent<RigidBodyComponent>();
-		*rotation = PhysicsSystem::GetRotation(entity.GetComponent<RigidBodyComponent>().bodyID);
+		//*rotation = PhysicsSystem::GetRotation(entity.GetComponent<RigidBodyComponent>().bodyID);
 	}
 	void RigidbodyComponent_SetRotation(UUID uuid, glm::vec3* rotation)
 	{
@@ -480,7 +572,7 @@ namespace Borealis
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		auto& rb = entity.GetComponent<RigidBodyComponent>();
-		PhysicsSystem::SetRotation(entity.GetComponent<RigidBodyComponent>().bodyID, *rotation);
+		//PhysicsSystem::SetRotation(entity.GetComponent<RigidBodyComponent>().bodyID, *rotation);
 	}
 	void SpriteRendererComponent_GetColor(UUID uuid, glm::vec4* outColor)
 	{
@@ -572,5 +664,111 @@ namespace Borealis
 		std::string className = mono_class_get_name(klass);
 
 		return Entity.GetComponent<ScriptComponent>().HasScript(className);
+	}
+	void LayerMask_LayerToName(int layer, MonoString* name)
+	{
+		if (LayerList::HasIndex(layer))
+		{
+			std::string layerName = LayerList::IndexToLayer(layer);
+			name = mono_string_new(mono_domain_get(), layerName.c_str());
+		}
+		else
+		{
+			APP_LOG_WARN("Layer does not exist");
+		}
+	}
+	void LayerMask_NameToLayer(MonoString* name, int* layer)
+	{
+		std::string layerName = mono_string_to_utf8(name);
+		if (LayerList::HasLayer(layerName))
+		{
+			*layer = LayerList::LayerToIndex(layerName);
+		}
+		else
+		{
+			APP_LOG_WARN("Layer does not exist");
+			*layer = 0;
+		}
+	}
+	void LayerMask_GetMask(int* layer, MonoArray* stringArray)
+	{
+		int size = mono_array_length(stringArray);
+		std::vector<std::string> layerNames;
+		for (int i = 0; i < size; i++)
+		{
+			MonoString* str = (MonoString*)mono_array_get(stringArray, MonoString*, i);
+			char* message = mono_string_to_utf8(str);
+			std::string layerName = message;
+			layerNames.push_back(layerName);
+		}
+		*layer = 0;
+		for (auto& name : layerNames)
+		{
+			if (LayerList::HasLayer(name))
+			{
+				*layer |= 1 << LayerList::LayerToIndex(name);
+			}
+			else
+			{
+				APP_LOG_WARN("Layer does not exist");
+			}
+		}
+	}
+	bool Physics_Raycast(glm::vec3 origin, glm::vec3 direction, float maxDistance, int layerMask, uint64_t* entityID, float* distance, glm::vec3* normal, glm::vec3* point)
+	{
+		RaycastHit result;
+		bool output = PhysicsSystem::RayCast(origin, direction, &result, maxDistance, layerMask);
+		if (output)
+		{
+			*entityID = result.ID;
+			*distance = result.distance;
+			*normal = result.normal;
+			*point = result.point;
+		}
+		return output;
+	}
+	void Physics_RaycastAll(glm::vec3 origin, glm::vec3 direction, float maxDistance, int layerMask, MonoArray** entityIDArray, MonoArray** distanceArray, MonoArray** normalArray, MonoArray** pointArray)
+	{
+		std::vector<RaycastHit> results = PhysicsSystem::RayCastAll(origin, direction, maxDistance, layerMask);
+
+		*entityIDArray = mono_array_new(mono_domain_get(), mono_get_uint64_class(), results.size());
+		*distanceArray = mono_array_new(mono_domain_get(), mono_get_single_class(), results.size());
+		*normalArray = mono_array_new(mono_domain_get(), mono_get_single_class(), results.size() * 3);
+		*pointArray = mono_array_new(mono_domain_get(), mono_get_single_class(), results.size() * 3);
+
+
+		float* distance_data = (float*)mono_array_addr_with_size(*distanceArray, sizeof(float), 0);
+		uint64_t* ID_data = (uint64_t*)mono_array_addr_with_size(*entityIDArray, sizeof(uint64_t), 0);
+		glm::vec3* normal_data = (glm::vec3*)mono_array_addr_with_size(*normalArray, sizeof(glm::vec3), 0);
+		glm::vec3* point_data = (glm::vec3*)mono_array_addr_with_size(*pointArray, sizeof(glm::vec3), 0);
+
+		for (int i = 0; i < results.size(); i++)
+		{
+			ID_data[i] = results[i].ID;
+			distance_data[i] = results[i].distance;
+			normal_data[i] = results[i].normal;
+			point_data[i] = results[i].point;
+		}
+	}
+	void CharacterController_Move(uint64_t id, glm::vec3* motion)
+	{
+		Entity entity = SceneManager::GetActiveScene()->GetEntityByUUID(id);
+		if (entity.HasComponent<CharacterControlComponent>())
+		{
+			entity.GetComponent<CharacterControlComponent>().inMovementDirection = *motion;
+		}
+	
+	}
+	void CharacterController_IsGrounded(uint64_t id, bool* grounded)
+	{
+		Entity entity = SceneManager::GetActiveScene()->GetEntityByUUID(id);
+		if (entity.HasComponent<CharacterControlComponent>())
+		{
+			*grounded = PhysicsSystem::IsCharacterOnGround(entity.GetComponent<CharacterControlComponent>().controller);
+		}
+		else
+		{
+			*grounded = false;
+		}
 	}
 }

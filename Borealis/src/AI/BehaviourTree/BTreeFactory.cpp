@@ -151,5 +151,27 @@ namespace Borealis
         // Update root node
         rootNode = nodeMap[treeData->RootNodeName];
     }
+
+    Ref<BehaviourTree> BTreeFactory::CloneBehaviourTree(const Ref<BehaviourTree>& originalTree)
+    {
+        // Create a new BehaviourTree instance
+        Ref<BehaviourTree> newTree = std::make_shared<BehaviourTree>();
+        newTree->SetBehaviourTreeName(originalTree->GetBehaviourTreeName());
+
+        // Clone the root node and its subtree
+        if (originalTree->GetRootNode())
+        {
+            Ref<BehaviourNode> clonedRootNode = CloneNodeRecursive(originalTree->GetRootNode());
+            newTree->SetRootNode(clonedRootNode);
+        }
+
+        return newTree;
+    }
+
+    Ref<Asset> BTreeFactory::Load(AssetMetaData const& assetMetaData)
+    {
+        return Instance().LoadBehaviourTree(assetMetaData.SourcePath.string());
+    }
+
 }
 

@@ -36,6 +36,8 @@ namespace Borealis
 		static void Flush();
 
 		static void DrawSprite(const glm::mat4& transform, const SpriteRendererComponent& sprite, int entityID = -1);
+
+		static void DrawHighlightedSprite(const glm::mat4& transform, const SpriteRendererComponent& sprite, Ref<Shader> shader);
 		static void DrawCircle(const glm::mat4& transform, const glm::vec4& colour, float thickness = 1.f, float fade = 0.005f, int entityID = -1);
 		static void DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& colour);
 		static void DrawRect(const glm::vec3& position, const glm::vec2& size, const glm::vec4& colour); // Position and Size
@@ -51,6 +53,8 @@ namespace Borealis
 		static void DrawQuad(const glm::mat4& transform, const glm::vec4& colour, int entityID = -1);
 		static void DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const float& tilingFactor = 1.f, const glm::vec4& tint = {1,1,1,1}, int entityID = -1);
 
+		static void DrawHighlightedQuad(const glm::mat4& transform, Ref<Shader> shader);
+
 		static void DrawRotatedQuad(const glm::vec2& position, const float& rotation, const glm::vec2& size, const glm::vec4& colour);
 		static void DrawRotatedQuad(const glm::vec3& position, const float& rotation, const glm::vec2& size, const glm::vec4& colour);
 		static void DrawRotatedQuad(const glm::vec2& position, const float& rotation, const glm::vec2& size, const Ref<Texture2D>& texture, const float& tilingFactor = 1.f, const glm::vec4& = glm::vec4(1.0f));
@@ -61,6 +65,8 @@ namespace Borealis
 		static void DrawString(const std::string& string, Ref<Font> font, const glm::mat4& transform, int entityID, float size = 1.f, glm::vec4 colour = {1.f,1.f,1.f,1.f});
 		static void DrawString(TextComponent& text, TransformComponent& trans, int entityID);
 		static void DrawBox(const glm::vec3& pMin, const glm::vec3& pMax, const glm::vec4& colour);
+
+		static void DrawLineFromQueue();
 
 		struct Statistics
 		{

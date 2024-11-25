@@ -33,6 +33,13 @@ namespace Borealis
 		int EntityID;
 	};
 
+	struct SimpleQuadData
+	{
+		glm::vec3 Position;
+		glm::vec3 NormalBuffer;
+		glm::vec2 TexCoord;
+	};
+
 	struct CircleData
 	{
 		glm::vec3 WorldPosition;
@@ -96,6 +103,9 @@ namespace Borealis
 		Ref<Shader> mQuadShader; 
 		Ref<Texture2D> mWhiteTexture;
 
+		Ref<VertexArray> mHighlightedQuadVAO;
+		Ref<VertexBuffer> mHighlightedQuadVBO;
+
 		Ref<VertexArray> mCircleVAO;
 		Ref<VertexBuffer> mCircleVBO;
 		Ref<Shader> mCircleShader;
@@ -155,6 +165,34 @@ namespace Borealis
 		Ref<ElementBuffer> EBO = ElementBuffer::Create(indices, sData->MaxIndices);
 		sData->mQuadVAO->SetElementBuffer(EBO);
 		delete[] indices;
+
+		sData->mHighlightedQuadVAO = VertexArray::Create();
+		float quadVertices[] = {
+			// Positions		  //normal  	   // TexCoords
+			-0.5f,  0.5f, 0.0f,   0.f, 0.f, 0.f,   0.0f, 1.0f,
+			-0.5f, -0.5f, 0.0f,   0.f, 0.f, 0.f,   0.0f, 0.0f,
+			 0.5f, -0.5f, 0.0f,   0.f, 0.f, 0.f,   1.0f, 0.0f,
+			 0.5f,  0.5f, 0.0f,   0.f, 0.f, 0.f,   1.0f, 1.0f 
+		};
+		sData->mHighlightedQuadVBO = VertexBuffer::Create(quadVertices, 4 * sizeof(SimpleQuadData));
+		sData->mHighlightedQuadVBO->SetLayout({
+			{ ShaderDataType::Float3, "a_Position" },
+			{ ShaderDataType::Float3, "a_Normal"},
+			{ ShaderDataType::Float2, "a_TexCoord" }
+			});
+		sData->mHighlightedQuadVAO->AddVertexBuffer(sData->mHighlightedQuadVBO);
+
+		uint32_t highlightIndices[6];
+
+		highlightIndices[0] = 0;
+		highlightIndices[1] = 1;
+		highlightIndices[2] = 2;
+		highlightIndices[3] = 0;
+		highlightIndices[4] = 2;
+		highlightIndices[5] = 3;
+
+		Ref<ElementBuffer> HighlightedEBO = ElementBuffer::Create(highlightIndices, 6);
+		sData->mHighlightedQuadVAO->SetElementBuffer(HighlightedEBO);
 
 		//circle
 		sData->mCircleVAO = VertexArray::Create();
@@ -356,7 +394,14 @@ namespace Borealis
 		{
 			DrawQuad(transform, sprite.Texture, sprite.TilingFactor, sprite.Colour, entityID);
 		}
-		DrawQuad(transform, sprite.Colour, entityID);
+		else
+			DrawQuad(transform, sprite.Colour, entityID);
+	}
+
+	void Renderer2D::DrawHighlightedSprite(const glm::mat4& transform, const SpriteRendererComponent& sprite, Ref<Shader> shader)
+	{
+		PROFILE_FUNCTION();
+		DrawHighlightedQuad(transform, shader);
 	}
 
 	void Renderer2D::DrawCircle(const glm::mat4& transform, const glm::vec4& colour, float thickness, float fade, int entityID)
@@ -414,22 +459,34 @@ namespace Borealis
 
 	}
 
+	struct LineInfo
+	{
+		glm::vec3 p0;
+		glm::vec3 p1;
+		glm::vec4 color;
+	};
+
+	static std::vector<LineInfo> lineQueue;
+
 	void Renderer2D::DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& colour)
 	{
-		PROFILE_FUNCTION();
+		//PROFILE_FUNCTION();
 
-		//if (sData->QuadIndexCount + 6 >= Renderer2DData::MaxIndices)
-		//	FlushReset();
+		////if (sData->QuadIndexCount + 6 >= Renderer2DData::MaxIndices)
+		////	FlushReset();
 
-		sData->LineBufferPtr->Position = p0;
-		sData->LineBufferPtr->Colour = colour;
-		sData->LineBufferPtr++;
+		//sData->LineBufferPtr->Position = p0;
+		//sData->LineBufferPtr->Colour = colour;
+		//sData->LineBufferPtr++;
 
-		sData->LineBufferPtr->Position = p1;
-		sData->LineBufferPtr->Colour = colour;
-		sData->LineBufferPtr++;
+		//sData->LineBufferPtr->Position = p1;
+		//sData->LineBufferPtr->Colour = colour;
+		//sData->LineBufferPtr++;
 
-		sData->LineVertexCount += 2;
+		//sData->LineVertexCount += 2;
+
+		LineInfo info{ p0, p1, colour };
+		lineQueue.push_back(info);
 	}
 
 	void Renderer2D::DrawBox(const glm::vec3& pMin, const glm::vec3& pMax, const glm::vec4& colour)
@@ -455,6 +512,29 @@ namespace Borealis
 		DrawLine(p2, p6, colour);
 		DrawLine(p3, p7, colour);
 		DrawLine(p4, p8, colour);
+	}
+
+	void Renderer2D::DrawLineFromQueue()
+	{
+		PROFILE_FUNCTION();
+
+		//if (sData->QuadIndexCount + 6 >= Renderer2DData::MaxIndices)
+		//	FlushReset();
+
+		for (LineInfo const& info : lineQueue)
+		{
+			sData->LineBufferPtr->Position = info.p0;
+			sData->LineBufferPtr->Colour = info.color;
+			sData->LineBufferPtr++;
+
+			sData->LineBufferPtr->Position = info.p1;
+			sData->LineBufferPtr->Colour = info.color;
+			sData->LineBufferPtr++;
+
+			sData->LineVertexCount += 2;
+		}
+
+		lineQueue.clear();
 	}
 
 	void Renderer2D::DrawRotatedQuad(const glm::vec2& position, const float& rotation, const glm::vec2& size, const glm::vec4& colour)
@@ -781,6 +861,16 @@ namespace Borealis
 		sData->QuadIndexCount += 6;
 
 		sData->mStats.QuadCount++;
+	}
+
+	void Renderer2D::DrawHighlightedQuad(const glm::mat4& transform, Ref<Shader> shader)
+	{
+		shader->Bind();
+
+		shader->Set("u_ModelTransform", transform);
+		RenderCommand::DrawElements(sData->mHighlightedQuadVAO, 6);
+
+		shader->Unbind();
 	}
 
 	void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const Ref<SubTexture2D>& subtexture, const float& tilingFactor, const glm::vec4& tintColour)

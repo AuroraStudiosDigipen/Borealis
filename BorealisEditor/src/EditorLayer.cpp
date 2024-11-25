@@ -93,6 +93,9 @@ namespace Borealis {
 	static std::atomic<bool> loadComplete(false);  // Flag to track completion
 	static std::string activeScName("");  // Flag to track completion
 
+	static int viewportMouseXCurr = 0;
+	static int viewportMouseYCurr = 0;
+
 	void EditorLayer::Init()
 	{
 
@@ -141,6 +144,8 @@ namespace Borealis {
 	{
 		PROFILE_FUNCTION();
 
+		Project::GetEditorAssetsManager()->Update();
+
 		if (Borealis::FrameBufferProperties spec = SceneManager::GetActiveScene()->GetEditorFB()->GetProperties();
 			mViewportSize.x > 0.0f && mViewportSize.y > 0.0f && // zero sized framebuffer is invalid
 			(spec.Width != mViewportSize.x || spec.Height != mViewportSize.y))
@@ -161,7 +166,6 @@ namespace Borealis {
 			}
 		}
 
-
 		if (mViewportHovered)
 		{
 			mCamera.UpdateFn(dt);
@@ -174,15 +178,18 @@ namespace Borealis {
 
 			//move to scene or render graph
 			SceneManager::GetActiveScene()->GetRunTimeFB()->Bind();
-			RenderCommand::Clear();
 			RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
+			RenderCommand::Clear();
 			SceneManager::GetActiveScene()->GetRunTimeFB()->Unbind();
 
 			SceneManager::GetActiveScene()->GetEditorFB()->Bind();
-			RenderCommand::Clear();
 			RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
+			RenderCommand::Clear();
 			SceneManager::GetActiveScene()->GetEditorFB()->Unbind();
 		}
+
+
+		int entityID = -1;
 
 		//setting up rendergraph
 		{
@@ -196,6 +203,27 @@ namespace Borealis {
 
 			CameraSource feditorCameraSource("EditorCamera", mEditorCamera);
 			fconfig.AddGlobalSource(MakeRef<CameraSource>(feditorCameraSource));
+
+			auto [mx, my] = ImGui::GetMousePos();
+			mx -= mViewportBounds[0].x;
+			my -= mViewportBounds[0].y;
+			glm::vec2 viewportSize{ mViewportBounds[1].x - mViewportBounds[0].x, mViewportBounds[1].y - mViewportBounds[0].y };
+			my = viewportSize.y - my;
+
+			int mouseX = (int)mx;
+			int mouseY = (int)my;
+
+			Vec2IntSource mouseSource("MouseSource", mouseX, mouseY);
+			fconfig.AddGlobalSource(MakeRef<Vec2IntSource>(mouseSource));
+
+			IntSource entityIDSource("EntityIDSource", entityID);
+			fconfig.AddGlobalSource(MakeRef<IntSource>(entityIDSource));
+
+			BoolSource viewPortHoveredSource("ViewPortHovered", mViewportHovered);
+			fconfig.AddGlobalSource(MakeRef<BoolSource>(viewPortHoveredSource));
+
+			IntListSource selectedEntities("SelectedEntities", mSelectedEntities);
+			fconfig.AddGlobalSource(MakeRef<IntListSource>(selectedEntities));
 
 			//forward rendering
 			{
@@ -214,25 +242,62 @@ namespace Borealis {
 				Render2D.AddSinkLinkage("renderTarget", "Render3D.renderTarget");
 				Render2D.AddSinkLinkage("camera", "RunTimeCamera");
 				fconfig.AddPass(Render2D);
+
+				RenderPassConfig UIPass(RenderPassType::UIPass, "UIPass");
+				UIPass.AddSinkLinkage("renderTarget", "Render2D.renderTarget");
+				UIPass.AddSinkLinkage("camera", "RunTimeCamera");
+				fconfig.AddPass(UIPass);
+
+				RenderPassConfig RunTimeHighlight(RenderPassType::HighlightPass, "RunTimeHighlight");
+				RunTimeHighlight.AddSinkLinkage("camera", "RunTimeCamera");
+				RunTimeHighlight.AddSinkLinkage("renderTarget", "UIPass.renderTarget");
+				fconfig.AddPass(RunTimeHighlight);
 			}
 
 			//forward rendering editor
 			{
 				RenderPassConfig editorShadowPass(RenderPassType::Shadow, "editorShadowPass");
-				editorShadowPass.AddSinkLinkage("shadowMap", "ShadowMapBuffer");
-				editorShadowPass.AddSinkLinkage("camera", "EditorCamera");
+				editorShadowPass.AddSinkLinkage("shadowMap", "ShadowMapBuffer")
+				.AddSinkLinkage("camera", "EditorCamera");
 				fconfig.AddPass(editorShadowPass);
 
 				RenderPassConfig editorRender3D(RenderPassType::Render3D, "editorRender3D");
-				editorRender3D.AddSinkLinkage("renderTarget", "EditorBuffer");
-				editorRender3D.AddSinkLinkage("shadowMap", "editorShadowPass.shadowMap");
-				editorRender3D.AddSinkLinkage("camera", "EditorCamera");
+				editorRender3D.AddSinkLinkage("renderTarget", "EditorBuffer")
+				.AddSinkLinkage("shadowMap", "editorShadowPass.shadowMap")
+				.AddSinkLinkage("camera", "EditorCamera");
 				fconfig.AddPass(editorRender3D);
 
 				RenderPassConfig editorRender2D(RenderPassType::Render2D, "editorRender2D");
-				editorRender2D.AddSinkLinkage("renderTarget", "editorRender3D.renderTarget");
-				editorRender2D.AddSinkLinkage("camera", "EditorCamera");
+				editorRender2D.AddSinkLinkage("renderTarget", "editorRender3D.renderTarget")
+				.AddSinkLinkage("camera", "EditorCamera");
 				fconfig.AddPass(editorRender2D);
+
+				RenderPassConfig editorUIPass(RenderPassType::EditorUIPass, "EditorUI");
+				editorUIPass.AddSinkLinkage("renderTarget", "editorRender2D.renderTarget")
+					.AddSinkLinkage("camera", "EditorCamera")
+					.AddSinkLinkage("runTimeRenderTarget", "RunTimeBuffer");
+				fconfig.AddPass(editorUIPass);
+
+				RenderPassConfig ObjectPicking(RenderPassType::ObjectPicking, "ObjectPicking");
+				ObjectPicking.AddSinkLinkage("pixelBuffer", "PixelBuffer")
+				.AddSinkLinkage("renderTarget", "EditorUI.renderTarget")
+				.AddSinkLinkage("EntityIDSource", "EntityIDSource")
+				.AddSinkLinkage("ViewPortHovered", "ViewPortHovered")
+				.AddSinkLinkage("MouseSource", "MouseSource");
+				fconfig.AddPass(ObjectPicking);
+
+
+				RenderPassConfig editorHighlightPass(RenderPassType::EditorHighlightPass, "EditorHighlight");
+				editorHighlightPass.AddSinkLinkage("camera", "EditorCamera")
+					.AddSinkLinkage("renderTarget", "ObjectPicking.renderTarget")
+					.AddSinkLinkage("SelectedEntities", "SelectedEntities")
+					.AddSinkLinkage("EntityIDSource", "ObjectPicking.EntityIDSource");
+				fconfig.AddPass(editorHighlightPass);
+
+				RenderPassConfig highlightPass(RenderPassType::HighlightPass, "Highlight");
+				highlightPass.AddSinkLinkage("camera", "EditorCamera")
+				.AddSinkLinkage("renderTarget", "ObjectPicking.renderTarget");
+				fconfig.AddPass(highlightPass);
 			}
 
 			//deferred rendering
@@ -271,36 +336,9 @@ namespace Borealis {
 			SceneManager::GetActiveScene()->UpdateRenderer(dt);	
 		}
 
-
-		auto[mx,my] = ImGui::GetMousePos();
-		mx -= mViewportBounds[0].x;
-		my -= mViewportBounds[0].y;
-		glm::vec2 viewportSize { mViewportBounds[1].x - mViewportBounds[0].x, mViewportBounds[1].y - mViewportBounds[0].y };
-		my = viewportSize.y - my;
-
-		int mouseX = (int)mx;
-		int mouseY = (int)my;
-
-		SceneManager::GetActiveScene()->GetEditorFB()->Bind();
-		if (mViewportHovered)
-		{
-			if (SceneManager::GetActiveScene()->GetEditorFB()->ReadPixel(1, mouseX, mouseY) != -1)
-			{
-				//int id_ent = mViewportFrameBuffer->ReadPixel(1, mouseX, mouseY);
-				mHoveredEntity = { (entt::entity)SceneManager::GetActiveScene()->GetEditorFB()->ReadPixel(1, mouseX, mouseY), SceneManager::GetActiveScene().get()};
-				//BOREALIS_CORE_INFO("picking id {}", id_ent);
-				//BOREALIS_CORE_INFO("Name : {}", mHoveredEntity.GetName());
-			}
-			else
-			{
-				mHoveredEntity = {};
-			}
-		}
-		SceneManager::GetActiveScene()->GetEditorFB()->Unbind();
+		mHoveredEntity = { (entt::entity)entityID , SceneManager::GetActiveScene().get() };
 
 		SceneManager::GetActiveScene()->UpdateRuntime(dt); //update physics, scripts and audio
-
-		//SceneManager::GetActiveScene()->GetEditorFB()->Blit(SceneManager::GetActiveScene()->GetRunTimeFB()->GetID(), SceneManager::GetActiveScene()->GetRunTimeFB()->GetProperties());
 	}
 
 	void EditorLayer::EventFn(Event& e)
@@ -769,24 +807,27 @@ namespace Borealis {
 	{
 		switch (e.GetMouseButton())
 		{
-			case Mouse::ButtonLeft:
+		case Mouse::ButtonLeft:
+		{
+			if (!(InputSystem::IsKeyPressed(Key::LeftAlt) || InputSystem::IsKeyPressed(Key::RightAlt)))
 			{
-				if (!(InputSystem::IsKeyPressed(Key::LeftAlt) || InputSystem::IsKeyPressed(Key::RightAlt)))
+				if (mViewportHovered && mHoveredEntity && !ImGuizmo::IsOver())
 				{
-					if (mViewportHovered && mHoveredEntity && !ImGuizmo::IsOver())
+					if (mHoveredEntity.IsValid())
 					{
-						if(mHoveredEntity.IsValid())
-						{
-							SCPanel.SetSelectedEntity(mHoveredEntity);
-						}
-					}
-					else if (mViewportHovered && !ImGuizmo::IsOver())
-					{
-						SCPanel.SetSelectedEntity({});
+						SCPanel.SetSelectedEntity(mHoveredEntity);
+						mSelectedEntities.clear();
+						mSelectedEntities.push_back((uint32_t)mHoveredEntity);
 					}
 				}
-				break;
+				else if (mViewportHovered && !ImGuizmo::IsOver())
+				{
+					SCPanel.SetSelectedEntity({});
+					mSelectedEntities.clear();
+				}
 			}
+		}
+		break;
 		}
 		return true;
 	}
@@ -798,6 +839,18 @@ namespace Borealis {
 		bool shift = InputSystem::IsKeyPressed(Key::LeftShift) || InputSystem::IsKeyPressed(Key::RightShift);
 		switch (e.GetKeyCode())
 		{
+		case Key::U:
+			for (auto [assetHandle, assetMetaData] : Project::GetEditorAssetsManager()->GetAssetRegistry())
+			{
+				if (assetMetaData.Type == AssetType::Script)
+				{
+					BOREALIS_CORE_INFO("{}", assetMetaData.SourcePath.string());
+					ScriptingSystem::PushCSharpQueue(assetMetaData.SourcePath.string());
+				}
+			}
+			ScriptingSystem::CompileCSharpQueue(Project::GetProjectPath() + "/Cache/CSharp_Assembly.dll");
+			ScriptingSystem::LoadScriptAssemblies(Project::GetProjectPath() + "/Cache/CSharp_Assembly.dll");
+			break;
 		case Key::N:
 		{
 			if (control)
@@ -916,6 +969,7 @@ namespace Borealis {
 			{
 				mEditorCamera.SetFocalPoint(TransformComponent::GetGlobalTranslate(SCPanel.GetSelectedEntity()));
 			}
+			break;
 		}
 
 		case Key::Escape:
@@ -924,6 +978,7 @@ namespace Borealis {
 			{
 				ApplicationManager::Get().GetWindow()->SetCursorVisibility(true);
 			}
+			break;
 		}
 
 		}

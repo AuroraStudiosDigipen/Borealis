@@ -40,7 +40,7 @@ namespace Borealis
 		}
 	}
 
-	void Animation::Load(std::filesystem::path const& path)
+	void Animation::LoadAnimation(std::filesystem::path const& path)
 	{
 		std::ifstream inFile(path, std::ios::binary);
 		if (!inFile.is_open()) 
@@ -190,5 +190,11 @@ namespace Borealis
 		SaveAssimpNodeData(outFile, mRootNode);
 
 		outFile.close();
+	}
+	Ref<Asset> Animation::Load(AssetMetaData const& assetMetaData)
+	{
+		Animation anim;
+		anim.LoadAnimation(assetMetaData.SourcePath);
+		return MakeRef<Animation>(anim);
 	}
 }

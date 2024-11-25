@@ -55,6 +55,6 @@ namespace Borealis
 		str = lightPrefix + ".castShadow";
 		shader->Set(str.c_str(), lightComponent.castShadow);
 
-		//shader->Unbind();
+		shader->Unbind();
 	}
 }

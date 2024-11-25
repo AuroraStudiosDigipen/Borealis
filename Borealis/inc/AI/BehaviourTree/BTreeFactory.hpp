@@ -22,6 +22,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <AI/BehaviourTree/BehaviourNode.hpp>
 #include <AI/BehaviourTree/BehaviourTree.hpp>
 
+#include <Assets/AssetMetaData.hpp>
+
 namespace Borealis
 {
     struct BehaviourTreeData : public Asset
@@ -72,6 +74,15 @@ namespace Borealis
         std::unordered_set<std::string> mControlFlowNames;
         std::unordered_set<std::string> mDecoratorNames;
         std::unordered_set<std::string> mLeafNames;
+        static Ref<Asset> Load(AssetMetaData const& assetMetaData);
+
+    private:
+        /*!***********************************************************************
+        \brief  Recursively clones a behavior node and all of its children.
+        \param  originalNode The behavior node to clone.
+        \return A reference to the newly cloned behavior node.
+        *************************************************************************/
+        Ref<BehaviourNode> CloneNodeRecursive(const Ref<BehaviourNode>& originalNode);
 
         /*!***********************************************************************
         \brief  Private constructor to enforce singleton pattern.

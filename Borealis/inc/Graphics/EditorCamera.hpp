@@ -160,6 +160,13 @@ namespace Borealis
 
 		void SetFocalPoint(glm::vec3 point);
 
+		float GetFOV() const override { return mFOV; }
+
+		float GetNearPlane() const override { return mNearClip; }
+		float GetFarPlane() const override { return mFarClip; }
+
+		float GetAspectRatio() const override { return mAspectRatio; }
+
 	private:
 
 		/*!***********************************************************************

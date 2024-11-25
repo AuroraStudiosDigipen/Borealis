@@ -58,7 +58,7 @@ namespace Borealis
 			\return
 				The texture target
 		*************************************************************************/
-		static unsigned TextureTarget(bool multiSampled);
+		static unsigned TextureTarget(bool multiSampled, bool is3D = false);
 
 		/*!***********************************************************************
 			\brief
@@ -80,7 +80,7 @@ namespace Borealis
 			\param[in] id
 				The id of the texture
 		*************************************************************************/
-		static void BindTexture(bool multiSampled, uint32_t id);
+		static void BindTexture(bool multiSampled, uint32_t id, bool is3D = false);
 
 		/*!***********************************************************************
 			\brief
@@ -119,6 +119,13 @@ namespace Borealis
 				The height of the texture
 		*************************************************************************/
 		static void AttachDepthTexture(uint32_t id, int samples, unsigned format, unsigned attachmentType, uint32_t width, uint32_t height);
+
+		static void AttachDepthTextureArray(uint32_t id, int samples, unsigned format, unsigned attachmentType, uint32_t width, uint32_t height);
+	};
+
+	struct StringUtils
+	{
+		static std::string SplitAndCapitalize(const std::string& str);
 	};
 
 	struct Math

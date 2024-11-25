@@ -40,6 +40,7 @@ namespace Borealis
 		{
 			Light::SetUniforms(*mLights[i], i, shader);
 		}
+		shader->Unbind();
 	}
 }
 

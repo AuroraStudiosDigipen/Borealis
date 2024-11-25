@@ -48,8 +48,8 @@ namespace Borealis
             .constructor<>()
             .property("Is Trigger", &BoxColliderComponent::isTrigger)
             .property("Provides Contact", &BoxColliderComponent::providesContact)
-            .property("Center", &BoxColliderComponent::Center)
-            .property("Size", &BoxColliderComponent::Size);
+            .property("Center", &BoxColliderComponent::center)
+            .property("Size", &BoxColliderComponent::size);
 
         registration::enumeration<SceneCamera::CameraType>("Camera Type")
         (
@@ -164,8 +164,6 @@ namespace Borealis
         registration::class_<RigidBodyComponent>("Rigid Body Component")
             (metadata("Component", true))
             .constructor<>()
-            .property("Shape", &RigidBodyComponent::shape)
-
 			.property("Movement", &RigidBodyComponent::movement)
 
 			//.property("Dynamic", &RigidBodyComponent::dynamicBody)
@@ -186,6 +184,37 @@ namespace Borealis
             
             .property("Bounciness", &RigidBodyComponent::bounciness);
 
+        registration::class_<CharacterControlComponent>("Character Controller Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("Mass", &CharacterControlComponent::mass)
+            .property("Max Slope Angle", &CharacterControlComponent::slopeAngle)
+            .property("Max Strength", &CharacterControlComponent::strength)
+            .property("Inertia", &CharacterControlComponent::enableInertia)
+            .property("Sliding", &CharacterControlComponent::sliding)
+            .property("Move In Air", &CharacterControlComponent::moveInAir);
+
+        registration::class_<BoxColliderComponent>("Box Collider Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("Is Trigger", &BoxColliderComponent::isTrigger)
+            .property("Center", &BoxColliderComponent::center)
+            .property("Size", &BoxColliderComponent::size);
+
+        registration::class_<CapsuleColliderComponent>("Capsule Collider Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("Is Trigger", &CapsuleColliderComponent::isTrigger)
+            .property("Center", &CapsuleColliderComponent::center)
+            .property("Radius", &CapsuleColliderComponent::radius)
+            .property("Height", &CapsuleColliderComponent::height);
+
+        registration::class_<SphereColliderComponent>("Sphere Collider Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("Is Trigger", &SphereColliderComponent::isTrigger)
+            .property("Center", &SphereColliderComponent::center)
+            .property("Radius", &SphereColliderComponent::radius);
 
         registration::class_<SpriteRendererComponent>("Sprite Renderer Component")
             .constructor<>()
@@ -193,6 +222,24 @@ namespace Borealis
             (metadata("Colour", true))
             .property("Texture", &SpriteRendererComponent::Texture)
             .property("Tiling Factor", &SpriteRendererComponent::TilingFactor);
+
+        registration::class_<OutLineComponent>("Outline Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("Color", &OutLineComponent::color)
+            (metadata("Colour", true))
+            .property("Line Width", &OutLineComponent::lineWidth)
+            .property("Filled", &OutLineComponent::filled)
+            .property("Active", &OutLineComponent::active);
+
+        registration::class_<CanvasComponent>("Canvas Component")
+            (metadata("Component", true))
+            .constructor<>();
+
+        registration::class_<CanvasRendererComponent>("Canvas Renderer Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("Allow Passthrough", &CanvasRendererComponent::allowPassthrough);
 
         registration::class_<TextComponent>("Text Component")
             (metadata("Component", true))
@@ -207,7 +254,8 @@ namespace Borealis
             (metadata("Component", true))
             .constructor<>()
             .property("IsActive", &TagComponent::active)
-            .property("Tag", &TagComponent::Tag);
+            .property("Tag", &TagComponent::Tag)
+            .property("Layer", &TagComponent::mLayer);
 
         registration::class_<TransformComponent>("Transform Component")
             (metadata("Component", true))

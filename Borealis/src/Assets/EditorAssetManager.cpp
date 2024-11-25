@@ -16,6 +16,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <yaml-cpp/yaml.h>
 #include <Core/Core.hpp>
 #include <Core/LoggerSystem.hpp>
+#include <Assets/AssetManager.hpp>
 #include <Assets/EditorAssetManager.hpp>
 #include <Audio/Audio.hpp>
 #include <Audio/AudioEngine.hpp>
@@ -35,7 +36,7 @@ namespace Borealis
 
 		metaData.name = node["Name"].as<std::string>();
 		metaData.Handle = node["AssetHandle"].as<uint64_t>();
-		metaData.Type = Asset::StringToAssetType(node["AssetType"].as<std::string>());
+		metaData.Type = AssetManager::StringToAssetType(node["AssetType"].as<std::string>());
 		std::string str = node["SourcePath"].as<std::string>();
 
 		const std::string pattern = "..\\";
@@ -60,7 +61,7 @@ namespace Borealis
 
 		//metaData.CachePath = PathToAssetFolder.parent_path() / str;
 		metaData.CachePath = str;
-		metaData.importDate = node["LastModifiedDate"].as<uint64_t>();
+		//metaData.importDate = node["LastModifiedDate"].as<uint64_t>();
 
 		return metaData;
 	}
@@ -89,12 +90,25 @@ namespace Borealis
 				AssetMetaData metaData = DeserializeMetaFile(metaInfo);
 
 				mAssetRegistry.insert({ metaData.Handle, metaData });
+				mAssetRegistrySrcLoc.insert({metaData.SourcePath.string(), metaData.Handle});
 			}
 		}
-
-		int x = 0;
 	}
+
 	//=====================================
+
+	void EditorAssetManager::RegisterAsset(AssetType type, AssetLoaderFunc loadFunc, AssetReloadFunc reloadFunc)
+	{
+		if (loadFunc != nullptr)
+		{
+			mAssetLoaders.insert({ type, loadFunc });
+		}
+
+		if (reloadFunc != nullptr)
+		{
+			mAssetReloaders.insert({ type, reloadFunc });
+		}
+	}
 
 	Ref<Asset> EditorAssetManager::GetAsset(AssetHandle assetHandle)
 	{
@@ -118,6 +132,34 @@ namespace Borealis
 		return asset;
 	}
 
+	void EditorAssetManager::SubmitAssetReloadRequest(AssetHandle assetHandle)
+	{
+		auto it = std::find_if(mAssetReloadRequests.begin(), mAssetReloadRequests.end(),
+			[&assetHandle](const auto& request) {
+				return request == assetHandle;
+			});
+		if(it == mAssetReloadRequests.end())
+			mAssetReloadRequests.push_back(assetHandle);
+	}
+
+	Ref<Asset> EditorAssetManager::ReloadAsset(AssetHandle assetHandle)
+	{
+		AssetMetaData const& assetMetaData = GetMetaData(assetHandle);
+
+		if (mAssetReloaders.contains(assetMetaData.Type))
+		{
+			mAssetReloaders[assetMetaData.Type](assetMetaData);
+		}
+
+		//if not already loaded, no need to load it
+		if (!mLoadedAssets.contains(assetHandle)) return nullptr;
+
+		Ref<Asset> asset = LoadAsset(assetHandle);
+		mLoadedAssets.at(assetHandle).swap(asset);// TODO: Temp until reload function is up
+
+		return asset;
+	}
+
 	AssetMetaData const& EditorAssetManager::GetMetaData(AssetHandle assetHandle)
 	{
 		if (mAssetRegistry.contains(assetHandle))
@@ -130,6 +172,11 @@ namespace Borealis
 	AssetRegistry& EditorAssetManager::GetAssetRegistry()
 	{
 		return mAssetRegistry;
+	}
+
+	AssetRegistrySrcLoc& EditorAssetManager::GetAssetRegistrySrcLoc()
+	{
+		return mAssetRegistrySrcLoc;
 	}
 
 	//void EditorAssetManager::LoadRegistry(ProjectInfo projectInfo)
@@ -175,6 +222,19 @@ namespace Borealis
 	{
 		mAssetRegistry.clear();
 		mAssetRegistryPath.clear();
+		mAssetRegistrySrcLoc.clear();
+	}
+
+	void EditorAssetManager::Update()
+	{
+		if (mAssetReloadRequests.empty()) return;
+
+		for (AssetHandle assetHandle : mAssetReloadRequests)
+		{
+			ReloadAsset(assetHandle);
+		}
+
+		mAssetReloadRequests.clear();
 	}
 
 	Ref<Asset> GetModel(AssetConfig const& config, std::string const& path)
@@ -196,33 +256,18 @@ namespace Borealis
 	Ref<Asset> EditorAssetManager::LoadAsset(AssetHandle assetHandle)
 	{
 		AssetMetaData metaData = mAssetRegistry.at(assetHandle);
-
 		Ref<Asset> asset = nullptr;
-		Animation anim;
-		switch (metaData.Type)
+
+		if (mAssetLoaders.contains(metaData.Type))
 		{
-		case AssetType::Animation:
-			anim.Load(metaData.SourcePath);
-			asset = MakeRef<Animation>(anim);
-			break;
-		case AssetType::Audio:
-			asset = MakeRef<Audio>(AudioEngine::LoadAudio(metaData.SourcePath.string()));
-			break;
-		case AssetType::Texture2D:
-			asset = Texture2D::Create(metaData.CachePath.string());
-			break;
-		case AssetType::Material:
-			asset = MakeRef<Material>(Material(metaData.SourcePath.string()));
-			break;
-		case AssetType::Mesh:
-			asset = GetModel(metaData.Config, metaData.CachePath.string());
-			break;
-		case AssetType::BehaviourTreeData:
-			asset = BTreeFactory::Instance().LoadBehaviourTree(metaData.SourcePath.string());
-			break;
-		default:
-			break;
+			asset = mAssetLoaders[metaData.Type](metaData);
 		}
+
+		if (asset == nullptr)
+		{
+			//asset = GetDefaultAsset();
+		}
+
 		asset->mAssetHandle = assetHandle;
 		return asset;
 	}

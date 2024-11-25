@@ -24,14 +24,26 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scene/Components.hpp>
 #include <Scene/SceneManager.hpp>
 
+#include <Graphics/PixelBuffer.hpp>
+
+//shadows
+#define S_MATERIALSHADOW true
+#define S_CASCADESHADOW true
+#define S_SIMPLEMESH true
+
+//highlight
+#define H_HIGHLIGHT true
+
 namespace Borealis
 {
 	Ref<Shader> s_shader = nullptr;
-	Ref<Shader> shadow_shader = nullptr;
+	Ref<Shader> material_shader = nullptr;
+	Ref<Shader> cascade_shadow_shader = nullptr;
+	Ref<Shader> common_shader = nullptr;
+	Ref<Shader> quad_shader = nullptr;
 
-	Ref<SkinnedModel> skinnedModel = nullptr;
-	Ref<Shader> skinnedShader = nullptr;
-	Animator animator(nullptr);
+
+	Ref<FrameBuffer> mCascadeShadowMapBuffer = nullptr;
 
 	//========================================================================
 	//BUFFER SOURCE
@@ -42,7 +54,47 @@ namespace Borealis
 		sourceType = RenderSourceType::RenderTargetColor;
 
 		buffer = framebuffer;
+
+		Width = framebuffer->GetProperties().Width;
+		Height = framebuffer->GetProperties().Height;
 	}
+	
+	BoolSource::BoolSource(std::string name, bool ref) : mRef(ref)
+	{
+		sourceName = name;
+		sourceType = RenderSourceType::Bool;
+	}
+
+	void BoolSource::Bind() {};
+	void BoolSource::Unbind() {};
+
+	IntSource::IntSource(std::string name, int& ref) : mRef(ref)
+	{
+		sourceName = name;
+		sourceType = RenderSourceType::IntRef;
+	}
+
+	void IntSource::Bind() {};
+	void IntSource::Unbind() {};
+
+	Vec2IntSource::Vec2IntSource(std::string name, int refX, int refY) : mRefX(refX), mRefY(refY)
+	{
+		sourceName = name;
+		sourceType = RenderSourceType::Vec2Int;
+	}
+
+	void Vec2IntSource::Bind() {};
+	void Vec2IntSource::Unbind() {};
+
+	IntListSource::IntListSource(std::string name, std::list<int> const& intList) : mList(intList)
+	{
+		sourceName = name;
+		sourceType = RenderSourceType::IntList;
+	}
+
+	void IntListSource::Bind() {};
+
+	void IntListSource::Unbind() {};
 
 	void RenderTargetSource::Bind()
 	{
@@ -56,9 +108,9 @@ namespace Borealis
 			buffer->Unbind();
 	}
 
-	void RenderTargetSource::BindDepthBuffer(int index)
+	void RenderTargetSource::BindDepthBuffer(int index, bool is3D)
 	{
-		buffer->BindDepthBuffer(index);
+		buffer->BindDepthBuffer(index, is3D);
 	}
 
 	GBufferSource::GBufferSource(std::string name, Ref<FrameBuffer> framebuffer)
@@ -91,6 +143,39 @@ namespace Borealis
 		buffer->BindDepthBuffer(index);
 	}
 
+	PixelBufferSource::PixelBufferSource(std::string name, Ref<PixelBuffer> pixelbuffer) : Width(0), Height(0)
+	{
+		sourceName = name;
+		sourceType = RenderSourceType::PixelBuffer;
+
+		buffer = pixelbuffer;
+		if(buffer)
+		{
+			Width = pixelbuffer->GetProperties().Width;
+			Height = pixelbuffer->GetProperties().Height;
+		}
+	}
+
+	void PixelBufferSource::ReadTexture(uint32_t index)
+	{
+		buffer->ReadTexture(index);
+	}
+
+	void PixelBufferSource::Bind()
+	{
+		buffer->Bind();
+	}
+
+	void PixelBufferSource::Unbind()
+	{
+		buffer->Unbind();
+	}
+
+	void PixelBufferSource::Resize(uint32_t width, uint32_t height)
+	{
+		buffer->Resize(width, height);
+	}
+
 	CameraSource::CameraSource(std::string name, EditorCamera const& camera)
 	{
 		sourceName = name;
@@ -101,7 +186,12 @@ namespace Borealis
 		viewProj = camera.GetViewProjectionMatrix();
 		viewPortSize = camera.GetViewPortSize();
 		position = camera.GetPosition();
+		lookAt = camera.GetForwardDirection();
 		editor = true;
+		fov = camera.GetFOV();
+		nearPlane = camera.GetNearPlane();
+		farPlane = camera.GetFarPlane();
+		aspectRatio = camera.GetAspectRatio();
 	}
 
 	CameraSource::CameraSource(std::string name, const Camera& camera, const glm::mat4& transform)
@@ -114,8 +204,14 @@ namespace Borealis
 		viewProj = camera.GetProjectionMatrix() * glm::inverse(transform);
 		viewPortSize = camera.GetViewPortSize();
 		position = transform[3];
+		lookAt = -glm::normalize(glm::vec3(transform[2]));
 
 		editor = false;
+
+		fov = camera.GetFOV();
+		nearPlane = camera.GetNearPlane();
+		farPlane = camera.GetFarPlane();
+		aspectRatio = camera.GetAspectRatio();
 	}
 
 	glm::mat4 CameraSource::GetViewProj()
@@ -127,26 +223,6 @@ namespace Borealis
 	{
 		return viewPortSize;
 	}
-
-	//TextureSource::TextureSource(std::string name)
-	//{
-	//	sourceName = name;
-	//	sourceType = RenderSourceType::Texture2D;
-	//}
-
-	//void TextureSource::AddTexture(AssetHandle textureHandle)
-	//{
-	//	textureAssetHandles.push_back(textureHandle);
-	//	textureList.push_back(AssetManager::GetAsset<Texture2D>(textureHandle));
-	//}
-
-	//void TextureSource::Bind()
-	//{
-	//	for (int i{}; i < textureList.size(); i++)
-	//	{
-	//		textureList[i]->Bind(i);
-	//	}
-	//}
 
 	//========================================================================
 	//RENDERPASS
@@ -209,16 +285,105 @@ namespace Borealis
 		shader = nullptr;
 	}
 
-	void SetShadowAndLight(Ref<RenderTargetSource> renderTarget, Ref<RenderTargetSource> shadowMap, Ref<Shader> shader,  entt::registry* registryPtr, Frustum const& frustum)
+	glm::mat4 GetLightViewProj(LightComponent const& lightComponent, Ref<CameraSource> camera, float farPlane)
 	{
-		if (shadowMap)
+		const glm::mat4 proj = glm::perspective(
+			glm::radians(camera->fov), camera->aspectRatio, 
+			camera->nearPlane,
+			farPlane);
+
+		glm::vec3 upVector = { 0.f,1.f,0.f };
+
+		Frustum frustum = ComputeFrustum(proj * camera->viewMtx);
+		FrustumCorners frustumCorners = GetCorners(frustum);
+		FrustumCorners lightSpaceFrustumCorners = frustumCorners;
+		AABB centerAABB = lightSpaceFrustumCorners.GetAABB();
+		glm::vec3 center = (centerAABB.maxExtent + centerAABB.minExtent) * 0.5f;
+		glm::mat4 lightView = glm::lookAt(center, center + lightComponent.direction, upVector);
+		lightSpaceFrustumCorners.Transform(lightView);
+		AABB aabb = lightSpaceFrustumCorners.GetAABB();
+
+		constexpr float zMult = 10.0f;
+		if (aabb.minExtent.z < 0)
 		{
-			shadowMap->BindDepthBuffer(0);
-			shader->Set("u_ShadowMap", 0);
+			aabb.minExtent.z *= zMult;
+		}
+		else
+		{
+			aabb.minExtent.z /= zMult;
+		}
+		if (aabb.maxExtent.z < 0)
+		{
+			aabb.maxExtent.z /= zMult;
+		}
+		else
+		{
+			aabb.maxExtent.z *= zMult;
 		}
 
-		shader->Set("shadowPass", false);
-		renderTarget->Bind();
+		glm::mat4 lightProjection = glm::ortho(aabb.minExtent.x, aabb.maxExtent.x, aabb.minExtent.y, aabb.maxExtent.y, aabb.minExtent.z, aabb.maxExtent.z);
+
+
+		return lightProjection * lightView;
+	}
+
+	void SetShadowVariable(LightComponent const& lightComponent, Ref<Shader> shader, Ref<CameraSource> camera)
+	{
+		if (lightComponent.type == LightComponent::Type::Spot)
+		{
+			//need to change exact same code on top, fix next time
+			glm::vec3 upVector = (glm::abs(lightComponent.direction.y) > 0.99f) ? glm::vec3(0.f, 0.f, 1.f) : glm::vec3(0.f, 1.f, 0.f);
+			glm::mat4 lightView = glm::lookAt(lightComponent.position, lightComponent.position + lightComponent.direction, upVector);
+			float fieldOfView = glm::radians(lightComponent.spotAngle * 2.f); // Spotlight cone angle
+			glm::mat4 lightProj = glm::perspective(fieldOfView, 1.f, 1.f, lightComponent.range); //change in the future
+			shader->Bind();
+			shader->Set("u_LightViewProjection", lightProj * lightView);
+		}
+		else if (lightComponent.type == LightComponent::Type::Directional)
+		{
+			std::vector<float> shadowCascadeLevels{ camera->farPlane / 50.0f, camera->farPlane / 25.0f, camera->farPlane / 10.0f, camera->farPlane / 2.0f };
+
+			std::array<glm::mat4, 4> lightViewProjMatrices;
+			if (S_MATERIALSHADOW)
+			{
+				shader->Bind();
+				for (int i{}; i < lightViewProjMatrices.size(); ++i)
+				{
+					lightViewProjMatrices[i] = GetLightViewProj(lightComponent, camera, shadowCascadeLevels[i]);
+
+					std::string str = "u_LightSpaceMatrices[" + std::to_string(i) + "]";
+					shader->Set(str.c_str(), lightViewProjMatrices[i]);
+				}
+
+				for (size_t i = 0; i < shadowCascadeLevels.size(); ++i)
+				{
+					std::string str = "u_CascadePlaneDistances[" + std::to_string(i) + "]";
+					shader->Set(str.c_str(), shadowCascadeLevels[i]);
+				}
+
+				shader->Set("u_View", camera->viewMtx);
+
+				shader->Set("cascadeCount", 4);
+				shader->Unbind();
+			}
+
+			if(S_CASCADESHADOW)
+			{
+				cascade_shadow_shader->Bind();
+
+				for (int i{}; i < lightViewProjMatrices.size(); ++i)
+				{
+					std::string str = "u_LightSpaceMatrices[" + std::to_string(i) + "]";
+					cascade_shadow_shader->Set(str.c_str(), lightViewProjMatrices[i]);
+				}
+
+				cascade_shadow_shader->Unbind();
+			}
+		}
+	}
+
+	void SetShadowAndLight(Ref<RenderTargetSource> shadowMap, Ref<Shader> shader,  entt::registry* registryPtr, Ref<CameraSource> camera)
+	{
 		//add light to light engine and shadow pass
 		{
 			entt::basic_group group = registryPtr->group<>(entt::get<TransformComponent, LightComponent>);
@@ -233,43 +398,46 @@ namespace Borealis
 				auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
 				Renderer3D::AddLight(lightComponent);
 
+				SetShadowVariable(lightComponent, shader, camera);
 
+				shader->Bind();
 				if (lightComponent.type == LightComponent::Type::Spot)
 				{
-					//need to change exact same code below, fix next time
-					glm::vec3 upVector = (glm::abs(lightComponent.direction.y) > 0.99f) ? glm::vec3(0.f, 0.f, 1.f) : glm::vec3(0.f, 1.f, 0.f);
-					glm::mat4 lightView = glm::lookAt(lightComponent.position, lightComponent.position + lightComponent.direction, upVector);
-					float fieldOfView = glm::radians(lightComponent.spotAngle * 2.f); // Spotlight cone angle
-					glm::mat4 lightProj = glm::perspective(fieldOfView, 1.f, 1.f, lightComponent.range); //change in the future
-
-					shader->Set("u_LightViewProjection", lightProj * lightView);
+					if (shadowMap)
+					{
+						shadowMap->BindDepthBuffer(0);
+						shader->Set("u_ShadowMap", 0);
+					}
 				}
-				else if (lightComponent.type == LightComponent::Type::Directional)
+				else if(lightComponent.type == LightComponent::Type::Directional)
 				{
-					glm::vec3 upVector = { 0.f,1.f,0.f };
-					glm::mat4 lightView = glm::lookAt(lightComponent.position, lightComponent.direction, upVector);
+					if (mCascadeShadowMapBuffer)
+					{
 
-					FrustumCorners frustumCorners = GetCorners(frustum); //corners are either off or camera frustum too big
-					FrustumCorners lightSpaceFrustumCorners = frustumCorners;
-					lightSpaceFrustumCorners.Transform(lightView);
-					AABB aabb = lightSpaceFrustumCorners.GetAABB();
-
-					glm::mat4 lightProj = glm::ortho(-40.f, 40.f, -40.f, 40.f, 0.f, 400.f);
-					//glm::mat4 lightProj = glm::ortho(aabb.minExtent.x, aabb.maxExtent.x, aabb.minExtent.y, aabb.maxExtent.y, aabb.minExtent.z, aabb.maxExtent.y);
-
-					shader->Set("u_LightViewProjection", lightProj * lightView);
+						mCascadeShadowMapBuffer->BindDepthBuffer(1, true);
+						shader->Set("u_CascadeShadowMap", 1);
+					}
 				}
+
+				shader->Set("shadowPass", false);
+				shader->Unbind();
+
+				break; //TODO, for now 1 shadow
 			}
 		}
 	}
 	
 	void Render3D::Execute(float dt)
 	{
+		PROFILE_FUNCTION();
 		glm::mat4 viewProjMatrix{};
 		bool editor{};
 
+		Ref<CameraSource> camera = nullptr;
 		Ref<RenderTargetSource> renderTarget = nullptr;
 		Ref<RenderTargetSource> shadowMap = nullptr;
+		Ref<PixelBufferSource> pixelBuffer = nullptr;
+		glm::vec3 camPos{};
 
 		for (auto sink : sinkList)
 		{
@@ -277,6 +445,9 @@ namespace Borealis
 			{
 				viewProjMatrix = std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj();
 				editor = std::dynamic_pointer_cast<CameraSource>(sink->source)->editor;
+				camPos = std::dynamic_pointer_cast<CameraSource>(sink->source)->position;
+
+				camera = std::dynamic_pointer_cast<CameraSource>(sink->source);
 			}
 
 			if (sink->source->sourceType == RenderSourceType::RenderTargetColor)
@@ -293,6 +464,8 @@ namespace Borealis
 				}
 			}
 		}
+
+		Renderer3D::BeginCommonShapes(viewProjMatrix);
 
 		//mesh pass
 		{
@@ -326,8 +499,8 @@ namespace Borealis
 				Renderer3D::Begin(viewProjMatrix, materialShader);
 
 
-				SetShadowAndLight(renderTarget, shadowMap, materialShader, registryPtr, frustum);
-
+				SetShadowAndLight(shadowMap, materialShader, registryPtr, camera);
+				renderTarget->Bind();
 				Renderer3D::SetLights(materialShader);
 				Renderer3D::DrawMesh(TransformComponent::GetGlobalTransform(brEntity), meshFilter, meshRenderer, materialShader, (int)entity);
 
@@ -335,17 +508,20 @@ namespace Borealis
 				{
 					AABB modelAABB = meshFilter.Model->mAABB;
 					modelAABB.Transform(TransformComponent::GetGlobalTransform(brEntity));
-					if (brEntity.HasComponent<RigidBodyComponent>())
+					if (brEntity.HasComponent<BoxColliderComponent>())
 					{
-						auto& rigidbody = brEntity.GetComponent<RigidBodyComponent>();
-						rigidbody.minExtent = modelAABB.minExtent;
-						rigidbody.maxExtent = modelAABB.maxExtent;
-						Renderer3D::DrawCube(transform.Translate, rigidbody.minExtent, rigidbody.maxExtent, { 0.f,1.f,0.f,1.f }, true);
+						auto& rigidbody = brEntity.GetComponent<BoxColliderComponent>();
+						glm::vec3 half = {rigidbody.size.x/2, rigidbody.size.y/2, rigidbody.size.z/2};
+						Renderer3D::DrawCube(rigidbody.center, -half, half, { 0.f,1.f,0.f,1.f }, true);
+						//rigidbody.minExtent = modelAABB.minExtent;
+						//rigidbody.maxExtent = modelAABB.maxExtent;
+						//Renderer3D::DrawCube(transform.Translate, rigidbody.minExtent, rigidbody.maxExtent, { 0.f,1.f,0.f,1.f }, true);
 					}
 				}
-
+				renderTarget->Unbind();
 			}
 		}
+
 		//skinned mesh pass
 		{
 			auto group = registryPtr->group<>(entt::get<TransformComponent, SkinnedMeshRendererComponent>);
@@ -370,8 +546,7 @@ namespace Borealis
 				materialShader->Bind();
 				materialShader->Set("u_HasAnimation", false);
 
-				SetShadowAndLight(renderTarget, shadowMap, materialShader, registryPtr, frustum);
-
+				SetShadowAndLight(shadowMap, materialShader, registryPtr, camera);
 				if (registryPtr->storage<AnimatorComponent>().contains(entity))
 				{
 					AnimatorComponent& animatorComponent = registryPtr->get<AnimatorComponent>(entity);
@@ -388,6 +563,7 @@ namespace Borealis
 
 						if (skinnedMesh.SkinnnedModel->mAnimation)
 						{
+							materialShader->Bind();
 							materialShader->Set("u_HasAnimation", true);
 							auto transforms = animatorComponent.animator.GetFinalBoneMatrices();
 							for (int i = 0; i < transforms.size(); ++i)
@@ -395,6 +571,7 @@ namespace Borealis
 								std::string str = "u_FinalBonesMatrices[" + std::to_string(i) + "]";
 								materialShader->Set(str.c_str(), transforms[i]);
 							}
+							materialShader->Unbind();
 						}
 					}
 				}
@@ -410,86 +587,49 @@ namespace Borealis
 				//}
 
 				//Renderer3D::SetLights(shader);
+
+				renderTarget->Bind();
 				materialShader->Bind();
 				Renderer3D::SetLights(materialShader);
 				Renderer3D::DrawSkinnedMesh(TransformComponent::GetGlobalTransform(brEntity), skinnedMesh, materialShader, (int)entity);
 				materialShader->Unbind();
+				renderTarget->Unbind();
 			}
 		}
 
-
-
-		//if (shadowMap)
-		//{
-		//	shadowMap->BindDepthBuffer(0);
-		//	shader->Set("u_ShadowMap", 0);
-		//}
-
-		//shader->Set("shadowPass", false);
-		//renderTarget->Bind();
-		////add light to light engine and shadow pass
-		//{
-		//	entt::basic_group group = registryPtr->group<>(entt::get<TransformComponent, LightComponent>);
-		//	for (auto& entity : group)
-		//	{
-		//		auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
-		//		lightComponent.offset = transform.Translate;
-		//		Renderer3D::AddLight(lightComponent);
-
-
-		//		if (lightComponent.type == LightComponent::Type::Spot)
-		//		{
-		//			glm::vec3 upVector = { 0.f,1.f,0.f };
-		//			glm::mat4 lightView = glm::lookAt(lightComponent.offset, lightComponent.offset + lightComponent.spotLightDirection, upVector);
-		//			float fieldOfView = glm::radians(lightComponent.InnerOuterSpot.x * 2.f); // Spotlight cone angle
-		//			glm::mat4 lightProj = glm::perspective(fieldOfView, 1.f, 20.f, 1000.f);
-
-		//			shader->Set("u_LightViewProjection", lightProj * lightView);
-		//		}
-		//		else if (lightComponent.type == LightComponent::Type::Directional)
-		//		{
-		//			glm::vec3 upVector = { 0.f,1.f,0.f };
-		//			glm::mat4 lightView = glm::lookAt(lightComponent.offset, lightComponent.direction, upVector);
-		//			float fieldOfView = glm::radians(lightComponent.InnerOuterSpot.x * 2.f); // Spotlight cone angle
-		//			glm::mat4 lightProj = glm::ortho(-100.f, 100.f, -100.f, 100.f, 0.f, 400.f);
-
-		//			shader->Set("u_LightViewProjection", lightProj * lightView);
-		//		}
-		//	}
-		//}
-		
 		Renderer3D::End();
-
-		renderTarget->Unbind();
 	}
 
 	void Render2D::Execute(float dt)
 	{
-		if (shader) shader->Bind();
-		for (auto sink : sinkList)
-		{
-			if (sink->source)
-			{
-				auto source = sink->source;
-				source->Bind();
-			}
-		}
+		PROFILE_FUNCTION();
+		Ref<RenderTargetSource> renderTarget = nullptr;
+		bool editor = false;
 
 		for (auto sink : sinkList)
 		{
 			if (sink->source->sourceType == RenderSourceType::Camera)
 			{
 				Renderer2D::Begin(std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj());
-				break;
+				editor = std::dynamic_pointer_cast<CameraSource>(sink->source)->editor;
+			}
+
+			if (sink->source->sourceType == RenderSourceType::RenderTargetColor)
+			{
+				if (sink->sinkName == "renderTarget")
+				{
+					renderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
+				}
 			}
 		}
 
+		renderTarget->Bind();
 		{
 			auto group = registryPtr->group<>(entt::get<TransformComponent, SpriteRendererComponent>);
 			for (auto& entity : group)
 			{
 				Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
-				if (!brEntity.IsActive())
+				if (!brEntity.IsActive() || (!editor && brEntity.HasComponent<CanvasRendererComponent>()))
 				{
 					continue;
 				}
@@ -517,7 +657,7 @@ namespace Borealis
 			for (auto& entity : group)
 			{
 				Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
-				if (!brEntity.IsActive())
+				if (!brEntity.IsActive() || (!editor && brEntity.HasComponent<CanvasRendererComponent>()))
 				{
 					continue;
 				}
@@ -527,29 +667,20 @@ namespace Borealis
 			}
 		}
 
-
+		Renderer2D::DrawLineFromQueue();
 		Renderer2D::End();
 
-		for (auto sink : sinkList)
-		{
-			if (sink->source)
-			{
-				auto source = sink->source;
-				source->Unbind();
-			}
-		}
-
-		if (shader) shader->Unbind();
+		renderTarget->Unbind();
 	}
 
 	GeometryPass::GeometryPass(std::string name) : EntityPass(name)
 	{
 		shader = s_shader;
-		//shader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_DeferredLighting.glsl");
 	}
 
 	void GeometryPass::Execute(float dt)
 	{
+		PROFILE_FUNCTION();
 		if (shader) shader->Bind();
 		shader->Set("u_lightPass", false);
 		Ref<FrameBuffer> gBuffer = nullptr;
@@ -608,6 +739,7 @@ namespace Borealis
 
 	void LightingPass::Execute(float dt)
 	{
+		PROFILE_FUNCTION();
 		if (shader) shader->Bind();
 		shader->Set("u_lightPass", true);
 
@@ -682,19 +814,21 @@ namespace Borealis
 
 	ShadowPass::ShadowPass(std::string name) : EntityPass(name)
 	{
-		shader = shadow_shader;
+		shader = material_shader;
 	}
 
 	void ShadowPass::Execute(float dt)
 	{
+		PROFILE_FUNCTION();
 		shader->Bind();
 		shader->Set("shadowPass", true);
 
-		RenderCommand::EnableFrontFaceCull();
 
 		glm::mat4 viewProjMatrix{};
 		Ref<FrameBuffer> shadowMap = nullptr;
 		glm::vec3 cameraPosition{};
+
+		Ref<CameraSource> camera = nullptr;
 		for (auto sink : sinkList)
 		{
 			if (sink->source)
@@ -706,21 +840,26 @@ namespace Borealis
 					shadowMap = std::dynamic_pointer_cast<RenderTargetSource>(sourcePtr)->buffer;
 					shadowMap->Bind();
 					RenderCommand::Clear();
+					shadowMap->Unbind();
 				}
 
 				if (sourcePtr->sourceType == RenderSourceType::Camera)
 				{
 					cameraPosition = std::dynamic_pointer_cast<CameraSource>(sourcePtr)->position;
 					viewProjMatrix = std::dynamic_pointer_cast<CameraSource>(sourcePtr)->GetViewProj();
+
+					camera = std::dynamic_pointer_cast<CameraSource>(sourcePtr);
 				}
 			}
 		}
 
 		{
+			bool directionalLight = false;
 			entt::basic_group group = registryPtr->group<>(entt::get<TransformComponent, LightComponent>);
 			for (auto& entity : group)
 			{
 				auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
+				if (!lightComponent.castShadow) continue;
 				auto brEntity = Entity{ entity, SceneManager::GetActiveScene().get() };
 				if (!brEntity.IsActive())
 				{
@@ -728,38 +867,44 @@ namespace Borealis
 				}
 				lightComponent.position = TransformComponent::GetGlobalTranslate(brEntity);
 				lightComponent.direction = TransformComponent::GetGlobalRotation(brEntity);
-				if (!lightComponent.castShadow) continue;
 
-				if (lightComponent.type == LightComponent::Type::Spot)
+				if (lightComponent.type == LightComponent::Type::Directional)
 				{
-					//need to change exact same code on top, fix next time
-					glm::vec3 upVector = (glm::abs(lightComponent.direction.y) > 0.99f) ? glm::vec3(0.f, 0.f, 1.f) : glm::vec3(0.f, 1.f, 0.f);
-					glm::mat4 lightView = glm::lookAt(lightComponent.position, lightComponent.position + lightComponent.direction, upVector);
-					float fieldOfView = glm::radians(lightComponent.spotAngle * 2.f); // Spotlight cone angle
-					glm::mat4 lightProj = glm::perspective(fieldOfView, 1.f, 1.f, lightComponent.range); //change in the future
-
-					shader->Set("u_LightViewProjection", lightProj * lightView);
+					directionalLight = true;
 				}
-				else if (lightComponent.type == LightComponent::Type::Directional)
-				{
-					glm::vec3 upVector = { 0.f,1.f,0.f };
-					glm::vec3 lightPos = cameraPosition + lightComponent.position;
-					glm::mat4 lightView = glm::lookAt(lightComponent.position, lightComponent.direction, upVector);
 
-					Frustum frustum = ComputeFrustum(viewProjMatrix);
-					FrustumCorners frustumCorners = GetCorners(frustum); // corners are off prob
-					FrustumCorners lightSpaceFrustumCorners = frustumCorners;
-					lightSpaceFrustumCorners.Transform(lightView);
-					AABB aabb = lightSpaceFrustumCorners.GetAABB();
-
-					glm::mat4 lightProj = glm::ortho(-40.f, 40.f, -40.f, 40.f, 0.f, 400.f);
-					//glm::mat4 lightProj = glm::ortho(aabb.minExtent.x, aabb.maxExtent.x, aabb.minExtent.y, aabb.maxExtent.y, aabb.minExtent.z, aabb.maxExtent.y);
-
-					shader->Set("u_LightViewProjection", lightProj * lightView);
-				}
+				SetShadowVariable(lightComponent, shader, camera);
+				break; //TODO 1 shadow for now
 			}
 
+
+			if(!directionalLight)
 			{
+				shadowMap->Bind();
+				{
+					auto group = registryPtr->group<>(entt::get<TransformComponent, MeshFilterComponent, MeshRendererComponent>);
+					for (auto& entity : group)
+					{
+						Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
+						if (!brEntity.IsActive())
+						{
+							continue;
+						}
+						auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
+
+						RenderCommand::EnableFrontFaceCull();
+						Renderer3D::DrawMesh(TransformComponent::GetGlobalTransform(brEntity), meshFilter, meshRenderer, shader, (int)entity);
+						RenderCommand::EnableBackFaceCull();
+					}
+				}
+				shadowMap->Unbind();
+			}
+
+			if(directionalLight && S_SIMPLEMESH)
+			{
+				mCascadeShadowMapBuffer->Bind();
+				RenderCommand::Clear();
+
 				auto group = registryPtr->group<>(entt::get<TransformComponent, MeshFilterComponent, MeshRendererComponent>);
 				for (auto& entity : group)
 				{
@@ -770,17 +915,542 @@ namespace Borealis
 					}
 					auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
 
-					Renderer3D::DrawMesh(TransformComponent::GetGlobalTransform(brEntity), meshFilter, meshRenderer, shader, (int)entity);
+					RenderCommand::EnableFrontFaceCull();
+					Renderer3D::DrawHighlightedMesh(TransformComponent::GetGlobalTransform(brEntity), meshFilter, cascade_shadow_shader);
+					RenderCommand::EnableBackFaceCull();
+				}
+
+				mCascadeShadowMapBuffer->Unbind();
+			}
+		}
+
+		shader->Unbind();
+	}
+
+
+	ObjectPickingPass::ObjectPickingPass(std::string name) : RenderPass(name)
+	{
+	}
+
+	void ObjectPickingPass::Execute(float dt)
+	{
+		PROFILE_FUNCTION();
+		Ref<PixelBufferSource> pixelBuffer = nullptr;
+		Ref<IntSource> entityID = nullptr;
+		Ref<Vec2IntSource> mouse = nullptr;
+		Ref<BoolSource> viewPortHovered = nullptr;
+		Ref<RenderTargetSource> renderTarget = nullptr;
+
+		for (auto sink : sinkList)
+		{
+			if (sink->source->sourceType == RenderSourceType::PixelBuffer)
+			{
+				pixelBuffer = std::dynamic_pointer_cast<PixelBufferSource>(sink->source);
+			}
+
+			if (sink->source->sourceType == RenderSourceType::IntRef)
+			{
+				entityID = std::dynamic_pointer_cast<IntSource>(sink->source);
+			}
+
+			if (sink->source->sourceType == RenderSourceType::Vec2Int)
+			{
+				mouse = std::dynamic_pointer_cast<Vec2IntSource>(sink->source);
+			}
+
+			if (sink->source->sourceType == RenderSourceType::Bool)
+			{
+				viewPortHovered = std::dynamic_pointer_cast<BoolSource>(sink->source);
+			}
+
+			if (sink->source->sourceType == RenderSourceType::RenderTargetColor)
+			{
+				if (sink->sinkName == "renderTarget")
+				{
+					renderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
 				}
 			}
 		}
 
-		RenderCommand::EnableBackFaceCull();
+		if (pixelBuffer)
+		{
+			if (pixelBuffer->Width != renderTarget->Width || pixelBuffer->Height != renderTarget->Height)
+			{
+				pixelBuffer->Resize(renderTarget->Width, renderTarget->Height);
+			}
+			renderTarget->Bind();
 
-		if (shadowMap)
-			shadowMap->Unbind();
+			pixelBuffer->Bind();
 
-		shader->Unbind();
+			pixelBuffer->ReadTexture(1);
+
+			pixelBuffer->Unbind();
+
+			renderTarget->Unbind();
+		}
+
+		if(viewPortHovered->mRef)
+		{
+			if (SceneManager::GetActiveScene()->GetPixelBuffer()->ReadPixel(mouse->mRefX, mouse->mRefY) != -1)
+			{
+				//int id_ent = mViewportFrameBuffer->ReadPixel(1, mouseX, mouseY);
+				entityID->mRef = SceneManager::GetActiveScene()->GetPixelBuffer()->ReadPixel(mouse->mRefX, mouse->mRefY);
+				//BOREALIS_CORE_INFO("picking id {}", mHoveredEntity.GetName());
+				//BOREALIS_CORE_INFO("Name : {}", mHoveredEntity.GetName());
+			}
+			else
+			{
+				entityID->mRef = -1;
+			}
+		}
+	}
+
+	EditorHighlightPass::EditorHighlightPass(std::string name) : RenderPass(name)
+	{
+		shader = common_shader;
+	}
+
+	void EditorHighlightPass::Execute(float dt)
+	{
+		PROFILE_FUNCTION();
+		Ref<RenderTargetSource> renderTarget = nullptr;
+		glm::vec3 cameraLookAt{};
+
+		glm::mat4 viewProjMatrix;
+		Ref<IntListSource> selectedEntities = nullptr;
+		int hoveredEntity = -1;
+
+		for (auto sink : sinkList)
+		{
+			if (sink->source->sourceType == RenderSourceType::RenderTargetColor)
+			{
+				if (sink->sinkName == "renderTarget")
+				{
+					renderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
+				}
+			}
+
+			if (sink->source->sourceType == RenderSourceType::Camera)
+			{
+				viewProjMatrix = std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj();
+				cameraLookAt = std::dynamic_pointer_cast<CameraSource>(sink->source)->lookAt;
+			}
+
+			if (sink->source->sourceType == RenderSourceType::IntList)
+			{
+				selectedEntities = std::dynamic_pointer_cast<IntListSource>(sink->source);
+			}
+
+			if (sink->source->sourceType == RenderSourceType::IntRef)
+			{
+				hoveredEntity = std::dynamic_pointer_cast<IntSource>(sink->source)->mRef;
+			}
+		}
+
+		selectedEntities->mList.push_back(hoveredEntity);
+
+		for(int entityID : selectedEntities->mList)
+		{
+			if (entityID != -1)
+			{
+				Entity brEntity = { (entt::entity)entityID, SceneManager::GetActiveScene().get() };
+
+				if (!brEntity.IsActive())
+				{
+					return;
+				}
+
+				shader->Bind();
+				shader->Set("u_ViewProjection", viewProjMatrix);
+				if (entityID == hoveredEntity)
+				{
+					shader->Set("u_Filled", H_HIGHLIGHT);
+				}
+				else
+				{
+					shader->Set("u_Filled", false);
+				}
+				shader->Set("u_HighlightPass", false);
+				shader->Set("u_Color", { 1.f, 0.475f, 0.f , 1.f });
+				shader->Unbind();
+
+				renderTarget->Bind();
+
+				RenderCommand::ClearStencil();
+				RenderCommand::EnableDepthTest();
+				RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLEqual);
+				RenderCommand::EnableStencilTest();
+				RenderCommand::EnablePolygonOffset();
+				RenderCommand::SetPolygonOffset(-1.f, 1.f);
+
+				glm::mat4 transform = TransformComponent::GetGlobalTransform(brEntity);
+
+				if (brEntity.HasComponent<SpriteRendererComponent>())
+				{
+					SpriteRendererComponent const& spriteRenderer = brEntity.GetComponent<SpriteRendererComponent>();
+					Renderer2D::DrawHighlightedSprite(transform, spriteRenderer, shader);
+				}
+				if (brEntity.HasComponent<MeshFilterComponent>())
+				{
+					MeshFilterComponent const& meshFilter = brEntity.GetComponent<MeshFilterComponent>();
+					Renderer3D::DrawHighlightedMesh(transform, meshFilter, shader);
+				}
+				if (brEntity.HasComponent<SkinnedMeshRendererComponent>())
+				{
+
+				}
+
+				shader->Bind();
+				shader->Set("u_Filled", false);
+				shader->Set("u_HighlightPass", true);
+				RenderCommand::EnableStencilTest();
+				RenderCommand::EnableFrontFaceCull();
+				RenderCommand::ConfigureStencilForHighlight();
+				RenderCommand::EnableWireFrameMode();
+
+				if (brEntity.HasComponent<SpriteRendererComponent>())
+				{
+					SpriteRendererComponent const& spriteRenderer = brEntity.GetComponent<SpriteRendererComponent>();
+					Renderer2D::DrawHighlightedSprite(transform, spriteRenderer, shader);
+				}
+				if (brEntity.HasComponent<MeshFilterComponent>())
+				{
+					MeshFilterComponent const& meshFilter = brEntity.GetComponent<MeshFilterComponent>();
+					Renderer3D::DrawHighlightedMesh(transform, meshFilter, shader);
+				}
+				if (brEntity.HasComponent<SkinnedMeshRendererComponent>())
+				{
+
+				}
+
+				RenderCommand::DisablePolygonOffset();
+				RenderCommand::DisableWireFrameMode();
+				RenderCommand::EnableDepthTest();
+				RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLess);
+				RenderCommand::EnableStencilTest();
+				RenderCommand::EnableBackFaceCull();
+
+				renderTarget->Unbind();
+
+				shader->Unbind();
+			}
+		}
+	}
+
+	HighlightPass::HighlightPass(std::string name) : EntityPass(name)
+	{
+		shader = common_shader;
+	}
+
+	void HighlightPass::Execute(float dt)
+	{
+		PROFILE_FUNCTION();
+		Ref<RenderTargetSource> renderTarget = nullptr;
+		glm::vec3 cameraLookAt{};
+
+		glm::mat4 viewProjMatrix;
+
+		for (auto sink : sinkList)
+		{
+			if (sink->source->sourceType == RenderSourceType::RenderTargetColor)
+			{
+				if (sink->sinkName == "renderTarget")
+				{
+					renderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
+				}
+			}
+
+			if (sink->source->sourceType == RenderSourceType::Camera)
+			{
+				viewProjMatrix = std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj();
+				cameraLookAt = std::dynamic_pointer_cast<CameraSource>(sink->source)->lookAt;
+			}
+		}
+
+		{
+			auto group = registryPtr->group<>(entt::get<TransformComponent, OutLineComponent>);
+			for (auto& entity : group)
+			{
+				Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
+				if (!brEntity.IsActive())
+				{
+					continue;
+				}
+				auto [transformHolder, outline] = group.get<TransformComponent, OutLineComponent>(entity);
+
+				if (!outline.active) continue;
+
+				shader->Bind();
+				shader->Set("u_ViewProjection", viewProjMatrix);
+				shader->Set("u_Filled", outline.filled);
+				shader->Set("u_HighlightPass", false);
+				shader->Set("u_Color", outline.color);
+				shader->Unbind();
+
+				renderTarget->Bind();
+
+				RenderCommand::ClearStencil();
+				RenderCommand::EnableDepthTest();
+				RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLEqual);
+				RenderCommand::EnableStencilTest();
+				RenderCommand::EnablePolygonOffset();
+				RenderCommand::SetPolygonOffset(-1.f, 1.f);
+
+				glm::mat4 transform = TransformComponent::GetGlobalTransform(brEntity);
+
+				if (brEntity.HasComponent<SpriteRendererComponent>())
+				{
+					SpriteRendererComponent const& spriteRenderer = brEntity.GetComponent<SpriteRendererComponent>();
+					Renderer2D::DrawHighlightedSprite(transform, spriteRenderer, shader);
+				}
+				if (brEntity.HasComponent<MeshFilterComponent>())
+				{
+					MeshFilterComponent const& meshFilter = brEntity.GetComponent<MeshFilterComponent>();
+					Renderer3D::DrawHighlightedMesh(transform, meshFilter, shader);
+				}
+				if (brEntity.HasComponent<SkinnedMeshRendererComponent>())
+				{
+
+				}
+
+				shader->Bind();
+				shader->Set("u_Filled", false);
+				shader->Set("u_HighlightPass", true);
+				RenderCommand::EnableStencilTest();
+				RenderCommand::EnableFrontFaceCull();
+				RenderCommand::ConfigureStencilForHighlight();
+				if(outline.lineWidth < 0.1f)
+					RenderCommand::SetLineThickness(0.1f);
+				else
+					RenderCommand::SetLineThickness((outline.lineWidth > 10.f) ? 10.f : outline.lineWidth);
+				RenderCommand::EnableWireFrameMode();
+
+				if (brEntity.HasComponent<SpriteRendererComponent>())
+				{
+					SpriteRendererComponent const& spriteRenderer = brEntity.GetComponent<SpriteRendererComponent>();
+					Renderer2D::DrawHighlightedSprite(transform, spriteRenderer, shader);
+				}
+				if (brEntity.HasComponent<MeshFilterComponent>())
+				{
+					MeshFilterComponent const& meshFilter = brEntity.GetComponent<MeshFilterComponent>();
+					Renderer3D::DrawHighlightedMesh(transform, meshFilter, shader);
+				}
+				if (brEntity.HasComponent<SkinnedMeshRendererComponent>())
+				{
+
+				}
+
+				RenderCommand::DisablePolygonOffset();
+				RenderCommand::DisableWireFrameMode();
+				RenderCommand::EnableDepthTest();
+				RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLess);
+				RenderCommand::EnableStencilTest();
+				RenderCommand::EnableBackFaceCull();
+
+				renderTarget->Unbind();
+
+				shader->Unbind();
+			}
+		}
+	}
+
+	Ref<FrameBuffer> UIFBO;
+
+	UIPass::UIPass(std::string name) : EntityPass(name)
+	{
+		if (!UIFBO)
+		{
+			FrameBufferProperties props{ 1280, 720, false };
+			props.Attachments = { FramebufferTextureFormat::RGBA8,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
+			UIFBO = FrameBuffer::Create(props);
+		}
+
+		shader = quad_shader;
+	}
+
+	void RenderCanvasRecursive(Entity parent, const glm::mat4& parentTransform, const glm::mat4& canvasTransform)
+	{
+		glm::mat4 globalTansform = (glm::mat4)parent.GetComponent<TransformComponent>();
+		if (parent.HasComponent<CanvasRendererComponent>())
+		{
+			glm::mat4 transform = canvasTransform * parentTransform * globalTansform;
+			if (parent.HasComponent<SpriteRendererComponent>())
+			{
+
+				Renderer2D::DrawSprite(transform, parent.GetComponent<SpriteRendererComponent>(), (int)parent);
+			}
+
+			if (parent.HasComponent<TextComponent>())
+			{
+				TextComponent const& text = parent.GetComponent<TextComponent>();
+				
+				Renderer2D::DrawString(text.text, text.font, transform, (int)parent);
+			}
+		}
+
+		for (UUID childID : parent.GetComponent<TransformComponent>().ChildrenID)
+		{
+			Entity child = SceneManager::GetActiveScene()->GetEntityByUUID(childID);
+
+			RenderCanvasRecursive(child, parentTransform * globalTansform, canvasTransform);
+		}
+	}
+
+	void UIPass::Execute(float dt)
+	{
+		PROFILE_FUNCTION();
+		Ref<RenderTargetSource> renderTarget = nullptr;
+		glm::mat4 viewProjMatrix{};
+
+		for (auto sink : sinkList)
+		{
+			if (sink->source->sourceType == RenderSourceType::RenderTargetColor)
+			{
+				if (sink->sinkName == "renderTarget")
+				{
+					renderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
+				}
+			}
+
+			if (sink->source->sourceType == RenderSourceType::Camera)
+			{
+				viewProjMatrix = std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj();
+			}
+		}
+
+		if (UIFBO->GetProperties().Width != renderTarget->Width || UIFBO->GetProperties().Height != renderTarget->Height)
+		{
+			UIFBO->Resize(renderTarget->Width, renderTarget->Height);
+		}
+
+		viewProjMatrix = glm::ortho(0.0f, (float)renderTarget->Width, (float)renderTarget->Height, 0.0f, -100.0f, 100.0f);
+		Renderer2D::Begin(viewProjMatrix);
+
+		bool UIexist = false;
+
+		{
+			auto group = registryPtr->group<>(entt::get<TransformComponent, CanvasComponent>);
+			for (auto& entity : group)
+			{
+				Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
+				if (!brEntity.IsActive())
+				{
+					continue;
+				}
+				auto [transform, canvas] = group.get<TransformComponent, CanvasComponent>(entity);
+
+				float scaleFactor = 1 / canvas.scaleFactor /* * 0.95f */;
+
+				glm::vec3 canvasPosition(renderTarget->Width * 0.5f, renderTarget->Height * 0.5f, 0.0f);
+				glm::vec3 canvasScale(canvas.canvasSize.x * scaleFactor, canvas.canvasSize.y * scaleFactor, 1.0f);
+
+				glm::mat4 canvasTransform = glm::translate(glm::mat4(1.0f), canvasPosition) *
+					glm::scale(glm::mat4(1.0f), glm::vec3(scaleFactor, scaleFactor * -1.f, 1.f));
+
+				////Render Debug Canvas
+				//{
+				//	SpriteRendererComponent spriteRenderer;
+				//	//spriteRenderer.Colour = { 0.f,0.f,100.f,0.2f };
+				//	spriteRenderer.Colour = { 0.f,0.f,0.f,0.0f };
+
+				//	glm::vec3 screenPosition(renderTarget->Width * 0.5f, renderTarget->Height * 0.5f, 0.0f);
+
+				//	glm::vec3 scale = glm::vec3(
+				//		canvas.canvasSize.x * scaleFactor,
+				//		canvas.canvasSize.y * scaleFactor,
+				//		1.f
+				//	);
+				//	glm::mat4 screenTransform = glm::translate(glm::mat4(1.0f), screenPosition) *
+				//		glm::scale(glm::mat4(1.0f), scale);
+				//	Renderer2D::DrawSprite(screenTransform, spriteRenderer);
+				//}
+
+				RenderCanvasRecursive(brEntity, glm::mat4(1.0f), canvasTransform);
+				UIexist = true;
+			}
+		}
+
+		if(UIexist)
+		{
+			UIFBO->Bind();
+			RenderCommand::SetClearColor(glm::vec4{ 0.f });
+			RenderCommand::Clear();
+			RenderCommand::DisableDepthTest();
+			Renderer2D::End();
+			UIFBO->Unbind();
+
+			//std::swap(UIFBO, renderTarget->buffer);
+
+			RenderCommand::DisableDepthTest();
+			UIFBO->BindTexture(0, 0);
+			shader->Bind();
+			shader->Set("u_Texture0", 0);
+
+			renderTarget->Bind();
+			Renderer3D::DrawQuad();
+			renderTarget->Unbind();
+
+			shader->Unbind();
+			RenderCommand::EnableDepthTest();
+		}
+	}
+
+	EditorUIPass::EditorUIPass(std::string name) : EntityPass(name)
+	{
+
+	}
+
+	void EditorUIPass::Execute(float dt)
+	{
+		PROFILE_FUNCTION();
+		Ref<RenderTargetSource> renderTarget = nullptr;
+		Ref<RenderTargetSource> runTimeRenderTarget = nullptr;
+
+		for (auto sink : sinkList)
+		{
+			if (sink->source->sourceType == RenderSourceType::Camera)
+			{
+				Renderer2D::Begin(std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj());
+			}
+
+			if (sink->source->sourceType == RenderSourceType::RenderTargetColor)
+			{
+				if (sink->sinkName == "renderTarget")
+				{
+					renderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
+				}
+				if (sink->sinkName == "runTimeRenderTarget")
+				{
+					runTimeRenderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
+				}
+			}
+		}
+
+		renderTarget->Bind();
+		{
+			auto group = registryPtr->group<>(entt::get<TransformComponent, CanvasComponent>);
+			for (auto& entity : group)
+			{
+				Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
+				if (!brEntity.IsActive())
+				{
+					continue;
+				}
+
+				auto [transform, canvas] = group.get<TransformComponent, CanvasComponent>(entity);
+				canvas.scaleFactor = 0.01;
+				canvas.canvasSize.x = runTimeRenderTarget->Width * canvas.scaleFactor;
+				canvas.canvasSize.y = runTimeRenderTarget->Height * canvas.scaleFactor;
+				SpriteRendererComponent sprite;
+				sprite.Colour = { 0.f,0.f,100.f, 0.2f };
+				glm::mat4 canvasTransform = glm::translate(glm::mat4(1.f), glm::vec3(((glm::mat4)transform)[3]));
+				canvasTransform = glm::scale(canvasTransform, glm::vec3(canvas.canvasSize.x, canvas.canvasSize.y, 1.f));
+				Renderer2D::DrawSprite(canvasTransform, sprite, (int)entity);
+			}
+		}
+		Renderer2D::End();
+
+		renderTarget->Unbind();
 	}
 
 	//========================================================================
@@ -795,14 +1465,32 @@ namespace Borealis
 		if(!s_shader)
 			s_shader = Shader::Create("engineResources/Shaders/Renderer3D_DeferredLighting.glsl");
 
-		if (!shadow_shader)
-			shadow_shader = Shader::Create("engineResources/Shaders/Renderer3D_Material.glsl");
+		if (!material_shader)
+			material_shader = Shader::GetDefault3DMaterialShader();
+
+		if (!cascade_shadow_shader)
+			cascade_shadow_shader = Shader::Create("engineResources/Shaders/Renderer3D_CascadeShadow.glsl");
+
+		if (!common_shader)
+			common_shader = Shader::Create("engineResources/Shaders/Renderer3D_Common.glsl");
+
+		if (!quad_shader)
+			quad_shader = Shader::Create("engineResources/Shaders/Renderer3D_Quad.glsl");
+
+		if (!mCascadeShadowMapBuffer)
+		{
+			FrameBufferProperties propsShadowMapBuffer{ 2024, 2024, false };
+			propsShadowMapBuffer.Attachments = { FramebufferTextureFormat::DepthArray };
+			mCascadeShadowMapBuffer = FrameBuffer::Create(propsShadowMapBuffer);
+		}
 	}
 
-	void RenderPassConfig::AddSinkLinkage(std::string sinkName, std::string sourceName)
+	RenderPassConfig& RenderPassConfig::AddSinkLinkage(std::string sinkName, std::string sourceName)
 	{
 		SinkLinkageInfo sinkLinkageInfo{ sinkName, sourceName };
 		mSinkLinkageList.push_back(sinkLinkageInfo);
+
+		return *this;
 	}
 
 	void RenderGraphConfig::AddPass(RenderPassConfig renderPassConfig)
@@ -874,7 +1562,15 @@ namespace Borealis
 			case RenderPassType::Geometry:
 			case RenderPassType::Lighting:
 			case RenderPassType::Shadow:
+			case RenderPassType::HighlightPass:
+			case RenderPassType::UIPass:
+			case RenderPassType::EditorUIPass:
 				AddEntityPassConfig(passesConfig);
+				break;
+			case RenderPassType::ObjectPicking:
+			case RenderPassType::EditorHighlightPass:
+				AddRenderPassConfig(passesConfig);
+				break;
 			default:
 				break;
 			}
@@ -905,6 +1601,27 @@ namespace Borealis
 		return nullptr;
 	}
 
+	void RenderGraph::AddRenderPassConfig(RenderPassConfig const& renderPassConfig)
+	{
+		Ref<RenderPass> renderPass = nullptr;
+		switch (renderPassConfig.mType)
+		{
+		case RenderPassType::ObjectPicking:
+			renderPass = MakeRef<ObjectPickingPass>(renderPassConfig.mPassName);
+			break;
+		case RenderPassType::EditorHighlightPass:
+			renderPass = MakeRef<EditorHighlightPass>(renderPassConfig.mPassName);
+			break;
+		}
+
+		for (auto const& sinkLinkage : renderPassConfig.mSinkLinkageList)
+		{
+			renderPass->SetSinkLinkage(sinkLinkage.sinkName, sinkLinkage.sourceName);
+		}
+
+		AddPass(renderPass);
+	}
+
 	void RenderGraph::AddEntityPassConfig(RenderPassConfig const& renderPassConfig)
 	{
 		Ref<RenderPass> renderPass = nullptr;
@@ -924,6 +1641,15 @@ namespace Borealis
 			break;
 		case RenderPassType::Shadow:
 			renderPass = MakeRef<ShadowPass>(renderPassConfig.mPassName);
+			break;
+		case RenderPassType::HighlightPass:
+			renderPass = MakeRef<HighlightPass>(renderPassConfig.mPassName);
+			break;
+		case RenderPassType::UIPass:
+			renderPass = MakeRef<UIPass>(renderPassConfig.mPassName);
+			break;
+		case RenderPassType::EditorUIPass:
+			renderPass = MakeRef<EditorUIPass>(renderPassConfig.mPassName);
 			break;
 		}
 

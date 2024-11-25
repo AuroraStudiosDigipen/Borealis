@@ -38,6 +38,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <EditorLayer.hpp>
 
 #include <Core/Project.hpp>
+#include <Core/LayerList.hpp>
 
 #include "EditorAssets/MaterialEditor.hpp"
 #include <EditorSerialiser.hpp>
@@ -857,10 +858,6 @@ namespace Borealis
 
 			if (deleteComponent)
 			{
-				if (typeid(T) == typeid(RigidBodyComponent))
-				{
-					PhysicsSystem::FreeRigidBody(entity.GetComponent<RigidBodyComponent>());
-				}
 				entity.RemoveComponent<T>();
 			}
 		}
@@ -918,10 +915,6 @@ namespace Borealis
 
 			if (deleteComponent)
 			{
-				if (typeid(MeshRendererComponent) == typeid(RigidBodyComponent))
-				{
-					PhysicsSystem::FreeRigidBody(entity.GetComponent<RigidBodyComponent>());
-				}
 				entity.RemoveComponent<MeshRendererComponent>();
 			}
 
@@ -984,10 +977,6 @@ namespace Borealis
 
 			if (deleteComponent)
 			{
-				if (typeid(SkinnedMeshRendererComponent) == typeid(RigidBodyComponent))
-				{
-					PhysicsSystem::FreeRigidBody(entity.GetComponent<RigidBodyComponent>());
-				}
 				entity.RemoveComponent<SkinnedMeshRendererComponent>();
 			}
 
@@ -1142,7 +1131,7 @@ namespace Borealis
 				ImGui::Text(("UUID: " + std::to_string(metadata.Handle)).c_str());
 #endif
 				ImGui::Text(("Name: " + metadata.name).c_str());
-				ImGui::Text(("Type: " + Asset::AssetTypeToString(metadata.Type)).c_str());
+				ImGui::Text(("Type: " + AssetManager::AssetTypeToString(metadata.Type)).c_str());
 				ImGui::Text(("Path: " + metadata.SourcePath.string()).c_str());
 				switch (metadata.Type)
 				{
@@ -1373,10 +1362,15 @@ namespace Borealis
 
 			}
 
+			// Text organisation - split up camelcase
+			std::string properName = StringUtils::SplitAndCapitalize(name);
+
+
+
 			ImGui::PushID(name.c_str());
 			ImGui::Columns(2);
 			ImGui::SetColumnWidth(0, 10 * ImGui::GetFontSize());
-			ImGui::Text(name.c_str());
+			ImGui::Text(properName.c_str());
 			ImGui::NextColumn();
 
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 10, 0 }); // Spacing between Items
@@ -1755,14 +1749,82 @@ namespace Borealis
 			strcpy_s(buffer, sizeof(buffer), tag.c_str());
 			ImGui::Checkbox("##Active", &entity.GetComponent<TagComponent>().active);
 			ImGui::SameLine();
+			ImGui::SetNextItemWidth(ImGui::GetFontSize() * 15);
 			if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
 			{
 				tag = std::string(buffer);
 			}
 
 			ImGui::SameLine();
+			ImGui::SetNextItemWidth(ImGui::GetFontSize() * 10);
+			if (ImGui::BeginCombo("##LayerList", "Layers...", ImGuiComboFlags_HeightLarge))
+			{
+				static char layerTextBuffer[32][32];
+				for (int i = 0; i < 32; i++)
+				{
+					std::string label = LayerList::HasIndex(i) ? LayerList::List().at(i) : "Unused Layer " + std::to_string(i);
+					bool isChecked = entity.GetComponent<TagComponent>().mLayer.test(i);
 
-			
+					if (ImGui::Checkbox(("##" + std::to_string(i) + ": " + label).c_str(), &isChecked)) {
+						// Update the state of the checkbox
+						entity.GetComponent<TagComponent>().mLayer.flip(i);
+					}
+
+					std::memset(layerTextBuffer[i], 0, 64);
+					std::memcpy(layerTextBuffer[i], label.data(), label.size());
+
+					ImGui::SameLine();
+					if (i < 10)
+					{
+						ImGui::Text((std::to_string(i) + ":   ").c_str());
+					}
+					else
+					{
+						ImGui::Text((std::to_string(i) + ": ").c_str());
+					}
+					ImGui::SameLine();
+					ImGuiInputTextFlags_ flag;
+					if (i <= 5)
+					{
+						flag = ImGuiInputTextFlags_ReadOnly;
+					}
+					else
+					{
+						flag = ImGuiInputTextFlags_EnterReturnsTrue;
+					}
+
+					if (!LayerList::HasIndex(i))
+					{
+						ImU32 color32 = IM_COL32(180, 120, 120, 255);
+						ImVec4 color = ImGui::ColorConvertU32ToFloat4(color32);
+						ImGui::PushStyleColor(ImGuiCol_FrameBg, color);
+					}
+					ImGui::SetNextItemWidth(ImGui::GetFontSize() * 6);
+					if (ImGui::InputText(("##" + label).c_str(), layerTextBuffer[i], 64, flag))
+					{
+						LayerList::SetLayer(i, std::string(layerTextBuffer[i]));
+					}
+					if (!LayerList::HasIndex(i))
+					{
+						ImGui::PopStyleColor();
+					}
+					 
+					// Right click to open menu
+					if (ImGui::BeginPopupContextItem())
+					{
+						if (LayerList::HasIndex(i) && i > 5)
+						{
+							if (ImGui::MenuItem("Delete Layer"))
+							{
+								LayerList::RemoveLayer(i);
+							}
+						}
+						ImGui::EndPopup();
+					}
+				}
+				ImGui::EndCombo();
+			}
+			ImGui::SameLine();
 		}
 
 		ImGui::SameLine();
@@ -1792,12 +1854,18 @@ namespace Borealis
 			isEdited = SearchBar<BoxColliderComponent	  >(search_text, entity,"Box Collider", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<CapsuleColliderComponent>(search_text, entity,"Capsule Collider", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<RigidBodyComponent	  >(search_text, entity,"Rigidbody", search_buffer) ? true : isEdited;
+			isEdited = SearchBar<CharacterControlComponent>(search_text, entity, "Character Controller", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<LightComponent		  >(search_text, entity,"Light", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<TextComponent				>(search_text, entity,"Text", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<BehaviourTreeComponent	>(search_text, entity, "Behaviour Tree", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<AudioSourceComponent		>(search_text, entity, "Audio Source", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<AudioListenerComponent	>(search_text, entity, "Audio Listener", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<SkinnedMeshRendererComponent	>(search_text, entity, "Skinned Mesh Renderer", search_buffer) ? true : isEdited;
+			isEdited = SearchBar<AnimatorComponent	>(search_text, entity, "Animator", search_buffer) ? true : isEdited;
+			isEdited = SearchBar<OutLineComponent	>(search_text, entity, "Outline", search_buffer) ? true : isEdited;
+			isEdited = SearchBar<CanvasComponent	>(search_text, entity, "Canvas", search_buffer) ? true : isEdited;
+			isEdited = SearchBar<CanvasRendererComponent	>(search_text, entity, "Canvas Renderer", search_buffer) ? true : isEdited;
+
 
 
 			// scripts
@@ -1831,12 +1899,17 @@ namespace Borealis
 		isEdited = DrawComponentLayout<BoxColliderComponent>("Box Collider", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<CapsuleColliderComponent>("Capsule Collider", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<RigidBodyComponent>("Rigidbody", entity) ? true : isEdited;
+		isEdited = DrawComponentLayout<CharacterControlComponent>("Character Controller", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<LightComponent>("Light", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<TextComponent>("Text", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<BehaviourTreeComponent>("Behaviour Tree", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<AudioSourceComponent>("Audio Source", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<AudioListenerComponent>("Audio Listener", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<SkinnedMeshRendererComponent>("Skinned Mesh Renderer", entity) ? true : isEdited;
+		isEdited = DrawComponentLayout<AnimatorComponent>("Animator", entity) ? true : isEdited;
+		isEdited = DrawComponentLayout<OutLineComponent>("Outline", entity) ? true : isEdited;
+		isEdited = DrawComponentLayout<CanvasComponent>("Canvas", entity) ? true : isEdited;
+		isEdited = DrawComponentLayout<CanvasRendererComponent>("Canvas Renderer", entity) ? true : isEdited;
 
 
 		/*DrawComponent<CameraComponent>("Camera", mSelectedEntity, [](auto& cameraComponent)

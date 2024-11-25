@@ -3,18 +3,18 @@ namespace Borealis
 {
     public class Ray
     {
-        public Vector3 Origin;
-        public Vector3 Direction;
+        public Vector3 origin;
+        public Vector3 direction;
 
-        public Ray(Vector3 origin, Vector3 direction)
+        public Ray(Vector3 Origin, Vector3 Direction)
         {
-            Origin = origin;
-            Direction = direction;
+            origin = Origin;
+            direction = Direction;
         }
 
         public Vector3 GetPoint(float distance)
         {
-            return Origin + Direction * distance;
+            return origin + direction * distance;
         }
     }
 }

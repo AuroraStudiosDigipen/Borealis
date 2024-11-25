@@ -31,6 +31,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <AI/BehaviourTree/BehaviourNode.hpp>
 #include <AI/BehaviourTree/BTreeFactory.hpp>
 
+#include <Core/Project.hpp>
+
 namespace Borealis
 {
 
@@ -204,6 +206,13 @@ namespace Borealis
 
 
 		auto thread = mono_thread_attach(sData->mRootDomain);
+		LoadScriptAssembliesNonThreaded(filepath);
+
+		mono_thread_detach(thread);
+	}
+
+	void ScriptingSystem::LoadScriptAssembliesNonThreaded(std::string filepath)
+	{
 		mono_domain_set(sData->mRootDomain, true);
 		mono_domain_unload(sData->mAppDomain);
 		char friendlyName[] = "BorealisAppDomain";
@@ -279,8 +288,6 @@ namespace Borealis
 				continue;
 			}
 		}
-
-		mono_thread_detach(thread);
 	}
 
 	void ScriptingSystem::AttachAppDomain()
@@ -394,4 +401,20 @@ namespace Borealis
 		sData->mRootDomain = nullptr;
 	}
 
+	void ScriptingSystem::Reload(AssetMetaData const& assetMetaData)
+	{
+		for (auto [assetHandle, assetMetaDataFromRegistry] : Project::GetEditorAssetsManager()->GetAssetRegistry())
+		{
+			if (assetMetaDataFromRegistry.Type == AssetType::Script)
+			{
+				ScriptingSystem::PushCSharpQueue(assetMetaDataFromRegistry.SourcePath.string());
+			}
+		}
+		ScriptingSystem::CompileCSharpQueue(Project::GetProjectPath() + "/Cache/CSharp_Assembly.dll");
+		ScriptingSystem::LoadScriptAssemblies(Project::GetProjectPath() + "/Cache/CSharp_Assembly.dll");
+	}
+	void* ScriptingSystem::GetScriptDomain()
+	{
+		return sData->mAppDomain;
+	}
 }

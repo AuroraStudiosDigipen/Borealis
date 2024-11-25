@@ -241,6 +241,8 @@ namespace Borealis
 		*************************************************************************/
 		static Props StringToProps(const std::string& str);
 
+		static Ref<Asset> Load(AssetMetaData const& assetMetaData);
+
 	private:
 		/*!***********************************************************************
 			\brief

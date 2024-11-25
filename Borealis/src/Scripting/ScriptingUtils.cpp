@@ -49,6 +49,7 @@ namespace Borealis
 	{
 		uint32_t size;
 		char* buffer = ReadBytes(path, &size);
+
 		BOREALIS_CORE_ASSERT(buffer, "Failed to read file");
 
 		MonoImageOpenStatus status;

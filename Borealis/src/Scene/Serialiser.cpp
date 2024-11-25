@@ -98,16 +98,6 @@ namespace Borealis
 			SerializeComponent(out, entity.GetComponent<AnimatorComponent>());
 		}
 
-		if (entity.HasComponent<BoxColliderComponent>())
-		{
-			SerializeComponent(out, entity.GetComponent<BoxColliderComponent>());
-		}
-
-		if (entity.HasComponent<CapsuleColliderComponent>())
-		{
-			SerializeComponent(out, entity.GetComponent<CapsuleColliderComponent>());
-		}
-
 		if (entity.HasComponent<RigidBodyComponent>())
 		{
 			SerializeComponent(out, entity.GetComponent<RigidBodyComponent>());
@@ -133,6 +123,29 @@ namespace Borealis
 			SerializeComponent(out, entity.GetComponent<AudioSourceComponent>());
 		}
 
+		if (entity.HasComponent<CharacterControlComponent>())
+		{
+			SerializeComponent(out, entity.GetComponent<CharacterControlComponent>());
+		}
+
+		if (entity.HasComponent<BoxColliderComponent>())
+		{
+			SerializeComponent(out, entity.GetComponent<BoxColliderComponent>());
+		}
+
+
+		if (entity.HasComponent<SphereColliderComponent>())
+		{
+			SerializeComponent(out, entity.GetComponent<SphereColliderComponent>());
+		}
+
+
+		if (entity.HasComponent<CapsuleColliderComponent>())
+		{
+			SerializeComponent(out, entity.GetComponent<CapsuleColliderComponent>());
+		}
+
+
 
 		if (entity.HasComponent<BehaviourTreeComponent>())
 		{
@@ -152,6 +165,21 @@ namespace Borealis
 			//}
 
 			//out << YAML::EndMap;
+		}
+
+		if (entity.HasComponent<OutLineComponent>())
+		{
+			SerializeComponent(out, entity.GetComponent<OutLineComponent>());
+		}
+
+		if (entity.HasComponent<CanvasComponent>())
+		{
+			SerializeComponent(out, entity.GetComponent<CanvasComponent>());
+		}
+
+		if (entity.HasComponent<CanvasRendererComponent>())
+		{
+			SerializeComponent(out, entity.GetComponent<CanvasRendererComponent>());
 		}
 
 		if (entity.HasComponent<ScriptComponent>())
@@ -376,15 +404,20 @@ namespace Borealis
 		DeserialiseComponent<CameraComponent>(entity, BorealisEntity);
 		DeserialiseComponent<MeshFilterComponent>(entity, BorealisEntity);
 		DeserialiseComponent<MeshRendererComponent>(entity, BorealisEntity);
-		DeserialiseComponent<BoxColliderComponent>(entity, BorealisEntity);
-		DeserialiseComponent<CapsuleColliderComponent>(entity, BorealisEntity);
 		DeserialiseComponent<RigidBodyComponent>(entity, BorealisEntity);
 		DeserialiseComponent<LightComponent>(entity, BorealisEntity);
+		DeserialiseComponent<CharacterControlComponent>(entity, BorealisEntity);
 		DeserialiseComponent<AudioSourceComponent>(entity, BorealisEntity);
 		DeserialiseComponent<AudioListenerComponent>(entity, BorealisEntity);
 		DeserialiseComponent<TextComponent>(entity, BorealisEntity);
 		DeserialiseComponent<SkinnedMeshRendererComponent>(entity, BorealisEntity);
-
+		DeserialiseComponent<AnimatorComponent>(entity, BorealisEntity);
+		DeserialiseComponent<OutLineComponent>(entity, BorealisEntity);
+		DeserialiseComponent<CanvasComponent>(entity, BorealisEntity);
+		DeserialiseComponent<CanvasRendererComponent>(entity, BorealisEntity);
+		DeserialiseComponent<BoxColliderComponent>(entity, BorealisEntity);
+		DeserialiseComponent<SphereColliderComponent>(entity, BorealisEntity);
+		DeserialiseComponent<CapsuleColliderComponent>(entity, BorealisEntity);
 		DeserialiseAbstractItems(entity, BorealisEntity);
 		//auto behaviourTreeComponent = entity["BehaviourTreeComponent"];
 		/*

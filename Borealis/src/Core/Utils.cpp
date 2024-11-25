@@ -72,12 +72,18 @@ namespace Borealis
 		{
 		case FramebufferTextureFormat::Depth24Stencil8:
 			return true;
+		case FramebufferTextureFormat::DepthArray:
+			return true;
 		}
 		return false;
 	}
 
-	unsigned GraphicsUtils::TextureTarget(bool multiSampled)
+	unsigned GraphicsUtils::TextureTarget(bool multiSampled, bool is3D)
 	{
+		if (is3D)
+		{
+			return multiSampled ? GL_TEXTURE_2D_MULTISAMPLE_ARRAY : GL_TEXTURE_2D_ARRAY;
+		}
 		return multiSampled ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
 	}
 
@@ -86,9 +92,9 @@ namespace Borealis
 		glGenTextures((GLsizei)count, outID);
 	}
 
-	void GraphicsUtils::BindTexture(bool multiSampled, uint32_t id)
+	void GraphicsUtils::BindTexture(bool multiSampled, uint32_t id, bool is3D)
 	{
-		glBindTexture(TextureTarget(multiSampled), id);
+		glBindTexture(TextureTarget(multiSampled, is3D), id);
 	}
 
 	void GraphicsUtils::AttachColorTexture(uint32_t id, int samples, unsigned internalformat, unsigned format, unsigned type, uint32_t width, uint32_t height, int index)
@@ -137,9 +143,27 @@ namespace Borealis
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+			constexpr float bordercolor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+			glTexParameterfv(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_BORDER_COLOR, bordercolor);
 		}
 
 		glFramebufferTexture2D(GL_FRAMEBUFFER, attachmentType, TextureTarget(multisampled), id, 0);
+	}
+
+	void GraphicsUtils::AttachDepthTextureArray(uint32_t id, int samples, unsigned format, unsigned attachmentType, uint32_t width, uint32_t height)
+	{
+		glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, format, width, height, 4/*cascade map levels*/, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
+		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+
+		constexpr float bordercolor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+		glTexParameterfv(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_BORDER_COLOR, bordercolor);
+
+		glFramebufferTexture(GL_FRAMEBUFFER, attachmentType, id, 0);
 	}
 
 	glm::vec3 Math::QuatToEuler(glm::quat q, bool radians)
@@ -205,6 +229,46 @@ namespace Borealis
 		glm::quat rotation = glm::quat_cast(glm::mat3(xAxis, yAxis, zAxis));
 		*rotate = glm::degrees(glm::eulerAngles(rotation)); // Convert quaternion to Euler angles
 
+	}
+
+	std::string StringUtils::SplitAndCapitalize(const std::string& str)
+	{
+		std::vector<std::string> words;
+		std::string currentWord;
+
+		for (char ch : str) {
+			if (std::isupper(ch)) {
+				// If current word is not empty, push it to words and start a new word
+				if (!currentWord.empty()) {
+					words.push_back(currentWord);
+				}
+				currentWord = ch;  // Start new word with uppercase letter
+			}
+			else {
+				currentWord += ch;  // Continue current word
+			}
+		}
+
+		// Push the last word if it exists
+		if (!currentWord.empty()) {
+			words.push_back(currentWord);
+		}
+
+		// Capitalize the first letter of each word and join them with spaces
+		for (auto& word : words) {
+			word[0] = std::toupper(word[0]);
+		}
+
+		// Join words with spaces
+		std::stringstream result;
+		for (size_t i = 0; i < words.size(); ++i) {
+			result << words[i];
+			if (i != words.size() - 1) {
+				result << " ";
+			}
+		}
+
+		return result.str();
 	}
 
 }

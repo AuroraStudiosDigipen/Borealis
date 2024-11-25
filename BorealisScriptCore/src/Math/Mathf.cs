@@ -28,13 +28,7 @@ namespace Borealis
             }
         }
 
-        public static float Infinity
-        {
-            get
-            {
-                return float.PositiveInfinity;
-            }
-        }
+        public const float Infinity = float.PositiveInfinity;
 
         public static float NegativeInfinity
         {

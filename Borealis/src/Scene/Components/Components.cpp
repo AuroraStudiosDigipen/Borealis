@@ -85,14 +85,13 @@ namespace Borealis
 			auto& tc = entity.GetComponent<TransformComponent>();
 			Entity parent = SceneManager::GetActiveScene()->GetEntityByUUID(entity.GetComponent<TransformComponent>().ParentID);
 			glm::mat4 parentInverse = glm::inverse(GetGlobalTransform(parent));
-			glm::mat4 childRelativeTransform = parentInverse * tc.GetGlobalTransform(entity);
+			glm::mat4 childRelativeTransform = parentInverse * transform;
 			Math::MatrixDecomposition(&childRelativeTransform, &tc.Translate, &tc.Rotation, &tc.Scale);
 		}
 		else
 		{
 			auto& tc = entity.GetComponent<TransformComponent>();
-			auto mat4 = tc.GetTransform();
-			Math::MatrixDecomposition(&mat4 , &tc.Translate, &tc.Rotation, &tc.Scale);
+			Math::MatrixDecomposition(&transform , &tc.Translate, &tc.Rotation, &tc.Scale);
 		}
 	}
 

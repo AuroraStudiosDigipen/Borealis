@@ -23,7 +23,6 @@ namespace Borealis
 	OpenGLShader::OpenGLShader(const std::string& filepath)
 	{
 		PROFILE_FUNCTION();
-
 		std::string shaderSrc = ReadFile(filepath);
 		auto shaderSources = PreProcess(shaderSrc);
 		Compile(shaderSources);
@@ -62,7 +61,15 @@ namespace Borealis
 	{
 		PROFILE_FUNCTION();
 
-		PushUniform(name, value);
+		auto location = GetUniformLocation(name);
+		if (location == -1)
+		{
+			BOREALIS_CORE_ERROR("Invalid uniform name: {}", name);
+		}
+		glUniform1i(location, value);
+		BOREALIS_CORE_ASSERT(glGetError() == GL_NO_ERROR, "Error pushing uniform into shader");
+
+		//PushUniform(name, value);
 	}
 	void OpenGLShader::Set(const char* name, const int* values, const uint32_t& count)
 	{
@@ -108,7 +115,7 @@ namespace Borealis
 	}
 	void OpenGLShader::PushUniform(const char* name, const int& value)
 	{
-		auto location = glGetUniformLocation(mRendererID, name);
+		auto location = GetUniformLocation(name);
 		if (location == -1)
 		{
 			BOREALIS_CORE_ERROR("Invalid uniform name: {}", name);
@@ -118,7 +125,7 @@ namespace Borealis
 	}
 	void OpenGLShader::PushUniform(const char* name, const int* values, const uint32_t count)
 	{
-		auto location = glGetUniformLocation(mRendererID, name);
+		auto location = GetUniformLocation(name);
 		if (location == -1)
 		{
 			BOREALIS_CORE_ERROR("Invalid uniform name: {}", name);
@@ -128,7 +135,7 @@ namespace Borealis
 	}
 	void OpenGLShader::PushUniform(const char* name, const float& value)
 	{
-		auto location = glGetUniformLocation(mRendererID, name);
+		auto location = GetUniformLocation(name);
 		if (location == -1)
 		{
 			BOREALIS_CORE_ERROR("Invalid uniform name: {}", name);
@@ -138,7 +145,7 @@ namespace Borealis
 	}
 	void OpenGLShader::PushUniform(const char* name, const glm::vec2& value)
 	{
-		auto location = glGetUniformLocation(mRendererID, name);
+		auto location = GetUniformLocation(name);
 		if (location == -1)
 		{
 			BOREALIS_CORE_ERROR("Invalid uniform name: {}", name);
@@ -148,7 +155,7 @@ namespace Borealis
 	}
 	void OpenGLShader::PushUniform(const char* name, const glm::vec3& value)
 	{
-		auto location = glGetUniformLocation(mRendererID, name);
+		auto location = GetUniformLocation(name);
 		if (location == -1)
 		{
 			BOREALIS_CORE_ERROR("Invalid uniform name: {}", name);
@@ -158,7 +165,7 @@ namespace Borealis
 	}
 	void OpenGLShader::PushUniform(const char* name, const glm::vec4& value)
 	{
-		auto location = glGetUniformLocation(mRendererID, name);
+		auto location = GetUniformLocation(name);
 		if (location == -1)
 		{
 			BOREALIS_CORE_ERROR("Invalid uniform name: {}", name);
@@ -168,7 +175,7 @@ namespace Borealis
 	}
 	void OpenGLShader::PushUniform(const char* name, const glm::mat3& value)
 	{
-		auto location = glGetUniformLocation(mRendererID, name);
+		auto location = GetUniformLocation(name);
 		if (location == -1)
 		{
 			BOREALIS_CORE_ERROR("Invalid uniform name: {}", name);
@@ -178,12 +185,12 @@ namespace Borealis
 	}
 	void OpenGLShader::PushUniform(const char* name, const glm::mat4& value)
 	{
-		auto location = glGetUniformLocation(mRendererID, name);
+		auto location = GetUniformLocation(name);
 		if (location == -1)
 		{
 			BOREALIS_CORE_ERROR("Invalid uniform name: {}", name);
 		}
-		glUniformMatrix4fv(glGetUniformLocation(mRendererID, name), 1, GL_FALSE, glm::value_ptr(value));
+		glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, glm::value_ptr(value));
 		BOREALIS_CORE_ASSERT(glGetError() == GL_NO_ERROR, "Error pushing uniform into shader");
 	}
 	GLenum OpenGLShader::ShaderTypeFromString(const std::string& type)
@@ -192,6 +199,8 @@ namespace Borealis
 			return GL_VERTEX_SHADER;
 		if (type == "fragment")
 			return GL_FRAGMENT_SHADER;
+		if (type == "geometry")
+			return GL_GEOMETRY_SHADER;
 
 		BOREALIS_CORE_ERROR("Invalid Shader Type: {}", type);
 		return 0;
@@ -250,8 +259,8 @@ namespace Borealis
 		PROFILE_FUNCTION();
 
 		GLuint program = glCreateProgram();
-		BOREALIS_CORE_ASSERT(shaderSources.size() <= 2, "More than 2 shaders detected in 1 glsl");
-		std::array<GLenum,2> shaderIDs;
+		BOREALIS_CORE_ASSERT(shaderSources.size() <= 3, "More than 3 shaders detected in 1 glsl");
+		std::array<GLenum, 3> shaderIDs{};
 		int index = 0;
 		for (auto& kv : shaderSources)
 		{
@@ -309,6 +318,7 @@ namespace Borealis
 			glDeleteProgram(program);
 			for (auto id : shaderIDs)
 			{
+				if (id == 0) continue;
 				glDeleteShader(id);
 			}
 			// Use the infoLog as you see fit.
@@ -319,8 +329,21 @@ namespace Borealis
 
 		for (auto id : shaderIDs)
 		{
+			if (id == 0) continue;
 			glDetachShader(program,id);
 		}
 		mRendererID = program;
+	}
+
+	int OpenGLShader::GetUniformLocation(std::string const& uniformName)
+	{
+		if (mUniformLocations.contains(uniformName))
+		{
+			return mUniformLocations[uniformName];
+		}
+
+		GLint location = glGetUniformLocation(mRendererID, uniformName.c_str());
+		mUniformLocations[uniformName] = location;
+		return location;
 	}
 }

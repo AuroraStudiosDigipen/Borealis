@@ -34,6 +34,8 @@ namespace Borealis
 		*************************************************************************/
 		void Clear() override;
 
+		void ClearStencil() override;
+
 		/*!***********************************************************************
 			\brief
 				Set the clear color of the RendererAPI
@@ -55,6 +57,8 @@ namespace Borealis
 				The color to set the clear color to
 		*************************************************************************/
 		void SetClearColor(const glm::vec4& color) override;
+
+		void SetStencilClear(int clear) override;
 
 		/*!***********************************************************************
 			\brief
@@ -104,11 +108,28 @@ namespace Borealis
 
 		void EnableDepthTest() override;
 
+		void ConfigureDepthFunc(DepthFunc func) override;
+
 		void DisableDepthTest() override;
 
 		void EnableBackFaceCull() override;
 			
 		void EnableFrontFaceCull() override;
+
+		void EnableStencilTest() override;
+
+		void ConfigureStencilForHighlight() override;
+
+		void DisableStencilTest() override;
+
+		void EnableWireFrameMode() override;
+
+		void DisableWireFrameMode() override;
+
+		void EnablePolygonOffset() override;
+		void SetPolygonOffset(float factor, float units) override;
+		void DisablePolygonOffset() override;
+
 		void IgnoreNextError() override;
 
 		unsigned GetError(std::string const& errorMsg) override;

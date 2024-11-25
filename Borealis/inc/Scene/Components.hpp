@@ -30,6 +30,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <AI/BehaviourTree/BehaviourTree.hpp>
 #include <AI/BehaviourTree/BTreeFactory.hpp>
 #include <Core/UUID.hpp>
+#include <Core/Bitset32.hpp>
 #include <Audio/Audio.hpp>
 
 
@@ -48,6 +49,7 @@ namespace Borealis
 	{
 		bool active = true;
 		std::string Tag;
+		Bitset32 mLayer;
 
 		TagComponent() = default;
 		TagComponent(const TagComponent&) = default;
@@ -210,36 +212,6 @@ namespace Borealis
 		CombineMethod mBounceCombine = CombineMethod::Average;
 	};
 
-	struct BoxColliderComponent
-	{
-		bool isTrigger = false;
-		bool providesContact = false;
-		Ref<PhysicMaterial> Material;
-		glm::vec3 Center{ 0,0,0 };
-		glm::vec3 Size{ 1,1,1 };
-		BoxColliderComponent() = default;
-		BoxColliderComponent(const BoxColliderComponent&) = default;
-	};
-
-	struct CapsuleColliderComponent
-	{
-		enum class Direction : uint8_t
-		{
-			X,
-			Y,
-			Z
-		};
-
-		bool isTrigger = false;
-		bool providesContact = false;
-		Ref<PhysicMaterial> Material;
-		float radius = 0.5f;
-		float height = 2;
-		Direction direction = Direction::Y;
-		CapsuleColliderComponent() = default;
-		CapsuleColliderComponent(const CapsuleColliderComponent&) = default;
-	};
-
 
 	enum class RigidBodyType : int
 	{
@@ -257,21 +229,11 @@ namespace Borealis
 
 	struct RigidBodyComponent
 	{
-
-		RigidBodyType shape = RigidBodyType::Box;
 		MovementType movement = MovementType::Static;
-		float radius = 1.5f; //radius for circle
-		glm::vec3 size = { 1.f,1.f,1.f }; //size for box
-		float halfHeight = 1.f; //half height for capsule
 		float friction = 0.5f;
 		float bounciness = 0.5f;
 		bool dynamicBody = false;
 		// not serialised
-		unsigned int bodyID = 0;
-		glm::vec3 modelCenter = { 0,0,0 };
-
-		glm::vec3 minExtent = { 0.0f, 0.0f, 0.0f };
-		glm::vec3 maxExtent = { 0.0f, 0.0f, 0.0f };
 		glm::vec3 offset = { 0.0f, 0.0f, 0.0f };
 		//glm::vec3 velocity = { 0,0,0 };
 		//float mass = 1.f;
@@ -287,6 +249,66 @@ namespace Borealis
 
 		RigidBodyComponent() = default;
 		RigidBodyComponent(const RigidBodyComponent&) = default;
+	};
+
+	struct ColliderComponent
+	{
+		virtual ~ColliderComponent() = default;
+		bool isTrigger = false;
+		bool providesContact = false;
+		glm::vec3 center = { 0,0,0 };
+		Ref<PhysicMaterial> Material;
+		RigidBodyComponent* rigidBody = nullptr;
+		unsigned int bodyID = 0;
+	};
+
+	struct BoxColliderComponent : public ColliderComponent
+	{
+		glm::vec3 size = { 1,1,1 };
+	};
+
+	struct SphereColliderComponent : public ColliderComponent
+	{
+		float radius = 1.f;
+	};
+
+	struct CapsuleColliderComponent : public ColliderComponent
+	{
+		enum class Direction : uint8_t
+		{
+			X,
+			Y,
+			Z
+		};
+
+		float radius = 0.5f;
+		float height = 2;
+		Direction direction = Direction::Y;
+	};
+
+	struct CharacterControlComponent
+	{
+		float mass = 1.f;
+		float strength = 1.f;
+		float slopeAngle = 45.f;
+		bool enableInertia = true;
+		bool moveInAir = true;
+		bool sliding = true;
+
+
+		void* controller = nullptr;
+		glm::vec3 targetVelocity = { 0,0,0 };
+		glm::vec3 inMovementDirection = { 0,0,0 };
+
+		CharacterControlComponent() = default;
+		~CharacterControlComponent()
+		{
+			if (controller)
+			{
+				delete controller;
+			}
+		}
+		CharacterControlComponent(const CharacterControlComponent&) = default;
 	};
 
 	struct LightComponent
@@ -407,6 +429,32 @@ namespace Borealis
 		BehaviourTreeComponent(const BehaviourTreeComponent&) = default;
 	};
 
+	struct OutLineComponent
+	{
+		glm::vec4 color = { 0.043f, 0.8f, 0.961f , 1.f };
+		float lineWidth = 2.f;
+		bool filled;
+		bool active;
+
+		OutLineComponent() = default;
+		OutLineComponent(const OutLineComponent&) = default;
+	};
+
+	struct CanvasComponent
+	{
+		glm::vec2 canvasSize{};
+		float scaleFactor{};
+		CanvasComponent() = default;
+		CanvasComponent(const CanvasComponent&) = default;
+	};
+
+	struct CanvasRendererComponent
+	{
+		bool allowPassthrough = false;
+
+		CanvasRendererComponent() = default;
+		CanvasRendererComponent(const CanvasRendererComponent&) = default;
+	};
 }
 
 #endif

@@ -127,12 +127,12 @@ namespace BorealisAssetCompiler
     {
         std::string faces[6] = 
         {
-            "bluecloud_rt.DDS", // +X (right)
-            "bluecloud_lf.DDS", // -X (left)
-            "bluecloud_up.DDS", // +Y (top/up)
-            "bluecloud_dn.DDS", // -Y (bottom/down)
             "bluecloud_ft.DDS", // +Z (front)
             "bluecloud_bk.DDS", // -Z (back)
+            "bluecloud_up.DDS", // +Y (top/up)
+            "bluecloud_dn.DDS", // -Y (bottom/down)
+            "bluecloud_rt.DDS", // +X (right)
+            "bluecloud_lf.DDS", // -X (left)
         };
 
         // Load the 6 textures

@@ -192,7 +192,8 @@ namespace Borealis
 		EditorHighlightPass,
 		UIPass,
 		EditorUIPass,
-		SkyboxPass
+		SkyboxPass,
+		RenderToTarget
 	};
 
 	class RenderPass 
@@ -233,6 +234,14 @@ namespace Borealis
 	{
 	public:
 		SkyboxPass(std::string name);
+
+		void Execute(float dt) override;
+	};
+
+	class RenderToTarget : public RenderPass
+	{
+	public:
+		RenderToTarget(std::string name);
 
 		void Execute(float dt) override;
 	};

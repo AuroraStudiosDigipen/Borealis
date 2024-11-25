@@ -118,6 +118,8 @@ namespace Borealis
 		*************************************************************************/
 		virtual void SetLineThickness(const float& thickness) = 0;
 
+		virtual void BindBackBuffer() = 0;
+
 		virtual void EnableBlend() = 0;
 		virtual void DisableBlend() = 0;
 		virtual void EnableDepthTest() = 0;

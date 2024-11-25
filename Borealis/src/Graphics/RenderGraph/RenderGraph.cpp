@@ -1189,6 +1189,47 @@ namespace Borealis
 		RenderCommand::EnableDepthTest();
 	}
 
+	RenderToTarget::RenderToTarget(std::string name) : RenderPass(name)
+	{
+		shader = quad_shader;
+	}
+
+	void RenderToTarget::Execute(float dt)
+	{
+		Ref<RenderTargetSource> renderTarget = nullptr;
+
+		Ref<RenderTargetSource> renderSource = nullptr;
+
+
+		for (auto sink : sinkList)
+		{
+			if (sink->source->sourceType == RenderSourceType::RenderTargetColor)
+			{
+				if (sink->sinkName == "renderTarget")
+				{
+					renderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
+				}
+
+				if (sink->sinkName == "renderSource")
+				{
+					renderSource = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
+				}
+			}
+		}
+
+		shader->Bind();
+		renderSource->buffer->BindTexture(0, 0);
+		shader->Set("u_Texture0", 0);
+		if (!renderTarget)
+			RenderCommand::BindBackBuffer();
+		else
+			renderTarget->Bind();
+
+		Renderer3D::DrawQuad();
+		renderSource->Unbind();
+		shader->Unbind();
+	}
+
 	HighlightPass::HighlightPass(std::string name) : EntityPass(name)
 	{
 		shader = common_shader;
@@ -1306,29 +1347,29 @@ namespace Borealis
 		}
 	}
 
-	Ref<FrameBuffer> UIFBO;
+	//Ref<FrameBuffer> UIFBO;
 
 	UIPass::UIPass(std::string name) : EntityPass(name)
 	{
-		if (!UIFBO)
-		{
-			FrameBufferProperties props{ 1280, 720, false };
-			props.Attachments = { FramebufferTextureFormat::RGBA8,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
-			UIFBO = FrameBuffer::Create(props);
-		}
+		//if (!UIFBO)
+		//{
+		//	FrameBufferProperties props{ 1280, 720, false };
+		//	props.Attachments = { FramebufferTextureFormat::RGBA8,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
+		//	UIFBO = FrameBuffer::Create(props);
+		//}
 
 		shader = quad_shader;
 	}
 
 	void RenderCanvasRecursive(Entity parent, const glm::mat4& parentTransform, const glm::mat4& canvasTransform)
 	{
+		if (!parent.HasComponent<TransformComponent>()) return;
 		glm::mat4 globalTansform = (glm::mat4)parent.GetComponent<TransformComponent>();
 		if (parent.HasComponent<CanvasRendererComponent>())
 		{
 			glm::mat4 transform = canvasTransform * parentTransform * globalTansform;
 			if (parent.HasComponent<SpriteRendererComponent>())
 			{
-
 				Renderer2D::DrawSprite(transform, parent.GetComponent<SpriteRendererComponent>(), (int)parent);
 			}
 
@@ -1370,10 +1411,12 @@ namespace Borealis
 			}
 		}
 
-		if (UIFBO->GetProperties().Width != renderTarget->Width || UIFBO->GetProperties().Height != renderTarget->Height)
-		{
-			UIFBO->Resize(renderTarget->Width, renderTarget->Height);
-		}
+		Ref<FrameBuffer> uiFBO = nullptr;
+
+		//if (UIFBO->GetProperties().Width != renderTarget->Width || UIFBO->GetProperties().Height != renderTarget->Height)
+		//{
+		//	UIFBO->Resize(renderTarget->Width, renderTarget->Height);
+		//}
 
 		viewProjMatrix = glm::ortho(0.0f, (float)renderTarget->Width, (float)renderTarget->Height, 0.0f, -100.0f, 100.0f);
 		Renderer2D::Begin(viewProjMatrix);
@@ -1391,6 +1434,24 @@ namespace Borealis
 				}
 				auto [transform, canvas] = group.get<TransformComponent, CanvasComponent>(entity);
 
+				canvas.scaleFactor = 0.01;
+				canvas.canvasSize.x = renderTarget->Width * canvas.scaleFactor;
+				canvas.canvasSize.y = renderTarget->Height * canvas.scaleFactor;
+
+				if (!canvas.canvasFrameBuffer)
+				{
+					FrameBufferProperties props{ 1280, 720, false };
+					props.Attachments = { FramebufferTextureFormat::RGBA8,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
+					canvas.canvasFrameBuffer = FrameBuffer::Create(props);
+				}
+
+				uiFBO = canvas.canvasFrameBuffer;
+
+				if (uiFBO->GetProperties().Width != renderTarget->Width || uiFBO->GetProperties().Height != renderTarget->Height)
+				{
+					uiFBO->Resize(renderTarget->Width, renderTarget->Height);
+				}
+
 				float scaleFactor = 1 / canvas.scaleFactor /* * 0.95f */;
 
 				glm::vec3 canvasPosition(renderTarget->Width * 0.5f, renderTarget->Height * 0.5f, 0.0f);
@@ -1402,8 +1463,8 @@ namespace Borealis
 				////Render Debug Canvas
 				//{
 				//	SpriteRendererComponent spriteRenderer;
-				//	//spriteRenderer.Colour = { 0.f,0.f,100.f,0.2f };
-				//	spriteRenderer.Colour = { 0.f,0.f,0.f,0.0f };
+				//	spriteRenderer.Colour = { 0.f,0.f,100.f,0.2f };
+				//	//spriteRenderer.Colour = { 0.f,0.f,0.f,0.0f };
 
 				//	glm::vec3 screenPosition(renderTarget->Width * 0.5f, renderTarget->Height * 0.5f, 0.0f);
 
@@ -1424,17 +1485,17 @@ namespace Borealis
 
 		if(UIexist)
 		{
-			UIFBO->Bind();
+			uiFBO->Bind();
 			RenderCommand::SetClearColor(glm::vec4{ 0.f });
 			RenderCommand::Clear();
 			RenderCommand::DisableDepthTest();
 			Renderer2D::End();
-			UIFBO->Unbind();
+			uiFBO->Unbind();
 
 			//std::swap(UIFBO, renderTarget->buffer);
 
 			RenderCommand::DisableDepthTest();
-			UIFBO->BindTexture(0, 0);
+			uiFBO->BindTexture(0, 0);
 			shader->Bind();
 			shader->Set("u_Texture0", 0);
 
@@ -1530,7 +1591,7 @@ namespace Borealis
 			quad_shader = Shader::Create("engineResources/Shaders/Renderer3D_Quad.glsl");
 
 		if (!cube_map_shader)
-			cube_map_shader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_CubeMap.glsl");
+			cube_map_shader = Shader::Create("engineResources/Shaders/Renderer3D_CubeMap.glsl");
 
 		if (!mCascadeShadowMapBuffer)
 		{
@@ -1625,6 +1686,7 @@ namespace Borealis
 			case RenderPassType::ObjectPicking:
 			case RenderPassType::EditorHighlightPass:
 			case RenderPassType::SkyboxPass:
+			case RenderPassType::RenderToTarget:
 				AddRenderPassConfig(passesConfig);
 				break;
 			default:
@@ -1670,6 +1732,9 @@ namespace Borealis
 			break;
 		case RenderPassType::SkyboxPass:
 			renderPass = MakeRef<SkyboxPass>(renderPassConfig.mPassName);
+			break;
+		case RenderPassType::RenderToTarget:
+			renderPass = MakeRef<RenderToTarget>(renderPassConfig.mPassName);
 			break;
 		}
 

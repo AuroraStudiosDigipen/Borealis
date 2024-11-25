@@ -27,6 +27,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/Animation/Animator.hpp>
 #include <Graphics/Material.hpp>
 #include <Graphics/Font.hpp>
+#include <Graphics/Framebuffer.hpp>
 #include <AI/BehaviourTree/BehaviourTree.hpp>
 #include <Core/UUID.hpp>
 #include <Core/Bitset32.hpp>
@@ -62,7 +63,7 @@ namespace Borealis
 		glm::vec3 Rotation{ 0.0f, 0.0f ,0.0f };
 		glm::vec3 Scale = { 1.0f, 1.0f, 1.0f };
 		UUID ParentID = 0;
-		std::unordered_set<UUID> ChildrenID;
+		std::unordered_set<UUID> ChildrenID{};
 	
 		TransformComponent() = default;
 		TransformComponent(const TransformComponent&) = default;
@@ -441,6 +442,7 @@ namespace Borealis
 	{
 		glm::vec2 canvasSize{};
 		float scaleFactor{};
+		Ref<FrameBuffer> canvasFrameBuffer = nullptr;
 		CanvasComponent() = default;
 		CanvasComponent(const CanvasComponent&) = default;
 	};

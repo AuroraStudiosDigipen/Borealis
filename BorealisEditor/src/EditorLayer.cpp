@@ -223,6 +223,57 @@ namespace Borealis {
 			IntListSource selectedEntities("SelectedEntities", mSelectedEntities);
 			fconfig.AddGlobalSource(MakeRef<IntListSource>(selectedEntities));
 
+
+			//forward rendering editor
+			{
+				RenderPassConfig editorSkyBoxPass(RenderPassType::SkyboxPass, "editorSkyBox");
+				editorSkyBoxPass.AddSinkLinkage("renderTarget", "EditorBuffer");
+				editorSkyBoxPass.AddSinkLinkage("camera", "EditorCamera");
+				fconfig.AddPass(editorSkyBoxPass);
+
+				RenderPassConfig editorShadowPass(RenderPassType::Shadow, "editorShadowPass");
+				editorShadowPass.AddSinkLinkage("shadowMap", "ShadowMapBuffer")
+					.AddSinkLinkage("camera", "EditorCamera");
+				fconfig.AddPass(editorShadowPass);
+
+				RenderPassConfig editorRender3D(RenderPassType::Render3D, "editorRender3D");
+				editorRender3D.AddSinkLinkage("renderTarget", "EditorBuffer")
+					.AddSinkLinkage("shadowMap", "editorShadowPass.shadowMap")
+					.AddSinkLinkage("camera", "EditorCamera");
+				fconfig.AddPass(editorRender3D);
+
+				RenderPassConfig editorRender2D(RenderPassType::Render2D, "editorRender2D");
+				editorRender2D.AddSinkLinkage("renderTarget", "editorRender3D.renderTarget")
+					.AddSinkLinkage("camera", "EditorCamera");
+				fconfig.AddPass(editorRender2D);
+
+				RenderPassConfig editorUIPass(RenderPassType::EditorUIPass, "EditorUI");
+				editorUIPass.AddSinkLinkage("renderTarget", "editorRender2D.renderTarget")
+					.AddSinkLinkage("camera", "EditorCamera")
+					.AddSinkLinkage("runTimeRenderTarget", "RunTimeBuffer");
+				fconfig.AddPass(editorUIPass);
+
+				RenderPassConfig ObjectPicking(RenderPassType::ObjectPicking, "ObjectPicking");
+				ObjectPicking.AddSinkLinkage("pixelBuffer", "PixelBuffer")
+					.AddSinkLinkage("renderTarget", "EditorUI.renderTarget")
+					.AddSinkLinkage("EntityIDSource", "EntityIDSource")
+					.AddSinkLinkage("ViewPortHovered", "ViewPortHovered")
+					.AddSinkLinkage("MouseSource", "MouseSource");
+				fconfig.AddPass(ObjectPicking);
+
+				RenderPassConfig editorHighlightPass(RenderPassType::EditorHighlightPass, "EditorHighlight");
+				editorHighlightPass.AddSinkLinkage("camera", "EditorCamera")
+					.AddSinkLinkage("renderTarget", "ObjectPicking.renderTarget")
+					.AddSinkLinkage("SelectedEntities", "SelectedEntities")
+					.AddSinkLinkage("EntityIDSource", "ObjectPicking.EntityIDSource");
+				fconfig.AddPass(editorHighlightPass);
+
+				RenderPassConfig highlightPass(RenderPassType::HighlightPass, "Highlight");
+				highlightPass.AddSinkLinkage("camera", "EditorCamera")
+					.AddSinkLinkage("renderTarget", "ObjectPicking.renderTarget");
+				fconfig.AddPass(highlightPass);
+			}
+
 			//forward rendering
 			{
 				RenderPassConfig shadowPass(RenderPassType::Shadow, "ShadowPass");
@@ -252,56 +303,6 @@ namespace Borealis {
 				fconfig.AddPass(RunTimeHighlight);
 			}
 
-			//forward rendering editor
-			{
-				RenderPassConfig editorSkyBoxPass(RenderPassType::SkyboxPass, "editorSkyBox");
-				editorSkyBoxPass.AddSinkLinkage("renderTarget", "EditorBuffer");
-				editorSkyBoxPass.AddSinkLinkage("camera", "EditorCamera");
-				fconfig.AddPass(editorSkyBoxPass);
-
-				RenderPassConfig editorShadowPass(RenderPassType::Shadow, "editorShadowPass");
-				editorShadowPass.AddSinkLinkage("shadowMap", "ShadowMapBuffer")
-				.AddSinkLinkage("camera", "EditorCamera");
-				fconfig.AddPass(editorShadowPass);
-
-				RenderPassConfig editorRender3D(RenderPassType::Render3D, "editorRender3D");
-				editorRender3D.AddSinkLinkage("renderTarget", "EditorBuffer")
-				.AddSinkLinkage("shadowMap", "editorShadowPass.shadowMap")
-				.AddSinkLinkage("camera", "EditorCamera");
-				fconfig.AddPass(editorRender3D);
-
-				RenderPassConfig editorRender2D(RenderPassType::Render2D, "editorRender2D");
-				editorRender2D.AddSinkLinkage("renderTarget", "editorRender3D.renderTarget")
-				.AddSinkLinkage("camera", "EditorCamera");
-				fconfig.AddPass(editorRender2D);
-
-				RenderPassConfig editorUIPass(RenderPassType::EditorUIPass, "EditorUI");
-				editorUIPass.AddSinkLinkage("renderTarget", "editorRender2D.renderTarget")
-					.AddSinkLinkage("camera", "EditorCamera")
-					.AddSinkLinkage("runTimeRenderTarget", "RunTimeBuffer");
-				fconfig.AddPass(editorUIPass);
-
-				RenderPassConfig ObjectPicking(RenderPassType::ObjectPicking, "ObjectPicking");
-				ObjectPicking.AddSinkLinkage("pixelBuffer", "PixelBuffer")
-				.AddSinkLinkage("renderTarget", "EditorUI.renderTarget")
-				.AddSinkLinkage("EntityIDSource", "EntityIDSource")
-				.AddSinkLinkage("ViewPortHovered", "ViewPortHovered")
-				.AddSinkLinkage("MouseSource", "MouseSource");
-				fconfig.AddPass(ObjectPicking);
-
-
-				RenderPassConfig editorHighlightPass(RenderPassType::EditorHighlightPass, "EditorHighlight");
-				editorHighlightPass.AddSinkLinkage("camera", "EditorCamera")
-					.AddSinkLinkage("renderTarget", "ObjectPicking.renderTarget")
-					.AddSinkLinkage("SelectedEntities", "SelectedEntities")
-					.AddSinkLinkage("EntityIDSource", "ObjectPicking.EntityIDSource");
-				fconfig.AddPass(editorHighlightPass);
-
-				RenderPassConfig highlightPass(RenderPassType::HighlightPass, "Highlight");
-				highlightPass.AddSinkLinkage("camera", "EditorCamera")
-				.AddSinkLinkage("renderTarget", "ObjectPicking.renderTarget");
-				fconfig.AddPass(highlightPass);
-			}
 
 			//deferred rendering
 			{

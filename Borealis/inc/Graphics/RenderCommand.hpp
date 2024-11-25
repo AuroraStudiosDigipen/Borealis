@@ -104,6 +104,8 @@ namespace Borealis
 		*************************************************************************/
 		inline static void SetLineThickness(const float& thickness) { sRendererAPI->SetLineThickness(thickness); }
 
+		inline static void BindBackBuffer() { sRendererAPI->BindBackBuffer(); }
+
 		inline static void EnableBlend() { sRendererAPI->EnableBlend(); }
 
 		inline static void DisableBlend() { sRendererAPI->DisableBlend(); }

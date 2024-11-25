@@ -28,6 +28,27 @@ namespace Borealis
 		PathToAssetFolder = path;
 	}
 
+	std::string GetTextureTypeString(TextureType type)
+	{
+		switch (type)
+		{
+		case Borealis::TextureType::_2D:
+			return "2D";
+		case Borealis::TextureType::_CUBE:
+			return "Cube";
+		default:
+			return "Invalid";
+		}
+		return {};
+	}
+
+	void SerializeTextureConfig(YAML::Emitter& out, TextureConfig const& textureConfig)
+	{
+		out << YAML::Key << "TextureType" << YAML::Value << GetTextureTypeString(textureConfig.type);
+		out << YAML::Key << "sRGB" << YAML::Value << textureConfig.sRGB;
+		out << YAML::Key << "MipMaps" << YAML::Value << textureConfig.generateMipMaps;
+	}
+
 	void SerializeMeshConfig(YAML::Emitter& out, MeshConfig const& meshConfig)
 	{
 		out << YAML::Key << "IsSkinnedMesh" << YAML::Value << meshConfig.skinMesh;
@@ -47,6 +68,7 @@ namespace Borealis
 		case Borealis::AssetType::Shader:
 			break;
 		case Borealis::AssetType::Texture2D:
+			SerializeTextureConfig(out, GetConfig<TextureConfig>(assetConfig));
 			break;
 		case Borealis::AssetType::Folder:
 			break;
@@ -77,6 +99,26 @@ namespace Borealis
 		out << YAML::EndMap;
 	}
 
+	TextureType GetTextureType(std::string const& typeStr)
+	{
+		if (typeStr == "2D") return TextureType::_2D;
+		if (typeStr == "Cube") return TextureType::_CUBE;
+		return TextureType::_2D;
+	}
+
+	TextureConfig DeserializeTextureConfig(YAML::Node& node)
+	{
+		TextureConfig config;
+		if (node["TextureType"])
+			config.type = GetTextureType(node["TextureType"].as<std::string>());
+		if (node["sRGB"])
+			config.sRGB = node["sRGB"].as<bool>();
+		if (node["MipMaps"])
+			config.generateMipMaps = node["MipMaps"].as<bool>();
+
+		return config;
+	}
+
 	MeshConfig DeserializeMeshConfig(YAML::Node& node)
 	{
 		MeshConfig config;
@@ -104,6 +146,7 @@ namespace Borealis
 		case Borealis::AssetType::Shader:
 			break;
 		case Borealis::AssetType::Texture2D:
+			config = DeserializeTextureConfig(node);
 			break;
 		case Borealis::AssetType::Folder:
 			break;

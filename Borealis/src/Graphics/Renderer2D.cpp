@@ -682,7 +682,11 @@ namespace Borealis
 
 	void Renderer2D::DrawString(const std::string& string, Ref<Font> font, const glm::mat4& transform, int entityID, float size, glm::vec4 colour)
 	{
+		if (!font) font = Font::GetDefaultFont();
+
 		Ref<Texture2D> fontAtlas = font->GetAtlasTexture();
+
+		if (!fontAtlas) return;
 
 		sData->FontTexture = fontAtlas;
 

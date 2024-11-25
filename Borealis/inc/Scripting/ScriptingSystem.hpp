@@ -74,6 +74,8 @@ namespace Borealis
 		static void PushCSharpQueue(std::string filepath);
 
 		static void LoadScriptAssemblies(std::string filepath);
+		static void LoadScriptAssembliesNonThreaded(std::string filepath);
+
 
 		static void AttachAppDomain();
 		static void DetachAppDomain();
@@ -86,6 +88,8 @@ namespace Borealis
 		static std::unordered_map<std::string, std::unordered_set<UUID>> mEntityScriptMap; // Scripts attached to entities
 
 		static void Reload(AssetMetaData const& assetMetaData);
+
+		static void* GetScriptDomain();
 
 	private:
 

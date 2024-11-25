@@ -256,7 +256,6 @@ namespace Borealis
 	Ref<Asset> EditorAssetManager::LoadAsset(AssetHandle assetHandle)
 	{
 		AssetMetaData metaData = mAssetRegistry.at(assetHandle);
-
 		Ref<Asset> asset = nullptr;
 
 		if (mAssetLoaders.contains(metaData.Type))

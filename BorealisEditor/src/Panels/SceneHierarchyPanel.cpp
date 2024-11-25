@@ -1365,10 +1365,15 @@ namespace Borealis
 
 			}
 
+			// Text organisation - split up camelcase
+			std::string properName = StringUtils::SplitAndCapitalize(name);
+
+
+
 			ImGui::PushID(name.c_str());
 			ImGui::Columns(2);
 			ImGui::SetColumnWidth(0, 10 * ImGui::GetFontSize());
-			ImGui::Text(name.c_str());
+			ImGui::Text(properName.c_str());
 			ImGui::NextColumn();
 
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 10, 0 }); // Spacing between Items

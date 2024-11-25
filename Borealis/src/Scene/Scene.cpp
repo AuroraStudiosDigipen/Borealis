@@ -929,23 +929,6 @@ namespace Borealis
 		}
 	}
 
-	template <>
-	static void CopyComponent <RigidBodyComponent>(entt::registry& dst, entt::registry& src, const std::unordered_map<UUID, entt::entity>& entitymap)
-	{
-		auto view = src.view<RigidBodyComponent>();
-		for (auto srcEntity : view)
-		{
-			UUID uuid = src.get<IDComponent>(srcEntity).ID;
-			auto dstEntity = entitymap.at(uuid);
-
-			auto rbComponent = view.get<RigidBodyComponent>(srcEntity);
-
-			auto& newRbComponent = dst.emplace<RigidBodyComponent>(dstEntity);
-
-			newRbComponent = rbComponent;
-		}
-	}
-
 	Ref<Scene> Scene::Copy(const Ref<Scene>& other)
 	{
 		Ref<Scene> newScene = MakeRef<Scene>();
@@ -1014,7 +997,7 @@ namespace Borealis
 				PhysicsSystem::addBody(transform, &mRegistry.get<RigidBodyComponent>(entity), box, entityID);
 				box.rigidBody = &mRegistry.get<RigidBodyComponent>(entity);
 			}
-			else
+			else if (!mRegistry.storage<CharacterControlComponent>().contains(entity))
 			{
 				PhysicsSystem::addBody(transform, nullptr, box, entityID);
 			}
@@ -1219,8 +1202,11 @@ namespace Borealis
 	{
 		if (entity.HasComponent<MeshFilterComponent>())
 		{
-			component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).first;
-			component.size = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).second;
+			if (entity.GetComponent<MeshFilterComponent>().Model)
+			{
+				component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).first;
+				component.size = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).second;
+			}
 		}
 		else
 		{
@@ -1233,10 +1219,14 @@ namespace Borealis
 	{
 		if (entity.HasComponent<MeshFilterComponent>())
 		{
-			component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).first;
-			glm::vec3 data = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).second;
-			component.radius = PhysicsSystem::calculateCapsuleDimensions(data).first;
-			component.height = PhysicsSystem::calculateCapsuleDimensions(data).second;
+			if (entity.GetComponent<MeshFilterComponent>().Model)
+			
+			{
+				component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).first;
+				glm::vec3 data = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).second;
+				component.radius = PhysicsSystem::calculateCapsuleDimensions(data).first;
+				component.height = PhysicsSystem::calculateCapsuleDimensions(data).second;
+			}
 		}
 		else
 		{
@@ -1251,9 +1241,12 @@ namespace Borealis
 	{
 		if (entity.HasComponent<MeshFilterComponent>())
 		{
-			component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).first;
-			glm::vec3 data = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).second;
-			component.radius = PhysicsSystem::calculateSphereRadius(data);
+			if (entity.GetComponent<MeshFilterComponent>().Model)
+			{
+				component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).first;
+				glm::vec3 data = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).second;
+				component.radius = PhysicsSystem::calculateSphereRadius(data);
+			}
 		}
 		else
 		{

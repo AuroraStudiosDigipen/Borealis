@@ -26,6 +26,14 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include <Graphics/PixelBuffer.hpp>
 
+//shadows
+#define S_MATERIALSHADOW true
+#define S_CASCADESHADOW true
+#define S_SIMPLEMESH true
+
+//highlight
+#define H_HIGHLIGHT true
+
 namespace Borealis
 {
 	Ref<Shader> s_shader = nullptr;
@@ -329,7 +337,7 @@ namespace Borealis
 			glm::mat4 lightView = glm::lookAt(lightComponent.position, lightComponent.position + lightComponent.direction, upVector);
 			float fieldOfView = glm::radians(lightComponent.spotAngle * 2.f); // Spotlight cone angle
 			glm::mat4 lightProj = glm::perspective(fieldOfView, 1.f, 1.f, lightComponent.range); //change in the future
-
+			shader->Bind();
 			shader->Set("u_LightViewProjection", lightProj * lightView);
 		}
 		else if (lightComponent.type == LightComponent::Type::Directional)
@@ -337,38 +345,45 @@ namespace Borealis
 			std::vector<float> shadowCascadeLevels{ camera->farPlane / 50.0f, camera->farPlane / 25.0f, camera->farPlane / 10.0f, camera->farPlane / 2.0f };
 
 			std::array<glm::mat4, 4> lightViewProjMatrices;
-
-			for (int i{}; i < lightViewProjMatrices.size(); ++i)
+			if (S_MATERIALSHADOW)
 			{
-				lightViewProjMatrices[i] = GetLightViewProj(lightComponent, camera, shadowCascadeLevels[i]);
+				shader->Bind();
+				for (int i{}; i < lightViewProjMatrices.size(); ++i)
+				{
+					lightViewProjMatrices[i] = GetLightViewProj(lightComponent, camera, shadowCascadeLevels[i]);
 
-				std::string str = "u_LightSpaceMatrices[" + std::to_string(i) + "]";
-				shader->Set(str.c_str(), lightViewProjMatrices[i]);
+					std::string str = "u_LightSpaceMatrices[" + std::to_string(i) + "]";
+					shader->Set(str.c_str(), lightViewProjMatrices[i]);
+				}
+
+				for (size_t i = 0; i < shadowCascadeLevels.size(); ++i)
+				{
+					std::string str = "u_CascadePlaneDistances[" + std::to_string(i) + "]";
+					shader->Set(str.c_str(), shadowCascadeLevels[i]);
+				}
+
+				shader->Set("u_View", camera->viewMtx);
+
+				shader->Set("cascadeCount", 4);
+				shader->Unbind();
 			}
 
-			for (size_t i = 0; i < shadowCascadeLevels.size(); ++i)
+			if(S_CASCADESHADOW)
 			{
-				std::string str = "u_CascadePlaneDistances[" + std::to_string(i) + "]";
-				shader->Set(str.c_str(), shadowCascadeLevels[i]);
+				cascade_shadow_shader->Bind();
+
+				for (int i{}; i < lightViewProjMatrices.size(); ++i)
+				{
+					std::string str = "u_LightSpaceMatrices[" + std::to_string(i) + "]";
+					cascade_shadow_shader->Set(str.c_str(), lightViewProjMatrices[i]);
+				}
+
+				cascade_shadow_shader->Unbind();
 			}
-
-			shader->Set("u_View", camera->viewMtx);
-
-			shader->Set("cascadeCount", 4);
-
-			cascade_shadow_shader->Bind();
-
-			for (int i{}; i < lightViewProjMatrices.size(); ++i)
-			{
-				std::string str = "u_LightSpaceMatrices[" + std::to_string(i) + "]";
-				cascade_shadow_shader->Set(str.c_str(), lightViewProjMatrices[i]);
-			}
-
-			cascade_shadow_shader->Unbind();
 		}
 	}
 
-	void SetShadowAndLight(Ref<RenderTargetSource> renderTarget, Ref<RenderTargetSource> shadowMap, Ref<Shader> shader,  entt::registry* registryPtr, Ref<CameraSource> camera)
+	void SetShadowAndLight(Ref<RenderTargetSource> shadowMap, Ref<Shader> shader,  entt::registry* registryPtr, Ref<CameraSource> camera)
 	{
 		//add light to light engine and shadow pass
 		{
@@ -399,12 +414,14 @@ namespace Borealis
 				{
 					if (mCascadeShadowMapBuffer)
 					{
-						mCascadeShadowMapBuffer->BindDepthBuffer(0, true);
-						shader->Set("u_CascadeShadowMap", 0);
+
+						mCascadeShadowMapBuffer->BindDepthBuffer(1, true);
+						shader->Set("u_CascadeShadowMap", 1);
 					}
 				}
 
 				shader->Set("shadowPass", false);
+				shader->Unbind();
 
 				break; //TODO, for now 1 shadow
 			}
@@ -451,8 +468,6 @@ namespace Borealis
 
 		Renderer3D::BeginCommonShapes(viewProjMatrix);
 
-		renderTarget->Bind();
-
 		//mesh pass
 		{
 			auto group = registryPtr->group<>(entt::get<TransformComponent, MeshFilterComponent, MeshRendererComponent>);
@@ -485,7 +500,7 @@ namespace Borealis
 				Renderer3D::Begin(viewProjMatrix, materialShader);
 
 
-				SetShadowAndLight(renderTarget, shadowMap, materialShader, registryPtr, camera);
+				SetShadowAndLight(shadowMap, materialShader, registryPtr, camera);
 				renderTarget->Bind();
 				Renderer3D::SetLights(materialShader);
 				Renderer3D::DrawMesh(TransformComponent::GetGlobalTransform(brEntity), meshFilter, meshRenderer, materialShader, (int)entity);
@@ -504,7 +519,7 @@ namespace Borealis
 						//Renderer3D::DrawCube(transform.Translate, rigidbody.minExtent, rigidbody.maxExtent, { 0.f,1.f,0.f,1.f }, true);
 					}
 				}
-
+				renderTarget->Unbind();
 			}
 		}
 
@@ -532,9 +547,7 @@ namespace Borealis
 				materialShader->Bind();
 				materialShader->Set("u_HasAnimation", false);
 
-				SetShadowAndLight(renderTarget, shadowMap, materialShader, registryPtr, camera);
-				renderTarget->Bind();
-				materialShader->Bind();
+				SetShadowAndLight(shadowMap, materialShader, registryPtr, camera);
 				if (registryPtr->storage<AnimatorComponent>().contains(entity))
 				{
 					AnimatorComponent& animatorComponent = registryPtr->get<AnimatorComponent>(entity);
@@ -551,6 +564,7 @@ namespace Borealis
 
 						if (skinnedMesh.SkinnnedModel->mAnimation)
 						{
+							materialShader->Bind();
 							materialShader->Set("u_HasAnimation", true);
 							auto transforms = animatorComponent.animator.GetFinalBoneMatrices();
 							for (int i = 0; i < transforms.size(); ++i)
@@ -558,6 +572,7 @@ namespace Borealis
 								std::string str = "u_FinalBonesMatrices[" + std::to_string(i) + "]";
 								materialShader->Set(str.c_str(), transforms[i]);
 							}
+							materialShader->Unbind();
 						}
 					}
 				}
@@ -573,24 +588,22 @@ namespace Borealis
 				//}
 
 				//Renderer3D::SetLights(shader);
+
+				renderTarget->Bind();
 				materialShader->Bind();
 				Renderer3D::SetLights(materialShader);
 				Renderer3D::DrawSkinnedMesh(TransformComponent::GetGlobalTransform(brEntity), skinnedMesh, materialShader, (int)entity);
 				materialShader->Unbind();
+				renderTarget->Unbind();
 			}
 		}
 
-		
 		Renderer3D::End();
-
-		renderTarget->Unbind();
 	}
 
 	void Render2D::Execute(float dt)
 	{
 		PROFILE_FUNCTION();
-		if (shader) shader->Bind();
-
 		Ref<RenderTargetSource> renderTarget = nullptr;
 		bool editor = false;
 
@@ -656,18 +669,14 @@ namespace Borealis
 		}
 
 		Renderer2D::DrawLineFromQueue();
-		
-
 		Renderer2D::End();
 
 		renderTarget->Unbind();
-		if (shader) shader->Unbind();
 	}
 
 	GeometryPass::GeometryPass(std::string name) : EntityPass(name)
 	{
 		shader = s_shader;
-		//shader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_DeferredLighting.glsl");
 	}
 
 	void GeometryPass::Execute(float dt)
@@ -815,7 +824,6 @@ namespace Borealis
 		shader->Bind();
 		shader->Set("shadowPass", true);
 
-		RenderCommand::EnableFrontFaceCull();
 
 		glm::mat4 viewProjMatrix{};
 		Ref<FrameBuffer> shadowMap = nullptr;
@@ -833,6 +841,7 @@ namespace Borealis
 					shadowMap = std::dynamic_pointer_cast<RenderTargetSource>(sourcePtr)->buffer;
 					shadowMap->Bind();
 					RenderCommand::Clear();
+					shadowMap->Unbind();
 				}
 
 				if (sourcePtr->sourceType == RenderSourceType::Camera)
@@ -870,33 +879,10 @@ namespace Borealis
 			}
 
 
-
-			shadowMap->Bind();
+			if(!directionalLight)
 			{
-				auto group = registryPtr->group<>(entt::get<TransformComponent, MeshFilterComponent, MeshRendererComponent>);
-				for (auto& entity : group)
+				shadowMap->Bind();
 				{
-					Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
-					if (!brEntity.IsActive())
-					{
-						continue;
-					}
-					auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
-
-					Renderer3D::DrawMesh(TransformComponent::GetGlobalTransform(brEntity), meshFilter, meshRenderer, shader, (int)entity);
-				}
-			}
-			shadowMap->Unbind();
-
-			mCascadeShadowMapBuffer->Bind();
-			RenderCommand::Clear();
-			mCascadeShadowMapBuffer->Unbind();
-
-			if(directionalLight)
-			{
-				mCascadeShadowMapBuffer->Bind();
-				{
-					RenderCommand::Clear();
 					auto group = registryPtr->group<>(entt::get<TransformComponent, MeshFilterComponent, MeshRendererComponent>);
 					for (auto& entity : group)
 					{
@@ -907,17 +893,37 @@ namespace Borealis
 						}
 						auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
 
-						Renderer3D::DrawHighlightedMesh(TransformComponent::GetGlobalTransform(brEntity), meshFilter, cascade_shadow_shader);
+						RenderCommand::EnableFrontFaceCull();
+						Renderer3D::DrawMesh(TransformComponent::GetGlobalTransform(brEntity), meshFilter, meshRenderer, shader, (int)entity);
+						RenderCommand::EnableBackFaceCull();
 					}
 				}
+				shadowMap->Unbind();
+			}
+
+			if(directionalLight && S_SIMPLEMESH)
+			{
+				mCascadeShadowMapBuffer->Bind();
+				RenderCommand::Clear();
+
+				auto group = registryPtr->group<>(entt::get<TransformComponent, MeshFilterComponent, MeshRendererComponent>);
+				for (auto& entity : group)
+				{
+					Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
+					if (!brEntity.IsActive())
+					{
+						continue;
+					}
+					auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
+
+					RenderCommand::EnableFrontFaceCull();
+					Renderer3D::DrawHighlightedMesh(TransformComponent::GetGlobalTransform(brEntity), meshFilter, cascade_shadow_shader);
+					RenderCommand::EnableBackFaceCull();
+				}
+
 				mCascadeShadowMapBuffer->Unbind();
 			}
 		}
-
-		RenderCommand::EnableBackFaceCull();
-
-		if (shadowMap)
-			shadowMap->Unbind();
 
 		shader->Unbind();
 	}
@@ -1059,7 +1065,7 @@ namespace Borealis
 				shader->Set("u_ViewProjection", viewProjMatrix);
 				if (entityID == hoveredEntity)
 				{
-					shader->Set("u_Filled", true);
+					shader->Set("u_Filled", H_HIGHLIGHT);
 				}
 				else
 				{
@@ -1067,6 +1073,7 @@ namespace Borealis
 				}
 				shader->Set("u_HighlightPass", false);
 				shader->Set("u_Color", { 1.f, 0.475f, 0.f , 1.f });
+				shader->Unbind();
 
 				renderTarget->Bind();
 
@@ -1074,9 +1081,10 @@ namespace Borealis
 				RenderCommand::EnableDepthTest();
 				RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLEqual);
 				RenderCommand::EnableStencilTest();
+				RenderCommand::EnablePolygonOffset();
+				RenderCommand::SetPolygonOffset(-1.f, 1.f);
 
 				glm::mat4 transform = TransformComponent::GetGlobalTransform(brEntity);
-				transform = glm::translate(transform, glm::normalize(cameraLookAt) * -0.03f);
 
 				if (brEntity.HasComponent<SpriteRendererComponent>())
 				{
@@ -1101,8 +1109,6 @@ namespace Borealis
 				RenderCommand::ConfigureStencilForHighlight();
 				RenderCommand::EnableWireFrameMode();
 
-				transform = glm::translate(transform, glm::normalize(cameraLookAt) * -0.01f);
-
 				if (brEntity.HasComponent<SpriteRendererComponent>())
 				{
 					SpriteRendererComponent const& spriteRenderer = brEntity.GetComponent<SpriteRendererComponent>();
@@ -1118,6 +1124,7 @@ namespace Borealis
 
 				}
 
+				RenderCommand::DisablePolygonOffset();
 				RenderCommand::DisableWireFrameMode();
 				RenderCommand::EnableDepthTest();
 				RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLess);
@@ -1230,6 +1237,7 @@ namespace Borealis
 				shader->Set("u_Filled", outline.filled);
 				shader->Set("u_HighlightPass", false);
 				shader->Set("u_Color", outline.color);
+				shader->Unbind();
 
 				renderTarget->Bind();
 
@@ -1237,9 +1245,10 @@ namespace Borealis
 				RenderCommand::EnableDepthTest();
 				RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLEqual);
 				RenderCommand::EnableStencilTest();
+				RenderCommand::EnablePolygonOffset();
+				RenderCommand::SetPolygonOffset(-1.f, 1.f);
 
 				glm::mat4 transform = TransformComponent::GetGlobalTransform(brEntity);
-				transform = glm::translate(transform, glm::normalize(cameraLookAt) * -0.01f);
 
 				if (brEntity.HasComponent<SpriteRendererComponent>())
 				{
@@ -1268,8 +1277,6 @@ namespace Borealis
 					RenderCommand::SetLineThickness((outline.lineWidth > 10.f) ? 10.f : outline.lineWidth);
 				RenderCommand::EnableWireFrameMode();
 
-				transform = glm::translate(transform, glm::normalize(cameraLookAt) * -0.01f);
-
 				if (brEntity.HasComponent<SpriteRendererComponent>())
 				{
 					SpriteRendererComponent const& spriteRenderer = brEntity.GetComponent<SpriteRendererComponent>();
@@ -1285,6 +1292,7 @@ namespace Borealis
 
 				}
 
+				RenderCommand::DisablePolygonOffset();
 				RenderCommand::DisableWireFrameMode();
 				RenderCommand::EnableDepthTest();
 				RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLess);
@@ -1510,16 +1518,16 @@ namespace Borealis
 			s_shader = Shader::Create("engineResources/Shaders/Renderer3D_DeferredLighting.glsl");
 
 		if (!material_shader)
-			material_shader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_Material.glsl");
+			material_shader = Shader::GetDefault3DMaterialShader();
 
 		if (!cascade_shadow_shader)
-			cascade_shadow_shader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_CascadeShadow.glsl");
+			cascade_shadow_shader = Shader::Create("engineResources/Shaders/Renderer3D_CascadeShadow.glsl");
 
 		if (!common_shader)
-			common_shader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_Common.glsl");
+			common_shader = Shader::Create("engineResources/Shaders/Renderer3D_Common.glsl");
 
 		if (!quad_shader)
-			quad_shader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_Quad.glsl");
+			quad_shader = Shader::Create("engineResources/Shaders/Renderer3D_Quad.glsl");
 
 		if (!cube_map_shader)
 			cube_map_shader = Shader::Create("../Borealis/engineResources/Shaders/Renderer3D_CubeMap.glsl");

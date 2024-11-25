@@ -22,7 +22,7 @@ namespace Borealis
 
         public Quaternion (Vector3 rotation)
         {
-            Vector3 c = new Vector3( Mathf.Cos(Mathf.Deg2Rad * rotation.x * 0.5f), Mathf.Cos(Mathf.Deg2Rad * rotation.y * 0.5f), Mathf.Cos(Mathf.Deg2Rad * rotation.z * 0.5f) );
+            Vector3 c = new Vector3(Mathf.Cos(Mathf.Deg2Rad * rotation.x * 0.5f), Mathf.Cos(Mathf.Deg2Rad * rotation.y * 0.5f), Mathf.Cos(Mathf.Deg2Rad * rotation.z * 0.5f) );
             Vector3 s = new Vector3(Mathf.Sin(Mathf.Deg2Rad * rotation.x * 0.5f), Mathf.Sin(Mathf.Deg2Rad * rotation.y * 0.5f), Mathf.Sin(Mathf.Deg2Rad * rotation.z * 0.5f));
 
             w = c.x * c.y * c.z + s.x * s.y * s.z;
@@ -30,121 +30,117 @@ namespace Borealis
             y = c.x * s.y * c.z + s.x * c.y * s.z;
             z = c.x * c.y * s.z - s.x * s.y * c.z;
         }
+
         public static Quaternion QuaternionFromAxes(Vector3 right, Vector3 up, Vector3 forward)
         {
-            float m00 = right.x;
-            float m01 = right.y;
-            float m02 = right.z;
+            float r11 = right.x, r12 = right.y, r13 = right.z;
+            float r21 = up.x, r22 = up.y, r23 = up.z;
+            float r31 = forward.x, r32 = forward.y, r33 = forward.z;
 
-            float m10 = up.x;
-            float m11 = up.y;
-            float m12 = up.z;
-
-            float m20 = forward.x;
-            float m21 = forward.y;
-            float m22 = forward.z;
-
-            // Step 3: Compute the trace of the matrix
-            float trace = m00 + m11 + m22;
-
-            float qx, qy, qz, qw;
-
+            float x = 0, y = 0, z = 0, w = 0;
+            float trace = r11 + r22 + r33;
             if (trace > 0)
             {
-                // When the trace is positive
                 float s = 0.5f / Mathf.Sqrt(trace + 1.0f);
-                qw = 0.25f / s;
-                qx = (m21 - m12) * s;
-                qy = (m02 - m20) * s;
-                qz = (m10 - m01) * s;
+                w = 0.25f / s;
+                x = (r32 - r23) * s;
+                y = (r13 - r31) * s;
+                z = (r21 - r12) * s;
             }
             else
             {
-                // Handle the case where the trace is negative
-                if (m00 > m11 && m00 > m22)
+                if (r11 > r22 && r11 > r33)
                 {
-                    float s = 2.0f * Mathf.Sqrt(1.0f + m00 - m11 - m22);
-                    qw = (m21 - m12) / s;
-                    qx = 0.25f * s;
-                    qy = (m01 + m10) / s;
-                    qz = (m02 + m20) / s;
+                    float s = 2.0f * Mathf.Sqrt(1.0f + r11 - r22 - r33);
+                    w = (r32 - r23) / s;
+                    x = 0.25f * s;
+                    y = (r12 + r21) / s;
+                    z = (r13 + r31) / s;
                 }
-                else if (m11 > m22)
+                else if (r22 > r33)
                 {
-                    float s = 2.0f * Mathf.Sqrt(1.0f + m11 - m00 - m22);
-                    qw = (m02 - m20) / s;
-                    qx = (m01 + m10) / s;
-                    qy = 0.25f * s;
-                    qz = (m12 + m21) / s;
+                    float s = 2.0f * Mathf.Sqrt(1.0f + r22 - r11 - r33);
+                    w = (r13 - r31) / s;
+                    x = (r12 + r21) / s;
+                    y = 0.25f * s;
+                    z = (r23 + r32) / s;
                 }
                 else
                 {
-                    float s = 2.0f * Mathf.Sqrt(1.0f + m22 - m00 - m11);
-                    qw = (m10 - m01) / s;
-                    qx = (m02 + m20) / s;
-                    qy = (m12 + m21) / s;
-                    qz = 0.25f * s;
+                    float s = 2.0f * Mathf.Sqrt(1.0f + r33 - r11 - r22);
+                    w = (r21 - r12) / s;
+                    x = (r13 + r31) / s;
+                    y = (r23 + r32) / s;
+                    z = 0.25f * s;
                 }
+
+
+                //float trace = right.x + up.y + forward.z;
+                //float x = 0, w = 0, y = 0, z = 0;
+                //if (trace > 0.0f)
+                //{
+                //    w = Mathf.Sqrt(1.0f + right.x + up.y + forward.z) / 2.0f;
+                //    x = (forward.y - up.z) / (4.0f * w);
+                //    y = (right.z - forward.x) / (4.0f * w);
+                //    z = (up.x - right.y) / (4.0f * w);
+                //}
+                //else
+                //{
+                //    if (right.x > up.y && right.x > forward.z)
+                //    {
+                //        x = Mathf.Sqrt(1.0f + right.x - up.y - forward.z) / 2.0f;
+                //        w = (forward.y - up.z) / (4.0f * x);
+                //        y = (right.y + up.x) / (4.0f * x);
+                //        z = (right.z + forward.x) / (4.0f * x);
+                //    }
+
+                //    if (up.y > right.x && up.y > forward.z)
+                //    {
+                //        y = Mathf.Sqrt(1.0f + up.y - right.x - forward.z) / 2.0f;
+                //        w = (right.z - forward.x) / (4.0f * y);
+                //        x = (right.y + up.x) / (4.0f * y);
+                //        z = (up.z + forward.y) / (4.0f * y);
+                //    }
+
+                //    if (forward.z > right.x && forward.z > up.y)
+                //    {
+                //        z = Mathf.Sqrt(1.0f + forward.z - up.y - right.x) / 2.0f;
+                //        w = (up.x - right.y) / (4.0f * z);
+                //        x = (right.z + forward.x) / (4.0f * z);
+                //        y = (up.z + forward.y) / (4.0f * z);
+                //    }
+                //}
             }
+                return new Quaternion(x, y, z, w);
 
-            return new Quaternion(qx, qy, qz, qw);
         }
-
+        private Vector3 threeaxisrot(float r11, float r12, float r21, float r31, float r32)
+        {
+            float x = Mathf.Atan2(r31, r32);
+            float y = Mathf.Asin(r21);
+            float z = Mathf.Atan2(r11, r12);
+            return new Vector3(x * Mathf.Rad2Deg, y * Mathf.Rad2Deg, z * Mathf.Rad2Deg);
+        }
         public Vector3 eulerAngles
         {
             get
             {
-                float pitch, yaw, roll;
-
-                //roll
-                float y3 = 2f * (x * y + w * z);
-                float x3 = w * w + x * x - y * y - z * z;
-
-                if (Mathf.Epsilon < Mathf.Abs(y3) && Mathf.Epsilon < Mathf.Abs(x3))
-                {
-                    roll = Mathf.Atan2(y3, x3);
-                }
-                else
-                {
-                    roll = 0f;
-                }
-
-                float y2 = 2f * (y * z + w * x);
-                float x2 = w * w - x * x - y * y + z * z;
-
-                if (Mathf.Epsilon < Mathf.Abs(y2) && Mathf.Epsilon < Mathf.Abs(x2))
-                {
-                    pitch = Mathf.Atan2(y2, x2);
-                }
-                else
-                {
-                    pitch = 2f * Mathf.Atan2(x, w);
-                }
-
-                Mathf.Atan2(y2, x2);
-
-
-                yaw = Mathf.Asin(Mathf.Clamp(-2f * (x * z - w * y), -1f, 1f));
-
-                return new Vector3(pitch/ Mathf.Deg2Rad, yaw/ Mathf.Deg2Rad, roll/ Mathf.Deg2Rad);
+                return threeaxisrot(2 * (x * y + w * z),
+                     w * w + x * x - y * y - z * z,
+                    -2 * (x * z - w * y),
+                     2 * (y * z + w * x),
+                     w * w - x * x - y * y + z * z);
             }
             set
             {
-                float roll = Mathf.Deg2Rad * value.z;
-                float pitch = Mathf.Deg2Rad * value.x;
-                float yaw = Mathf.Deg2Rad * value.y;
 
-                float cy = Mathf.Cos(yaw * 0.5f);
-                float sy = Mathf.Sin(yaw * 0.5f);
-                float cp = Mathf.Cos(pitch * 0.5f);
-                float sp = Mathf.Sin(pitch * 0.5f);
-                float cr = Mathf.Cos(roll * 0.5f);
-                float sr = Mathf.Sin(roll * 0.5f);
+                Vector3 c = new Vector3(Mathf.Cos(Mathf.Deg2Rad * value.x * 0.5f), Mathf.Cos(Mathf.Deg2Rad * value.y * 0.5f), Mathf.Cos(Mathf.Deg2Rad * value.z * 0.5f));
+                Vector3 s = new Vector3(Mathf.Sin(Mathf.Deg2Rad * value.x * 0.5f), Mathf.Sin(Mathf.Deg2Rad * value.y * 0.5f), Mathf.Sin(Mathf.Deg2Rad * value.z * 0.5f));
 
-                w = cy * cp * cr + sy * sp * sr;
-                x = cy * cp * sr - sy * sp * cr;
-                y = sy * cp * sr + cy * sp * cr;
-                z = sy * cp * cr - cy * sp * sr;
+                w = c.x * c.y * c.z + s.x * s.y * s.z;
+                x = s.x * c.y * c.z - c.x * s.y * s.z;
+                y = c.x * s.y * c.z + s.x * c.y * s.z;
+                z = c.x * c.y * s.z - s.x * s.y * c.z;
             }
         }
         public float this[int index]
@@ -297,7 +293,7 @@ namespace Borealis
             // Ensure forward and upwards are normalized
             Vector3 normalizedForward = forward.normalized;
             Vector3 normalizedUpwards = upwards.normalized;
-
+            
             // Compute the right vector (cross product of up and forward)
             Vector3 right = Vector3.Cross(normalizedUpwards, normalizedForward);
 

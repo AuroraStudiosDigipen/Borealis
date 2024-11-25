@@ -25,7 +25,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/LayerList.hpp>
 #include <mono/metadata/appdomain.h>
 #include <Physics/PhysicsSystem.hpp>
-
+#include <Graphics/Renderer2D.hpp>
 
 namespace Borealis
 {
@@ -38,6 +38,9 @@ namespace Borealis
 		//BOREALIS_ADD_INTERNAL_CALL(GetComponent<TransformComponent>);
 		BOREALIS_ADD_INTERNAL_CALL(GenerateUUID);
 		BOREALIS_ADD_INTERNAL_CALL(Log);
+		BOREALIS_ADD_INTERNAL_CALL(LogError);
+		BOREALIS_ADD_INTERNAL_CALL(LogWarning);
+		BOREALIS_ADD_INTERNAL_CALL(DrawLine);
 		BOREALIS_ADD_INTERNAL_CALL(CreateEntity);
 		BOREALIS_ADD_INTERNAL_CALL(SetActive);
 
@@ -127,6 +130,11 @@ namespace Borealis
 		std::string logMessage = message;
 		mono_free(message);
 		APP_LOG_WARN(logMessage.c_str());
+	}
+
+	void DrawLine(glm::vec3 start, glm::vec3 end, glm::vec4 color)
+	{
+		Renderer2D::DrawLine(start, end, color);
 	}
 
 	uint64_t CreateEntity(MonoString* text)
@@ -719,21 +727,27 @@ namespace Borealis
 		}
 		return output;
 	}
-	void Physics_RaycastAll(glm::vec3 origin, glm::vec3 direction, float maxDistance, int layerMask, MonoArray* entityIDArray, MonoArray* distanceArray, MonoArray* normalArray, MonoArray* pointArray)
+	void Physics_RaycastAll(glm::vec3 origin, glm::vec3 direction, float maxDistance, int layerMask, MonoArray** entityIDArray, MonoArray** distanceArray, MonoArray** normalArray, MonoArray** pointArray)
 	{
 		std::vector<RaycastHit> results = PhysicsSystem::RayCastAll(origin, direction, maxDistance, layerMask);
 
-		entityIDArray = mono_array_new(mono_domain_get(), mono_get_uint64_class(), results.size());
-		distanceArray = mono_array_new(mono_domain_get(), mono_get_single_class(), results.size());
-		normalArray = mono_array_new(mono_domain_get(), mono_get_single_class(), results.size() * 3);  // 3 floats for each glm::vec3
-		pointArray = mono_array_new(mono_domain_get(), mono_get_single_class(), results.size() * 3);  // 3 floats for each glm::vec3
+		*entityIDArray = mono_array_new(mono_domain_get(), mono_get_uint64_class(), results.size());
+		*distanceArray = mono_array_new(mono_domain_get(), mono_get_single_class(), results.size());
+		*normalArray = mono_array_new(mono_domain_get(), mono_get_single_class(), results.size() * 3);
+		*pointArray = mono_array_new(mono_domain_get(), mono_get_single_class(), results.size() * 3);
+
+
+		float* distance_data = (float*)mono_array_addr_with_size(*distanceArray, sizeof(float), 0);
+		uint64_t* ID_data = (uint64_t*)mono_array_addr_with_size(*entityIDArray, sizeof(uint64_t), 0);
+		glm::vec3* normal_data = (glm::vec3*)mono_array_addr_with_size(*normalArray, sizeof(glm::vec3), 0);
+		glm::vec3* point_data = (glm::vec3*)mono_array_addr_with_size(*pointArray, sizeof(glm::vec3), 0);
 
 		for (int i = 0; i < results.size(); i++)
 		{
-			mono_array_set(entityIDArray, uint64_t, i, results[i].ID);
-			mono_array_set(distanceArray, float, i, results[i].distance);
-			mono_array_set(normalArray, glm::vec3, i, results[i].normal);
-			mono_array_set(pointArray, glm::vec3, i, results[i].point);
+			ID_data[i] = results[i].ID;
+			distance_data[i] = results[i].distance;
+			normal_data[i] = results[i].normal;
+			point_data[i] = results[i].point;
 		}
 	}
 	void CharacterController_Move(uint64_t id, glm::vec3* motion)

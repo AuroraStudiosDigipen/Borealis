@@ -290,6 +290,10 @@ namespace Borealis
 			auto wrappedType = propType.get_wrapped_type();
 			if (wrappedType.is_derived_from<Asset>())
 			{
+				if (propValue.get_value<Ref<Asset>>() == nullptr)
+				{
+					return false;
+				}
 				out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<Ref<Asset>>()->mAssetHandle;
 				return true;
 			}

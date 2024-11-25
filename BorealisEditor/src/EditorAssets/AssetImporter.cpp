@@ -29,6 +29,19 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 namespace Borealis
 {
 	std::unique_ptr<filewatch::FileWatch<std::wstring>> fileWatcher = nullptr;
+	void AssetImporter::Update()
+	{
+		if (mQueue.empty()) return;
+
+		for (AssetMetaData const& metaData : mQueue)
+		{
+			ImportAsset(metaData);
+			AssetMetaData meta = MetaFileSerializer::GetAssetMetaDataFile(metaData.SourcePath.string() + ".meta");
+			AssetManager::InsertMetaData(meta);
+		}
+
+		mQueue.clear();
+	}
 	void AssetImporter::LoadRegistry(Borealis::ProjectInfo projectInfo)
 	{
 		//open registry database file
@@ -100,6 +113,11 @@ namespace Borealis
 		if (mPathRegistry.contains(hash)) return mPathRegistry.at(hash);
 
 		return {};
+	}
+
+	void AssetImporter::AddToRecompileQueue(AssetMetaData metaData)
+	{
+		mQueue.push_back(metaData);
 	}
 
 	void AssetImporter::InsertAssetHandle(std::filesystem::path const& path, AssetHandle handle)

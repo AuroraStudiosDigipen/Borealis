@@ -1434,7 +1434,7 @@ namespace Borealis
 				}
 				auto [transform, canvas] = group.get<TransformComponent, CanvasComponent>(entity);
 
-				canvas.scaleFactor = 0.01;
+				canvas.scaleFactor = 0.01f;
 				canvas.canvasSize.x = renderTarget->Width * canvas.scaleFactor;
 				canvas.canvasSize.y = renderTarget->Height * canvas.scaleFactor;
 
@@ -1551,7 +1551,7 @@ namespace Borealis
 				}
 
 				auto [transform, canvas] = group.get<TransformComponent, CanvasComponent>(entity);
-				canvas.scaleFactor = 0.01;
+				canvas.scaleFactor = 0.01f;
 				canvas.canvasSize.x = runTimeRenderTarget->Width * canvas.scaleFactor;
 				canvas.canvasSize.y = runTimeRenderTarget->Height * canvas.scaleFactor;
 				SpriteRendererComponent sprite;

@@ -48,6 +48,8 @@ namespace Borealis
 		*************************************************************************/
 		static AssetMetaData CreateAssetMetaFile(std::filesystem::path const& path, AssetHandle handle);
 
+		static void SaveMetaFile(AssetMetaData const& metaData);
+
 		/*!***********************************************************************
 			\brief
 				serialize registry

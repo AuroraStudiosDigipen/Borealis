@@ -188,6 +188,7 @@ IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
     <ClInclude Include="inc\Panels\BTNodeEditorPanel.hpp" />
     <ClInclude Include="inc\Panels\ConsolePanel.hpp" />
     <ClInclude Include="inc\Panels\ContentBrowserPanel.hpp" />
+    <ClInclude Include="inc\Panels\CubemapPanel.hpp" />
     <ClInclude Include="inc\Panels\SceneHierarchyPanel.hpp" />
     <ClInclude Include="inc\Prefab.hpp" />
     <ClInclude Include="inc\PrefabComponent.hpp" />
@@ -212,6 +213,7 @@ IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
     <ClCompile Include="src\Panels\BTNodeEditorPanel.cpp" />
     <ClCompile Include="src\Panels\ConsolePanel.cpp" />
     <ClCompile Include="src\Panels\ContentBrowserPanel.cpp" />
+    <ClCompile Include="src\Panels\CubemapPanel.cpp" />
     <ClCompile Include="src\Panels\SceneHierarchyPanel.cpp" />
     <ClCompile Include="src\Prefab.cpp" />
     <ClCompile Include="src\PrefabManager.cpp" />

@@ -23,6 +23,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include "ispc_texcomp.h"
 
+#include "Importer/AssetConfigs.hpp"
+
 namespace BorealisAssetCompiler
 {
     struct DDSHeader {
@@ -64,15 +66,15 @@ namespace BorealisAssetCompiler
     class TextureImporter
     {
     public:
-        static void SaveFile(std::filesystem::path const& sourcePath, std::filesystem::path& cachePath);
+        static void SaveFile(std::filesystem::path const& sourcePath, AssetConfig& assetConfig, std::filesystem::path& cachePath);
 
         template <typename T>
         static void SaveFile(const T * bitmap, int width, int height, std::filesystem::path& cachePath);
 
         static void CreateCubeMap();
 
-    private:
         static void SaveDDSFile(const std::string& filePath, int width, int height, const std::vector<uint8_t>& compressedData);
+    private:
     };
 
     //OPTIMIZE IT

@@ -32,6 +32,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <EditorAssets/MeshImporter.hpp>
 #include <EditorAssets/FontImporter.hpp>
 #include <EditorAssets/AssetImporter.hpp>
+#include <EditorAssets/MetaSerializer.hpp>
 #include <Assets/AssetManager.hpp>
 //#include <Assets/MeshImporter.hpp>
 //#include <Assets/FontImporter.hpp>
@@ -991,6 +992,32 @@ namespace Borealis
 		return isEdited;
 	}
 
+	void ShowTextureConfig(AssetMetaData const& metaData)
+	{
+		TextureConfig config = GetConfig<TextureConfig>(metaData.Config);
+
+		const char* textureTypeNames[] = { "2D", "CUBE" };
+		static int selectedTextureType = static_cast<int>(config.type);
+
+		ImGui::Text("Texture Configuration");
+		if (ImGui::Combo("Texture Type", &selectedTextureType, textureTypeNames, IM_ARRAYSIZE(textureTypeNames))) {
+			config.type = static_cast<TextureType>(selectedTextureType);
+		}
+
+		static bool sRGB = config.sRGB;
+		if (ImGui::Checkbox("sRGB", &sRGB)) {
+			config.sRGB = sRGB;
+		}
+
+		if (ImGui::Button("Apply"))
+		{
+			AssetMetaData newData = metaData;
+			newData.Config = config;
+			MetaFileSerializer::SaveMetaFile(newData);
+			AssetImporter::AddToRecompileQueue(newData);
+		}
+	}
+
 
 	SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& scene)
 	{
@@ -1140,6 +1167,7 @@ namespace Borealis
 				{
 				case AssetType::Texture2D:
 				{
+					ShowTextureConfig(metadata);
 					MaterialEditor::SetMaterial(0);
 					break;
 				}

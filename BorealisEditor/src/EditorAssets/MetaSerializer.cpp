@@ -87,6 +87,7 @@ namespace Borealis
 
 	void SerializeMetaFile(YAML::Emitter& out, AssetMetaData const& assetMetaData, std::filesystem::path PathToAssetFolder)
 	{
+		std::filesystem::path assetFolderPath;
 		out << YAML::BeginMap;
 		out << YAML::Key << "Version" << YAML::Value << META_VERSION;
 		out << YAML::Key << "Name" << YAML::Value << assetMetaData.name;
@@ -312,6 +313,25 @@ namespace Borealis
 		return metaData;
 	}
 
+	void MetaFileSerializer::SaveMetaFile(AssetMetaData const& metaData)
+	{
+		YAML::Emitter out;
+		std::filesystem::path path = metaData.SourcePath;
+
+		while (!path.empty())
+		{
+			if (path.filename() == "Assets")
+			{
+				break; // Found the Assets folder
+			}
+			path = path.parent_path(); // Go up one level
+		}
+
+		SerializeMetaFile(out, metaData, path);
+
+		SaveAsFile(path, out.c_str());
+	}
+
 	void MetaFileSerializer::SerialzeRegistry(std::filesystem::path const& assetRegistryPath, std::unordered_map<AssetHandle, AssetMetaData> const& assetRegistry)
 	{
 		YAML::Emitter out;
@@ -405,7 +425,7 @@ namespace Borealis
 
 		metaData.Config = GetDefaultConfig(metaData.Type);
 
-		metaData.SourcePath = path;// .lexically_relative(PathToAssetFolder);
+		metaData.SourcePath = path;
 
 		metaData.SourceFileHash = HashFile(path);
 
@@ -428,6 +448,7 @@ namespace Borealis
 		case Borealis::AssetType::Shader:
 			break;
 		case Borealis::AssetType::Texture2D:
+			assetConfig = TextureConfig{};
 			break;
 		case Borealis::AssetType::Folder:
 			break;

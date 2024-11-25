@@ -758,7 +758,7 @@ namespace Borealis
 
 	void Renderer2D::DrawString(TextComponent& text, TransformComponent& trans, int entityID)
 	{
-		DrawString(text.text, text.font, trans.GetTransform(), entityID, text.fontSize, text.colour);
+		DrawString(text.text, text.font, trans.GetTransform(), entityID, (float)text.fontSize, text.colour);
 	}
 
 	void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const glm::vec4& colour)

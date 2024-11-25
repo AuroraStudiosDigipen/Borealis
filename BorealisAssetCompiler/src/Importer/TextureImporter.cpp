@@ -15,24 +15,27 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include "Importer/TextureImporter.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image.h"
+#include "stb_image_write.h"
 //#include "ispc_texcomp.h"
 #include <cmp_compressonatorlib/compressonator.h>
 #include <gli.hpp>
 
+#define FOURCC_DXT1 0x31545844  // 'DXT1'
 #define FOURCC_DXT5 0x35545844  // 'DXT5' in ASCII
 #define FOURCC_DX10 0x30315844  // 'DX10' in ASCII
 #define DXGI_FORMAT_BC7_UNORM 98  // The BC7 format value for DX10 header
 
 namespace BorealisAssetCompiler
 {
-    void compressonatorTest(std::string const& filePath)
+    void SaveAsDDSCompressonator(std::filesystem::path const& filePath, std::filesystem::path const& output)
     {
         CMP_InitFramework();
 
         CMP_MipSet MipSetIn;
         memset(&MipSetIn, 0, sizeof(CMP_MipSet));
-        CMP_ERROR cmp_status = CMP_LoadTexture(filePath.c_str(), &MipSetIn);
+        CMP_ERROR cmp_status = CMP_LoadTexture(filePath.string().c_str(), &MipSetIn);
         if (cmp_status != CMP_OK) {
             std::printf("Error %d: Loading source file!\n", cmp_status);
             return;
@@ -63,7 +66,7 @@ namespace BorealisAssetCompiler
         memset(&kernel_options, 0, sizeof(KernelOptions));
 
         kernel_options.format = CMP_FORMAT_BC3;   // Set the format to process
-        kernel_options.fquality = 0.5;     // Set the quality of the result (range of 0 - 1)
+        kernel_options.fquality = 1;     // Set the quality of the result (range of 0 - 1)
         kernel_options.threads = 0;            // Auto setting
 
         if (kernel_options.format == CMP_FORMAT_BC3)
@@ -98,7 +101,7 @@ namespace BorealisAssetCompiler
         //----------------------------------------------------------------
         // Save the result into a DDS file
         //----------------------------------------------------------------
-        cmp_status = CMP_SaveTexture("CMP_test.dds", &MipSetCmp);
+        cmp_status = CMP_SaveTexture(output.string().c_str(), &MipSetCmp);
 
         CMP_FreeMipSet(&MipSetIn);
         CMP_FreeMipSet(&MipSetCmp);
@@ -123,22 +126,84 @@ namespace BorealisAssetCompiler
         return gli::texture2d(texture);
     }
 
+    void SaveAsDDS(const std::string& outputPath, gli::texture2d& texture)
+    {
+        // Save the texture to the specified output path
+        if (!gli::save(texture, outputPath))
+        {
+            throw std::runtime_error("Failed to save texture as DDS file: " + outputPath);
+        }
+    }
+
+    void SplitTShape(const char* input_file, const char* output_dir, std::array<std::filesystem::path, 6> & facesArray) {
+        int width, height, channels;
+        unsigned char* data = stbi_load(input_file, &width, &height, &channels, 0);
+        if (!data) {
+            throw std::runtime_error("Failed to load texture");
+        }
+
+        if (width % 4 != 0 || height % 3 != 0) {
+            stbi_image_free(data);
+            throw std::runtime_error("Input texture dimensions must be divisible by 4 and 3");
+        }
+
+        int face_size = width / 4; // Size of each cubemap face
+
+        // Face order: +X, -X, +Y, -Y, +Z, -Z
+        int offsets[6][2] = {
+            {2 * face_size, face_size},     // +X
+            {0 * face_size, face_size},      // -X
+            {1 * face_size, 0},             // +Y
+            {1 * face_size, 2 * face_size}, // -Y
+            {1 * face_size, face_size},     // +Z
+            {3 * face_size, face_size}     // -Z
+        };
+
+        // Extract and save each face
+        for (int i = 0; i < 6; ++i) {
+            int offset_x = offsets[i][0];
+            int offset_y = offsets[i][1];
+
+            // Allocate memory for one face
+            unsigned char* face_data = new unsigned char[face_size * face_size * channels];
+            for (int y = 0; y < face_size; ++y) {
+                std::memcpy(
+                    face_data + y * face_size * channels,
+                    data + ((offset_y + y) * width + offset_x) * channels,
+                    face_size * channels
+                );
+            }
+
+            //Save as PNG
+            char output_file[256];
+            std::string str = "face_" + std::to_string(i) + ".png";
+            std::string str2 = "face_" + std::to_string(i) + ".dds";
+            snprintf(output_file, sizeof(output_file), str.c_str());
+            stbi_write_png(output_file, face_size, face_size, channels, face_data, face_size * channels);
+            delete[] face_data;
+
+            std::filesystem::path path1 = str;
+            std::filesystem::path path2 = str2;
+
+            SaveAsDDSCompressonator(path1, path2);
+
+            facesArray[i] = path2;
+
+            std::filesystem::remove(path1);
+        }
+
+        stbi_image_free(data);
+    }
+
     void TextureImporter::CreateCubeMap()
     {
-        std::string faces[6] = 
-        {
-            "bluecloud_ft.DDS", // +Z (front)
-            "bluecloud_bk.DDS", // -Z (back)
-            "bluecloud_up.DDS", // +Y (top/up)
-            "bluecloud_dn.DDS", // -Y (bottom/down)
-            "bluecloud_rt.DDS", // +X (right)
-            "bluecloud_lf.DDS", // -X (left)
-        };
+        std::array<std::filesystem::path, 6> facesArray;
+        SplitTShape("SkyBoxPng4k.png", "", facesArray);
 
         // Load the 6 textures
         gli::texture2d face_textures[6];
         for (int i = 0; i < 6; ++i) {
-            face_textures[i] = load_texture(faces[i]);
+            face_textures[i] = load_texture(facesArray[i].string());
         }
 
         gli::extent2d dimensions = face_textures[0].extent();
@@ -161,6 +226,10 @@ namespace BorealisAssetCompiler
             );
         }
 
+        for (int i = 0; i < 6; ++i) {
+            std::filesystem::remove(facesArray[i]);
+        }
+
         // Save the cubemap to a DDS file
         std::string output_file = "skybox.dds";
         if (!gli::save(cubemap, output_file)) {
@@ -170,36 +239,7 @@ namespace BorealisAssetCompiler
 
     void TextureImporter::SaveDDSFile(const std::string& filePath, int width, int height, const std::vector<uint8_t>& compressedData)
     {
-        //DDSHeader header = {};
-        //header.dwMagic = 0x20534444;  // 'DDS '
-        //header.dwSize = 124;
-        //header.dwFlags = 0x1007;  // DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT
-        //header.dwHeight = height;
-        //header.dwWidth = width;
-        //header.dwPitchOrLinearSize = (width / 4) * (height / 4) * 16;  // Compressed size for BC7 blocks
-        //header.dwMipMapCount = 1;
-
-        //header.ddpf.dwSize = 32;
-        //header.ddpf.dwFlags = 4;  // DDPF_FOURCC
-        //header.ddpf.dwFourCC = FOURCC_DX10;  // 'DX10' FourCC for BC7
-
-        //header.ddsCaps.dwCaps1 = 0x1000;  // DDSCAPS_TEXTURE
-
-        //// DX10 extended header
-        //DDSHeaderDX10 dx10Header = {};
-        //dx10Header.dxgiFormat = DXGI_FORMAT_BC7_UNORM;
-        //dx10Header.resourceDimension = 3;  // DDS_DIMENSION_TEXTURE2D
-        //dx10Header.arraySize = 1;
-
-        //// Write the header and compressed data to the DDS file
-        //std::ofstream outFile(filePath, std::ios::binary);
-        //if (outFile.is_open()) {
-        //    outFile.write(reinterpret_cast<char*>(&header), sizeof(header));
-        //    outFile.write(reinterpret_cast<char*>(&dx10Header), sizeof(dx10Header));
-        //    outFile.write(reinterpret_cast<const char*>(compressedData.data()), compressedData.size());
-        //    outFile.close();
-        //}
-
+        //BC3
         DDSHeader header = {};
         header.dwMagic = 0x20534444;  // 'DDS '
         header.dwSize = 124;
@@ -239,17 +279,32 @@ namespace BorealisAssetCompiler
         }
     }
 
-    void TextureImporter::SaveFile(std::filesystem::path const& sourcePath, std::filesystem::path & cachePath)
+    inline uint8_t sRGBToLinear(uint8_t sRGBValue) 
     {
+        float normalized = sRGBValue / 255.0f;
+        float linear = (normalized <= 0.04045f) ? normalized / 12.92f : std::pow((normalized + 0.055f) / 1.055f, 2.4f);
+        return static_cast<uint8_t>(std::clamp(linear * 255.0f, 0.0f, 255.0f));
+    }
+
+    void TextureImporter::SaveFile(std::filesystem::path const& sourcePath, AssetConfig& assetConfig, std::filesystem::path & cachePath)
+    {
+        std::cout << sourcePath.string() << '\n';
         int width, height, channels;
-        unsigned char* imageData = stbi_load(sourcePath.string().c_str(), &width, &height, &channels, 4); // Force 4 channels (RGBA)
+        unsigned char* imageData = stbi_load(sourcePath.string().c_str(), &width, &height, &channels, 4);
         if (!imageData) {
             std::cerr << "Failed to load image\n";
             return;
         }
 
-        bc7_enc_settings settings;
-        GetProfile_alpha_basic(&settings);
+        TextureConfig config = GetConfig<TextureConfig>(assetConfig);
+
+        if (!config.sRGB) {
+            for (int i = 0; i < width * height * 4; i += 4) {
+                imageData[i] = sRGBToLinear(imageData[i]);     // Red
+                imageData[i + 1] = sRGBToLinear(imageData[i + 1]); // Green
+                imageData[i + 2] = sRGBToLinear(imageData[i + 2]); // Blue
+            }
+        }
 
         FlipBitmapVertically(imageData, width, height, 4);
 
@@ -262,7 +317,6 @@ namespace BorealisAssetCompiler
         int compressedSize = (width / 4) * (height / 4) * 16;
         std::vector<uint8_t> compressedData(compressedSize);
 
-        //CompressBlocksBC7(&srcSurface, compressedData.data(), &settings);
         CompressBlocksBC3(&srcSurface, compressedData.data());
 
         std::string cacheString = cachePath.replace_extension(".dds").string();
@@ -270,8 +324,6 @@ namespace BorealisAssetCompiler
         SaveDDSFile(cacheString.c_str(), width, height, compressedData);
 
         stbi_image_free(imageData);
-
-        //compressonatorTest(sourcePath.string());
     }
 }
 

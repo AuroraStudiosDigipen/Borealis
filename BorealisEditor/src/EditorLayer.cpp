@@ -44,6 +44,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <PrefabComponent.hpp>
 
 #include<EditorSerialiser.hpp>
+#include <Panels/CubemapPanel.hpp>
 
 namespace ImGui
 {
@@ -143,6 +144,7 @@ namespace Borealis {
 		PROFILE_FUNCTION();
 
 		Project::GetEditorAssetsManager()->Update();
+		mAssetImporter.Update();
 
 		if (Borealis::FrameBufferProperties spec = SceneManager::GetActiveScene()->GetEditorFB()->GetProperties();
 			mViewportSize.x > 0.0f && mViewportSize.y > 0.0f && // zero sized framebuffer is invalid
@@ -623,6 +625,9 @@ namespace Borealis {
 					ImGui::Columns(1);
 
 				}
+
+				CubemapPanel::RenderCubemapSetting();
+
 			ImGui::End(); // Of Settings
 
 			SCPanel.ImGuiRender();

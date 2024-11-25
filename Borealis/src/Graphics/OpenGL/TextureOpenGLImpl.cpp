@@ -220,7 +220,7 @@ namespace Borealis
 			{
 				glm::tvec3<GLsizei> Extent = Texture.extent(Level);
 				glCompressedTexImage2D(
-					GL_TEXTURE_CUBE_MAP_POSITIVE_X + Face,
+					GL_TEXTURE_CUBE_MAP_POSITIVE_X + (GLenum)Face,
 					static_cast<GLint>(Level),
 					Format.Internal,
 					Extent.x, Extent.y,

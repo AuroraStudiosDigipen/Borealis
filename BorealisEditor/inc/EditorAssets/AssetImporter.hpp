@@ -35,6 +35,7 @@ namespace Borealis
 	class AssetImporter
 	{
 	public:
+		void Update();
 		/*!***********************************************************************
 			\brief
 				Load registry
@@ -46,6 +47,8 @@ namespace Borealis
 				Get asset handle from path
 		*************************************************************************/
 		static AssetHandle GetAssetHandle(std::filesystem::path const& path);
+
+		static void AddToRecompileQueue(AssetMetaData metaData);
 
 		//TEMP
 		static void InsertAssetHandle(std::filesystem::path const& path, AssetHandle handle);
@@ -96,6 +99,7 @@ namespace Borealis
 		std::filesystem::path mAssetPath;
 		std::filesystem::path mAssetRegistryPath;
 		inline static std::unordered_map<std::size_t, AssetHandle> mPathRegistry;
+		inline static std::list<AssetMetaData> mQueue;
 	};
 }
 

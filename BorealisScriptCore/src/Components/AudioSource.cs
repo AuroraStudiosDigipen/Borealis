@@ -1,7 +1,15 @@
 ﻿
 namespace Borealis
 {
-    public class AudioSource
+    [NativeComponent]
+    public class AudioSource : Component
     {
+        public AudioSource() { }
+        public AudioSource(ulong id)
+        {
+            InstanceID = id;
+            gameObject = new GameObject(id);
+
+        }
     }
 }

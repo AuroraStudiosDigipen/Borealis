@@ -132,7 +132,8 @@ namespace Borealis
             (metadata("Component", true))
             .constructor<>()
             .property("Material", &MeshRendererComponent::Material)
-            .property("Cast Shadow", &MeshRendererComponent::castShadow);
+            .property("Cast Shadow", &MeshRendererComponent::castShadow)
+            .property("Enabled", &MeshRendererComponent::active);
 
         registration::class_<SkinnedMeshRendererComponent>("Skinned Mesh Renderer Component")
             (metadata("Component", true))

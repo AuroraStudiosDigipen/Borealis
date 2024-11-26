@@ -9,8 +9,17 @@ namespace Borealis
     public class GameObject : Object
     {
         //public bool activeSelf => true; // Use internal call
-        public Transform transform;
-
+        public Transform transform
+        {
+            get
+            {
+                return new Transform(InstanceID);
+            }
+            set
+            {
+                transform = value;
+            }
+        }
         static public GameObject Find(string name)
         {
             InternalCalls.Entity_FindEntity(name, out ulong ID);
@@ -37,7 +46,6 @@ namespace Borealis
         internal GameObject(ulong id)
         {
             InstanceID = id;
-            transform = new Transform(id);
         }
 
         public GameObject(string name)

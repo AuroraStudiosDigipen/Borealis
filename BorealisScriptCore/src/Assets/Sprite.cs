@@ -1,6 +1,7 @@
 ﻿
 namespace Borealis
 {
+    [AssetField(AssetType.Sprite)]
     public class Sprite : Object
     {
         public Sprite(ulong id)

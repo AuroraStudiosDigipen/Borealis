@@ -97,6 +97,11 @@ namespace Borealis
 
 		BOREALIS_ADD_INTERNAL_CALL(MeshRendererComponent_GetMaterial);
 		BOREALIS_ADD_INTERNAL_CALL(MeshRendererComponent_SetMaterial);
+		BOREALIS_ADD_INTERNAL_CALL(MeshRendererComponent_GetEnabled);
+		BOREALIS_ADD_INTERNAL_CALL(MeshRendererComponent_SetEnabled);
+
+		BOREALIS_ADD_INTERNAL_CALL(OutlineComponent_GetEnabled);
+		BOREALIS_ADD_INTERNAL_CALL(OutlineComponent_SetEnabled);
 
 		BOREALIS_ADD_INTERNAL_CALL(ColliderComponent_GetBounds);
 
@@ -716,6 +721,38 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		entity.GetComponent<MeshRendererComponent>().Material = AssetManager::GetAsset<Material>(*materialID);
 	}
+	void MeshRendererComponent_GetEnabled(UUID uuid, bool* state)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*state = entity.GetComponent<MeshRendererComponent>().active;
+	}
+	void MeshRendererComponent_SetEnabled(UUID uuid, bool* state)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*state = entity.GetComponent<MeshRendererComponent>().active;
+	}
+	void OutlineComponent_GetEnabled(UUID uuid, bool* state)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*state = entity.GetComponent<OutLineComponent>().active;
+	}
+	void OutlineComponent_SetEnabled(UUID uuid, bool* state)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<OutLineComponent>().active = *state;
+	}
 	void ColliderComponent_GetBounds(UUID uuid, glm::vec3* center, glm::vec3* extents, glm::vec3* min, glm::vec3* max, glm::vec3* size)
 	{
 		Scene* scene = SceneManager::GetActiveScene().get();
@@ -752,6 +789,10 @@ namespace Borealis
 	void Material_GetSprite(UUID uuid, UUID* spriteID)
 	{
 		*spriteID = AssetManager::GetAsset<Material>(uuid)->GetTextureMaps().at(Material::Albedo)->mAssetHandle;
+	}
+	void Material_SetSprite(UUID uuid, UUID* spriteID)
+	{
+		AssetManager::GetAsset<Material>(uuid)->SetTextureMap(Material::Albedo, AssetManager::GetAsset<Texture2D>(*spriteID));
 	}
 	void ScriptComponent_AddComponent(uint64_t entityID, MonoReflectionType* reflectionType)
 	{

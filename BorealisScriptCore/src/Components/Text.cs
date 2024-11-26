@@ -1,11 +1,15 @@
 ﻿
 namespace Borealis
 {
+    [NativeComponent]
     public class TextComponent : Component
     {
+        public TextComponent() { }
         public TextComponent(ulong id)
         {
             InstanceID = id;
+            gameObject = new GameObject(id);
+
         }
 
 
@@ -18,7 +22,7 @@ namespace Borealis
             }
             set
             {
-                InternalCalls.TextComponent_SetText(GetInstanceID(), ref value);
+                InternalCalls.TextComponent_SetText(GetInstanceID(), value);
             }
         }
 

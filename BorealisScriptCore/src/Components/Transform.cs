@@ -4,12 +4,18 @@ using System.IO;
 
 namespace Borealis
 {
+    [NativeComponent]
     public class Transform : Component
     {
         //public int childCount;
+        public Transform()
+        {
+        }
         public Transform(ulong id)
         {
             InstanceID = id;
+            gameObject = new GameObject(id);
+
         }
 
         public Vector3 rotation

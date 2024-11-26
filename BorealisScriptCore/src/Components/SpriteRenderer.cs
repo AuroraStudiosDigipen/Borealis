@@ -2,9 +2,20 @@
 
 namespace Borealis
 {
+    [NativeComponent]
     public class SpriteRenderer : Component
     {
         //public int childCount;
+        public SpriteRenderer()
+        {
+        }
+        public SpriteRenderer(ulong id)
+        {
+            InstanceID = id;
+            gameObject = new GameObject(id);
+
+        }
+
         public Color color
         {
             get

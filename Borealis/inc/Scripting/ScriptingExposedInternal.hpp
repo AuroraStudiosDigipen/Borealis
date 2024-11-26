@@ -315,9 +315,16 @@ namespace Borealis
 	void MeshRendererComponent_GetMaterial(UUID uuid, UUID* materialID);
 	void MeshRendererComponent_SetMaterial(UUID uuid, UUID* materialID);
 
+	void MeshRendererComponent_GetEnabled(UUID uuid, bool* state);
+	void MeshRendererComponent_SetEnabled(UUID uuid, bool* state);
+
+	void OutlineComponent_GetEnabled(UUID uuid, bool* state);
+	void OutlineComponent_SetEnabled(UUID uuid, bool* state);
+
 	void ColliderComponent_GetBounds(UUID uuid, glm::vec3* center, glm::vec3* extents, glm::vec3* min, glm::vec3* max, glm::vec3* size);
 
 	void Material_GetSprite(UUID uuid, UUID* spriteID);
+	void Material_SetSprite(UUID uuid, UUID* spriteID);
 
 
 	/*!***********************************************************************

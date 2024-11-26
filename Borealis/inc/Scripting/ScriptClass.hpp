@@ -96,6 +96,12 @@ namespace Borealis
 		*************************************************************************/
 		MonoClass* GetMonoClass() const;
 
+		bool IsNativeComponent() const;
+
+		bool IsAssetField() const;
+
+		int GetAssetType() const;
+
 		/*!***********************************************************************
 			\brief
 				Get the name of the class

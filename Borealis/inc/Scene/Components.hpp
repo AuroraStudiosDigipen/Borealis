@@ -155,6 +155,7 @@ namespace Borealis
 	{
 		Ref<Material> Material = nullptr;
 		bool castShadow = true;
+		bool active = true;
 
 		MeshRendererComponent() = default;
 		MeshRendererComponent(const MeshRendererComponent&) = default;

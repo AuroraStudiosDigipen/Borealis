@@ -148,6 +148,7 @@
     <Compile Include="src\Components\Collider.cs" />
     <Compile Include="src\Components\Component.cs" />
     <Compile Include="src\Components\MeshRenderer.cs" />
+    <Compile Include="src\Components\OutlineComponent.cs" />
     <Compile Include="src\Components\Rigidbody.cs" />
     <Compile Include="src\Components\SpriteRenderer.cs" />
     <Compile Include="src\Components\Text.cs" />

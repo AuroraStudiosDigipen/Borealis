@@ -667,7 +667,7 @@ namespace Borealis
 				}
 
 				auto [transform, text] = group.get<TransformComponent, TextComponent>(entity);
-				Renderer2D::DrawString(text.text, text.font, TransformComponent::GetGlobalTransform(brEntity), (int)entity);
+				Renderer2D::DrawString(text.text, text.font, TransformComponent::GetGlobalTransform(brEntity), (int)entity, text.fontSize, text.colour);
 			}
 		}
 

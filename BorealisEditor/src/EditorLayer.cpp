@@ -278,6 +278,11 @@ namespace Borealis {
 
 			//forward rendering
 			{
+				RenderPassConfig SkyBoxPass(RenderPassType::SkyboxPass, "SkyBox");
+				SkyBoxPass.AddSinkLinkage("renderTarget", "RunTimeBuffer");
+				SkyBoxPass.AddSinkLinkage("camera", "RunTimeCamera");
+				fconfig.AddPass(SkyBoxPass);
+
 				RenderPassConfig shadowPass(RenderPassType::Shadow, "ShadowPass");
 				shadowPass.AddSinkLinkage("shadowMap", "ShadowMapBuffer");
 				shadowPass.AddSinkLinkage("camera", "RunTimeCamera");
@@ -294,15 +299,15 @@ namespace Borealis {
 				Render2D.AddSinkLinkage("camera", "RunTimeCamera");
 				fconfig.AddPass(Render2D);
 
-				RenderPassConfig UIPass(RenderPassType::UIPass, "UIPass");
-				UIPass.AddSinkLinkage("renderTarget", "Render2D.renderTarget");
-				UIPass.AddSinkLinkage("camera", "RunTimeCamera");
-				fconfig.AddPass(UIPass);
-
 				RenderPassConfig RunTimeHighlight(RenderPassType::HighlightPass, "RunTimeHighlight");
 				RunTimeHighlight.AddSinkLinkage("camera", "RunTimeCamera");
-				RunTimeHighlight.AddSinkLinkage("renderTarget", "UIPass.renderTarget");
+				RunTimeHighlight.AddSinkLinkage("renderTarget", "Render2D.renderTarget");
 				fconfig.AddPass(RunTimeHighlight);
+
+				RenderPassConfig UIPass(RenderPassType::UIPass, "UIPass");
+				UIPass.AddSinkLinkage("renderTarget", "RunTimeHighlight.renderTarget");
+				UIPass.AddSinkLinkage("camera", "RunTimeCamera");
+				fconfig.AddPass(UIPass);
 			}
 
 

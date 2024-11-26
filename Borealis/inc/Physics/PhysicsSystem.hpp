@@ -108,6 +108,10 @@ namespace Borealis
 		static std::queue<CollisionPair>& GetCollisionPersistQueue();
 		static std::queue<CollisionPair>& GetCollisionExitQueue();
 
+		static std::queue<CollisionPair>& GetTriggerEnterQueue();
+		static std::queue<CollisionPair>& GetTriggerPersistQueue();
+		static std::queue<CollisionPair>& GetTriggerExitQueue();
+
 		static void move(ColliderComponent& rigidbody, glm::vec3 motion);
 
 		static void addCharacter(CharacterControlComponent& character, TransformComponent& transform, ColliderComponent& collider);

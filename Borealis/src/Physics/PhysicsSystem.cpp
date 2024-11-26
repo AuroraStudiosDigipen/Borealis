@@ -298,6 +298,9 @@ namespace Borealis
 	std::queue<CollisionPair>& PhysicsSystem::GetCollisionEnterQueue() {return sData.onCollisionPairAddedQueue; }
 	std::queue<CollisionPair>& PhysicsSystem::GetCollisionPersistQueue() { return sData.onCollisionPairPersistedQueue; }
 	std::queue<CollisionPair>& PhysicsSystem::GetCollisionExitQueue() { return sData.onCollisionPairRemovedQueue; }
+	std::queue<CollisionPair>& PhysicsSystem::GetTriggerEnterQueue() { return sData.onTriggerPairAddedQueue; }
+	std::queue<CollisionPair>& PhysicsSystem::GetTriggerPersistQueue() { return sData.onTriggerPairPersistedQueue; }
+	std::queue<CollisionPair>& PhysicsSystem::GetTriggerExitQueue() { return sData.onTriggerPairRemovedQueue; }
 
 	void PhysicsSystem::EndScene()
 	{

@@ -54,6 +54,7 @@ void Render3DPass()
 
     if(u_HasAnimation)
     {	
+		vec3 weightedNormal = vec3(0.0);
         for(int i = 0 ; i < MAX_BONE_INFLUENCE ; i++)
         {
             if(boneIds[i] == -1) 
@@ -65,8 +66,12 @@ void Render3DPass()
             }
             vec4 localPosition = u_FinalBonesMatrices[boneIds[i]] * vec4(a_Position,1.0f);
             TotalPosition += localPosition * weights[i];
-            N = mat3(u_FinalBonesMatrices[boneIds[i]]) * a_Normal;
+			
+			weightedNormal += weights[i] * mat3(u_FinalBonesMatrices[boneIds[i]]) * a_Normal;
+
+			//Need to apply weightedTangent and BitTangent as well
         }
+		N = normalize(weightedNormal);
     }
 
 	if(u_HasAnimation)
@@ -168,6 +173,7 @@ uniform int u_LightsCount = 0;
 uniform sampler2D u_ShadowMap;
 uniform sampler2DArray u_CascadeShadowMap;
 uniform bool shadowPass = false;
+uniform bool u_HasShadow = false;
 uniform mat4 u_LightSpaceMatrices[4];
 uniform float u_CascadePlaneDistances[4];
 uniform int cascadeCount;
@@ -298,7 +304,14 @@ vec3 ComputeDirectionalLight(Light light, vec3 normal, vec3 viewDir)
 		//temp
 		float shadowFactor = GetCascadeShadowFactor(lightDir, normal);
 
-        color = ambient + shadowFactor * (diffuse + specular + emission);
+        if(u_HasShadow)
+		{
+			color += shadowFactor * (diffuse + specular + emission);
+		}
+		else
+		{
+			color += (diffuse + specular + emission);
+		}
     }
 	return color;
 }
@@ -409,7 +422,15 @@ vec3 ComputeSpotLight(Light light, vec3 normal, vec3 viewDir)
 
 		// Apply shadow factor to diffuse, specular, and emission
 		float shadowFactor = GetShadowFactor(lightDir, normal);
-        color += shadowFactor * (diffuse + specular + emission);
+		if(u_HasShadow)
+		{
+			color += shadowFactor * (diffuse + specular + emission);
+		}
+		else
+		{
+			color += (diffuse + specular + emission);
+		}
+        
     }
 
 	return color;

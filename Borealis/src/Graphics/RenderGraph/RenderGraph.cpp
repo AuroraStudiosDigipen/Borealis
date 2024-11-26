@@ -388,6 +388,7 @@ namespace Borealis
 		//add light to light engine and shadow pass
 		{
 			shader->Set("shadowPass", false);
+			shader->Set("u_HasShadow", false);
 			entt::basic_group group = registryPtr->group<>(entt::get<TransformComponent, LightComponent>);
 			for (auto& entity : group)
 			{
@@ -405,6 +406,7 @@ namespace Borealis
 				SetShadowVariable(lightComponent, shader, camera);
 
 				shader->Bind();
+				shader->Set("u_HasShadow", true);
 				if (lightComponent.type == LightComponent::Type::Spot)
 				{
 					if (shadowMap)

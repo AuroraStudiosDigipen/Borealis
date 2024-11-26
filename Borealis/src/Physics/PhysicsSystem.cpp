@@ -285,7 +285,7 @@ namespace Borealis
 
 	void MyContactListener::OnContactAdded(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings)
 	{
-		if (PhysicsSystem::BodyIDToIsSensor(inBody1.GetID().GetIndexAndSequenceNumber()) || PhysicsSystem::BodyIDToIsSensor(inBody2.GetID().GetIndexAndSequenceNumber()))
+		if (inBody1.IsSensor() || inBody2.IsSensor())
 		{
 			sData.onTriggerPairAddedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
 			BOREALIS_CORE_INFO("Trigger Enter");
@@ -299,7 +299,7 @@ namespace Borealis
 
 	void MyContactListener::OnContactPersisted(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings)
 	{
-		if (PhysicsSystem::BodyIDToIsSensor(inBody1.GetID().GetIndexAndSequenceNumber()) || PhysicsSystem::BodyIDToIsSensor(inBody2.GetID().GetIndexAndSequenceNumber()))
+		if (inBody1.IsSensor() || inBody2.IsSensor())
 		{
 			sData.onTriggerPairPersistedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
 			BOREALIS_CORE_INFO("Trigger Persisted");
@@ -1087,13 +1087,9 @@ namespace Borealis
 		if (collider.isTrigger)
 		{
 			body->SetIsSensor(true);
-			bodySensorMap[collider.bodyID] = true;
+			bodySensorMap[collider.bodyID] = true; //only store true values
 		}
-		else
-		{
-			body->SetIsSensor(false);
-			bodySensorMap[collider.bodyID] = false;
-		}
+
 		bodyIDMapUUID[collider.bodyID] = entityID;
 	}
 

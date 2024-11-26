@@ -50,6 +50,25 @@ namespace Borealis
             .property("Center", &BoxColliderComponent::center)
             .property("Size", &BoxColliderComponent::size);
 
+        registration::class_<CapsuleColliderComponent>("Capsule Collider Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("Is Trigger", &CapsuleColliderComponent::isTrigger)
+            .property("Provides Contact", &CapsuleColliderComponent::providesContact)
+            .property("Radius", &CapsuleColliderComponent::radius)
+            .property("Height", &CapsuleColliderComponent::height)
+            .property("Direction", &CapsuleColliderComponent::direction);
+
+
+        registration::class_<SphereColliderComponent>("Sphere Collider Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("Is Trigger", &SphereColliderComponent::isTrigger)
+            .property("Provides Contact", &CapsuleColliderComponent::providesContact)
+            .property("Center", &SphereColliderComponent::center)
+            .property("Radius", &SphereColliderComponent::radius);
+
+
         registration::enumeration<SceneCamera::CameraType>("Camera Type")
         (
             value("Orthographic", SceneCamera::CameraType::Orthographic),
@@ -79,16 +98,6 @@ namespace Borealis
             .property("Primary Camera", &CameraComponent::Primary)
             .property("Fixed Aspect Ratio", &CameraComponent::FixedAspectRatio)
             .property("Camera", &CameraComponent::Camera);
-
-
-        registration::class_<CapsuleColliderComponent>("Capsule Collider Component")
-            (metadata("Component", true))
-            .constructor<>()
-            .property("Is Trigger", &CapsuleColliderComponent::isTrigger)
-            .property("Provides Contact", &CapsuleColliderComponent::providesContact)
-            .property("Radius", &CapsuleColliderComponent::radius)
-            .property("Height", &CapsuleColliderComponent::height)
-            .property("Direction", &CapsuleColliderComponent::direction);
 
         registration::class_<CircleRendererComponent>("Circle Renderer Component")
             .constructor<>()
@@ -161,6 +170,13 @@ namespace Borealis
 				value("Kinematic", MovementType::Kinematic)
 				);
 
+		registration::enumeration<CapsuleColliderComponent::Direction>("Capsule Direction")
+			(
+				value("X", CapsuleColliderComponent::Direction::X),
+				value("Y", CapsuleColliderComponent::Direction::Y),
+				value("Z", CapsuleColliderComponent::Direction::Z)
+				);
+
         registration::class_<RigidBodyComponent>("Rigid Body Component")
             (metadata("Component", true))
             .constructor<>()
@@ -193,28 +209,6 @@ namespace Borealis
             .property("Inertia", &CharacterControlComponent::enableInertia)
             .property("Sliding", &CharacterControlComponent::sliding)
             .property("Move In Air", &CharacterControlComponent::moveInAir);
-
-        registration::class_<BoxColliderComponent>("Box Collider Component")
-            (metadata("Component", true))
-            .constructor<>()
-            .property("Is Trigger", &BoxColliderComponent::isTrigger)
-            .property("Center", &BoxColliderComponent::center)
-            .property("Size", &BoxColliderComponent::size);
-
-        registration::class_<CapsuleColliderComponent>("Capsule Collider Component")
-            (metadata("Component", true))
-            .constructor<>()
-            .property("Is Trigger", &CapsuleColliderComponent::isTrigger)
-            .property("Center", &CapsuleColliderComponent::center)
-            .property("Radius", &CapsuleColliderComponent::radius)
-            .property("Height", &CapsuleColliderComponent::height);
-
-        registration::class_<SphereColliderComponent>("Sphere Collider Component")
-            (metadata("Component", true))
-            .constructor<>()
-            .property("Is Trigger", &SphereColliderComponent::isTrigger)
-            .property("Center", &SphereColliderComponent::center)
-            .property("Radius", &SphereColliderComponent::radius);
 
         registration::class_<SpriteRendererComponent>("Sprite Renderer Component")
             .constructor<>()
@@ -427,6 +421,7 @@ void Borealis::ComponentRegistry::SetPropertyInternal(const std::string& propert
     RegisterSetPropertyFunction(AnimatorComponent);
     RegisterSetPropertyFunction(BoxColliderComponent);
     RegisterSetPropertyFunction(CapsuleColliderComponent);
+    RegisterSetPropertyFunction(SphereColliderComponent);
     RegisterSetPropertyFunction(RigidBodyComponent);
     RegisterSetPropertyFunction(LightComponent);
     RegisterSetPropertyFunction(TextComponent);
@@ -442,6 +437,7 @@ void Borealis::ComponentRegistry::SetPropertyInternal(const std::string& propert
     RegisterCopyPropertyFunction(AnimatorComponent);
     RegisterCopyPropertyFunction(BoxColliderComponent);
     RegisterCopyPropertyFunction(CapsuleColliderComponent);
+    RegisterCopyPropertyFunction(SphereColliderComponent);
     RegisterCopyPropertyFunction(RigidBodyComponent);
     RegisterCopyPropertyFunction(LightComponent);
     RegisterCopyPropertyFunction(TextComponent);

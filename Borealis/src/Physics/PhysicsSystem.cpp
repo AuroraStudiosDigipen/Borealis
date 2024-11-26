@@ -1084,10 +1084,15 @@ namespace Borealis
 		// Store the BodyID in the RigidBodyComponent
 		collider.bodyID = body->GetID().GetIndexAndSequenceNumber();
 
+
 		if (collider.isTrigger)
 		{
 			body->SetIsSensor(true);
-			bodySensorMap[collider.bodyID] = true; //only store true values
+			bodySensorMap[collider.bodyID] = true;
+		}
+		else
+		{
+			bodySensorMap[collider.bodyID] = false;
 		}
 
 		bodyIDMapUUID[collider.bodyID] = entityID;

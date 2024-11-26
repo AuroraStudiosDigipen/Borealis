@@ -4,10 +4,10 @@
 layout(location = 0) in vec3 a_Position;
 layout(location = 1) in vec3 a_Normal;
 layout(location = 2) in vec2 a_TexCoord;
-// layout(location = 3) in vec3 a_Tangent;
-// layout(location = 4) in vec3 a_Bitangent;
-layout(location = 3) in ivec4 boneIds; 
-layout(location = 4) in vec4 weights;
+layout(location = 3) in vec3 a_Tangent;
+layout(location = 4) in vec3 a_Bitangent;
+layout(location = 5) in ivec4 boneIds; 
+layout(location = 6) in vec4 weights;
 
 //default variables
 uniform mat4 u_ModelTransform;
@@ -26,8 +26,8 @@ uniform mat4 u_LightViewProjection;
 
 out vec2 v_TexCoord;
 out vec3 v_FragPos;
-// out vec3 v_Tangent;
-// out vec3 v_Bitangent;
+out vec3 v_Tangent;
+out vec3 v_Bitangent;
 out vec3 v_Normal;
 out vec4 v_LightPos;
 flat out int v_EntityID;
@@ -46,9 +46,9 @@ void Render3DPass()
 	
 	mat3 normalMatrix = transpose(inverse(mat3(u_ModelTransform)));
     vec3 N = normalize(normalMatrix * a_Normal);
-    // vec3 T = normalize(normalMatrix * a_Tangent);
-    // T = normalize(T - dot(T, N) * N); // Gram-Schmidt orthogonalization
-    // vec3 B = cross(N, T);
+    vec3 T = normalize(normalMatrix * a_Tangent);
+    T = normalize(T - dot(T, N) * N); // Gram-Schmidt orthogonalization
+    vec3 B = cross(N, T);
 	//animation
 	vec4 TotalPosition = vec4(0.f);
 
@@ -82,8 +82,8 @@ void Render3DPass()
 	
 	v_EntityID = u_EntityID;
 	v_Normal = N;
-    // v_Tangent = T;
-    // v_Bitangent = B;
+    v_Tangent = T;
+    v_Bitangent = B;
 }
 
 void main()
@@ -152,8 +152,8 @@ in vec2 v_TexCoord;
 in vec3 v_FragPos;
 in vec3 v_Normal; 
 flat in int v_EntityID;
-// in vec3 v_Tangent;
-// in vec3 v_Bitangent;
+in vec3 v_Tangent;
+in vec3 v_Bitangent;
 in vec4 v_LightPos;
 
 uniform mat4 u_ViewProjection;
@@ -419,8 +419,8 @@ void Render3DPass()
 {
 	vec3 viewDir = normalize(u_ViewPos - v_FragPos);
 
-	mat3 TBN = mat3(vec3(1.f), vec3(1.f), v_Normal);
-	//mat3 TBN = mat3(v_Tangent, v_Bitangent, v_Normal);
+	//mat3 TBN = mat3(vec3(1.f), vec3(1.f), v_Normal);
+	mat3 TBN = mat3(v_Tangent, v_Bitangent, v_Normal);
 	vec3 normal;
     if (u_Material.hasNormalMap) 
     {

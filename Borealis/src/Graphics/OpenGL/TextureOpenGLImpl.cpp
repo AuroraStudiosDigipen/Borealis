@@ -249,6 +249,11 @@ namespace Borealis
 	{
 		glActiveTexture(GL_TEXTURE0 + unit);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, mRendererID);
+		int err = glGetError();
+		if (err != GL_NO_ERROR)
+		{
+			BOREALIS_CORE_INFO("Error at cubemap {}", err);
+		}
 	}
 
 	bool OpenGLTextureCubeMap::IsValid() const

@@ -1085,7 +1085,7 @@ namespace Borealis
 				RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLEqual);
 				RenderCommand::EnableStencilTest();
 				RenderCommand::EnablePolygonOffset();
-				RenderCommand::SetPolygonOffset(-1.f, 1.f);
+				RenderCommand::SetPolygonOffset(-1.f, -1.f);
 
 				glm::mat4 transform = TransformComponent::GetGlobalTransform(brEntity);
 
@@ -1111,6 +1111,7 @@ namespace Borealis
 				RenderCommand::EnableFrontFaceCull();
 				RenderCommand::ConfigureStencilForHighlight();
 				RenderCommand::EnableWireFrameMode();
+				RenderCommand::SetLineThickness(5.f);
 
 				if (brEntity.HasComponent<SpriteRendererComponent>())
 				{
@@ -1181,10 +1182,10 @@ namespace Borealis
 
 		RenderCommand::DisableDepthTest();
 		shader->Bind();
-		shader->Set("u_ViewProjection", projMatrix * view);
-		renderTarget->Bind();
 		cubeMap->Bind(0);
 		shader->Set("u_Skybox", 0);
+		shader->Set("u_ViewProjection", projMatrix * view);
+		renderTarget->Bind();
 		Renderer3D::DrawCubeMap();
 		renderTarget->Unbind();
 		shader->Unbind();

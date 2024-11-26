@@ -314,28 +314,28 @@ namespace Borealis
             {
             case Material::Tiling:
             {
-                static glm::vec2 tilingValue = material->GetPropertiesVec2()[Material::Tiling];
+                glm::vec2 tilingValue = material->GetPropertiesVec2()[Material::Tiling];
                 DrawVec2Control("Tiling", tilingValue);
                 material->SetPropertyVec2(Material::Tiling, tilingValue);
                 break;
             }
             case Material::Offset:
             {
-                static glm::vec2 offsetValue = material->GetPropertiesVec2()[Material::Offset];
+                glm::vec2 offsetValue = material->GetPropertiesVec2()[Material::Offset];
                 DrawVec2Control("Offset", offsetValue);
                 material->SetPropertyVec2(Material::Offset, offsetValue);
                 break;
             }
             case Material::Smoothness:
             {
-                static float smoothnessValue = material->GetPropertiesFloats()[Material::Smoothness];
+                float smoothnessValue = material->GetPropertiesFloats()[Material::Smoothness];
                 DrawFloatSlider("Smoothness", &smoothnessValue);
                 material->SetPropertyFloat(Material::Smoothness, smoothnessValue);
                 break;
             }
             case Material::Shininess:
             {
-                static float shininessValue = material->GetPropertiesFloats()[Material::Shininess];
+                float shininessValue = material->GetPropertiesFloats()[Material::Shininess];
                 DrawFloatSlider("Shininess", &shininessValue, 0.f, 128.f);
                 material->SetPropertyFloat(Material::Shininess, shininessValue);
                 break;

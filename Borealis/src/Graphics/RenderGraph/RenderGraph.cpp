@@ -387,6 +387,7 @@ namespace Borealis
 	{
 		//add light to light engine and shadow pass
 		{
+			shader->Set("shadowPass", false);
 			entt::basic_group group = registryPtr->group<>(entt::get<TransformComponent, LightComponent>);
 			for (auto& entity : group)
 			{
@@ -397,6 +398,8 @@ namespace Borealis
 				}
 
 				auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
+				lightComponent.position = TransformComponent::GetGlobalTranslate(brEntity);
+				lightComponent.direction = TransformComponent::GetGlobalRotation(brEntity);
 				Renderer3D::AddLight(lightComponent);
 
 				SetShadowVariable(lightComponent, shader, camera);
@@ -420,7 +423,7 @@ namespace Borealis
 					}
 				}
 
-				shader->Set("shadowPass", false);
+				
 				shader->Unbind();
 
 				break; //TODO, for now 1 shadow
@@ -1065,7 +1068,7 @@ namespace Borealis
 				shader->Set("u_ViewProjection", viewProjMatrix);
 				if (entityID == hoveredEntity)
 				{
-					shader->Set("u_Filled", H_HIGHLIGHT);
+					shader->Set("u_Filled", false);
 				}
 				else
 				{

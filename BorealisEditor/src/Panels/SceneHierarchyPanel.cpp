@@ -997,7 +997,7 @@ namespace Borealis
 		TextureConfig config = GetConfig<TextureConfig>(metaData.Config);
 
 		const char* textureTypeNames[] = { "Default", "Normal Map" };
-		static int selectedTextureType = static_cast<int>(config.type);
+		int selectedTextureType = static_cast<int>(config.type);
 
 		ImGui::Text("Texture Configuration");
 		if (ImGui::Combo("Texture Type", &selectedTextureType, textureTypeNames, IM_ARRAYSIZE(textureTypeNames))) {
@@ -1006,14 +1006,14 @@ namespace Borealis
 		}
 
 		const char* textureShapeNames[] = { "2D", "Cube Map" };
-		static int selectedTextureShape = static_cast<int>(config.shape);
+		int selectedTextureShape = static_cast<int>(config.shape);
 
 		if (ImGui::Combo("Texture Shape", &selectedTextureShape, textureShapeNames, IM_ARRAYSIZE(textureShapeNames))) {
 			config.shape = static_cast<TextureShape>(selectedTextureShape);
 			metaData.Config = config;
 		}
 
-		static bool sRGB = config.sRGB;
+		bool sRGB = config.sRGB;
 		if (ImGui::Checkbox("sRGB", &sRGB)) {
 			config.sRGB = sRGB;
 			metaData.Config = config;
@@ -1027,7 +1027,6 @@ namespace Borealis
 			AssetImporter::AddToRecompileQueue(newData);
 		}
 	}
-
 
 	SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& scene)
 	{

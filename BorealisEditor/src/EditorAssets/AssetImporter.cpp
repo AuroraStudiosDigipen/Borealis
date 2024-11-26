@@ -264,7 +264,11 @@ namespace Borealis
 		else
 		{
 			AssetMetaData metaData = MetaFileSerializer::GetAssetMetaDataFile(metaFilePath);
-			metaData = MetaFileSerializer::CreateAssetMetaFile(metaData.SourcePath, metaData.Handle);
+			
+			//TODO Temp for now to ensure that the current proj gets updated, remove in future
+			{
+				metaData = MetaFileSerializer::CreateAssetMetaFile(metaData.SourcePath, metaData.Handle);
+			}
 
 			if (assetRegistry.contains(metaData.Handle))
 			{

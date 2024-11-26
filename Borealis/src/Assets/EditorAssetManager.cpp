@@ -30,6 +30,84 @@ namespace Borealis
 {
 	//TEMP
 	//=====================================
+	namespace
+	{
+		TextureType GetTextureType(std::string const& typeStr)
+		{
+			if (typeStr == "Default") return TextureType::_DEFAULT;
+			if (typeStr == "Normal Map") return TextureType::_NORMAL_MAP;
+			return TextureType::_DEFAULT;
+		}
+
+		TextureShape GetTextureShape(std::string const& typeStr)
+		{
+			if (typeStr == "2D") return TextureShape::_2D;
+			if (typeStr == "Cube") return TextureShape::_CUBE;
+			return TextureShape::_2D;
+		}
+
+		TextureConfig DeserializeTextureConfig(YAML::Node& node)
+		{
+			TextureConfig config;
+			if (node["TextureType"])
+				config.type = GetTextureType(node["TextureType"].as<std::string>());
+			if (node["TextureShape"])
+				config.shape = GetTextureShape(node["TextureShape"].as<std::string>());
+			if (node["sRGB"])
+				config.sRGB = node["sRGB"].as<bool>();
+			if (node["MipMaps"])
+				config.generateMipMaps = node["MipMaps"].as<bool>();
+
+			return config;
+		}
+
+		MeshConfig DeserializeMeshConfig(YAML::Node& node)
+		{
+			MeshConfig config;
+			if (node["IsSkinnedMesh"])
+				config.skinMesh = node["IsSkinnedMesh"].as<bool>();
+			else
+				config.skinMesh = false;
+
+			return config;
+		}
+
+		AssetConfig DeserializeMetaConfigFile(YAML::Node& node, AssetType type)
+		{
+			AssetConfig config{};
+
+			switch (type)
+			{
+			case Borealis::AssetType::None:
+				break;
+			case Borealis::AssetType::Audio:
+				break;
+			case Borealis::AssetType::Mesh:
+				config = DeserializeMeshConfig(node);
+				break;
+			case Borealis::AssetType::Shader:
+				break;
+			case Borealis::AssetType::Texture2D:
+				config = DeserializeTextureConfig(node);
+				break;
+			case Borealis::AssetType::Folder:
+				break;
+			case Borealis::AssetType::Font:
+				break;
+			case Borealis::AssetType::Scene:
+				break;
+			case Borealis::AssetType::Material:
+				break;
+			case Borealis::AssetType::Prefab:
+				break;
+			default:
+				break;
+			}
+
+			return config;
+		}
+	}
+	
 	AssetMetaData DeserializeMetaFile(YAML::Node& node)
 	{
 		AssetMetaData metaData;
@@ -37,6 +115,7 @@ namespace Borealis
 		metaData.name = node["Name"].as<std::string>();
 		metaData.Handle = node["AssetHandle"].as<uint64_t>();
 		metaData.Type = AssetManager::StringToAssetType(node["AssetType"].as<std::string>());
+		metaData.Config = DeserializeMetaConfigFile(node, metaData.Type);
 		std::string str = node["SourcePath"].as<std::string>();
 
 		const std::string pattern = "..\\";
@@ -65,6 +144,8 @@ namespace Borealis
 
 		return metaData;
 	}
+
+	//=================================ABOVE IS TEMP==================
 
 	void EditorAssetManager::LoadAssetRegistryRunTime(std::string path)
 	{
@@ -128,7 +209,6 @@ namespace Borealis
 			asset = LoadAsset(assetHandle);
 			mLoadedAssets.insert({ assetHandle, asset });
 		}
-		BOREALIS_CORE_INFO("Get asset : {}", assetHandle);
 		return asset;
 	}
 

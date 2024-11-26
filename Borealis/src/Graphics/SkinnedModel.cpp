@@ -75,6 +75,7 @@ namespace Borealis
 				meshData[i].Position = oldVertex[i].Position;
 				meshData[i].Normal = oldVertex[i].Normal;
 				meshData[i].TexCoords = oldVertex[i].TexCoords;
+				meshData[i].BoneData = oldVertex[i].BoneData;
 			}
 
 			mesh.GetIndices() = oldIndices;

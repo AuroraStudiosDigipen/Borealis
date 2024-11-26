@@ -89,10 +89,10 @@ namespace Borealis
 		glEnableVertexAttribArray(4);
 		glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(SkinnedVertex), (void*)offsetof(SkinnedVertex, Bitangent));
 
-		glEnableVertexAttribArray(3);
+		glEnableVertexAttribArray(5);
 		glVertexAttribIPointer(5, 4, GL_INT, sizeof(SkinnedVertex), (void*)offsetof(SkinnedVertex, BoneData.mBoneIds));
 
-		glEnableVertexAttribArray(4);
+		glEnableVertexAttribArray(6);
 		glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(SkinnedVertex), (void*)offsetof(SkinnedVertex, BoneData.mWeights));
 
 		glBindVertexArray(0); // Unbind VAO

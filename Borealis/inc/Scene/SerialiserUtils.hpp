@@ -485,6 +485,18 @@ namespace Borealis
 				return true;
 			}
 
+			if (propType == rttr::type::get<Ref<SkinnedModel>>())
+			{
+				prop.set_value(instance, rttr::variant(AssetManager::GetAsset<SkinnedModel>(propData.as<uint64_t>())));
+				return true;
+			}
+
+			if (propType == rttr::type::get<Ref<Animation>>())
+			{
+				prop.set_value(instance, rttr::variant(AssetManager::GetAsset<Animation>(propData.as<uint64_t>())));
+				return true;
+			}
+
 			if (propType == rttr::type::get<Ref<Material>>())
 			{
 				prop.set_value(instance, rttr::variant(AssetManager::GetAsset<Material>(propData.as<uint64_t>())));

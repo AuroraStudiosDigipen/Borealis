@@ -16,6 +16,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/Model.hpp>
 #include <Graphics/SkinnedModel.hpp>
 
+#include <Core/LoggerSystem.hpp>
+
 namespace Borealis
 {
 	void Model::Draw(const glm::mat4& transform, Ref<Shader> shader, int entityID)

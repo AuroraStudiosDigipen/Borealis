@@ -1369,13 +1369,13 @@ namespace Borealis
 		shader = quad_shader;
 	}
 
-	void RenderCanvasRecursive(Entity parent, const glm::mat4& parentTransform, const glm::mat4& canvasTransform)
+	void RenderCanvasRecursive(Entity parent, const glm::mat4& canvasTransform)
 	{
 		if (!parent.HasComponent<TransformComponent>()) return;
-		glm::mat4 globalTansform = (glm::mat4)parent.GetComponent<TransformComponent>();
+		glm::mat4 globalTansform = TransformComponent::GetGlobalTransform(parent);//(glm::mat4)parent.GetComponent<TransformComponent>();
 		if (parent.HasComponent<CanvasRendererComponent>())
 		{
-			glm::mat4 transform = canvasTransform * parentTransform * globalTansform;
+			glm::mat4 transform = canvasTransform * globalTansform;
 			if (parent.HasComponent<SpriteRendererComponent>())
 			{
 				Renderer2D::DrawSprite(transform, parent.GetComponent<SpriteRendererComponent>(), (int)parent);
@@ -1385,7 +1385,7 @@ namespace Borealis
 			{
 				TextComponent const& text = parent.GetComponent<TextComponent>();
 				
-				Renderer2D::DrawString(text.text, text.font, transform, (int)parent);
+				Renderer2D::DrawString(text.text, text.font, transform, (int)parent, text.fontSize, text.colour);
 			}
 		}
 
@@ -1393,7 +1393,7 @@ namespace Borealis
 		{
 			Entity child = SceneManager::GetActiveScene()->GetEntityByUUID(childID);
 
-			RenderCanvasRecursive(child, parentTransform * globalTansform, canvasTransform);
+			RenderCanvasRecursive(child, canvasTransform);
 		}
 	}
 
@@ -1442,9 +1442,16 @@ namespace Borealis
 				}
 				auto [transform, canvas] = group.get<TransformComponent, CanvasComponent>(entity);
 
-				canvas.scaleFactor = 0.01f;
-				canvas.canvasSize.x = renderTarget->Width * canvas.scaleFactor;
-				canvas.canvasSize.y = renderTarget->Height * canvas.scaleFactor;
+				//This is to set the canvas transforms in run time
+				{
+					canvas.scaleFactor = 0.01f;
+					canvas.canvasSize.x = renderTarget->Width * canvas.scaleFactor;
+					canvas.canvasSize.y = renderTarget->Height * canvas.scaleFactor;
+
+					glm::mat4 canvasTransform = glm::translate(glm::mat4(1.f), glm::vec3(((glm::mat4)transform)[3]));
+					canvasTransform = glm::scale(canvasTransform, glm::vec3(canvas.canvasSize.x, canvas.canvasSize.y, 1.f));
+					TransformComponent::SetGlobalTransform(brEntity, canvasTransform);
+				}
 
 				if (!canvas.canvasFrameBuffer)
 				{
@@ -1466,27 +1473,9 @@ namespace Borealis
 				glm::vec3 canvasScale(canvas.canvasSize.x * scaleFactor, canvas.canvasSize.y * scaleFactor, 1.0f);
 
 				glm::mat4 canvasTransform = glm::translate(glm::mat4(1.0f), canvasPosition) *
-					glm::scale(glm::mat4(1.0f), glm::vec3(scaleFactor, scaleFactor * -1.f, 1.f));
+					glm::scale(glm::mat4(1.0f), glm::vec3(scaleFactor, -scaleFactor, 1.f));
 
-				////Render Debug Canvas
-				//{
-				//	SpriteRendererComponent spriteRenderer;
-				//	spriteRenderer.Colour = { 0.f,0.f,100.f,0.2f };
-				//	//spriteRenderer.Colour = { 0.f,0.f,0.f,0.0f };
-
-				//	glm::vec3 screenPosition(renderTarget->Width * 0.5f, renderTarget->Height * 0.5f, 0.0f);
-
-				//	glm::vec3 scale = glm::vec3(
-				//		canvas.canvasSize.x * scaleFactor,
-				//		canvas.canvasSize.y * scaleFactor,
-				//		1.f
-				//	);
-				//	glm::mat4 screenTransform = glm::translate(glm::mat4(1.0f), screenPosition) *
-				//		glm::scale(glm::mat4(1.0f), scale);
-				//	Renderer2D::DrawSprite(screenTransform, spriteRenderer);
-				//}
-
-				RenderCanvasRecursive(brEntity, glm::mat4(1.0f), canvasTransform);
+				RenderCanvasRecursive(brEntity, canvasTransform);
 				UIexist = true;
 			}
 		}
@@ -1566,6 +1555,7 @@ namespace Borealis
 				sprite.Colour = { 0.f,0.f,100.f, 0.2f };
 				glm::mat4 canvasTransform = glm::translate(glm::mat4(1.f), glm::vec3(((glm::mat4)transform)[3]));
 				canvasTransform = glm::scale(canvasTransform, glm::vec3(canvas.canvasSize.x, canvas.canvasSize.y, 1.f));
+				TransformComponent::SetGlobalTransform(brEntity, canvasTransform);
 				Renderer2D::DrawSprite(canvasTransform, sprite, (int)entity);
 			}
 		}

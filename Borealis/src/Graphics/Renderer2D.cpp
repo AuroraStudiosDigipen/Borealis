@@ -694,6 +694,7 @@ namespace Borealis
 
 		double x = 0.0;
 		double fsScale = size / (fontInfo.ascenderY - fontInfo.descenderY);
+
 		double y = 0.0;
 
 		for (int i{}; i < string.size(); i++)

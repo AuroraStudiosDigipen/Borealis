@@ -49,6 +49,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Jolt/Physics/Collision/RayCast.h>
 #include <Jolt/Physics/Collision/CastResult.h>
 
+#include <Graphics/Renderer2D.hpp>
 
 
 
@@ -208,6 +209,18 @@ public:
 
 namespace Borealis
 {
+	class MyCharacterContactListener : public CharacterContactListener
+	{
+	public:
+		virtual void OnContactAdded(const CharacterVirtual* inCharacter,
+			const BodyID& inBodyID2,
+			const SubShapeID& inSubShapeID2,
+			RVec3Arg  	inContactPosition,
+			Vec3Arg  	inContactNormal,
+			CharacterContactSettings& ioSettings) override;
+	};
+
+
 	// An example contact listener
 	class MyContactListener : public ContactListener
 	{
@@ -239,68 +252,90 @@ namespace Borealis
 		ObjectLayerPairFilterImpl* object_vs_object_layer_filter;
 		MyContactListener* contact_listener;
 		MyBodyActivationListener* body_activation_listener;
+
 		std::queue<CollisionPair> onCollisionPairAddedQueue;
 		std::queue<CollisionPair> onCollisionPairRemovedQueue;
 		std::queue<CollisionPair> onCollisionPairPersistedQueue;
+
 		std::queue<CollisionPair> onTriggerPairAddedQueue;
 		std::queue<CollisionPair> onTriggerPairRemovedQueue;
 		std::queue<CollisionPair> onTriggerPairPersistedQueue;
+
+		std::queue<CharacterCollisionPair> onCharacterCollisionPairAddedQueue;
+		std::queue<CharacterCollisionPair> onCharacterTriggerPairAddedQueue;
 	};
 
 	static PhysicsSystemData sData;
 	static unordered_map<unsigned int, Borealis::UUID> bodyIDMapUUID;
+	static unordered_map<unsigned int, bool> bodySensorMap;
+
+	void MyCharacterContactListener::OnContactAdded(const CharacterVirtual* inCharacter, const BodyID& inBodyID2, const SubShapeID& inSubShapeID2, RVec3Arg inContactPosition, Vec3Arg inContactNormal, CharacterContactSettings& ioSettings)
+	{
+		if (PhysicsSystem::BodyIDToIsSensor(inBodyID2.GetIndexAndSequenceNumber()))
+		{
+			sData.onCharacterTriggerPairAddedQueue.push({ &inCharacter, PhysicsSystem::BodyIDToUUID(inBodyID2.GetIndexAndSequenceNumber()) });
+			BOREALIS_CORE_INFO("Character Trigger Enter");
+		}
+		else
+		{
+			sData.onCharacterCollisionPairAddedQueue.push({ &inCharacter, PhysicsSystem::BodyIDToUUID(inBodyID2.GetIndexAndSequenceNumber()) });
+			BOREALIS_CORE_INFO("Character Collision Enter");
+		}
+	}
 
 	void MyContactListener::OnContactAdded(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings)
 	{
-		if (inBody1.IsSensor() || inBody2.IsSensor())
+		if (PhysicsSystem::BodyIDToIsSensor(inBody1.GetID().GetIndexAndSequenceNumber()) || PhysicsSystem::BodyIDToIsSensor(inBody2.GetID().GetIndexAndSequenceNumber()))
 		{
 			sData.onTriggerPairAddedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
-			spdlog::info("Trigger pair added");
+			BOREALIS_CORE_INFO("Trigger Enter");
 		}
 		else
 		{
 			sData.onCollisionPairAddedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
+			BOREALIS_CORE_INFO("Collision Enter");
 		}
 	}
 
 	void MyContactListener::OnContactPersisted(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings)
 	{
-		if (inBody1.IsSensor() || inBody2.IsSensor())
+		if (PhysicsSystem::BodyIDToIsSensor(inBody1.GetID().GetIndexAndSequenceNumber()) || PhysicsSystem::BodyIDToIsSensor(inBody2.GetID().GetIndexAndSequenceNumber()))
 		{
 			sData.onTriggerPairPersistedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
-			spdlog::info("Trigger pair persisted");
+			BOREALIS_CORE_INFO("Trigger Persisted");
 		}
 		else
 		{
 			sData.onCollisionPairPersistedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
+			BOREALIS_CORE_INFO("Collision Persisted");
 		}
-	}
-
-	static bool IsBodySensor(const JPH::BodyID& bodyID)
-	{
-		// Get the body lock interface (read-lock to ensure thread safety)
-		JPH::BodyLockRead lock(sData.mSystem->GetBodyLockInterface(), bodyID);
-		if (lock.Succeeded()) {
-			// Check if the body is a sensor
-			return lock.GetBody().IsSensor();
-		}
-
-		// If the body doesn't exist or is invalid, return false
-		return false;
 	}
 
 	void MyContactListener::OnContactRemoved(const SubShapeIDPair& inSubShapePair)
 	{
-		sData.onCollisionPairRemovedQueue.push({ PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody1ID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody2ID().GetIndexAndSequenceNumber())});
-		spdlog::info("Collision pair removed");
+		if (PhysicsSystem::BodyIDToIsSensor(inSubShapePair.GetBody1ID().GetIndexAndSequenceNumber()) || PhysicsSystem::BodyIDToIsSensor(inSubShapePair.GetBody2ID().GetIndexAndSequenceNumber()))
+		{
+			sData.onTriggerPairRemovedQueue.push({ PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody1ID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody2ID().GetIndexAndSequenceNumber()) });
+			BOREALIS_CORE_INFO("Trigger Exit");
+		}
+		else
+		{
+			sData.onCollisionPairRemovedQueue.push({ PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody1ID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody2ID().GetIndexAndSequenceNumber()) });
+			BOREALIS_CORE_INFO("Collision Exit");
+		}
+		
 	}
 
 	std::queue<CollisionPair>& PhysicsSystem::GetCollisionEnterQueue() {return sData.onCollisionPairAddedQueue; }
 	std::queue<CollisionPair>& PhysicsSystem::GetCollisionPersistQueue() { return sData.onCollisionPairPersistedQueue; }
 	std::queue<CollisionPair>& PhysicsSystem::GetCollisionExitQueue() { return sData.onCollisionPairRemovedQueue; }
+
 	std::queue<CollisionPair>& PhysicsSystem::GetTriggerEnterQueue() { return sData.onTriggerPairAddedQueue; }
 	std::queue<CollisionPair>& PhysicsSystem::GetTriggerPersistQueue() { return sData.onTriggerPairPersistedQueue; }
 	std::queue<CollisionPair>& PhysicsSystem::GetTriggerExitQueue() { return sData.onTriggerPairRemovedQueue; }
+
+	std::queue<CharacterCollisionPair>& PhysicsSystem::GetCharacterCollisionEnterQueue() { return sData.onCharacterCollisionPairAddedQueue; }
+	std::queue<CharacterCollisionPair>& PhysicsSystem::GetCharacterTriggerEnterQueue() { return sData.onCharacterTriggerPairAddedQueue; }
 
 	void PhysicsSystem::EndScene()
 	{
@@ -315,6 +350,26 @@ namespace Borealis
 		while (!sData.onCollisionPairRemovedQueue.empty())
 		{
 			sData.onCollisionPairRemovedQueue.pop();
+		}
+		while (!sData.onTriggerPairAddedQueue.empty())
+		{
+			sData.onTriggerPairAddedQueue.pop();
+		}
+		while (!sData.onTriggerPairPersistedQueue.empty())
+		{
+			sData.onTriggerPairPersistedQueue.pop();
+		}
+		while (!sData.onTriggerPairRemovedQueue.empty())
+		{
+			sData.onTriggerPairRemovedQueue.pop();
+		}
+		while (!sData.onCharacterCollisionPairAddedQueue.empty())
+		{
+			sData.onCharacterCollisionPairAddedQueue.pop();
+		}
+		while (!sData.onCharacterTriggerPairAddedQueue.empty())
+		{
+			sData.onCharacterTriggerPairAddedQueue.pop();
 		}
 	}
 
@@ -550,6 +605,11 @@ namespace Borealis
 		return bodyIDMapUUID[bodyID];
 	}
 
+	bool PhysicsSystem::BodyIDToIsSensor(unsigned int bodyID)
+	{
+		return bodySensorMap[bodyID];
+	}
+
 	std::pair<glm::vec3, glm::vec3> PhysicsSystem::calculateBoundingVolume(const Model& model)
 	{
 		glm::vec3 minExtent{}, maxExtent{};
@@ -702,6 +762,8 @@ namespace Borealis
 		settings.mShape = shape;
 		settings.SetEmbedded();
 
+		character.listenter = new MyCharacterContactListener();
+		reinterpret_cast<CharacterVirtual*>(character.controller)->SetListener(reinterpret_cast<MyCharacterContactListener*>(character.listenter));
 		character.controller = new CharacterVirtual(&settings, RVec3(transform.Translate.x, transform.Translate.y,transform.Translate.z), Quat::sIdentity(), sData.mSystem);
 	}
 
@@ -821,7 +883,11 @@ namespace Borealis
 		if(character.controller)
 		delete character.controller;
 
+		if(character.listenter)
+			delete character.listenter;
+
 		character.controller = nullptr;
+		character.listenter = nullptr;
 	}
 
 	class ObjectLayerFilterImpl : public ObjectLayerFilter
@@ -872,7 +938,7 @@ namespace Borealis
 		bool output = narrowPhaseQuery.CastRay(ray, result, {}, ObjectLayerFilterImpl(LayerMask));
 
 		hitInfo->colliderID = *(reinterpret_cast<uint32_t*>(&result.mBodyID));
-		hitInfo->distance = maxDistance;
+		hitInfo->distance = maxDistance * result.mFraction;
 		hitInfo->ID = PhysicsSystem::BodyIDToUUID(result.mBodyID.GetIndexAndSequenceNumber());
 
 		// If you want the surface normal of the hit use 
@@ -905,19 +971,19 @@ namespace Borealis
 	std::vector<RaycastHit> PhysicsSystem::RayCastAll(glm::vec3 origin, glm::vec3 direction, float maxDistance, Bitset32 LayerMask)
 	{
 		direction = glm::normalize(direction);
+		direction *= maxDistance;
 		RayCollector collector;
-		RayCastSettings settings;
 		RRayCast ray{ Vec3(origin.x, origin.y, origin.z), Vec3(direction.x, direction.y, direction.z) };
 		auto& narrowPhaseQuery = sData.mSystem->GetNarrowPhaseQuery();
-		narrowPhaseQuery.CastRay(ray, settings, collector, {}, ObjectLayerFilterImpl(LayerMask));
-
+		narrowPhaseQuery.CastRay(ray, {}, collector, {}, ObjectLayerFilterImpl(LayerMask));
 		std::vector<RaycastHit> output;
 		for (auto hitResult : collector.hits)
 		{
 			RaycastHit hit;
 			hit.colliderID = *(reinterpret_cast<uint32_t*>(&hitResult.mBodyID));
-			hit.distance = maxDistance;
+			hit.distance = maxDistance * hitResult.mFraction;
 			hit.ID = PhysicsSystem::BodyIDToUUID(hitResult.mBodyID.GetIndexAndSequenceNumber());
+			
 			JPH::BodyLockWrite lock(sData.mSystem->GetBodyLockInterface(), hitResult.mBodyID);
 			if (lock.Succeeded())
 			{
@@ -926,6 +992,7 @@ namespace Borealis
 				hit.normal = { normals.GetX(), normals.GetY(), normals.GetZ() };
 			}
 			hit.point = origin + direction * hit.distance;
+
 			output.push_back(hit);
 		}
 
@@ -968,10 +1035,17 @@ namespace Borealis
 		auto actualCenterVec4 = entityTransform * glm::vec4(modelCenter, 1.0f);
 		auto actualCenter = glm::vec3(actualCenterVec4.x, actualCenterVec4.y, actualCenterVec4.z);
 
-		BodyCreationSettings body_settings(shape, RVec3(actualCenter.x, actualCenter.y, actualCenter.z), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
 
 		auto brEntity = SceneManager::GetActiveScene()->GetEntityByUUID(entityID);
+		auto rotation = TransformComponent::GetGlobalRotation(brEntity);
 		auto tagComponent = brEntity.GetComponent<TagComponent>();
+
+		glm::quat quatRot = glm::quat(glm::radians(rotation));  // Assuming Rotation is in degrees
+
+		// Convert glm::quat to Jolt's Quat (JPH::Quat)
+		JPH::Quat newRotation = JPH::Quat(quatRot.x, quatRot.y, quatRot.z, quatRot.w);
+
+		BodyCreationSettings body_settings(shape, RVec3(actualCenter.x, actualCenter.y, actualCenter.z), newRotation, EMotionType::Static, Layers::NON_MOVING);
 
 		if (rigidbody)
 		{
@@ -1007,20 +1081,26 @@ namespace Borealis
 		// Add it to the world
 		sData.body_interface->AddBody(body->GetID(), EActivation::Activate);
 
+		// Store the BodyID in the RigidBodyComponent
+		collider.bodyID = body->GetID().GetIndexAndSequenceNumber();
+
 		if (collider.isTrigger)
 		{
 			body->SetIsSensor(true);
+			bodySensorMap[collider.bodyID] = true;
 		}
-
-		// Store the BodyID in the RigidBodyComponent
-		collider.bodyID = body->GetID().GetIndexAndSequenceNumber();
+		else
+		{
+			body->SetIsSensor(false);
+			bodySensorMap[collider.bodyID] = false;
+		}
 		bodyIDMapUUID[collider.bodyID] = entityID;
-		
 	}
 
 	void PhysicsSystem::FreeRigidBody(ColliderComponent& collider)
 	{
 		sData.body_interface->RemoveBody(JPH::BodyID(collider.bodyID));
 		bodyIDMapUUID.erase(collider.bodyID);
+		bodySensorMap.erase(collider.bodyID);
 	}
 }

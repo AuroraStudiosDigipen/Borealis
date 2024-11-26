@@ -25,7 +25,7 @@ namespace Borealis
 	}
 
 	Animator::Animator() :
-	mCurrentAnimation(nullptr), mLoop(true), mPlayed(false), mCurrentTime(0.f), mDeltaTime(0.f)
+	mCurrentAnimation(nullptr), mLoop(true), mPlayed(false), mCurrentTime(0.f)
 	{
 		mFinalBoneMatrices.reserve(MAX_BONES);
 
@@ -36,7 +36,7 @@ namespace Borealis
 	}
 
 	Animator::Animator(Ref<Animation> animation) :
-	mCurrentAnimation(animation), mLoop(true), mPlayed(false), mCurrentTime(0.f), mDeltaTime(0.f)
+	mCurrentAnimation(animation), mLoop(true), mPlayed(false), mCurrentTime(0.f)
 	{
 		mFinalBoneMatrices.reserve(MAX_BONES);
 
@@ -48,8 +48,6 @@ namespace Borealis
 
 	void Animator::UpdateAnimation(float dt)
 	{
-		mDeltaTime = dt;
-
 		if (mPlayed && mLoop)
 		{
 			mCurrentTime = fmod(mCurrentTime, mCurrentAnimation->mDuration);
@@ -58,7 +56,7 @@ namespace Borealis
 
 		if (mCurrentAnimation && !mPlayed)
 		{
-			if (!mNextAnimation)
+			if (!mNextAnimation) // temp
 			{
 				mCurrentTime += mCurrentAnimation->mTicksPerSecond * dt * mSpeed;
 
@@ -168,7 +166,7 @@ namespace Borealis
 		}
 	}
 
-	void Animator::BlendTwoAnimations(Ref<Animation> baseAnimation, Ref<Animation> layerAnimation, float blendFactor, float deltaTime)
+	void Animator::BlendTwoAnimations(Ref<Animation> baseAnimation, Ref<Animation> layerAnimation, float blendFactor, float dt)
 	{
 		float a = 1.f;
 		float b = baseAnimation->GetDuration() / layerAnimation->GetDuration();
@@ -178,17 +176,38 @@ namespace Borealis
 		b = 1.f;
 		float animSpeedMultiplierDown = (1.f - blendFactor) * a + b * blendFactor;
 
-		static float currentTimeBase = 0.f;
-		currentTimeBase += baseAnimation->GetTicksPerSecond() * deltaTime * mSpeed * animSpeedMultiplierUp;
-		currentTimeBase = fmod(currentTimeBase, baseAnimation->GetDuration());
+		mCurrentTimeBase += baseAnimation->GetTicksPerSecond() * dt * mSpeed * animSpeedMultiplierUp;
+		mCurrentTimeLayer += layerAnimation->GetTicksPerSecond() * dt * mSpeed * animSpeedMultiplierDown;
 
-		static float currentTimeLayer = 0.f;
-		currentTimeLayer += layerAnimation->GetTicksPerSecond() * deltaTime * mSpeed * animSpeedMultiplierDown;
-		currentTimeLayer = fmod(currentTimeLayer, layerAnimation->GetDuration());
+		bool basePlayed = false;
+		bool layerPlayed = false;
 
-		CalculateBlendedBoneTransform(baseAnimation, &baseAnimation->GetRootNode(), 
-			layerAnimation, &layerAnimation->GetRootNode(), 
-			currentTimeBase, currentTimeLayer, glm::mat4(1.f), blendFactor);
+		if (mLoop)
+		{
+			mCurrentTimeBase = fmod(mCurrentTimeBase, baseAnimation->GetDuration());
+		}
+		else if (mCurrentTimeBase >= baseAnimation->GetDuration())
+		{
+			mCurrentTimeBase = baseAnimation->GetDuration();
+			basePlayed = true;
+		}
+
+		if (mLoop)
+		{
+			mCurrentTimeLayer = fmod(mCurrentTimeLayer, layerAnimation->GetDuration());
+		}
+		else if (mCurrentTimeLayer >= layerAnimation->GetDuration())
+		{
+			mCurrentTimeLayer = layerAnimation->GetDuration();
+			layerPlayed = true;
+		}
+
+		if (!(basePlayed && layerPlayed))
+		{
+			CalculateBlendedBoneTransform(baseAnimation, &baseAnimation->GetRootNode(),
+				layerAnimation, &layerAnimation->GetRootNode(),
+				mCurrentTimeBase, mCurrentTimeLayer, glm::mat4(1.f), blendFactor);
+		}
 	}
 
 }

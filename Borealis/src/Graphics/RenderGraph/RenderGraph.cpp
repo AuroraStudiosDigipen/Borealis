@@ -385,8 +385,8 @@ namespace Borealis
 
 					if (animatorComponent.animation)
 					{
-						animatorComponent.animator.mLoop = animatorComponent.loop;
-						animatorComponent.animator.mSpeed = animatorComponent.speed;
+						animatorComponent.animator.SetLoop(animatorComponent.loop);
+						animatorComponent.animator.SetSpeed(animatorComponent.speed);
 
 						animatorComponent.animator.UpdateAnimation(dt);
 

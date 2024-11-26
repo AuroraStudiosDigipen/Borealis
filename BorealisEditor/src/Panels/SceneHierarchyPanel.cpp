@@ -1415,6 +1415,166 @@ namespace Borealis
 
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 10, 0 }); // Spacing between Items
 
+			if (field.isAssetField())
+			{
+				MonoObject* ObjData = component->GetFieldValue<MonoObject*>(name);
+				std::vector<std::string> entityNames;
+				std::vector<UUID> entityIDList;
+				for (auto entity : SceneManager::GetActiveScene()->GetRegistry().group<TagComponent>())
+				{
+					entityIDList.push_back(SceneManager::GetActiveScene()->GetRegistry().get<IDComponent>(entity).ID);
+					entityNames.push_back(std::string(SceneManager::GetActiveScene()->GetRegistry().get<TagComponent>(entity).Tag));
+				}
+
+				std::string currentEntityName = "";
+				if (ObjData)
+				{
+					auto assetID = field.GetGameObjectID(ObjData);
+					if (assetID != 0)
+					{
+						AssetMetaData meta = AssetManager::GetMetaData(assetID);
+						std::string fileName = meta.name;
+						currentEntityName = fileName;
+					}
+				}
+				else
+				{
+					// call the constructor
+					InitGameObject(ObjData, 0, field.mFieldClassName());
+					component->SetFieldValue(name, ObjData);
+				}
+
+				int assetType = field.GetAssetType();
+
+				std::string fileName = currentEntityName;
+				if (currentEntityName == "")
+				{
+					ImU32 color32 = IM_COL32(180, 120, 120, 255);
+					ImVec4 color = ImGui::ColorConvertU32ToFloat4(color32);
+					ImGui::PushStyleColor(ImGuiCol_FrameBg, color);
+				}
+				ImGui::InputText(("##" + name + field.mName).c_str(), fileName.data(), fileName.size(), ImGuiInputTextFlags_ReadOnly);
+				if (currentEntityName == "")
+				{
+					ImGui::PopStyleColor();
+				}
+
+				if (assetType != -1)
+				{
+					switch (assetType)
+					{
+					case 0:
+						if (ImGui::BeginDragDropTarget())
+						{
+							if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropImageItem"))
+							{
+								UUID data = *(const uint64_t*)payload->Data;
+								InitGameObject(ObjData, data, field.mFieldClassName());
+								component->SetFieldValue(name, ObjData);
+							}
+							ImGui::EndDragDropTarget();
+						}
+						break;
+					case 1:
+						if (ImGui::BeginDragDropTarget())
+						{
+							if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropMaterialItem"))
+							{
+								UUID data = *(const uint64_t*)payload->Data;
+								InitGameObject(ObjData, data, field.mFieldClassName());
+								component->SetFieldValue(name, ObjData);
+							}
+							ImGui::EndDragDropTarget();
+						}
+						break;
+					case 2:
+						if (ImGui::BeginDragDropTarget())
+						{
+							if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropAudioItem"))
+							{
+								UUID data = *(const uint64_t*)payload->Data;
+								InitGameObject(ObjData, data, field.mFieldClassName());
+								component->SetFieldValue(name, ObjData);
+							}
+							ImGui::EndDragDropTarget();
+						}
+						break;
+					default:
+						break;
+					}
+				}
+
+			}
+
+
+			if (field.isNativeComponent())
+			{
+				MonoObject* Data = component->GetFieldValue<MonoObject*>(name);
+				std::vector<std::string> entityNames;
+				std::vector<UUID> entityIDList;
+
+				std::string currentEntityName = "";
+				if (Data)
+				{
+					auto currentEntityID = field.GetGameObjectID(Data);
+					if (currentEntityID != 0)
+					{
+						currentEntityName = SceneManager::GetActiveScene()->GetEntityByUUID(currentEntityID).GetName();
+					}
+				}
+				else
+				{
+					// call the constructor
+					InitGameObject(Data, 0, field.mFieldClassName());
+					component->SetFieldValue(name, Data);
+				}
+
+				if (currentEntityName == "")
+				{
+					ImU32 color32 = IM_COL32(180, 120, 120, 255);
+					ImVec4 color = ImGui::ColorConvertU32ToFloat4(color32);
+					ImGui::PushStyleColor(ImGuiCol_FrameBg, color);
+				}
+				if (ImGui::BeginCombo(("##" + component->GetKlassName() + name).c_str(), currentEntityName.c_str()))
+				{
+					int i = 0;
+					for (auto ID : entityIDList)
+					{
+						bool isSelected = currentEntityName == entityNames[i];
+						if (ImGui::Selectable(entityNames[i].c_str(), isSelected))
+						{
+							currentEntityName = entityNames[i];
+							UUID entityID = ID;
+							InitGameObject(Data, entityID, field.mFieldClassName());
+							component->SetFieldValue(name, Data);
+						}
+						if (isSelected)
+						{
+							ImGui::SetItemDefaultFocus();
+						}
+						i++;
+					}
+					ImGui::EndCombo();
+				}
+				if (currentEntityName == "")
+				{
+					ImGui::PopStyleColor();
+				}
+
+				if (ImGui::BeginDragDropTarget())
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropEntityItem"))
+					{
+						UUID data = *(const uint64_t*)payload->Data;
+						InitGameObject(Data, data, field.mFieldClassName());
+						component->SetFieldValue(name, Data);
+						// Init game object
+					}
+					ImGui::EndDragDropTarget();
+				}
+
+			}
+
 			if (field.isGameObject())
 			{
 				MonoObject* Data = component->GetFieldValue<MonoObject*>(name);
@@ -1432,16 +1592,25 @@ namespace Borealis
 					auto currentEntityID = field.GetGameObjectID(Data);
 					if (currentEntityID != 0)
 					{
-						currentEntityName = SceneManager::GetActiveScene()->GetEntityByUUID(currentEntityID).GetName();
+						Entity brEntity = SceneManager::GetActiveScene()->GetEntityByUUID(currentEntityID);
+						if (brEntity.IsValid())
+						{
+							currentEntityName = brEntity.GetComponent<TagComponent>().Tag;
+						}
 					}
 				}
 				else
 				{
 					// call the constructor
-					InitGameObject(Data, 0);
+					InitGameObject(Data, 0, field.mFieldClassName());
 					component->SetFieldValue(name, Data);
 				}
-
+				if (currentEntityName == "")
+				{
+					ImU32 color32 = IM_COL32(180, 120, 120, 255);
+					ImVec4 color = ImGui::ColorConvertU32ToFloat4(color32);
+					ImGui::PushStyleColor(ImGuiCol_FrameBg, color);
+				}
 				if (ImGui::BeginCombo(("##" + component->GetKlassName() + name).c_str(), currentEntityName.c_str()))
 				{
 					int i = 0;
@@ -1452,7 +1621,7 @@ namespace Borealis
 						{
 							currentEntityName = entityNames[i];
 							UUID entityID = ID;
-							InitGameObject(Data, entityID);
+							InitGameObject(Data, entityID, field.mFieldClassName());
 							component->SetFieldValue(name, Data);
 						}
 						if (isSelected)
@@ -1463,13 +1632,17 @@ namespace Borealis
 					}
 					ImGui::EndCombo();
 				}
+				if (currentEntityName == "")
+				{
+					ImGui::PopStyleColor();
+				}
 
 				if (ImGui::BeginDragDropTarget())
 				{
 					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropEntityItem"))
 					{
 						UUID data = *(const uint64_t*)payload->Data;
-						InitGameObject(Data, data);
+						InitGameObject(Data, data, field.mFieldClassName());
 						component->SetFieldValue(name, Data);
 						// Init game object
 					}
@@ -1497,6 +1670,13 @@ namespace Borealis
 					currentEntityName = SceneManager::GetActiveScene()->GetEntityByUUID(currentEntityID).GetName();
 				}
 
+				if (currentEntityName == "")
+				{
+					ImU32 color32 = IM_COL32(180, 120, 120, 255);
+					ImVec4 color = ImGui::ColorConvertU32ToFloat4(color32);
+					ImGui::PushStyleColor(ImGuiCol_FrameBg, color);
+				}
+
 				if (ImGui::BeginCombo(("##" + component->GetKlassName() + name).c_str(), currentEntityName.c_str()))
 				{
 					int i = 0;
@@ -1519,6 +1699,11 @@ namespace Borealis
 						i++;
 					}
 					ImGui::EndCombo();
+				}
+
+				if (currentEntityName == "")
+				{
+					ImGui::PopStyleColor();
 				}
 
 				if (ImGui::BeginDragDropTarget())
@@ -1699,10 +1884,11 @@ namespace Borealis
 	static bool DrawScriptComponent(ScriptComponent& component, Entity& entity, bool allowDelete = true)
 	{
 		bool isEdited = false;
+		bool deleteComponent = false;
+		std::queue<std::string> deleteQueue;
 		for (auto& [name, script] : component.mScripts)
 		{
 			ImGui::Spacing();
-			bool deleteComponent = false;
 			bool open;
 
 			if (allowDelete)
@@ -1733,6 +1919,7 @@ namespace Borealis
 					if (ImGui::MenuItem("Remove Component"))
 					{
 						deleteComponent = true;
+						deleteQueue.push(name);
 					}
 
 					ImGui::EndPopup();
@@ -1763,10 +1950,16 @@ namespace Borealis
 				isEdited = DrawScriptField(script) ? true : isEdited;
 			}
 
-			if (deleteComponent)
+			
+		}
+
+		if (deleteComponent)
+		{
+			while (!deleteQueue.empty())
 			{
-				ScriptingSystem::mEntityScriptMap[name].erase(entity.GetUUID());
-				component.RemoveScript(name);
+				ScriptingSystem::mEntityScriptMap[deleteQueue.front()].erase(entity.GetUUID());
+				component.RemoveScript(deleteQueue.front());
+				deleteQueue.pop();
 				if (component.mScripts.empty())
 				{
 					entity.RemoveComponent<ScriptComponent>();
@@ -1832,19 +2025,20 @@ namespace Borealis
 					{
 						flag = ImGuiInputTextFlags_EnterReturnsTrue;
 					}
-
+					bool hasPushed = false;
 					if (!LayerList::HasIndex(i))
 					{
 						ImU32 color32 = IM_COL32(180, 120, 120, 255);
 						ImVec4 color = ImGui::ColorConvertU32ToFloat4(color32);
 						ImGui::PushStyleColor(ImGuiCol_FrameBg, color);
+						hasPushed = true;
 					}
 					ImGui::SetNextItemWidth(ImGui::GetFontSize() * 6);
 					if (ImGui::InputText(("##" + label).c_str(), layerTextBuffer[i], 64, flag))
 					{
 						LayerList::SetLayer(i, std::string(layerTextBuffer[i]));
 					}
-					if (!LayerList::HasIndex(i))
+					if (hasPushed == true)
 					{
 						ImGui::PopStyleColor();
 					}
@@ -1893,6 +2087,7 @@ namespace Borealis
 			isEdited = SearchBar<MeshRendererComponent	  >(search_text, entity,"Mesh Renderer", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<BoxColliderComponent	  >(search_text, entity,"Box Collider", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<CapsuleColliderComponent>(search_text, entity,"Capsule Collider", search_buffer) ? true : isEdited;
+			isEdited = SearchBar<SphereColliderComponent>(search_text, entity, "Sphere Collider", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<RigidBodyComponent	  >(search_text, entity,"Rigidbody", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<CharacterControlComponent>(search_text, entity, "Character Controller", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<LightComponent		  >(search_text, entity,"Light", search_buffer) ? true : isEdited;
@@ -1911,9 +2106,12 @@ namespace Borealis
 			// scripts
 			for (auto [name, klass] : ScriptingSystem::mScriptClasses)
 			{
+				std::string MenuConverter(name + " (Script)");
+				std::transform(MenuConverter.begin(), MenuConverter.end(), MenuConverter.begin(), ::tolower);
+
 				if (name == "MonoBehaviour") { continue; }
-				if (search_text.empty() || name.find(search_text) != std::string::npos)
-					if (ImGui::MenuItem(name.c_str()))
+				if (search_text.empty() || MenuConverter.find(search_text) != std::string::npos)
+					if (ImGui::MenuItem((name + " (Script)").c_str()))
 					{
 						if (mSelectedEntity.HasComponent<ScriptComponent>() == false)
 						{
@@ -1938,6 +2136,7 @@ namespace Borealis
 		isEdited = DrawComponentLayout<MeshRendererComponent>("Mesh Renderer", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<BoxColliderComponent>("Box Collider", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<CapsuleColliderComponent>("Capsule Collider", entity) ? true : isEdited;
+		isEdited = DrawComponentLayout<SphereColliderComponent>("Sphere Collider", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<RigidBodyComponent>("Rigidbody", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<CharacterControlComponent>("Character Controller", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<LightComponent>("Light", entity) ? true : isEdited;

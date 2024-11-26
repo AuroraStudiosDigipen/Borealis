@@ -51,6 +51,9 @@ namespace Borealis
 		std::string GetHeader(MonoClass* klass) const;
 		bool isMonoBehaviour() const;
 		bool isGameObject() const;
+		bool isNativeComponent() const;
+		bool isAssetField() const;
+		int GetAssetType() const;
 	};
 }
 

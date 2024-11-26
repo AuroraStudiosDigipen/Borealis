@@ -48,6 +48,7 @@ namespace Borealis
 		static void SetPropertyInternal(const std::string& propertyName, const void*& data, const AnimatorComponent& object);
 		static void SetPropertyInternal(const std::string& propertyName, const void*& data, const BoxColliderComponent& object);
 		static void SetPropertyInternal(const std::string& propertyName, const void*& data, const CapsuleColliderComponent& object);
+		static void SetPropertyInternal(const std::string& propertyName, const void*& data, const SphereColliderComponent& object);
 		static void SetPropertyInternal(const std::string& propertyName, const void*& data, const RigidBodyComponent& object);
 		static void SetPropertyInternal(const std::string& propertyName, const void*& data, const LightComponent& object);
 		static void SetPropertyInternal(const std::string& propertyName, const void*& data, const TextComponent& object);
@@ -64,6 +65,7 @@ namespace Borealis
 		static void CopyPropertyInternal(const std::string& propertyName, const AnimatorComponent& src, const AnimatorComponent& dest);
 		static void CopyPropertyInternal(const std::string& propertyName, const BoxColliderComponent& src, const BoxColliderComponent& dest);
 		static void CopyPropertyInternal(const std::string& propertyName, const CapsuleColliderComponent& src, const CapsuleColliderComponent& dest);
+		static void CopyPropertyInternal(const std::string& propertyName, const SphereColliderComponent& src, const SphereColliderComponent& dest);
 		static void CopyPropertyInternal(const std::string& propertyName, const RigidBodyComponent& src, const RigidBodyComponent& dest);
 		static void CopyPropertyInternal(const std::string& propertyName, const LightComponent& src, const LightComponent& dest);
 		static void CopyPropertyInternal(const std::string& propertyName, const TextComponent& src, const TextComponent& dest);

@@ -299,6 +299,9 @@ namespace Borealis
 	std::queue<CollisionPair>& PhysicsSystem::GetCollisionEnterQueue() {return sData.onCollisionPairAddedQueue; }
 	std::queue<CollisionPair>& PhysicsSystem::GetCollisionPersistQueue() { return sData.onCollisionPairPersistedQueue; }
 	std::queue<CollisionPair>& PhysicsSystem::GetCollisionExitQueue() { return sData.onCollisionPairRemovedQueue; }
+	std::queue<CollisionPair>& PhysicsSystem::GetTriggerEnterQueue() { return sData.onTriggerPairAddedQueue; }
+	std::queue<CollisionPair>& PhysicsSystem::GetTriggerPersistQueue() { return sData.onTriggerPairPersistedQueue; }
+	std::queue<CollisionPair>& PhysicsSystem::GetTriggerExitQueue() { return sData.onTriggerPairRemovedQueue; }
 
 	void PhysicsSystem::EndScene()
 	{
@@ -567,7 +570,6 @@ namespace Borealis
 			}
 		}
 
-
 		glm::vec3 boundingVolumeCenter = (minExtent + maxExtent) * 0.5f;
 
 		return { boundingVolumeCenter, maxExtent - minExtent };
@@ -682,14 +684,14 @@ namespace Borealis
 		}
 		else if (spherePtr)
 		{
-			SphereShapeSettings sphere_shape_settings(spherePtr->radius);
+			SphereShapeSettings sphere_shape_settings(spherePtr->radius *((transform.Scale.x + transform.Scale.y + transform.Scale.z) * 0.33f)); //For sphere scaling of xyz should be equal. 
 			sphere_shape_settings.SetEmbedded();
 			shape_result = sphere_shape_settings.Create();
 			shape = shape_result.Get();
 		}
 		else if (capsulePtr)
 		{
-			CapsuleShapeSettings capsule_shape_settings(capsulePtr->radius, capsulePtr->height);
+			CapsuleShapeSettings capsule_shape_settings(capsulePtr->radius * (transform.Scale.x + transform.Scale.z) * 0.5f, capsulePtr->height * transform.Scale.y); //For capsule scaling when Y is up, X and Z is the width and Y is the height.
 			capsule_shape_settings.SetEmbedded();
 			shape_result = capsule_shape_settings.Create();
 			shape = shape_result.Get();
@@ -950,14 +952,14 @@ namespace Borealis
 		}
 		else if (spherePtr)
 		{
-			SphereShapeSettings sphere_shape_settings(spherePtr->radius);
+			SphereShapeSettings sphere_shape_settings(spherePtr->radius * ((transform.Scale.x + transform.Scale.y + transform.Scale.z) * 0.33f)); //For sphere scaling of xy
 			sphere_shape_settings.SetEmbedded();
 			shape_result = sphere_shape_settings.Create();
 			shape = shape_result.Get();
 		}
 		else if (capsulePtr)
 		{
-			CapsuleShapeSettings capsule_shape_settings(capsulePtr->radius, capsulePtr->height);
+			CapsuleShapeSettings capsule_shape_settings(capsulePtr->radius * (transform.Scale.x+transform.Scale.z) * 0.5f, capsulePtr->height * transform.Scale.y);
 			capsule_shape_settings.SetEmbedded();
 			shape_result = capsule_shape_settings.Create();
 			shape = shape_result.Get();

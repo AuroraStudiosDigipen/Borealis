@@ -137,13 +137,21 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\Assets\AudioClip.cs" />
+    <Compile Include="src\Assets\Material.cs" />
+    <Compile Include="src\Assets\Sprite.cs" />
     <Compile Include="src\Attributes.cs" />
     <Compile Include="src\Behaviour.cs" />
     <Compile Include="src\BehaviourTreeNode.cs" />
+    <Compile Include="src\Components\AudioSource.cs" />
     <Compile Include="src\Components\CharacterController.cs" />
+    <Compile Include="src\Components\Collider.cs" />
     <Compile Include="src\Components\Component.cs" />
+    <Compile Include="src\Components\MeshRenderer.cs" />
+    <Compile Include="src\Components\OutlineComponent.cs" />
     <Compile Include="src\Components\Rigidbody.cs" />
     <Compile Include="src\Components\SpriteRenderer.cs" />
+    <Compile Include="src\Components\Text.cs" />
     <Compile Include="src\Components\Transform.cs" />
     <Compile Include="src\Cursor.cs" />
     <Compile Include="src\Debug.cs" />

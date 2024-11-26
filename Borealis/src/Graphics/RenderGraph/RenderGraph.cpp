@@ -485,7 +485,7 @@ namespace Borealis
 				auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
 
 
-				if (!meshFilter.Model || !meshRenderer.Material) continue;
+				if (!meshFilter.Model || !meshRenderer.Material || !meshRenderer.active) continue;
 
 				Frustum frustum = ComputeFrustum(viewProjMatrix);
 				BoundingSphere modelBoundingSphere = meshFilter.Model->mBoundingSphere;
@@ -726,7 +726,7 @@ namespace Borealis
 					continue;
 				}
 				auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
-
+				if (!meshRenderer.active) { continue; }
 				Renderer3D::DrawMesh(TransformComponent::GetGlobalTransform(brEntity), meshFilter, meshRenderer, shader,(int)entity);
 			}
 			RenderCommand::EnableBlend();
@@ -895,6 +895,7 @@ namespace Borealis
 							continue;
 						}
 						auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
+						if (!meshRenderer.active) { continue; }
 
 						RenderCommand::EnableFrontFaceCull();
 						Renderer3D::DrawMesh(TransformComponent::GetGlobalTransform(brEntity), meshFilter, meshRenderer, shader, (int)entity);
@@ -918,6 +919,7 @@ namespace Borealis
 						continue;
 					}
 					auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
+					if (!meshRenderer.active) { continue; }
 
 					RenderCommand::EnableFrontFaceCull();
 					Renderer3D::DrawHighlightedMesh(TransformComponent::GetGlobalTransform(brEntity), meshFilter, cascade_shadow_shader);

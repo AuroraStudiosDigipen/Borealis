@@ -211,7 +211,7 @@ namespace Borealis
     void Material::SetUniforms(Ref<Shader> shader/*, int startingTextureUnit*/)
 	{
 		shader->Bind();
-        int textureUnit = 1; //switched to start with 1, for shadow map, think of a more dynamic way in the future
+        int textureUnit = 2; //switched to start with 1, for shadow map, think of a more dynamic way in the future
 
         // Albedo Map
         if (mTextureMaps[Albedo])

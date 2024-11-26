@@ -141,7 +141,6 @@ namespace Borealis
 	{
 		if (hasRuntimeStarted)
 		{
-			
 			{
 				mRegistry.view<NativeScriptComponent>().each([=](auto entity, auto& component)
 					{
@@ -388,6 +387,7 @@ namespace Borealis
 						}
 					}
 				}
+
 
 				while (!PhysicsSystem::GetCollisionPersistQueue().empty())
 				{
@@ -768,7 +768,7 @@ namespace Borealis
 		if (mEntityMap.find(uuid) != mEntityMap.end())
 			return { mEntityMap.at(uuid), this };
 
-		return {};
+		return {(entt::entity)-1, this};
 	}
 	void Scene::DestroyEntity(Entity entity)
 	{		
@@ -870,6 +870,7 @@ namespace Borealis
 		CopyComponent<AnimatorComponent>(newEntity,entity);
 		CopyComponent<BoxColliderComponent>(newEntity,entity);
 		CopyComponent<CapsuleColliderComponent>(newEntity,entity);
+		CopyComponent<SphereColliderComponent>(newEntity, entity);
 		CopyComponent<RigidBodyComponent>(newEntity, entity);
 		CopyComponent<CharacterControlComponent>(newEntity, entity);
 		CopyComponent<LightComponent>(newEntity, entity);
@@ -882,7 +883,6 @@ namespace Borealis
 		CopyComponent<OutLineComponent>(newEntity, entity);
 		CopyComponent<CanvasComponent>(newEntity, entity);
 		CopyComponent<CanvasRendererComponent>(newEntity, entity);
-
 		auto& tc = newEntity.GetComponent<TransformComponent>();
 		if (tc.ParentID)
 		{
@@ -925,10 +925,12 @@ namespace Borealis
 	template <>
 	static void CopyComponent <ScriptComponent> (entt::registry& dst, entt::registry& src, const std::unordered_map<UUID, entt::entity>& entitymap)
 	{
+		std::unordered_map<UUID, entt::entity> srcMap;
 		auto view = src.view<ScriptComponent>();
 		for (auto srcEntity : view)
 		{
 			UUID uuid = src.get<IDComponent>(srcEntity).ID;
+			srcMap[uuid] = srcEntity;
 			auto dstEntity = entitymap.at(uuid);
 
 			auto srcComponent = view.get<ScriptComponent>(srcEntity);
@@ -952,10 +954,51 @@ namespace Borealis
 				auto srcIT = srcScriptComponent.mScripts.find(dstIT->first);
 				for (auto property : scriptKlass->mFields)
 				{
+					if (!property.second.isMonoBehaviour() && 
+						((!property.second.hasHideInInspector(scriptKlass->GetMonoClass()) && property.second.isPublic())
+							|| (property.second.hasSerializeField(scriptKlass->GetMonoClass())))
+						)
+
 					dstIT->second->ReplaceFieldValue(srcIT->second.get(), property.first);
 				}
 			}
+		}
 
+		auto dstView = dst.view<ScriptComponent>();
+		for (auto dstEntity : dstView)
+		{
+			auto dstScriptComponent = dstView.get<ScriptComponent>(dstEntity);
+			UUID dstID = dst.get<IDComponent>(dstEntity).ID;
+			entt::entity dstEnttID = srcMap.at(dstID);
+			auto srcScriptComponent = view.get<ScriptComponent>(dstEnttID);
+			auto srcIT = srcScriptComponent.mScripts.begin();
+			for (auto dstIT = dstScriptComponent.mScripts.begin(); dstIT != dstScriptComponent.mScripts.end(); dstIT++, srcIT++)
+			{
+				auto scriptKlass = dstIT->second->GetScriptClass();
+				for (auto property : scriptKlass->mFields)
+				{
+					if (property.second.isMonoBehaviour() &&
+						((!property.second.hasHideInInspector(scriptKlass->GetMonoClass()) && property.second.isPublic())
+							|| (property.second.hasSerializeField(scriptKlass->GetMonoClass())))
+						)
+					{
+
+						MonoObject* Data = srcIT->second->GetFieldValue<MonoObject*>(property.first);
+
+						UUID monoBehaviourEntityID = property.second.GetAttachedID(Data);
+						if (entitymap.find(monoBehaviourEntityID) != entitymap.end())
+						{
+							auto monoBehaviourEntity = entitymap.at(monoBehaviourEntityID);
+							// find script in monobehaviourEntity
+							ScriptComponent& targetScriptComp = dst.get<ScriptComponent>(monoBehaviourEntity);
+
+							auto scriptTarget = targetScriptComp.mScripts.find(scriptKlass->mFields[property.first].mFieldClassName());
+
+							dstIT->second->SetFieldValue(property.first, scriptTarget->second->GetInstance());
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -992,6 +1035,7 @@ namespace Borealis
 		CopyComponent<AnimatorComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<BoxColliderComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<CapsuleColliderComponent>(newRegistry, originalRegistry, UUIDtoENTT);
+		CopyComponent<SphereColliderComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<RigidBodyComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<LightComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<CharacterControlComponent>(newRegistry, originalRegistry, UUIDtoENTT);
@@ -1113,13 +1157,21 @@ namespace Borealis
 		}
 
 		auto scriptGroup = mRegistry.group<>(entt::get<ScriptComponent>);
+
 		for (auto entity : scriptGroup)
 		{
 			Entity brEntity{ entity, this };
-			if (!brEntity.IsActive())
+			auto& scriptComponent = scriptGroup.get<ScriptComponent>(entity);
+			for (auto& [name, script] : scriptComponent.mScripts)
 			{
-				continue;
+				script->Awake();
 			}
+
+		}
+
+		for (auto entity : scriptGroup)
+		{
+			Entity brEntity{ entity, this };
 			auto& scriptComponent = scriptGroup.get<ScriptComponent>(entity);
 			for (auto& [name, script] : scriptComponent.mScripts)
 			{

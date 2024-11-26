@@ -9,7 +9,7 @@ namespace Borealis
         Impulse,
         VelocityChange
     }
-
+    [NativeComponent]
     public class Rigidbody : Component
     {
         //public int childCount;
@@ -20,6 +20,8 @@ namespace Borealis
         public Rigidbody(ulong id)
         {
             InstanceID = id;
+            gameObject = new GameObject(id);
+
         }
         public Vector3 Size
         {
@@ -138,6 +140,32 @@ namespace Borealis
         public void AddTorque(Vector3 torque, ForceMode mode = ForceMode.Force)
         {
             InternalCalls.RigidbodyComponent_AddTorque(GetInstanceID(), ref torque);
+        }
+
+        public bool isKinematic
+        {
+            get
+            {
+                InternalCalls.RigidbodyComponent_GetIsKinematic(GetInstanceID(), out bool kinematic);
+                return kinematic;
+            }
+            set
+            {
+                InternalCalls.RigidbodyComponent_SetIsKinematic(GetInstanceID(), ref value);
+            }
+        }
+
+        public bool useGravity
+        {
+            get
+            {
+                InternalCalls.RigidbodyComponent_GetUseGravity(GetInstanceID(), out bool gravity);
+                return gravity;
+            }
+            set
+            {
+                InternalCalls.RigidbodyComponent_SetUseGravity(GetInstanceID(), ref value);
+            }
         }
 
         public void Move(Vector3 vec)

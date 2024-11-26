@@ -196,6 +196,21 @@ namespace Borealis
 
 				for (auto [name,field] : script->GetScriptClass()->mFields)
 				{
+
+					if (field.isAssetField() || field.isNativeComponent())
+					{
+						MonoObject* Data = script->GetFieldValue<MonoObject*>(name);
+						if (!Data)
+						{
+							continue;
+						}
+						out << YAML::Key << field.mName << YAML::BeginMap;
+						out << YAML::Key << "Type" << field.mFieldClassName().c_str();
+						out << YAML::Key << "Data" << YAML::Value << field.GetGameObjectID(Data);
+						out << YAML::EndMap;
+						continue;
+					}
+
 					if (field.isGameObject())
 					{
 						MonoObject* Data = script->GetFieldValue<MonoObject*>(name);
@@ -478,7 +493,7 @@ namespace Borealis
 						{
 							uint64_t data = fieldData["Data"].as<uint64_t>();
 							MonoObject* field = nullptr;
-							InitGameObject(field, data);
+							InitGameObject(field, data, fieldData["Type"].as<std::string>());
 							scriptInstance->SetFieldValue(fieldName, field);
 							continue;
 						}
@@ -595,6 +610,14 @@ namespace Borealis
 							continue;
 						}
 
+						if (scriptInstance->GetScriptClass()->mFields[fieldName].isAssetField() || scriptInstance->GetScriptClass()->mFields[fieldName].isNativeComponent())
+						{
+							uint64_t data = fieldData["Data"].as<uint64_t>();
+							MonoObject* field = nullptr;
+							InitGameObject(field, data, fieldData["Type"].as<std::string>());
+							scriptInstance->SetFieldValue(fieldName, field);
+							continue;
+						}
 					}
 				}
 			}

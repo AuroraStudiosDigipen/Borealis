@@ -186,9 +186,39 @@ namespace Borealis
 				// Register attribute
 				LoadScriptAttribute(currClass);
 			}
+
 			else
 			{
 				continue;
+			}
+		}
+		for (int32_t i = 0; i < numTypes; i++)
+		{
+			uint32_t cols[MONO_TYPEDEF_SIZE];
+			mono_metadata_decode_row(typeDefinitionsTable, i, cols, MONO_TYPEDEF_SIZE);
+
+			const char* nameSpace = mono_metadata_string_heap(assemblyImage, cols[MONO_TYPEDEF_NAMESPACE]);
+			const char* className = mono_metadata_string_heap(assemblyImage, cols[MONO_TYPEDEF_NAME]);
+
+			MonoClass* currClass = mono_class_from_name(assemblyImage, nameSpace, className);
+			if (!currClass)
+			{
+				continue;
+			}
+			MonoCustomAttrInfo* attributeInfo = mono_custom_attrs_from_class(currClass);
+			if (attributeInfo)
+			{
+				if (mono_custom_attrs_get_attr(attributeInfo, GetScriptAttribute("NativeComponent")))
+				{
+					ScriptingSystem::RegisterCSharpClass(ScriptClass(nameSpace, className, sData->mRoslynAssembly));
+
+				}
+
+				if (mono_custom_attrs_get_attr(attributeInfo, GetScriptAttribute("AssetField")))
+				{
+					ScriptingSystem::RegisterCSharpClass(ScriptClass(nameSpace, className, sData->mRoslynAssembly));
+
+				}
 			}
 		}
 	}
@@ -243,9 +273,14 @@ namespace Borealis
 
 			const char* nameSpace = mono_metadata_string_heap(assemblyImage, cols[MONO_TYPEDEF_NAMESPACE]);
 			const char* className = mono_metadata_string_heap(assemblyImage, cols[MONO_TYPEDEF_NAME]);
-
+			
 			MonoClass* currClass = mono_class_from_name(assemblyImage, nameSpace, className);
+			if (!currClass)
+			{
+				continue;
+			}
 
+			
 			if (mono_class_is_subclass_of(currClass, monoBehaviour, false))
 			{
 				// Register attribute

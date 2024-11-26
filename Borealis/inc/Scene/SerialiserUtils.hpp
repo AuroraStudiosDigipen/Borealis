@@ -299,6 +299,16 @@ namespace Borealis
 			}
 		}
 
+		if (propType == rttr::type::get<Ref<Texture2D>>())
+		{
+			if (propValue.get_value<Ref<Texture2D>>() == nullptr)
+			{
+				return false;
+			}
+			out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<Ref<Texture2D>>()->mAssetHandle;
+			return true;
+		}
+
 		if (propType.is_class() && propType.is_valid()) // all custom classes
 		{
 			out << YAML::Key << propName.to_string() << YAML::BeginMap;
@@ -478,6 +488,12 @@ namespace Borealis
 			if (propType == rttr::type::get<Ref<Material>>())
 			{
 				prop.set_value(instance, rttr::variant(AssetManager::GetAsset<Material>(propData.as<uint64_t>())));
+				return true;
+			}
+
+			if (propType == rttr::type::get<Ref<Texture2D>>())
+			{
+				prop.set_value(instance, rttr::variant(AssetManager::GetAsset<Texture2D>(propData.as<uint64_t>())));
 				return true;
 			}
 

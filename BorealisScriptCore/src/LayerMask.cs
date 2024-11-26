@@ -34,5 +34,6 @@ namespace Borealis
         {
             return mask.value;
         }
+
     }
 }

@@ -101,7 +101,7 @@ namespace Borealis
         }
 
         // Static Methods
-        public float Angle(Vector3 from, Vector3 to)
+        public static float Angle(Vector3 from, Vector3 to)
         {
             return Mathf.Acos(Mathf.Clamp(Dot(from.normalized, to.normalized), -1.0F, 1.0F)) * 57.29578F;
         }

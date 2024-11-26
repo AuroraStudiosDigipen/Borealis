@@ -16,13 +16,22 @@ namespace Borealis
         }
     }
 
-    public class BTNodeClass : Attribute
-    {
-        public NodeType nodeType;
+    public class NativeComponent : Attribute { }
 
-        public BTNodeClass(NodeType nodeType)
+    public enum AssetType : int
+    {
+        Sprite = 0,
+        Material = 1,
+        Audio = 2
+    }
+    public class AssetField : Attribute 
+    {
+
+        public int Type;
+
+        public AssetField(AssetType type)
         {
-            this.nodeType = nodeType;
+            Type = ((int)type);
         }
     }
 }

@@ -4,12 +4,18 @@ using System.IO;
 
 namespace Borealis
 {
+    [NativeComponent]
     public class Transform : Component
     {
         //public int childCount;
+        public Transform()
+        {
+        }
         public Transform(ulong id)
         {
             InstanceID = id;
+            gameObject = new GameObject(id);
+
         }
 
         public Vector3 rotation
@@ -136,5 +142,21 @@ namespace Borealis
                 return quat * Vector3.up;
             }
         }
+
+        public int childCount
+        {
+            get
+            {
+                InternalCalls.TransformComponent_GetChildCount(GetInstanceID(), out int count);
+                return count;
+            }
+        }
+
+        public GameObject GetChild(int index)
+        {
+           InternalCalls.TransformComponent_GetChild(GetInstanceID(), index, out ulong childID);
+            return new GameObject(childID);
+        }
+
     }
 }

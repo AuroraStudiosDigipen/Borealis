@@ -22,7 +22,13 @@ namespace Borealis
             }
             set
             {
-                InternalCalls.Material_SetSprite(InstanceID, ref value.InstanceID);
+                if (value is null)
+                {
+                    ulong zero = 0;
+                    InternalCalls.Material_SetSprite(InstanceID, ref zero);
+                }
+                else
+                    InternalCalls.Material_SetSprite(InstanceID, ref value.InstanceID);
             }
         }
     }

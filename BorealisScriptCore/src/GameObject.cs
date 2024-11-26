@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.Diagnostics;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace Borealis
@@ -43,10 +44,11 @@ namespace Borealis
             transform = new Transform(InstanceID);
 
         }
-        internal GameObject(ulong id)
+        public GameObject(ulong id)
         {
             InstanceID = id;
         }
+
 
         public GameObject(string name)
         {
@@ -109,9 +111,12 @@ namespace Borealis
         {
             if (HasComponent<T>() || HasComponent(typeof(T)))
             {
-                T component = new T { gameObject = this };
-                component.InstanceID = GetInstanceID();
-                return component;
+                if (typeof(T).IsDefined(typeof(NativeComponent), false))
+                {
+                    return new T { InstanceID = GetInstanceID(), gameObject = this };
+                }
+                InternalCalls.Entity_GetComponent(InstanceID, typeof(T), out object component);
+                return (T)component;
             }
             else
             {

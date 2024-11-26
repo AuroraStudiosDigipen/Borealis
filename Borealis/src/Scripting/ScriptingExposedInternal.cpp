@@ -51,6 +51,8 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(Entity_SetActive);
 		BOREALIS_ADD_INTERNAL_CALL(Entity_GetActive);
 		BOREALIS_ADD_INTERNAL_CALL(Entity_FindEntity);
+		BOREALIS_ADD_INTERNAL_CALL(Entity_GetComponent);
+
 
 		BOREALIS_ADD_INTERNAL_CALL(Time_GetDeltaTime);
 
@@ -111,6 +113,16 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_AddTorque);
 		BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_AddImpulse);
 		BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_Move);
+		//BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_GetLinearVelocity);
+		//BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_SetLinearVelocity);
+		//BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_GetAngularVelocity);
+		//BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_SetAngularVelocity);
+		//BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_GetPosition);
+		//BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_SetPosition);
+		//BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_GetRotation);
+		//BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_SetRotation);
+		BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_SetIsKinematic);
+		BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_GetIsKinematic);
 
 		BOREALIS_ADD_INTERNAL_CALL(ScriptComponent_AddComponent);
 		BOREALIS_ADD_INTERNAL_CALL(ScriptComponent_RemoveComponent);
@@ -269,6 +281,23 @@ namespace Borealis
 			mono_free(typeName);
 			return false;
 		}
+	}
+	void Entity_GetComponent(uint64_t entityID, MonoReflectionType* reflectionType, MonoObject** component)
+	{
+		MonoType* monoType = mono_reflection_type_get_type(reflectionType);
+		char* typeName = mono_type_get_name(monoType);
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(entityID);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		auto& scriptComponent = entity.GetComponent<ScriptComponent>();
+		// Filter out to the last dot
+		std::string type = typeName;
+		type = type.substr(type.find_last_of('.') + 1);
+
+
+		auto& script = scriptComponent.mScripts[type];
+		*component = script->GetInstance();
 	}
 	void Entity_SetActive(uint64_t entityID, bool* active)
 	{
@@ -492,7 +521,7 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		entity.GetComponent<TransformComponent>().ParentID = *parentID;
+		*parentID = entity.GetComponent<TransformComponent>().ParentID;
 	}
 	void TransformComponent_SetParentID(UUID uuid, UUID* parentID)
 	{
@@ -673,6 +702,32 @@ namespace Borealis
 		auto& rb = entity.GetComponent<RigidBodyComponent>();
 		//PhysicsSystem::SetRotation(entity.GetComponent<RigidBodyComponent>().bodyID, *rotation);
 	}
+	void RigidbodyComponent_SetIsKinematic(UUID uuid, bool* kinematic)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		auto& rb = entity.GetComponent<RigidBodyComponent>();
+		*kinematic == true? rb.movement = MovementType::Kinematic : rb.movement = MovementType::Static;
+	}
+	void RigidbodyComponent_GetIsKinematic(UUID uuid, bool* kinematic)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		auto& rb = entity.GetComponent<RigidBodyComponent>();
+
+		if (rb.movement == MovementType::Static)
+		{
+			*kinematic = false;
+		}
+		else
+		{
+			*kinematic = true;
+		}
+	}
 	void SpriteRendererComponent_GetColor(UUID uuid, glm::vec4* outColor)
 	{
 		Scene* scene = SceneManager::GetActiveScene().get();
@@ -695,7 +750,10 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		*spriteID = entity.GetComponent<SpriteRendererComponent>().Texture->mAssetHandle;
+		if (entity.GetComponent<SpriteRendererComponent>().Texture)
+			*spriteID = entity.GetComponent<SpriteRendererComponent>().Texture->mAssetHandle;
+		else
+			*spriteID = 0;
 	}
 	void SpriteRendererComponent_SetSprite(UUID uuid, UUID* spriteID)
 	{
@@ -703,7 +761,12 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		entity.GetComponent<SpriteRendererComponent>().Texture = AssetManager::GetAsset<Texture2D>(*spriteID);
+		if (*spriteID != 0)
+			entity.GetComponent<SpriteRendererComponent>().Texture = AssetManager::GetAsset<Texture2D>(*spriteID);
+		else
+		{
+			entity.GetComponent<SpriteRendererComponent>().Texture = Ref<Texture2D>();
+		}
 	}
 	void MeshRendererComponent_GetMaterial(UUID uuid, UUID* materialID)
 	{
@@ -711,7 +774,11 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		*materialID = entity.GetComponent<MeshRendererComponent>().Material->mAssetHandle;
+
+		if (entity.GetComponent<MeshRendererComponent>().Material)
+			*materialID = entity.GetComponent<MeshRendererComponent>().Material->mAssetHandle;
+		else
+			*materialID = 0;
 	}
 	void MeshRendererComponent_SetMaterial(UUID uuid, UUID* materialID)
 	{
@@ -719,7 +786,12 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		entity.GetComponent<MeshRendererComponent>().Material = AssetManager::GetAsset<Material>(*materialID);
+		if (*materialID != 0)
+			entity.GetComponent<MeshRendererComponent>().Material = AssetManager::GetAsset<Material>(*materialID);
+		else
+		{
+			entity.GetComponent<MeshRendererComponent>().Material = Ref<Material>();
+		}
 	}
 	void MeshRendererComponent_GetEnabled(UUID uuid, bool* state)
 	{

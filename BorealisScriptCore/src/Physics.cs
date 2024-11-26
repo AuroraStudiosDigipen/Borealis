@@ -12,7 +12,7 @@ namespace Borealis
     }
     public class Physics
     {
-        public const int DefaultRaycastLayers = 1;
+        public const int DefaultRaycastLayers = 0;
 
         public static bool Raycast(Vector3 origin, Vector3 direction, float maxDistance = Mathf.Infinity, int layerMask = DefaultRaycastLayers)
         {
@@ -29,6 +29,7 @@ namespace Borealis
                 hitInfo.normal = normal;
                 hitInfo.point = point;
                 hitInfo.transform = new Transform(entityID);
+                hitInfo.collider = new Collider(entityID);
             }
             else
             {
@@ -37,6 +38,8 @@ namespace Borealis
                 hitInfo.normal = Vector3.zero;
                 hitInfo.point = Vector3.zero;
                 hitInfo.transform = new Transform(0);
+                hitInfo.collider = new Collider(0);
+
             }
             return output;
         }
@@ -71,6 +74,8 @@ namespace Borealis
                 hitInfo.normal = normal[i];
                 hitInfo.point = point[i];
                 hitInfos[i] = hitInfo;
+                hitInfo.collider = new Collider(entityID[i]);
+
             }
 
             return hitInfos;

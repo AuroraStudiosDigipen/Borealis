@@ -163,7 +163,53 @@ namespace Borealis
 		}
 		else
 		{
-			if (field.mType == ScriptFieldType::Char)
+			if (field.mType == ScriptFieldType::Long)
+			{
+				long value = otherInstance->GetFieldValue<long>(name);
+				mono_field_set_value(mInstance, field.mMonoFieldType, &value);
+			}
+
+			else if (field.mType == ScriptFieldType::Short)
+			{
+				short value = otherInstance->GetFieldValue<short>(name);
+				mono_field_set_value(mInstance, field.mMonoFieldType, &value);
+			}
+			else if (field.mType == ScriptFieldType::UChar)
+			{
+				byte value = otherInstance->GetFieldValue<byte>(name);
+				mono_field_set_value(mInstance, field.mMonoFieldType, &value);
+			}
+			else if (field.mType == ScriptFieldType::UInt)
+			{
+				unsigned int value = otherInstance->GetFieldValue<unsigned int>(name);
+				mono_field_set_value(mInstance, field.mMonoFieldType, &value);
+			}
+			else if (field.mType == ScriptFieldType::ULong)
+			{
+				unsigned long value = otherInstance->GetFieldValue<unsigned long>(name);
+				mono_field_set_value(mInstance, field.mMonoFieldType, &value);
+			}
+			else if (field.mType == ScriptFieldType::UShort)
+			{
+				unsigned short value = otherInstance->GetFieldValue<unsigned short>(name);
+				mono_field_set_value(mInstance, field.mMonoFieldType, &value);
+			}
+			else if (field.mType == ScriptFieldType::Vector2)
+			{
+				glm::vec2 value = otherInstance->GetFieldValue<glm::vec2>(name);
+				mono_field_set_value(mInstance, field.mMonoFieldType, &value);
+			}
+			else if (field.mType == ScriptFieldType::Vector3)
+			{
+				glm::vec3 value = otherInstance->GetFieldValue<glm::vec3>(name);
+				mono_field_set_value(mInstance, field.mMonoFieldType, &value);
+			}
+			else if (field.mType == ScriptFieldType::Vector4)
+			{
+				glm::vec4 value = otherInstance->GetFieldValue<glm::vec4>(name);
+				mono_field_set_value(mInstance, field.mMonoFieldType, &value);
+			}
+			else if (field.mType == ScriptFieldType::Char)
 			{
 				char value = otherInstance->GetFieldValue<char>(name);
 				mono_field_set_value(mInstance, field.mMonoFieldType, &value);
@@ -224,14 +270,16 @@ namespace Borealis
 	}\
 
 #define DefineMonoBehaviourCollision(methodName) \
-	void ScriptInstance::methodName(UUID entityID) \
+	void ScriptInstance::methodName(UUID colliderID) \
 	{\
 		if (mScriptClass->GetMethod(#methodName, 0) == nullptr) \
 		{ \
 			return; \
 		} \
+		ScriptInstance collider(ScriptingSystem::GetScriptClass("Collider")); \
+		collider.SetFieldValue("mInstanceID", &colliderID); \
 		void* params[1]; \
-		params[0] = &entityID; \
+		params[0] = &collider; \
 		MonoObject* exception = nullptr; \
 		mono_runtime_invoke(mScriptClass->GetMethod(#methodName, 0), mInstance, params, &exception); \
 		if (exception) \
@@ -253,14 +301,16 @@ namespace Borealis
 	}\
 
 #define DefineMonoBehaviourCollision(methodName) \
-	void ScriptInstance::methodName(UUID entityID) \
+	void ScriptInstance::methodName(UUID colliderID) \
 	{\
 		if (mScriptClass->GetMethod(#methodName, 0) == nullptr) \
 		{ \
 			return; \
 		} \
+		ScriptInstance collider(ScriptingSystem::GetScriptClass("Collider")); \
+		collider.SetFieldValue("mInstanceID", &colliderID); \
 		void* params[1]; \
-		params[0] = &entityID; \
+		params[0] = &collider; \
 		mono_runtime_invoke(mScriptClass->GetMethod(#methodName, 0), mInstance, params, nullptr); \
 	}\
 
@@ -298,6 +348,9 @@ namespace Borealis
 	DefineMonoBehaviourCollision(OnCollisionEnter);
 	DefineMonoBehaviourCollision(OnCollisionExit);
 	DefineMonoBehaviourCollision(OnCollisionStay);
+	DefineMonoBehaviourCollision(OnTriggerEnter);
+	DefineMonoBehaviourCollision(OnTriggerExit);
+	DefineMonoBehaviourCollision(OnTriggerStay);
 	
 }// End of namespace Borealis
 

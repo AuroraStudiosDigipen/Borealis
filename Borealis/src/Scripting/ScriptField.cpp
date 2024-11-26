@@ -49,6 +49,7 @@ namespace Borealis
 		MonoObject* result = mono_runtime_invoke(Method, object, nullptr, nullptr);
 		uint64_t id = *reinterpret_cast<uint64_t*>(mono_object_unbox(result));
 
+
 		return id;
 
 

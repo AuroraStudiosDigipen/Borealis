@@ -177,9 +177,12 @@ namespace Borealis
 		void OnJointBreak();
 		void OnAnimatorMove();
 		void OnAnimatorIK();
-		void OnCollisionEnter(UUID entityID);
-		void OnCollisionExit(UUID entityID);
-		void OnCollisionStay(UUID entityID);
+		void OnCollisionEnter(UUID collisionData);
+		void OnCollisionExit(UUID collisionData);
+		void OnCollisionStay(UUID collisionData);
+		void OnTriggerEnter(UUID collisionData);
+		void OnTriggerExit(UUID collisionData);
+		void OnTriggerStay(UUID collisionData);
 
 		bool IsActive();
 

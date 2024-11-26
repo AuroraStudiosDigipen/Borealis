@@ -57,6 +57,7 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(!status, mono_image_strerror(status));
 
 		MonoAssembly* assembly = mono_assembly_load_from_full(image, path.c_str(), &status, 0);
+
 		mono_image_close(image);
 
 		delete[] buffer;

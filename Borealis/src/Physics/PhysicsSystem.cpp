@@ -431,18 +431,15 @@ namespace Borealis
 		{
 			if (rigidbody->movement == MovementType::Kinematic)
 			{
-				sData.body_interface->SetObjectLayer((BodyID)collider.bodyID, Layers::MOVING);
 				sData.body_interface->SetMotionType((BodyID)collider.bodyID, EMotionType::Kinematic, EActivation::Activate);
 			}
 			else if (rigidbody->movement == MovementType::Static)
 			{
-				sData.body_interface->SetObjectLayer((BodyID)collider.bodyID, Layers::NON_MOVING);
 				sData.body_interface->SetMotionType((BodyID)collider.bodyID, EMotionType::Static, EActivation::Activate);
 
 			}
 			else if (rigidbody->movement == MovementType::Dynamic)
 			{
-				sData.body_interface->SetObjectLayer((BodyID)collider.bodyID, Layers::MOVING);
 				sData.body_interface->SetMotionType((BodyID)collider.bodyID, EMotionType::Dynamic, EActivation::Activate);
 
 			}
@@ -482,16 +479,10 @@ namespace Borealis
 		{
 			auto parentEntity = SceneManager::GetActiveScene()->GetEntityByUUID(transform.ParentID);
 			auto parentTransform = TransformComponent::GetGlobalTransform(parentEntity);
-			if (parentEntity.HasComponent<ScriptComponent>() && parentEntity.GetComponent<ScriptComponent>().HasScript("ThirdPersonController"))
-			{
-				auto& tc = parentEntity.GetComponent<TransformComponent>();
-				Math::MatrixDecomposition(&newTransform, &tc.Translate, &tc.Rotation, &tc.Scale);
-			}
-			else
-			{
+		
 				auto localTransform = newTransform * glm::inverse(parentTransform);
 				Math::MatrixDecomposition(&localTransform, &transform.Translate, &transform.Rotation, &transform.Scale);
-			}
+			
 
 		}
 	}
@@ -711,6 +702,7 @@ namespace Borealis
 		CharacterVirtual* mCharacter = reinterpret_cast<CharacterVirtual*>(Character);
 		bool sEnableStickToFloor = true;
 		bool sEnableWalkStairs = true;
+		auto vel = mCharacter->GetLinearVelocity();
 
 		// Settings for our update function
 		CharacterVirtual::ExtendedUpdateSettings update_settings;
@@ -859,6 +851,10 @@ namespace Borealis
 		auto& narrowPhaseQuery = sData.mSystem->GetNarrowPhaseQuery();
 		RayCastResult result;
 		//result.mFraction = maxDistance;
+		if (LayerMask.to_ulong() == 0)
+		{
+			return narrowPhaseQuery.CastRay(ray, result);
+		}
 		return narrowPhaseQuery.CastRay(ray, result, {}, ObjectLayerFilterImpl(LayerMask));
 	}
 
@@ -870,7 +866,15 @@ namespace Borealis
 		RRayCast ray{ Vec3(origin.x, origin.y, origin.z), Vec3(direction.x, direction.y, direction.z) };
 		auto& narrowPhaseQuery = sData.mSystem->GetNarrowPhaseQuery();
 		RayCastResult result;
-		bool output = narrowPhaseQuery.CastRay(ray, result, {}, ObjectLayerFilterImpl(LayerMask));
+		bool output;
+		if (LayerMask.to_ulong() == 0)
+		{
+			output = narrowPhaseQuery.CastRay(ray, result);
+		}
+		else
+		{
+			output = narrowPhaseQuery.CastRay(ray, result, {}, ObjectLayerFilterImpl(LayerMask));
+		}
 
 		hitInfo->colliderID = *(reinterpret_cast<uint32_t*>(&result.mBodyID));
 		hitInfo->distance = maxDistance * result.mFraction;
@@ -910,7 +914,14 @@ namespace Borealis
 		RayCollector collector;
 		RRayCast ray{ Vec3(origin.x, origin.y, origin.z), Vec3(direction.x, direction.y, direction.z) };
 		auto& narrowPhaseQuery = sData.mSystem->GetNarrowPhaseQuery();
-		narrowPhaseQuery.CastRay(ray, {}, collector, {}, ObjectLayerFilterImpl(LayerMask));
+		if (LayerMask.to_ulong() == 0)
+		{
+			narrowPhaseQuery.CastRay(ray, {}, collector);
+		}
+		else
+		{
+			narrowPhaseQuery.CastRay(ray, {}, collector, {}, ObjectLayerFilterImpl(LayerMask));
+		}
 		std::vector<RaycastHit> output;
 		for (auto hitResult : collector.hits)
 		{

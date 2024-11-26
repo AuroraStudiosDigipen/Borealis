@@ -992,21 +992,31 @@ namespace Borealis
 		return isEdited;
 	}
 
-	void ShowTextureConfig(AssetMetaData const& metaData)
+	void ShowTextureConfig(AssetMetaData & metaData)
 	{
 		TextureConfig config = GetConfig<TextureConfig>(metaData.Config);
 
-		const char* textureTypeNames[] = { "2D", "CUBE" };
+		const char* textureTypeNames[] = { "Default", "Normal Map" };
 		static int selectedTextureType = static_cast<int>(config.type);
 
 		ImGui::Text("Texture Configuration");
 		if (ImGui::Combo("Texture Type", &selectedTextureType, textureTypeNames, IM_ARRAYSIZE(textureTypeNames))) {
 			config.type = static_cast<TextureType>(selectedTextureType);
+			metaData.Config = config;
+		}
+
+		const char* textureShapeNames[] = { "2D", "Cube Map" };
+		static int selectedTextureShape = static_cast<int>(config.shape);
+
+		if (ImGui::Combo("Texture Shape", &selectedTextureShape, textureShapeNames, IM_ARRAYSIZE(textureShapeNames))) {
+			config.shape = static_cast<TextureShape>(selectedTextureShape);
+			metaData.Config = config;
 		}
 
 		static bool sRGB = config.sRGB;
 		if (ImGui::Checkbox("sRGB", &sRGB)) {
 			config.sRGB = sRGB;
+			metaData.Config = config;
 		}
 
 		if (ImGui::Button("Apply"))
@@ -1156,7 +1166,7 @@ namespace Borealis
 			}
 			else if (ContentBrowserPanel::sSelectedAsset)
 			{
-				AssetMetaData const& metadata = AssetManager::GetMetaData(ContentBrowserPanel::sSelectedAsset);
+				AssetMetaData & metadata = AssetManager::GetMetaData(ContentBrowserPanel::sSelectedAsset);
 #ifdef _DEB
 				ImGui::Text(("UUID: " + std::to_string(metadata.Handle)).c_str());
 #endif

@@ -69,7 +69,7 @@ namespace Borealis
             if (ImGui::Button("Set Cubemap"))
             {
                 TextureConfig cubemapConfig;
-                cubemapConfig.type = TextureType::_CUBE;
+                cubemapConfig.shape = TextureShape::_CUBE;
                 
                 // Use filePaths array to load the cubemap textures
                 for (int i = 0; i < 6; ++i)

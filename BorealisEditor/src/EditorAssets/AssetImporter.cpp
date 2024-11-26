@@ -264,6 +264,7 @@ namespace Borealis
 		else
 		{
 			AssetMetaData metaData = MetaFileSerializer::GetAssetMetaDataFile(metaFilePath);
+			metaData = MetaFileSerializer::CreateAssetMetaFile(metaData.SourcePath, metaData.Handle);
 
 			if (assetRegistry.contains(metaData.Handle))
 			{
@@ -272,6 +273,8 @@ namespace Borealis
 					//Version difference, update to latest version
 					metaData = MetaFileSerializer::CreateAssetMetaFile(metaData.SourcePath, metaData.Handle);
 				}
+
+
 
 				//difference between source file and meta data
 				if (MetaFileSerializer::HashFile(metaData.SourcePath) != metaData.SourceFileHash)

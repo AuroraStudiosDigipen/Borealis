@@ -23,9 +23,16 @@ namespace BorealisAssetCompiler
 {
 	TextureType GetTextureType(std::string const& typeStr)
 	{
-		if (typeStr == "2D") return TextureType::_2D;
-		if (typeStr == "Cube") return TextureType::_CUBE;
-		return TextureType::_2D;
+		if (typeStr == "Default") return TextureType::_DEFAULT;
+		if (typeStr == "Normal Map") return TextureType::_NORMAL_MAP;
+		return TextureType::_DEFAULT;
+	}
+
+	TextureShape GetTextureShape(std::string const& typeStr)
+	{
+		if (typeStr == "2D") return TextureShape::_2D;
+		if (typeStr == "Cube") return TextureShape::_CUBE;
+		return TextureShape::_2D;
 	}
 
 	TextureConfig DeserializeTextureConfig(YAML::Node& node)
@@ -33,6 +40,8 @@ namespace BorealisAssetCompiler
 		TextureConfig config;
 		if (node["TextureType"])
 			config.type = GetTextureType(node["TextureType"].as<std::string>());
+		if (node["TextureShape"])
+			config.shape = GetTextureShape(node["TextureShape"].as<std::string>());
 		if (node["sRGB"])
 			config.sRGB = node["sRGB"].as<bool>();
 		if (node["MipMaps"])
@@ -188,6 +197,7 @@ namespace BorealisAssetCompiler
 		case AssetType::Shader:
 			break;
 		case AssetType::Texture2D:
+			assetConfig = TextureConfig{};
 			break;
 		case AssetType::Folder:
 			break;
@@ -204,6 +214,42 @@ namespace BorealisAssetCompiler
 		}
 
 		return assetConfig;
+	}
+
+	std::string GetTextureTypeString(TextureType type)
+	{
+		switch (type)
+		{
+		case TextureType::_DEFAULT:
+			return "Default";
+		case TextureType::_NORMAL_MAP:
+			return "Normal Map";
+		default:
+			return "Invalid";
+		}
+		return {};
+	}
+
+	std::string GetTextureShapeString(TextureShape type)
+	{
+		switch (type)
+		{
+		case TextureShape::_2D:
+			return "2D";
+		case TextureShape::_CUBE:
+			return "Cube";
+		default:
+			return "Invalid";
+		}
+		return {};
+	}
+
+	void SerializeTextureConfig(YAML::Emitter& out, TextureConfig const& textureConfig)
+	{
+		out << YAML::Key << "TextureType" << YAML::Value << GetTextureTypeString(textureConfig.type);
+		out << YAML::Key << "TextureShape" << YAML::Value << GetTextureShapeString(textureConfig.shape);
+		out << YAML::Key << "sRGB" << YAML::Value << textureConfig.sRGB;
+		out << YAML::Key << "MipMaps" << YAML::Value << textureConfig.generateMipMaps;
 	}
 
 	void SerializeMeshConfig(YAML::Emitter& out, MeshConfig const& meshConfig)
@@ -225,6 +271,7 @@ namespace BorealisAssetCompiler
 		case AssetType::Shader:
 			break;
 		case AssetType::Texture2D:
+			SerializeTextureConfig(out, GetConfig<TextureConfig>(assetConfig));
 			break;
 		case AssetType::Folder:
 			break;

@@ -142,6 +142,12 @@ namespace Borealis
 		static Ref<TextureCubeMap> Create(std::filesystem::path const& path);
 
 		static Ref<TextureCubeMap> Load(AssetMetaData const& assetMetaData);
+
+		static Ref<TextureCubeMap> GetDefaultCubeMap();
+
+	private:
+
+		static Ref<TextureCubeMap> mDefaultCubeMap;
 	};
 
 } // Namespace Borealis

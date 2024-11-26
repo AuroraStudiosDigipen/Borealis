@@ -32,9 +32,23 @@ namespace Borealis
 	{
 		switch (type)
 		{
-		case Borealis::TextureType::_2D:
+		case Borealis::TextureType::_DEFAULT:
+			return "Default";
+		case Borealis::TextureType::_NORMAL_MAP:
+			return "Normal Map";
+		default:
+			return "Invalid";
+		}
+		return {};
+	}
+
+	std::string GetTextureShapeString(TextureShape type)
+	{
+		switch (type)
+		{
+		case Borealis::TextureShape::_2D:
 			return "2D";
-		case Borealis::TextureType::_CUBE:
+		case Borealis::TextureShape::_CUBE:
 			return "Cube";
 		default:
 			return "Invalid";
@@ -45,6 +59,7 @@ namespace Borealis
 	void SerializeTextureConfig(YAML::Emitter& out, TextureConfig const& textureConfig)
 	{
 		out << YAML::Key << "TextureType" << YAML::Value << GetTextureTypeString(textureConfig.type);
+		out << YAML::Key << "TextureShape" << YAML::Value << GetTextureShapeString(textureConfig.shape);
 		out << YAML::Key << "sRGB" << YAML::Value << textureConfig.sRGB;
 		out << YAML::Key << "MipMaps" << YAML::Value << textureConfig.generateMipMaps;
 	}
@@ -102,9 +117,16 @@ namespace Borealis
 
 	TextureType GetTextureType(std::string const& typeStr)
 	{
-		if (typeStr == "2D") return TextureType::_2D;
-		if (typeStr == "Cube") return TextureType::_CUBE;
-		return TextureType::_2D;
+		if (typeStr == "Default") return TextureType::_DEFAULT;
+		if (typeStr == "Normal Map") return TextureType::_NORMAL_MAP;
+		return TextureType::_DEFAULT;
+	}
+
+	TextureShape GetTextureShape(std::string const& typeStr)
+	{
+		if (typeStr == "2D") return TextureShape::_2D;
+		if (typeStr == "Cube") return TextureShape::_CUBE;
+		return TextureShape::_2D;
 	}
 
 	TextureConfig DeserializeTextureConfig(YAML::Node& node)
@@ -112,6 +134,8 @@ namespace Borealis
 		TextureConfig config;
 		if (node["TextureType"])
 			config.type = GetTextureType(node["TextureType"].as<std::string>());
+		if (node["TextureShape"])
+			config.shape = GetTextureShape(node["TextureShape"].as<std::string>());
 		if (node["sRGB"])
 			config.sRGB = node["sRGB"].as<bool>();
 		if (node["MipMaps"])
@@ -327,9 +351,12 @@ namespace Borealis
 			path = path.parent_path(); // Go up one level
 		}
 
+		path = path.parent_path();
+
 		SerializeMetaFile(out, metaData, path);
 
-		SaveAsFile(path, out.c_str());
+		std::filesystem::path metaFilePath = metaData.SourcePath.string() + ".meta";
+		SaveAsFile(metaFilePath, out.c_str());
 	}
 
 	void MetaFileSerializer::SerialzeRegistry(std::filesystem::path const& assetRegistryPath, std::unordered_map<AssetHandle, AssetMetaData> const& assetRegistry)

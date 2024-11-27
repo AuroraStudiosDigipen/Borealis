@@ -1392,8 +1392,8 @@ namespace Borealis
 		for (UUID childID : parent.GetComponent<TransformComponent>().ChildrenID)
 		{
 			Entity child = SceneManager::GetActiveScene()->GetEntityByUUID(childID);
-
-			RenderCanvasRecursive(child, canvasTransform);
+			if (child.IsActive())
+				RenderCanvasRecursive(child, canvasTransform);
 		}
 	}
 

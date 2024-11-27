@@ -38,7 +38,13 @@ namespace Borealis
             }
             set
             {
-                InternalCalls.SpriteRendererComponent_SetSprite(gameObject.GetInstanceID(), ref value.InstanceID);
+                if (value is null)
+                {
+                    ulong zero = 0;
+                    InternalCalls.SpriteRendererComponent_SetSprite(gameObject.GetInstanceID(), ref zero);
+                }
+                else
+                    InternalCalls.SpriteRendererComponent_SetSprite(gameObject.GetInstanceID(), ref value.InstanceID);
             }
         }
     }

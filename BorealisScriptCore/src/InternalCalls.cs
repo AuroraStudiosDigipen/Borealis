@@ -98,6 +98,10 @@ namespace Borealis
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void Entity_FindEntity(string name, out ulong foundID);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void Entity_GetComponent(ulong EntityID, Type type, out object component);
+
         #endregion
 
         #region TransformComponent

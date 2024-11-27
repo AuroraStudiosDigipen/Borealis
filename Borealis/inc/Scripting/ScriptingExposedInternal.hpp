@@ -104,6 +104,8 @@ namespace Borealis
 	*************************************************************************/
 	bool Entity_HasComponent(uint64_t entityID, MonoReflectionType* reflectionType);
 
+	void Entity_GetComponent(uint64_t entityID, MonoReflectionType* reflectionType, MonoObject** component);
+
 	void Entity_SetActive(uint64_t entityID, bool* active);
 	void Entity_GetActive(uint64_t entityID, bool* active);
 
@@ -288,6 +290,10 @@ namespace Borealis
 	void RigidbodyComponent_SetPosition(UUID uuid, glm::vec3* velocity);
 	void RigidbodyComponent_GetRotation(UUID uuid, glm::vec3* velocity);
 	void RigidbodyComponent_SetRotation(UUID uuid, glm::vec3* velocity);
+
+	void RigidbodyComponent_SetIsKinematic(UUID uuid, bool* kinematic);
+	void RigidbodyComponent_GetIsKinematic(UUID uuid, bool* kinematic);
+
 
 	/*!***********************************************************************
 		\brief

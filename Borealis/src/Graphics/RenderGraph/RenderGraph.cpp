@@ -1392,7 +1392,7 @@ namespace Borealis
 		for (UUID childID : parent.GetComponent<TransformComponent>().ChildrenID)
 		{
 			Entity child = SceneManager::GetActiveScene()->GetEntityByUUID(childID);
-			if (child.IsActive())
+			if (child.HasComponent<TagComponent>() && child.IsActive())
 				RenderCanvasRecursive(child, canvasTransform);
 		}
 	}
@@ -1551,10 +1551,12 @@ namespace Borealis
 				canvas.scaleFactor = 0.01f;
 				canvas.canvasSize.x = runTimeRenderTarget->Width * canvas.scaleFactor;
 				canvas.canvasSize.y = runTimeRenderTarget->Height * canvas.scaleFactor;
-				SpriteRendererComponent sprite;
-				sprite.Colour = { 0.f,0.f,100.f, 0.2f };
 				glm::mat4 canvasTransform = glm::translate(glm::mat4(1.f), glm::vec3(((glm::mat4)transform)[3]));
 				canvasTransform = glm::scale(canvasTransform, glm::vec3(canvas.canvasSize.x, canvas.canvasSize.y, 1.f));
+
+
+				SpriteRendererComponent sprite;
+				sprite.Colour = { 0.f,0.f,100.f, 0.2f };
 				TransformComponent::SetGlobalTransform(brEntity, canvasTransform);
 				Renderer2D::DrawSprite(canvasTransform, sprite, (int)entity);
 			}

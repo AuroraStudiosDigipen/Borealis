@@ -703,7 +703,7 @@ namespace Borealis {
 				//}
 
 				//Create Entities from prefab
-				if (ImGui::BeginDrapDropTargetWindow("DragPrefab"))
+				if (ImGui::BeginDragDropTarget())
 				{
 					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragPrefab"))
 					{
@@ -785,9 +785,6 @@ namespace Borealis {
 						}
 					
 				}
-
-
-
 			ImGui::End(); // Of Viewport
 			
 

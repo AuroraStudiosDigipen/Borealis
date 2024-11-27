@@ -48,8 +48,10 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Jolt/Physics/Collision/Shape/ScaledShape.h>
 #include <Jolt/Physics/Collision/RayCast.h>
 #include <Jolt/Physics/Collision/CastResult.h>
+#include <Jolt/Renderer/DebugRendererSimple.h>
 
 #include <Graphics/Renderer2D.hpp>
+#include <Graphics/Renderer3D.hpp>
 
 
 
@@ -209,6 +211,17 @@ public:
 
 namespace Borealis
 {
+	//Debug Renderer
+	class MyDebugRenderer : public DebugRendererSimple
+	{
+	public:
+		virtual void DrawLine(JPH::RVec3Arg inFrom, JPH::RVec3Arg inTo, JPH::ColorArg inColor) override;
+		
+		virtual void DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RVec3Arg inV3, JPH::ColorArg inColor, ECastShadow inCastShadow) override;
+		
+		//virtual void DrawText3D(JPH::RVec3Arg inPosition, const string_view& inString, JPH::ColorArg inColor, float inHeight) override;
+	};
+
 	class MyCharacterContactListener : public CharacterContactListener
 	{
 	public:
@@ -266,6 +279,16 @@ namespace Borealis
 	static unordered_map<unsigned int, Borealis::UUID> bodyIDMapUUID;
 	static unordered_map<unsigned int, bool> bodySensorMap;
 	static unordered_map<void*, UUID> characterMapUUID;
+
+	void MyDebugRenderer::DrawLine(JPH::RVec3Arg inFrom, JPH::RVec3Arg inTo, JPH::ColorArg inColor)
+	{
+		//TODO
+	}
+
+	void MyDebugRenderer::DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RVec3Arg inV3, JPH::ColorArg inColor, ECastShadow inCastShadow)
+	{
+		//TODO
+	}
 
 	void MyCharacterContactListener::OnContactAdded(const CharacterVirtual* inCharacter, const BodyID& inBodyID2, const SubShapeID& inSubShapeID2, RVec3Arg inContactPosition, Vec3Arg inContactNormal, CharacterContactSettings& ioSettings)
 	{

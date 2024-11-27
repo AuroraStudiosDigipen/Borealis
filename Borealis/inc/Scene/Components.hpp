@@ -299,7 +299,7 @@ namespace Borealis
 		void* controller = nullptr;
 		glm::vec3 targetVelocity = { 0,0,0 };
 		glm::vec3 inMovementDirection = { 0,0,0 };
-		void* listenter = nullptr;
+		void* listener = nullptr;
 
 		CharacterControlComponent() = default;
 		~CharacterControlComponent()

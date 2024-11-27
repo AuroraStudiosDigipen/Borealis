@@ -753,9 +753,9 @@ namespace Borealis
 		settings.mShape = shape;
 		settings.SetEmbedded();
 
-		character.listenter = new MyCharacterContactListener();
-		reinterpret_cast<CharacterVirtual*>(character.controller)->SetListener(reinterpret_cast<MyCharacterContactListener*>(character.listenter));
+		character.listener = new MyCharacterContactListener();
 		character.controller = new CharacterVirtual(&settings, RVec3(transform.Translate.x, transform.Translate.y,transform.Translate.z), Quat::sIdentity(), sData.mSystem);
+		reinterpret_cast<CharacterVirtual*>(character.controller)->SetListener(reinterpret_cast<MyCharacterContactListener*>(character.listener));
 	}
 
 	void PhysicsSystem::PrePhysicsUpdate(float dt, void* Character)
@@ -872,14 +872,15 @@ namespace Borealis
 
 	void PhysicsSystem::FreeCharacter(CharacterControlComponent& character)
 	{
+
+		if (character.listener)
+			delete character.listener;
 		if(character.controller)
 		delete character.controller;
 
-		if(character.listenter)
-			delete character.listenter;
 
 		character.controller = nullptr;
-		character.listenter = nullptr;
+		character.listener = nullptr;
 	}
 
 	class ObjectLayerFilterImpl : public ObjectLayerFilter

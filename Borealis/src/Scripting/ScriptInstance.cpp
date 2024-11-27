@@ -310,7 +310,7 @@ namespace Borealis
 		ScriptInstance collider(ScriptingSystem::GetScriptClass("Collider")); \
 		collider.SetFieldValue("mInstanceID", &colliderID); \
 		void* params[1]; \
-		params[0] = &collider; \
+		params[0] = &collider.mInstance; \
 		mono_runtime_invoke(mScriptClass->GetMethod(#methodName, 0), mInstance, params, nullptr); \
 	}\
 

@@ -458,7 +458,7 @@ namespace Borealis
 						for (auto& [name, script] : scriptComponent1.mScripts)
 						{
 
-							script->OnCollisionEnter(entity2.GetComponent<IDComponent>().ID);
+							script->OnTriggerEnter(entity2.GetComponent<IDComponent>().ID);
 
 						}
 					}
@@ -469,7 +469,7 @@ namespace Borealis
 						for (auto& [name, script] : scriptComponent2.mScripts)
 						{
 
-							script->OnCollisionEnter(entity1.GetComponent<IDComponent>().ID);
+							script->OnTriggerEnter(entity1.GetComponent<IDComponent>().ID);
 
 						}
 					}
@@ -488,7 +488,7 @@ namespace Borealis
 						auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
 						for (auto& [name, script] : scriptComponent1.mScripts)
 						{
-							script->OnCollisionStay(entity2.GetComponent<IDComponent>().ID);
+							script->OnTriggerStay(entity2.GetComponent<IDComponent>().ID);
 						}
 					}
 					if (entity2.HasComponent<ScriptComponent>())
@@ -497,7 +497,7 @@ namespace Borealis
 						for (auto& [name, script] : scriptComponent2.mScripts)
 						{
 
-							script->OnCollisionStay(entity1.GetComponent<IDComponent>().ID);
+							script->OnTriggerStay(entity1.GetComponent<IDComponent>().ID);
 
 						}
 					}
@@ -515,7 +515,7 @@ namespace Borealis
 						for (auto& [name, script] : scriptComponent1.mScripts)
 						{
 
-							script->OnCollisionExit(entity2.GetComponent<IDComponent>().ID);
+							script->OnTriggerExit(entity2.GetComponent<IDComponent>().ID);
 
 						}
 					}
@@ -526,7 +526,7 @@ namespace Borealis
 						for (auto& [name, script] : scriptComponent2.mScripts)
 						{
 
-							script->OnCollisionExit(entity1.GetComponent<IDComponent>().ID);
+							script->OnTriggerExit(entity1.GetComponent<IDComponent>().ID);
 
 						}
 					}

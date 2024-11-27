@@ -18,7 +18,7 @@ namespace Borealis
         {
             InstanceID = id;
             gameObject = new GameObject(id);
-
+            name = gameObject.name;
         }
 
 

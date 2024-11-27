@@ -272,7 +272,7 @@ namespace Borealis
 #define DefineMonoBehaviourCollision(methodName) \
 	void ScriptInstance::methodName(UUID colliderID) \
 	{\
-		if (mScriptClass->GetMethod(#methodName, 0) == nullptr) \
+		if (mScriptClass->GetMethod(#methodName, 1) == nullptr) \
 		{ \
 			return; \
 		} \
@@ -281,7 +281,7 @@ namespace Borealis
 		void* params[1]; \
 		params[0] = &collider; \
 		MonoObject* exception = nullptr; \
-		mono_runtime_invoke(mScriptClass->GetMethod(#methodName, 0), mInstance, params, &exception); \
+		mono_runtime_invoke(mScriptClass->GetMethod(#methodName, 1), mInstance, params, &exception); \
 		if (exception) \
 		{ \
 			mono_print_unhandled_exception(exception); \
@@ -303,15 +303,15 @@ namespace Borealis
 #define DefineMonoBehaviourCollision(methodName) \
 	void ScriptInstance::methodName(UUID colliderID) \
 	{\
-		if (mScriptClass->GetMethod(#methodName, 0) == nullptr) \
+		if (mScriptClass->GetMethod(#methodName, 1) == nullptr || colliderID == 0) \
 		{ \
 			return; \
 		} \
-		ScriptInstance collider(ScriptingSystem::GetScriptClass("Collider")); \
-		collider.SetFieldValue("mInstanceID", &colliderID); \
+		MonoObject* collider; \
+		InitGameObject(collider, colliderID, "Collider"); \
 		void* params[1]; \
-		params[0] = &collider.mInstance; \
-		mono_runtime_invoke(mScriptClass->GetMethod(#methodName, 0), mInstance, params, nullptr); \
+		params[0] = &collider; \
+		mono_runtime_invoke(mScriptClass->GetMethod(#methodName, 1), mInstance, params, nullptr); \
 	}\
 
 #endif

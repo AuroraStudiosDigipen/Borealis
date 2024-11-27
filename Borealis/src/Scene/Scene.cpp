@@ -458,7 +458,7 @@ namespace Borealis
 						for (auto& [name, script] : scriptComponent1.mScripts)
 						{
 
-							script->OnTriggerEnter(entity2.GetComponent<IDComponent>().ID);
+							script->OnTriggerEnter(collisionPair.second);
 
 						}
 					}
@@ -469,7 +469,7 @@ namespace Borealis
 						for (auto& [name, script] : scriptComponent2.mScripts)
 						{
 
-							script->OnTriggerEnter(entity1.GetComponent<IDComponent>().ID);
+							script->OnTriggerEnter(collisionPair.first);
 
 						}
 					}

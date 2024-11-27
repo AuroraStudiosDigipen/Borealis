@@ -52,6 +52,8 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(Entity_GetActive);
 		BOREALIS_ADD_INTERNAL_CALL(Entity_FindEntity);
 		BOREALIS_ADD_INTERNAL_CALL(Entity_GetComponent);
+		BOREALIS_ADD_INTERNAL_CALL(Entity_GetName);
+		BOREALIS_ADD_INTERNAL_CALL(Entity_SetName);
 
 
 		BOREALIS_ADD_INTERNAL_CALL(Time_GetDeltaTime);
@@ -314,6 +316,32 @@ namespace Borealis
 		Entity entity = scene->GetEntityByUUID(entityID);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		*active = entity.GetComponent<TagComponent>().active;
+	}
+	void Entity_GetName(uint64_t entityID, MonoString** name)
+	{
+		if (entityID == 0)
+		{
+			return;
+		}
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(entityID);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		std::string str = entity.GetComponent<TagComponent>().Tag;
+		*name = mono_string_new(mono_domain_get(), str.c_str());
+	}
+	void Entity_SetName(uint64_t entityID, MonoString* name)
+	{
+		if (entityID == 0)
+		{
+			return;
+		}
+		char* message = mono_string_to_utf8(name);
+		std::string str = message;
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(entityID);
+		entity.GetComponent<TagComponent>().Tag = str;
 	}
 	void Entity_FindEntity(MonoString* name, UUID* ID)
 	{

@@ -272,12 +272,10 @@ namespace Borealis
 		if (PhysicsSystem::BodyIDToIsSensor(inBodyID2.GetIndexAndSequenceNumber()))
 		{
 			sData.onTriggerPairAddedQueue.push({ PhysicsSystem::CharacterIDToUUID((void*)inCharacter), PhysicsSystem::BodyIDToUUID(inBodyID2.GetIndexAndSequenceNumber()) });
-			BOREALIS_CORE_INFO("Character Trigger Enter");
 		}
 		else
 		{
 			sData.onCollisionPairAddedQueue.push({ PhysicsSystem::CharacterIDToUUID((void*)inCharacter), PhysicsSystem::BodyIDToUUID(inBodyID2.GetIndexAndSequenceNumber()) });
-			BOREALIS_CORE_INFO("Character Collision Enter");
 		}
 	}
 
@@ -286,12 +284,10 @@ namespace Borealis
 		if (inBody1.IsSensor() || inBody2.IsSensor())
 		{
 			sData.onTriggerPairAddedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
-			BOREALIS_CORE_INFO("Trigger Enter");
 		}
 		else
 		{
 			sData.onCollisionPairAddedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
-			BOREALIS_CORE_INFO("Collision Enter");
 		}
 	}
 
@@ -300,12 +296,10 @@ namespace Borealis
 		if (inBody1.IsSensor() || inBody2.IsSensor())
 		{
 			sData.onTriggerPairPersistedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
-			BOREALIS_CORE_INFO("Trigger Persisted");
 		}
 		else
 		{
 			sData.onCollisionPairPersistedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
-			BOREALIS_CORE_INFO("Collision Persisted");
 		}
 	}
 
@@ -314,12 +308,10 @@ namespace Borealis
 		if (PhysicsSystem::BodyIDToIsSensor(inSubShapePair.GetBody1ID().GetIndexAndSequenceNumber()) || PhysicsSystem::BodyIDToIsSensor(inSubShapePair.GetBody2ID().GetIndexAndSequenceNumber()))
 		{
 			sData.onTriggerPairRemovedQueue.push({ PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody1ID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody2ID().GetIndexAndSequenceNumber()) });
-			BOREALIS_CORE_INFO("Trigger Exit");
 		}
 		else
 		{
 			sData.onCollisionPairRemovedQueue.push({ PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody1ID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody2ID().GetIndexAndSequenceNumber()) });
-			BOREALIS_CORE_INFO("Collision Exit");
 		}
 		
 	}
@@ -865,7 +857,7 @@ namespace Borealis
 
 	void PhysicsSystem::FreeCharacter(CharacterControlComponent& character)
 	{
-
+		characterMapUUID.erase(character.controller);
 		if (character.listener)
 			delete character.listener;
 		if(character.controller)

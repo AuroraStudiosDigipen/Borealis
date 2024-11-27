@@ -109,6 +109,9 @@ namespace Borealis
 	void Entity_SetActive(uint64_t entityID, bool* active);
 	void Entity_GetActive(uint64_t entityID, bool* active);
 
+	void Entity_GetName(uint64_t entityID, MonoString** name);
+	void Entity_SetName(uint64_t entityID, MonoString* name);
+
 	void Entity_FindEntity(MonoString* name, UUID* ID);
 
 	float Time_GetDeltaTime();

@@ -10,6 +10,20 @@ namespace Borealis
     public class GameObject : Object
     {
         //public bool activeSelf => true; // Use internal call
+
+        public new string name
+        {
+            get
+            {
+                InternalCalls.Entity_GetName(InstanceID , out string name);
+                return name;
+            }
+            set
+            {
+                Debug.Log(value);
+                InternalCalls.Entity_SetName(InstanceID, ref value);
+            }
+        }
         public Transform transform
         {
             get

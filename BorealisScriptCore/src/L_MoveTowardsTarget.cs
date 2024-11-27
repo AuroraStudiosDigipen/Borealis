@@ -30,12 +30,14 @@ namespace Borealis
 
             float stoppingDistance = 0;
             // Check priorities: player first, then cheese
-            if (gameobject.cheeseDetected)
+            //if (gameobject.cheeseDetected)
+            if (true)
             {
                 // find nearest cheese and set target pos to found pos
                 targetPosition = closestCheeseEntity.GetComponent<Transform>().position;
             }
-            else if (gameobject.playerDetected)
+            //else if (gameobject.playerDetected)
+            else if (true)
             {
                 targetPosition = playerEntity.GetComponent<Transform>().position;
             }

@@ -3,10 +3,10 @@ using System.Linq;
 
 namespace Borealis
 {
-    [BTNodeClass(NodeType..DECORATOR)]
+    [BTNodeClass(NodeType.DECORATOR)]
     public class RepeatNodeUnlimited : BehaviourNode
     {
-        unsigned counter;
+        uint counter;
 
         public RepeatNodeUnlimited()
         {

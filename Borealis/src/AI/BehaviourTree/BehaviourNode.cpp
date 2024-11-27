@@ -61,6 +61,12 @@ namespace Borealis
         void* params[1];
         params[0] = &depth;
         auto result = klass->InvokeMethod(mInstance->GetInstance(), method, params);
+
+        if (depth == 0)
+        {
+            auto method2 = klass->GetMethod("InitBlackboard", 0);
+            auto result2 = klass->InvokeMethod(mInstance->GetInstance(), method2, nullptr);
+        }
     }
 
     /*

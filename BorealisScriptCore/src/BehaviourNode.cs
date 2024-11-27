@@ -3,6 +3,28 @@ using System.Collections.Generic;
 
 namespace Borealis
 {
+    public class Blackboard
+    {
+        private Dictionary<string, IBlackboardValue> _data = new Dictionary<string, IBlackboardValue>();
+        static int x = 0;
+        public Blackboard() { Debug.Log(x); x++; }
+        public void SetValue<T>(string key, T value)
+        {
+            _data[key] = new BlackboardValue<T>(value);
+        }
+
+        public T GetValue<T>(string key)
+        {
+            return _data.TryGetValue(key, out var value) && value is BlackboardValue<T> typedValue ? typedValue.Value : default;
+        }
+
+        private interface IBlackboardValue { }
+        private class BlackboardValue<T> : IBlackboardValue
+        {
+            public T Value { get; }
+            public BlackboardValue(T value) { Value = value; }
+        }
+    }
     public enum NodeType
     {
         CONTROLFLOW,
@@ -29,7 +51,7 @@ namespace Borealis
 
     public class BehaviourNode
     {
-
+        private void InitBlackboard() { blackboard = new Blackboard(); }
         public List<BehaviourNode> GetChildrenNodes()
         {
             return mChildren;
@@ -73,6 +95,7 @@ namespace Borealis
         public void AddChild(BehaviourNode child)
         {
             mChildren.Add(child);
+            child.blackboard = this.blackboard;
             child.mParent = this;
         }
 
@@ -163,6 +186,10 @@ namespace Borealis
                 OnExit();
             }
         }
+        public Blackboard GetBlackboard()
+        {
+            return this.blackboard;
+        }
 
         //TBD
         protected BehaviourNode Clone()
@@ -196,6 +223,7 @@ namespace Borealis
         protected BehaviourNode mParent;  // Parent node reference
         protected List<BehaviourNode> mChildren = new List<BehaviourNode>();
 
+        private Blackboard blackboard;
         //// Node type, status, and result
         private uint mDepth;  // Depth of the node in the behavior tree
         private NodeType mNodeType;

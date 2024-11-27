@@ -34,7 +34,7 @@ namespace Borealis
             if (distance > maxViewDistance)
             {
                 //set bool for player seen to false
-                playerEntity.isSeen = false;
+                //playerEntity.isSeen = false;
                 OnFailure();
                 return;
             }
@@ -53,15 +53,15 @@ namespace Borealis
             dotProduct = Math.Max(-1.0f, Math.Min(1.0f, dotProduct));
 
             // Calculate the angle between the forward vector and the direction to the player
-            float angleToPlayer = Math.Acos((dotProduct) * (180.0f / 3.14159265f);
-
+            double angleToPlayer = Math.Acos((double)dotProduct);
+            angleToPlayer = angleToPlayer * (180.0 / 3.14159265);
             // Check if the player is within the field of view (half the view angle)
             if (angleToPlayer <= (viewAngle / 2.0f))
             {
                 //std::cout << "Player is within LOS. Angle: " << angleToPlayer << std::endl;
 
                 // Update the player bool
-                playerEntity.isSeen = true;
+                //playerEntity.isSeen = true;
                 // Signal success
                 OnSuccess();
             }
@@ -70,11 +70,12 @@ namespace Borealis
                 // std::cout << "Player is outside LOS. Angle: " << angleToPlayer << std::endl;
 
                 // Update the blackboard to indicate no LOS
-                playerEntity.isSeen = false;
+                //playerEntity.isSeen = false;
 
                 // Signal failure
                 OnFailure();
             }
+            
 
         }
 

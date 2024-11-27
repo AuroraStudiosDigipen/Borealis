@@ -41,7 +41,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/Project.hpp>
 #include <Core/LayerList.hpp>
 
-#include "EditorAssets/MaterialEditor.hpp"
+#include "MaterialEditor.hpp"
 #include <EditorSerialiser.hpp>
 #include <AI/BehaviourTree/BTreeFactory.hpp>
 

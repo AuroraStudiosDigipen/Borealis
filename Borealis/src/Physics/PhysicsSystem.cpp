@@ -260,25 +260,23 @@ namespace Borealis
 		std::queue<CollisionPair> onTriggerPairAddedQueue;
 		std::queue<CollisionPair> onTriggerPairRemovedQueue;
 		std::queue<CollisionPair> onTriggerPairPersistedQueue;
-
-		std::queue<CharacterCollisionPair> onCharacterCollisionPairAddedQueue;
-		std::queue<CharacterCollisionPair> onCharacterTriggerPairAddedQueue;
 	};
 
 	static PhysicsSystemData sData;
 	static unordered_map<unsigned int, Borealis::UUID> bodyIDMapUUID;
 	static unordered_map<unsigned int, bool> bodySensorMap;
+	static unordered_map<void*, UUID> characterMapUUID;
 
 	void MyCharacterContactListener::OnContactAdded(const CharacterVirtual* inCharacter, const BodyID& inBodyID2, const SubShapeID& inSubShapeID2, RVec3Arg inContactPosition, Vec3Arg inContactNormal, CharacterContactSettings& ioSettings)
 	{
 		if (PhysicsSystem::BodyIDToIsSensor(inBodyID2.GetIndexAndSequenceNumber()))
 		{
-			sData.onCharacterTriggerPairAddedQueue.push({ &inCharacter, PhysicsSystem::BodyIDToUUID(inBodyID2.GetIndexAndSequenceNumber()) });
+			sData.onTriggerPairAddedQueue.push({ PhysicsSystem::CharacterIDToUUID((void*)inCharacter), PhysicsSystem::BodyIDToUUID(inBodyID2.GetIndexAndSequenceNumber()) });
 			BOREALIS_CORE_INFO("Character Trigger Enter");
 		}
 		else
 		{
-			sData.onCharacterCollisionPairAddedQueue.push({ &inCharacter, PhysicsSystem::BodyIDToUUID(inBodyID2.GetIndexAndSequenceNumber()) });
+			sData.onCollisionPairAddedQueue.push({ PhysicsSystem::CharacterIDToUUID((void*)inCharacter), PhysicsSystem::BodyIDToUUID(inBodyID2.GetIndexAndSequenceNumber()) });
 			BOREALIS_CORE_INFO("Character Collision Enter");
 		}
 	}
@@ -334,9 +332,6 @@ namespace Borealis
 	std::queue<CollisionPair>& PhysicsSystem::GetTriggerPersistQueue() { return sData.onTriggerPairPersistedQueue; }
 	std::queue<CollisionPair>& PhysicsSystem::GetTriggerExitQueue() { return sData.onTriggerPairRemovedQueue; }
 
-	std::queue<CharacterCollisionPair>& PhysicsSystem::GetCharacterCollisionEnterQueue() { return sData.onCharacterCollisionPairAddedQueue; }
-	std::queue<CharacterCollisionPair>& PhysicsSystem::GetCharacterTriggerEnterQueue() { return sData.onCharacterTriggerPairAddedQueue; }
-
 	void PhysicsSystem::EndScene()
 	{
 		while (!sData.onCollisionPairAddedQueue.empty())
@@ -362,14 +357,6 @@ namespace Borealis
 		while (!sData.onTriggerPairRemovedQueue.empty())
 		{
 			sData.onTriggerPairRemovedQueue.pop();
-		}
-		while (!sData.onCharacterCollisionPairAddedQueue.empty())
-		{
-			sData.onCharacterCollisionPairAddedQueue.pop();
-		}
-		while (!sData.onCharacterTriggerPairAddedQueue.empty())
-		{
-			sData.onCharacterTriggerPairAddedQueue.pop();
 		}
 	}
 
@@ -610,6 +597,11 @@ namespace Borealis
 		return bodySensorMap[bodyID];
 	}
 
+	UUID PhysicsSystem::CharacterIDToUUID(void* character)
+	{
+		return characterMapUUID[character];
+	}
+
 	std::pair<glm::vec3, glm::vec3> PhysicsSystem::calculateBoundingVolume(const Model& model)
 	{
 		glm::vec3 minExtent{}, maxExtent{};
@@ -724,7 +716,7 @@ namespace Borealis
 		sData.body_interface->SetLinearVelocity((BodyID)rigidbody.bodyID, JoltMotion);
 	}
 
-	void PhysicsSystem::addCharacter(CharacterControlComponent& character, TransformComponent& transform, ColliderComponent& collider)
+	void PhysicsSystem::addCharacter(CharacterControlComponent& character, TransformComponent& transform, ColliderComponent& collider, UUID entityID)
 	{
 		CharacterVirtualSettings settings;
 		ShapeRefC shape;
@@ -762,6 +754,7 @@ namespace Borealis
 		settings.mShape = shape;
 		settings.SetEmbedded();
 
+		characterMapUUID[character.controller] = entityID;
 		character.listenter = new MyCharacterContactListener();
 		reinterpret_cast<CharacterVirtual*>(character.controller)->SetListener(reinterpret_cast<MyCharacterContactListener*>(character.listenter));
 		character.controller = new CharacterVirtual(&settings, RVec3(transform.Translate.x, transform.Translate.y,transform.Translate.z), Quat::sIdentity(), sData.mSystem);

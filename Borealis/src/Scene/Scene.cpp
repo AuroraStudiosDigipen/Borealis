@@ -1066,7 +1066,8 @@ namespace Borealis
 			{
 				continue;
 			}
-			PhysicsSystem::addCharacter(brEntity.GetComponent<CharacterControlComponent>(), brEntity.GetComponent<TransformComponent>(), brEntity.GetComponent<CapsuleColliderComponent>());
+			auto entityID = mRegistry.get<IDComponent>(entity).ID;
+			PhysicsSystem::addCharacter(brEntity.GetComponent<CharacterControlComponent>(), brEntity.GetComponent<TransformComponent>(), brEntity.GetComponent<CapsuleColliderComponent>(), entityID);
 		}
 		auto BoxcharacterGroup = mRegistry.group<>(entt::get<TransformComponent, CharacterControlComponent, BoxColliderComponent>);
 		for (auto entity : BoxcharacterGroup)
@@ -1076,7 +1077,8 @@ namespace Borealis
 			{
 				continue;
 			}
-			PhysicsSystem::addCharacter(brEntity.GetComponent<CharacterControlComponent>(), brEntity.GetComponent<TransformComponent>(), brEntity.GetComponent<BoxColliderComponent>());
+			auto entityID = mRegistry.get<IDComponent>(entity).ID;
+			PhysicsSystem::addCharacter(brEntity.GetComponent<CharacterControlComponent>(), brEntity.GetComponent<TransformComponent>(), brEntity.GetComponent<BoxColliderComponent>(), entityID);
 		}
 		auto SpherecharacterGroup = mRegistry.group<>(entt::get<TransformComponent, CharacterControlComponent, SphereColliderComponent>);
 		for (auto entity : SpherecharacterGroup)
@@ -1086,7 +1088,8 @@ namespace Borealis
 			{
 				continue;
 			}
-			PhysicsSystem::addCharacter(brEntity.GetComponent<CharacterControlComponent>(), brEntity.GetComponent<TransformComponent>(), brEntity.GetComponent<SphereColliderComponent>());
+			auto entityID = mRegistry.get<IDComponent>(entity).ID;
+			PhysicsSystem::addCharacter(brEntity.GetComponent<CharacterControlComponent>(), brEntity.GetComponent<TransformComponent>(), brEntity.GetComponent<SphereColliderComponent>(), entityID);
 		}
 
 		auto IDView = mRegistry.view<IDComponent>();

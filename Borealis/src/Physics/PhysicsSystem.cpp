@@ -13,7 +13,6 @@ prior written consent of DigiPen Institute of Technology is prohibited.
  /******************************************************************************/
 
 #include "BorealisPCH.hpp"
-
 // STL includes
 #include <iostream>
 #include <cstdarg>
@@ -48,7 +47,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Jolt/Physics/Collision/Shape/ScaledShape.h>
 #include <Jolt/Physics/Collision/RayCast.h>
 #include <Jolt/Physics/Collision/CastResult.h>
-#include <Jolt/Renderer/DebugRendererSimple.h>
+//#include <Jolt/Renderer/DebugRenderer.h>
+//#include <Jolt/Renderer/DebugRendererSimple.h>
 
 #include <Graphics/Renderer2D.hpp>
 #include <Graphics/Renderer3D.hpp>
@@ -211,16 +211,16 @@ public:
 
 namespace Borealis
 {
-	//Debug Renderer
-	class MyDebugRenderer : public DebugRendererSimple
-	{
-	public:
-		virtual void DrawLine(JPH::RVec3Arg inFrom, JPH::RVec3Arg inTo, JPH::ColorArg inColor) override;
-		
-		virtual void DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RVec3Arg inV3, JPH::ColorArg inColor, ECastShadow inCastShadow) override;
-		
-		//virtual void DrawText3D(JPH::RVec3Arg inPosition, const string_view& inString, JPH::ColorArg inColor, float inHeight) override;
-	};
+	////Debug Renderer
+	//class MyDebugRenderer : public DebugRendererSimple
+	//{
+	//public:
+	//	virtual void DrawLine(JPH::RVec3Arg inFrom, JPH::RVec3Arg inTo, JPH::ColorArg inColor) override;
+	//	
+	//	virtual void DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RVec3Arg inV3, JPH::ColorArg inColor, ECastShadow inCastShadow) override;
+	//	
+	//	virtual void DrawText3D(JPH::RVec3Arg inPosition, const string_view& inString, JPH::ColorArg inColor, float inHeight) override;
+	//};
 
 	class MyCharacterContactListener : public CharacterContactListener
 	{
@@ -260,6 +260,7 @@ namespace Borealis
 		JPH::TempAllocatorImpl* temp_allocator;
 		JPH::JobSystemThreadPool* job_system;
 		JPH::BodyInterface* body_interface;
+		//MyDebugRenderer* debug_renderer;
 		BPLayerInterfaceImpl* broad_phase_layer_interface;
 		ObjectVsBroadPhaseLayerFilterImpl* object_vs_broadphase_layer_filter;
 		ObjectLayerPairFilterImpl* object_vs_object_layer_filter;
@@ -280,15 +281,23 @@ namespace Borealis
 	static unordered_map<unsigned int, bool> bodySensorMap;
 	static unordered_map<void*, UUID> characterMapUUID;
 
-	void MyDebugRenderer::DrawLine(JPH::RVec3Arg inFrom, JPH::RVec3Arg inTo, JPH::ColorArg inColor)
-	{
-		//TODO
-	}
+	//void MyDebugRenderer::DrawLine(JPH::RVec3Arg inFrom, JPH::RVec3Arg inTo, JPH::ColorArg inColor)
+	//{
+	//	//TODO
+	//	BOREALIS_CORE_ERROR("DrawLine not implemented");
+	//}
 
-	void MyDebugRenderer::DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RVec3Arg inV3, JPH::ColorArg inColor, ECastShadow inCastShadow)
-	{
-		//TODO
-	}
+	//void MyDebugRenderer::DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RVec3Arg inV3, JPH::ColorArg inColor, ECastShadow inCastShadow)
+	//{
+	//	//TODO
+	//	BOREALIS_CORE_ERROR("DrawTriangle not implemented");
+	//}
+
+	//void MyDebugRenderer::DrawText3D(JPH::RVec3Arg inPosition, const string_view& inString, JPH::ColorArg inColor, float inHeight)
+	//{
+	//	//TODO
+	//	BOREALIS_CORE_ERROR("DrawText3D not implemented");
+	//}
 
 	void MyCharacterContactListener::OnContactAdded(const CharacterVirtual* inCharacter, const BodyID& inBodyID2, const SubShapeID& inSubShapeID2, RVec3Arg inContactPosition, Vec3Arg inContactNormal, CharacterContactSettings& ioSettings)
 	{
@@ -451,11 +460,18 @@ namespace Borealis
 	// variant of this. We're going to use the locking version (even though we're not planning to access bodies from multiple threads)
 	sData.body_interface = &sData.mSystem->GetBodyInterface();
 
+	//sData.debug_renderer = new MyDebugRenderer();
+
 	// Optional step: Before starting the physics simulation you can optimize the broad phase. This improves collision detection performance (it's pointless here because we only have 2 bodies).
 	// You should definitely not call this every frame or when e.g. streaming in a new level section as it is an expensive operation.
 	// Instead insert all new objects in batches instead of 1 at a time to keep the broad phase efficient.
 	sData.mSystem->OptimizeBroadPhase();
 }
+
+	void PhysicsSystem::DrawDebug()
+	{
+		//sData.mSystem->DrawBodies(BodyManager::DrawSettings(), sData.debug_renderer);
+	}
 
 	void PhysicsSystem::PushTransform(ColliderComponent& collider, TransformComponent& transform, RigidBodyComponent* rigidbody, Entity entity)
 	{

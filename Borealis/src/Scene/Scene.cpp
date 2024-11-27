@@ -324,7 +324,7 @@ namespace Borealis
 					PhysicsSystem::PullCharacterTransform(character, transform.Translate, transform.Rotation);
 				}
 
-
+				PhysicsSystem::DrawDebug();
 				PhysicsSystem::Update(dt);
 
 				// Set entity values to Jolt transform.

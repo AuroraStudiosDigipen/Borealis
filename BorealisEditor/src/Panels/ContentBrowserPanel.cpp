@@ -24,7 +24,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <EditorAssets/MetaSerializer.hpp>
 #include <ResourceManager.hpp>
 
-#include "EditorAssets/MaterialEditor.hpp"
+#include "MaterialEditor.hpp"
 #include <EditorAssets/AssetImporter.hpp>
 
 namespace ImGui

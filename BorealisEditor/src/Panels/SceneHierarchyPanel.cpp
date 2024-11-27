@@ -40,7 +40,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/Project.hpp>
 #include <Core/LayerList.hpp>
 
-#include "EditorAssets/MaterialEditor.hpp"
+#include "MaterialEditor.hpp"
 #include <EditorSerialiser.hpp>
 #include <AI/BehaviourTree/BTreeFactory.hpp>
 
@@ -991,6 +991,82 @@ namespace Borealis
 		return isEdited;
 	}
 
+	template<> //temp until idk
+	static bool DrawComponentLayout<AnimatorComponent>(const std::string& name, Entity entity, bool allowDelete)
+	{
+		bool isEdited = false;
+		if (entity.HasComponent<AnimatorComponent>())
+		{
+			ImGui::Spacing();
+			auto& component = entity.GetComponent<AnimatorComponent>();
+
+			bool deleteComponent = false;
+			bool open;
+
+			if (allowDelete)
+			{
+				auto ContentRegionAvailable = ImGui::GetContentRegionAvail();
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4,4 });
+				float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
+				ImGui::Separator();
+				open = ImGui::CollapsingHeader(name.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+				ImGui::PopStyleVar();
+				ImGui::SameLine(ContentRegionAvailable.x - lineHeight * 0.5f); // Align to right (Button)
+				if (ImGui::Button(("+##" + name).c_str(), ImVec2{ lineHeight,lineHeight }))
+				{
+					ImGui::OpenPopup(("ComponentSettingsPopup##" + name).c_str());
+				}
+
+
+				if (ImGui::BeginPopup(("ComponentSettingsPopup##" + name).c_str()))
+				{
+					if (ImGui::MenuItem("Remove Component"))
+					{
+						deleteComponent = true;
+						isEdited = true;
+					}
+
+					ImGui::EndPopup();
+				}
+			}
+			else
+			{
+				open = ImGui::CollapsingHeader(name.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+			}
+
+			if (open)
+			{
+				ImGui::Spacing();
+				isEdited = DrawComponent(component, entity) ? true : isEdited;
+			}
+
+			if (deleteComponent)
+			{
+				if (typeid(AnimatorComponent) == typeid(RigidBodyComponent))
+				{
+					PhysicsSystem::FreeRigidBody(entity.GetComponent<RigidBodyComponent>());
+				}
+				entity.RemoveComponent<AnimatorComponent>();
+			}
+
+			if (component.animation) // temp 
+			{
+				ImGui::Button("Blend Animation");
+				if (ImGui::BeginDragDropTarget())
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropAnimationItem"))
+					{
+						AssetHandle data = *(const uint64_t*)payload->Data;
+						component.animator.mNextAnimation = AssetManager::GetAsset<Animation>(data);
+					}
+					ImGui::EndDragDropTarget();
+				}
+
+				ImGui::SliderFloat("Blend Factor", &component.animator.mBlendFactor, 0.0f, 1.0f, "%.2f");
+			}
+		}
+		return isEdited;
+	}
 
 	SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& scene)
 	{

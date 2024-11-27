@@ -1007,7 +1007,17 @@ namespace Borealis
 				auto srcIT = srcScriptComponent.mScripts.find(dstIT->first);
 				for (auto property : scriptKlass->mFields)
 				{
-					if (!property.second.isMonoBehaviour() && !property.second.isGameObject() &&
+					if (property.second.isNativeComponent() && 
+						((!property.second.hasHideInInspector(scriptKlass->GetMonoClass()) && property.second.isPublic()) || 
+							(property.second.hasSerializeField(scriptKlass->GetMonoClass()))))
+					{
+						MonoObject* scriptReference = srcIT->second->GetFieldValue<MonoObject*>(property.first);
+						UUID scriptUUID = property.second.GetGameObjectID(scriptReference);
+						MonoObject* data;
+						InitGameObject(data , scriptUUID, property.second.mFieldClassName());
+						dstIT->second->SetFieldValue(property.first, data);
+					}
+					else if (!property.second.isMonoBehaviour() && !property.second.isGameObject() &&
 						((!property.second.hasHideInInspector(scriptKlass->GetMonoClass()) && property.second.isPublic())
 							|| (property.second.hasSerializeField(scriptKlass->GetMonoClass())))
 						)

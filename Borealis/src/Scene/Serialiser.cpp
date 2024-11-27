@@ -238,6 +238,12 @@ namespace Borealis
 
 				for (auto [name,field] : script->GetScriptClass()->mFields)
 				{
+					if ((field.isPrivate() && !field.hasSerializeField(script->GetMonoClass()) || field.hasHideInInspector(script->GetMonoClass())))
+					{
+						continue;
+					}
+
+
 
 					if (field.isAssetField() || field.isNativeComponent())
 					{
@@ -526,10 +532,19 @@ namespace Borealis
 				const YAML::Node& fields = script.second;
 				if (fields) {
 					for (const auto& field : fields) {
+
+
 						// Each field will have a name and a corresponding node
 						std::string fieldName = field.first.as<std::string>();
 						const YAML::Node& fieldData = field.second;
 						fieldData["Type"].as<std::string>();
+
+						ScriptField scriptField = scriptInstance->GetScriptClass()->mFields[fieldName];
+
+						if ((scriptField.isPrivate() && !scriptField.hasSerializeField(scriptInstance->GetMonoClass()) || scriptField.hasHideInInspector(scriptInstance->GetMonoClass())))
+						{
+							continue;
+						}
 
 						if (fieldData["Type"].as<std::string>() == "GameObject")
 						{

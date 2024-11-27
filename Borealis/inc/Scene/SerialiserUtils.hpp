@@ -309,6 +309,28 @@ namespace Borealis
 			return true;
 		}
 
+
+		if (propType == rttr::type::get<Ref<SkinnedModel>>())
+		{
+			if (propValue.get_value<Ref<SkinnedModel>>() == nullptr)
+			{
+				return false;
+			}
+			out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<Ref<SkinnedModel>>()->mAssetHandle;
+			return true;
+		}
+
+
+		if (propType == rttr::type::get<Ref<Animation>>())
+		{
+			if (propValue.get_value<Ref<Animation>>() == nullptr)
+			{
+				return false;
+			}
+			out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<Ref<Animation>>()->mAssetHandle;
+			return true;
+		}
+
 		if (propType.is_class() && propType.is_valid()) // all custom classes
 		{
 			out << YAML::Key << propName.to_string() << YAML::BeginMap;
@@ -494,6 +516,18 @@ namespace Borealis
 			if (propType == rttr::type::get<Ref<Texture2D>>())
 			{
 				prop.set_value(instance, rttr::variant(AssetManager::GetAsset<Texture2D>(propData.as<uint64_t>())));
+				return true;
+			}
+
+			if (propType == rttr::type::get<Ref<SkinnedModel>>())
+			{
+				prop.set_value(instance, rttr::variant(AssetManager::GetAsset<SkinnedModel>(propData.as<uint64_t>())));
+				return true;
+			}
+
+			if (propType == rttr::type::get<Ref<Animation>>())
+			{
+				prop.set_value(instance, rttr::variant(AssetManager::GetAsset<Animation>(propData.as<uint64_t>())));
 				return true;
 			}
 

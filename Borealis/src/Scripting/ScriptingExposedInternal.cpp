@@ -301,6 +301,8 @@ namespace Borealis
 		auto& script = scriptComponent.mScripts[type];
 		*component = script->GetInstance();
 	}
+
+	//gameObject.SetActive(false)
 	void Entity_SetActive(uint64_t entityID, bool* active)
 	{
 		Scene* scene = SceneManager::GetActiveScene().get();

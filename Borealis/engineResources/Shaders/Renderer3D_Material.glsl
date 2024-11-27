@@ -55,6 +55,7 @@ void Render3DPass()
 
     if(u_HasAnimation)
     {	
+		vec3 weightedNormal = vec3(0.0);
         for(int i = 0 ; i < MAX_BONE_INFLUENCE ; i++)
         {
             if(boneIds[i] == -1) 
@@ -66,8 +67,12 @@ void Render3DPass()
             }
             vec4 localPosition = u_FinalBonesMatrices[boneIds[i]] * vec4(a_Position,1.0f);
             TotalPosition += localPosition * weights[i];
-            N = mat3(u_FinalBonesMatrices[boneIds[i]]) * a_Normal;
+			
+			weightedNormal += weights[i] * mat3(u_FinalBonesMatrices[boneIds[i]]) * a_Normal;
+
+			//Need to apply weightedTangent and BitTangent as well
         }
+		N = normalize(weightedNormal);
     }
 
 	if(u_HasAnimation)

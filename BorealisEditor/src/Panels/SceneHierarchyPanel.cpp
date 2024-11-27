@@ -1042,10 +1042,6 @@ namespace Borealis
 
 			if (deleteComponent)
 			{
-				if (typeid(AnimatorComponent) == typeid(RigidBodyComponent))
-				{
-					PhysicsSystem::FreeRigidBody(entity.GetComponent<RigidBodyComponent>());
-				}
 				entity.RemoveComponent<AnimatorComponent>();
 			}
 

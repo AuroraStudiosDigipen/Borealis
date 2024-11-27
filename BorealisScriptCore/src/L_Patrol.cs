@@ -5,33 +5,54 @@ namespace Borealis
     [BTNodeClass(NodeType.LEAF)]
     public class Patrol : BehaviourNode
     {
-        public List<Transform> wayPoints = new List<Transform> { /*waypoint cordinates*/};
+        public List<Vector3> patrolPoints = new List<Vector3> { /*waypoint cordinates*/};
         public float distance;
         public Transform transform;
-
+        int currentPointIndex;
+        float moveSpeed = 5;
         public Patrol()
         {
-            distance = 0;
-            transform = null;  
-            
         }
 
         protected override void OnEnter()
         {
+            //get all waypoint entitys
+            //add all entity pos to waypoint list
+            // Find the cheese
+            // auto cheeseEntities = GameObject.GetEntitiesByLayer(string);
+            // for (auto entity: cheeseEntities)
+            // {
+            //entity.transform <distance>
+            //patrolPoints.Add(transform);
+
+            //}
             OnLeafEnter();
         }
 
         protected override void OnUpdate(float dt, GameObject gameobject)
         {
-            foreach (Transform t in wayPoints)
+            if (patrolPoints.Count ==0)
             {
-                gameobject.GetComponent<Rigidbody>().position = t.position;
+                OnFailure();
+                return;
             }
 
-            if (true)
+            Vector3 targetPoint = patrolPoints[currentPointIndex];
+            // Calculate direction to target
+            Vector3 agentPosition = gameobject.GetComponent<Transform>().position;
+            Vector3 direction = targetPoint - agentPosition;
+            Vector3.Normalize(direction);
+            //motion -> Direction(normalized) * speed
+            gameobject.GetComponent<CharacterController>().Move(direction * moveSpeed);
+            float distance = Vector3.Distance(targetPoint,gameobject.GetComponent<Transform>().position);
+            if (distance < 0.1)
             {
-                Debug.Log(gameobject.name);
+                currentPointIndex = (currentPointIndex + 1) % patrolPoints.Count;
                 OnSuccess();
+            }
+            else
+            {
+                OnFailure();
             }
         }
 

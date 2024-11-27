@@ -142,7 +142,8 @@
     <Compile Include="src\Assets\Sprite.cs" />
     <Compile Include="src\Attributes.cs" />
     <Compile Include="src\Behaviour.cs" />
-    <Compile Include="src\BehaviourTreeNode.cs" />
+    <Compile Include="src\BehaviourNode.cs" />
+    <Compile Include="src\C_Sequencer.cs" />
     <Compile Include="src\Components\AudioSource.cs" />
     <Compile Include="src\Components\CharacterController.cs" />
     <Compile Include="src\Components\Collider.cs" />
@@ -158,7 +159,13 @@
     <Compile Include="src\GameObject.cs" />
     <Compile Include="src\Input.cs" />
     <Compile Include="src\InternalCalls.cs" />
+    <Compile Include="src\IsPlayerWithinLOS.cs" />
     <Compile Include="src\KeyCode.cs" />
+    <Compile Include="src\L_Idle.cs" />
+    <Compile Include="src\L_IsCheeseWithinRange.cs" />
+    <Compile Include="src\L_IsEnemyWithinBoundary.cs" />
+    <Compile Include="src\L_MoveTowardsCheese.cs" />
+    <Compile Include="src\L_Patrol.cs" />
     <Compile Include="src\LayerMask.cs" />
     <Compile Include="src\Math\Color.cs" />
     <Compile Include="src\Math\Color32.cs" />

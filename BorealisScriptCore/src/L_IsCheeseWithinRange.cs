@@ -9,7 +9,7 @@ namespace Borealis
         //MISSING WAY TO GET CHEESE POSITION
         public Vector3 cheesePosition; // The position of the cheese
         public float detectionRadius = 50;     // Radius within which the cheese is considered "within range"
-
+        public float speed = 5;
         public IsCheeseWithinRange()
         {
         }
@@ -44,9 +44,10 @@ namespace Borealis
                 Debug.Log($"Cheese is outside radius: {distanceToCheese} > {detectionRadius}");
                 OnFailure(); // Condition failed
             }
-
+            Vector3 directionToCheese = cheesePosition - gameobject.GetComponent<Transform>().position;
+            Vector3.Normalize(directionToCheese);
             //motion -> Direction(normalized) * speed
-            gameobject.GetComponent<CharacterController>().Move();
+            gameobject.GetComponent<CharacterController>().Move(directionToCheese * speed);
 
 
         }

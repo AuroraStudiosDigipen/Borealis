@@ -1157,14 +1157,14 @@ namespace Borealis
 			auto [transform, btree] = behaviourTreeGroup.get<TransformComponent, BehaviourTreeComponent>(entity);
 			auto entityID = mRegistry.get<IDComponent>(entity).ID;
 
-			BTreeFactory::Instance().PrintTree(btree.mBehaviourTreeData, btree.mBehaviourTreeData->RootNodeID);
+			//BTreeFactory::Instance().PrintTree(btree.mBehaviourTreeData, btree.mBehaviourTreeData->RootNodeID);
 			if (btree.mBehaviourTreeData)
 			{
 				// Build the behavior tree
 				BehaviourNode rootNode;
 				BTreeFactory::Instance().BuildBehaviourTreeFromData(btree.mBehaviourTreeData, rootNode);
 				if (!btree.mBehaviourTrees) {
-					btree.mBehaviourTrees = std::make_unique<BehaviourTree>(); // or std::shared_ptr, depending on its type
+					btree.mBehaviourTrees = MakeRef<BehaviourTree>(); // or std::shared_ptr, depending on its type
 				}
 				// Assign to btree.mBehaviourTrees
 				btree.mBehaviourTrees->SetRootNode(rootNode);

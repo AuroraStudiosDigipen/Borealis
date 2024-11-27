@@ -4,10 +4,11 @@ namespace Borealis
 {
     public class IsPlayerWithinLOS : BehaviourNode
     {
-        private Vector3 targetPosition;   // Position of the target (e.g., the player)
-        private float maxViewDistance;    // Maximum distance the enemy can "see"
-        private int layerMask;            // Layer mask to detect the player
-
+        private Vector3 playerPosition;        // Position of the target (e.g., the player)
+        private float maxViewDistance = 50;    // Maximum distance the enemy can "see"
+        private float viewAngle = 135;         // Maximum angle the enemy can "see"
+        private int layerMask;                 // Layer mask to detect the player
+        GameObject playerEntity;
         // Constructor to initialize the node
         public IsPlayerWithinLOS()
         {
@@ -16,44 +17,65 @@ namespace Borealis
 
         protected override void OnEnter()
         {
-            // Called when the condition starts
+            // Find the player
+            // playerEntity = GameObject.GetEntitiesByLayer(string);
+            
             OnLeafEnter();
-            InternalCalls.Log("Checking line of sight...");
         }
 
         protected override void OnUpdate(float dt, GameObject gameobject)
         {
-            // Get the enemy's position (as the GameObject references the enemy)
-            Vector3 enemyPosition = gameobject.GetComponent<Rigidbody>().position;
+            playerPosition = playerEntity.GetComponent<Transform>().position;
+            // Calculate direction to the player
+            Vector3 directionToPlayer = playerPosition - gameobject.GetComponent<Transform>().position;
+            float distance = directionToPlayer.magnitude;
 
-            // Create a ray from the enemy's position towards the target
-            Ray ray = new Ray(enemyPosition, (targetPosition - enemyPosition).normalized);
-
-            // Perform a raycast using the Physics library
-            RaycastHit[] hits = Physics.RaycastAll(ray, maxViewDistance, layerMask);
-
-            // Check if any of the hits are directly on the target
-            bool hasLineOfSight = false;
-
-            foreach (var hit in hits)
+            // Check if the player is beyond the maximum view distance
+            if (distance > maxViewDistance)
             {
-                if (hit.transform != null && hit.transform.position == targetPosition)
-                {
-                    hasLineOfSight = true;
-                    break;
-                }
+                //set bool for player seen to false
+                playerEntity.isSeen = false;
+                OnFailure();
+                return;
             }
 
-            if (hasLineOfSight)
+            // Normalize the direction vector
+            Vector3.Normalize(directionToPlayer);
+
+            // Get and normalize the agent's forward vector
+            Vector3 agentForward = gameobject.GetComponent<Transform>().forward;
+            Vector3.Normalize(agentForward);
+
+            // Calculate the dot product between the forward vector and direction to player
+            float dotProduct = Vector3.Dot(agentForward,directionToPlayer);
+
+            // Clamp the dot product to the range [-1, 1] to prevent acosf issues
+            dotProduct = Math.Max(-1.0f, Math.Min(1.0f, dotProduct));
+
+            // Calculate the angle between the forward vector and the direction to the player
+            float angleToPlayer = Math.Acos((dotProduct) * (180.0f / 3.14159265f);
+
+            // Check if the player is within the field of view (half the view angle)
+            if (angleToPlayer <= (viewAngle / 2.0f))
             {
-                InternalCalls.Log("Target is within line of sight.");
-                OnSuccess(); // LOS condition passed
+                //std::cout << "Player is within LOS. Angle: " << angleToPlayer << std::endl;
+
+                // Update the player bool
+                playerEntity.isSeen = true;
+                // Signal success
+                OnSuccess();
             }
             else
             {
-                InternalCalls.Log("Target is not within line of sight.");
-                OnFailure(); // LOS condition failed
+                // std::cout << "Player is outside LOS. Angle: " << angleToPlayer << std::endl;
+
+                // Update the blackboard to indicate no LOS
+                playerEntity.isSeen = false;
+
+                // Signal failure
+                OnFailure();
             }
+
         }
 
         protected override void OnExit()

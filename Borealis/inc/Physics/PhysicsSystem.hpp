@@ -33,6 +33,7 @@ namespace Borealis
 	};
 
 	using CollisionPair = std::pair<UUID, UUID>;
+	using CharacterCollisionPair = std::pair<void*, UUID>;
 
 	class Entity;
 	class PhysicsSystem
@@ -103,6 +104,7 @@ namespace Borealis
 		static void SetRotation(unsigned int bodyID, glm::vec3 rotation);
 
 		static UUID BodyIDToUUID(unsigned int bodyID);
+		static bool BodyIDToIsSensor(unsigned int bodyID);
 
 		static std::queue<CollisionPair>& GetCollisionEnterQueue();
 		static std::queue<CollisionPair>& GetCollisionPersistQueue();
@@ -111,6 +113,9 @@ namespace Borealis
 		static std::queue<CollisionPair>& GetTriggerEnterQueue();
 		static std::queue<CollisionPair>& GetTriggerPersistQueue();
 		static std::queue<CollisionPair>& GetTriggerExitQueue();
+
+		static std::queue<CharacterCollisionPair>& GetCharacterCollisionEnterQueue();
+		static std::queue<CharacterCollisionPair>& GetCharacterTriggerEnterQueue();
 
 		static void move(ColliderComponent& rigidbody, glm::vec3 motion);
 

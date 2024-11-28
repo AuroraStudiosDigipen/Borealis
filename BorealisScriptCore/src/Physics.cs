@@ -37,9 +37,8 @@ namespace Borealis
                 hitInfo.distance = 0;
                 hitInfo.normal = Vector3.zero;
                 hitInfo.point = Vector3.zero;
-                hitInfo.transform = new Transform(0);
-                hitInfo.collider = new Collider(0);
-
+                hitInfo.transform = null;
+                hitInfo.collider = null;
             }
             return output;
         }

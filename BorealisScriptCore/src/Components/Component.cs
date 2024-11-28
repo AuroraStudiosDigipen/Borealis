@@ -2,16 +2,21 @@
 {
     public class Component : Object
     {
-        public GameObject gameObject { get; internal set; }
+        public GameObject gameObject {
+            get
+            {
+                return new GameObject(InstanceID);
+            }
+            set
+            {
+                InstanceID = value.InstanceID;
+            }
+        }
         public Transform transform
         {
             get
             {
-                return gameObject.transform;
-            }
-            set
-            {
-                gameObject.transform = value;
+                return new Transform(InstanceID);
             }
         }
     }

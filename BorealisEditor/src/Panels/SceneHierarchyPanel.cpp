@@ -1472,12 +1472,6 @@ namespace Borealis
 						currentEntityName = fileName;
 					}
 				}
-				else
-				{
-					// call the constructor
-					InitGameObject(ObjData, 0, field.mFieldClassName());
-					component->SetFieldValue(name, ObjData);
-				}
 
 				int assetType = field.GetAssetType();
 
@@ -1557,13 +1551,7 @@ namespace Borealis
 						currentEntityName = SceneManager::GetActiveScene()->GetEntityByUUID(currentEntityID).GetName();
 					}
 				}
-				else
-				{
-					// call the constructor
-					InitGameObject(Data, 0, field.mFieldClassName());
-					component->SetFieldValue(name, Data);
-				}
-
+	
 				if (currentEntityName == "")
 				{
 					ImU32 color32 = IM_COL32(180, 120, 120, 255);
@@ -1634,12 +1622,7 @@ namespace Borealis
 						}
 					}
 				}
-				else
-				{
-					// call the constructor
-					InitGameObject(Data, 0, field.mFieldClassName());
-					component->SetFieldValue(name, Data);
-				}
+
 				if (currentEntityName == "")
 				{
 					ImU32 color32 = IM_COL32(180, 120, 120, 255);

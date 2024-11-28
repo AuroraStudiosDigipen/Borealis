@@ -246,6 +246,8 @@ namespace Borealis
 		MonoMethod* ctor = mono_class_get_method_from_name(ScriptingSystem::GetScriptClass(objectType)->GetMonoClass(), ".ctor", 1);
 
 		args[0] = &id;
+
+		mono_gchandle_new(object, true);
 		mono_runtime_invoke(ctor, object, args, NULL);
 
 	}

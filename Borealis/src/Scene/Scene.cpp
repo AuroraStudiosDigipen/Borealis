@@ -1050,6 +1050,8 @@ namespace Borealis
 						MonoObject* Data = srcIT->second->GetFieldValue<MonoObject*>(property.first);
 
 						UUID monoBehaviourEntityID = property.second.GetAttachedID(Data);
+						BOREALIS_CORE_ASSERT(monoBehaviourEntityID != 0, "UUID is 0");
+
 						if (entitymap.find(monoBehaviourEntityID) != entitymap.end())
 						{
 							auto monoBehaviourEntity = entitymap.at(monoBehaviourEntityID);
@@ -1071,6 +1073,7 @@ namespace Borealis
 						MonoObject* DstData = dstIT->second->GetFieldValue<MonoObject*>(property.first);
 						MonoObject* Data = srcIT->second->GetFieldValue<MonoObject*>(property.first);
 						UUID setUUID = property.second.GetGameObjectID(Data);
+						BOREALIS_CORE_ASSERT(setUUID != 0, "UUID is 0");
 						InitGameObject(DstData, setUUID, property.second.mFieldClassName());
 						dstIT->second->SetFieldValue(property.first, DstData);
 					}

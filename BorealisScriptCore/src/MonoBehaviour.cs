@@ -46,7 +46,6 @@ namespace Borealis
         private void SetInstanceID(ulong id)
         {
             InstanceID = id;
-            gameObject = new GameObject(id);
         }
        
         new private ulong GetInstanceID()

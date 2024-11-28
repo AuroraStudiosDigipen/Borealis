@@ -250,6 +250,7 @@ namespace Borealis
 		{
 			// Implement
 			Renderer2D::DrawLine(glm::vec3(inFrom.GetX(),inFrom.GetY(),inFrom.GetZ()), glm::vec3(inTo.GetX(),inTo.GetY(),inTo.GetZ()), glm::vec4(inColor.r,inColor.g,inColor.b,inColor.a));
+			//Renderer2D::DrawLine(glm::vec3(0.f), glm::vec3(100.f), glm::vec4(0.f,1.f,0.f,1.f));
 		}
 
 		virtual void DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RVec3Arg inV3, JPH::ColorArg inColor, ECastShadow inCastShadow) override

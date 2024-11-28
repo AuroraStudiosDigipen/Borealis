@@ -72,7 +72,7 @@ namespace Borealis
 	{
 		static const uint32_t MaxQuads = 10000;
 		static const uint32_t MaxCircles = 1000;
-		static const uint32_t MaxLines = 100;
+		static const uint32_t MaxLines = 1000;
 		static const uint32_t MaxFont = 10000;
 		static const uint32_t MaxCircleVertices = MaxCircles * 4;
 		static const uint32_t MaxLineVertices = MaxLines * 2;
@@ -386,6 +386,8 @@ namespace Borealis
 		sData->QuadBufferPtr = sData->QuadBufferBase;
 		sData->QuadIndexCount = 0;
 		sData->TextureSlotIndex = 1;
+		sData->LineBufferPtr = sData->LineBufferBase;
+		sData->LineVertexCount = 0;
 	}
 	void Renderer2D::DrawSprite(const glm::mat4& transform, const SpriteRendererComponent& sprite, int entityID)
 	{
@@ -467,6 +469,7 @@ namespace Borealis
 	};
 
 	static std::vector<LineInfo> lineQueue;
+	static int lineCount = 0;
 
 	void Renderer2D::DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& colour)
 	{
@@ -487,6 +490,9 @@ namespace Borealis
 
 		LineInfo info{ p0, p1, colour };
 		lineQueue.push_back(info);
+		lineCount++; 
+		BOREALIS_CORE_INFO("Drawline {}", lineCount);
+
 	}
 
 	void Renderer2D::DrawBox(const glm::vec3& pMin, const glm::vec3& pMax, const glm::vec4& colour)
@@ -518,8 +524,10 @@ namespace Borealis
 	{
 		PROFILE_FUNCTION();
 
-		//if (sData->QuadIndexCount + 6 >= Renderer2DData::MaxIndices)
-		//	FlushReset();
+		if (sData->LineVertexCount + 2 >= Renderer2DData::MaxLineVertices)
+		{
+			FlushReset();
+		}
 
 		for (LineInfo const& info : lineQueue)
 		{
@@ -533,8 +541,13 @@ namespace Borealis
 
 			sData->LineVertexCount += 2;
 		}
+	}
 
+	void Renderer2D::ClearDrawQueue()
+	{
 		lineQueue.clear();
+		//BOREALIS_CORE_INFO("Drawline {}", lineCount);
+		lineCount = 0;
 	}
 
 	void Renderer2D::DrawRotatedQuad(const glm::vec2& position, const float& rotation, const glm::vec2& size, const glm::vec4& colour)

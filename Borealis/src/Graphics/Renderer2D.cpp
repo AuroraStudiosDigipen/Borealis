@@ -491,7 +491,7 @@ namespace Borealis
 		LineInfo info{ p0, p1, colour };
 		lineQueue.push_back(info);
 		lineCount++; 
-		BOREALIS_CORE_INFO("Drawline {}", lineCount);
+		//BOREALIS_CORE_INFO("Drawline {}", lineCount);
 
 	}
 

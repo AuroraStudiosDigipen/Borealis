@@ -620,13 +620,18 @@ namespace Borealis
 				auto group = mRegistry.group<>(entt::get<TransformComponent, AudioSourceComponent>);
 				for (auto& entity : group)
 				{
+					Entity brEntity{ entity, this };
+					if (!brEntity.IsActive())
+					{
+						continue;
+					}
+
 					auto [transform, audio] = group.get<TransformComponent, AudioSourceComponent>(entity);
 					if (audio.isPlaying && (!Borealis::AudioEngine::isSoundPlaying(audio.channelID) || !audio.isLoop))
 					{
 						AudioEngine::StopChannel(audio.channelID);
 						audio.isPlaying = false;
-						Vector3 pos = { transform.Translate.x,transform.Translate.y,transform.Translate.z };
-						audio.channelID = Borealis::AudioEngine::PlayAudio(audio, pos, audio.Volume, audio.isMute, audio.isLoop, 0);
+						audio.channelID = Borealis::AudioEngine::PlayAudio(audio.audio, TransformComponent::GetGlobalTranslate(brEntity), audio.Volume, audio.isMute, audio.isLoop, 0);
 						//audio.channelID = Borealis::AudioEngine::PlayAudio(audio.audio->AudioPath, {}, audio.Volume, audio.isMute, audio.isLoop);
 					}
 				}

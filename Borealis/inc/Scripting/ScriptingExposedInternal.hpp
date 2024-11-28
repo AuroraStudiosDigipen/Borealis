@@ -384,6 +384,15 @@ namespace Borealis
 
 	void CharacterController_IsGrounded(uint64_t id, bool* grounded);
 
+	void AudioSource_GetClip(uint64_t ID, uint64_t* ClipID);
+	void AudioSource_SetClip(uint64_t ID, uint64_t* ClipID);
+	void AudioSource_PlayOneShot(uint64_t ID, float volume, uint64_t ClipID);
+	void AudioSource_IsPlaying(uint64_t ID,  bool* playing);
+	void AudioSource_GetLooping(uint64_t ID,  bool* looping);
+	void AudioSource_SetLooping(uint64_t ID,  bool* looping);
+	void AudioSource_GetVolume(uint64_t ID,  float* volume);
+	void AudioSource_SetVolume(uint64_t ID,  float* volume);
+
 }
 
 #endif

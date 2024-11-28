@@ -27,6 +27,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Physics/PhysicsSystem.hpp>
 #include <Graphics/Renderer2D.hpp>
 #include <Assets/AssetManager.hpp>
+#include <Audio/AudioEngine.hpp>
 
 namespace Borealis
 {
@@ -139,6 +140,15 @@ namespace Borealis
 
 		BOREALIS_ADD_INTERNAL_CALL(CharacterController_Move);
 		BOREALIS_ADD_INTERNAL_CALL(CharacterController_IsGrounded);
+
+		BOREALIS_ADD_INTERNAL_CALL(AudioSource_GetClip);
+		BOREALIS_ADD_INTERNAL_CALL(AudioSource_SetClip);
+		BOREALIS_ADD_INTERNAL_CALL(AudioSource_PlayOneShot);
+		BOREALIS_ADD_INTERNAL_CALL(AudioSource_IsPlaying );
+		BOREALIS_ADD_INTERNAL_CALL(AudioSource_GetLooping);
+		BOREALIS_ADD_INTERNAL_CALL(AudioSource_SetLooping);
+		BOREALIS_ADD_INTERNAL_CALL(AudioSource_GetVolume );
+		BOREALIS_ADD_INTERNAL_CALL(AudioSource_SetVolume );
 
 	}
 	uint64_t GenerateUUID()
@@ -1076,5 +1086,95 @@ namespace Borealis
 		{
 			*grounded = false;
 		}
+	}
+
+	void AudioSource_GetClip(uint64_t ID, uint64_t* ClipID)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(ID);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		if (entity.GetComponent<AudioSourceComponent>().audio)
+		{
+			*ClipID = entity.GetComponent<AudioSourceComponent>().audio->mAssetHandle;
+		}
+		else
+		{
+			*ClipID = 0;
+		}
+	}
+	void AudioSource_SetClip(uint64_t ID, uint64_t* ClipID)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(ID);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		if (*ClipID != 0)
+		{
+			entity.GetComponent<AudioSourceComponent>().audio = AssetManager::GetAsset<Audio>(*ClipID);
+		}
+		else
+		{
+			entity.GetComponent<AudioSourceComponent>().audio = Ref<Audio>();
+		}
+	}
+	void AudioSource_PlayOneShot(uint64_t ID, float volume, uint64_t ClipID)
+	{
+		if (ClipID != 0)
+		{
+			Ref<Audio> audio = AssetManager::GetAsset<Audio>(ClipID);
+			if (audio)
+			{
+				Scene* scene = SceneManager::GetActiveScene().get();
+				BOREALIS_CORE_ASSERT(scene, "Scene is null");
+				Entity entity = scene->GetEntityByUUID(ID);
+				BOREALIS_CORE_ASSERT(entity, "Entity is null");
+
+				auto translate = TransformComponent::GetGlobalTranslate(entity);
+				auto& audioSource = entity.GetComponent<AudioSourceComponent>();
+				AudioEngine::PlayAudio(audio, translate, audioSource.Volume, audioSource.isMute, audioSource.isLoop, audioSource.channelID);
+			}
+		}
+		
+	}
+	void AudioSource_IsPlaying(uint64_t ID, bool* playing)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(ID);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*playing = entity.GetComponent<AudioSourceComponent>().isPlaying;
+	}
+	void AudioSource_GetLooping(uint64_t ID, bool* looping)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(ID);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*looping = entity.GetComponent<AudioSourceComponent>().isLoop;
+	}
+	void AudioSource_SetLooping(uint64_t ID, bool* looping)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(ID);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<AudioSourceComponent>().isLoop = *looping;
+	}
+	void AudioSource_GetVolume(uint64_t ID, float* volume)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(ID);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*volume = entity.GetComponent<AudioSourceComponent>().Volume;
+	}
+	void AudioSource_SetVolume(uint64_t ID, float* volume)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(ID);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<AudioSourceComponent>().Volume = *volume;
 	}
 }

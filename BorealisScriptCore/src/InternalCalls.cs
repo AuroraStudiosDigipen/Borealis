@@ -294,5 +294,24 @@ namespace Borealis
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void CharacterController_IsGrounded(ulong id, out bool grounded);
         #endregion
+
+        #region AudioSource
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void AudioSource_GetClip(ulong ID, out ulong ClipID);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void AudioSource_SetClip(ulong ID, ref ulong ClipID);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void AudioSource_PlayOneShot(ulong ID, float volume, ulong ClipID);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void AudioSource_IsPlaying(ulong ID, out bool playing);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void AudioSource_GetLooping(ulong ID, out bool looping);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void AudioSource_SetLooping(ulong ID, ref bool looping);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void AudioSource_GetVolume(ulong ID, out float volume);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void AudioSource_SetVolume(ulong ID, ref float volume);
+        #endregion
     }
 }

@@ -249,7 +249,8 @@ namespace Borealis
 		virtual void DrawLine(JPH::RVec3Arg inFrom, JPH::RVec3Arg inTo, JPH::ColorArg inColor) override
 		{
 			// Implement
-			BOREALIS_CORE_ERROR("DrawLine not implemented");
+			Renderer2D::DrawLine(glm::vec3(inFrom.GetX(),inFrom.GetY(),inFrom.GetZ()), glm::vec3(inTo.GetX(),inTo.GetY(),inTo.GetZ()), glm::vec4(inColor.r,inColor.g,inColor.b,inColor.a));
+			std::cout << "From: " << inFrom.GetX() << " " << inFrom.GetY() << " " << inFrom.GetZ() << " To: " << inTo.GetX() << " " << inTo.GetY() << " " << inTo.GetZ() << std::endl;
 		}
 
 		virtual void DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RVec3Arg inV3, JPH::ColorArg inColor, ECastShadow inCastShadow) override
@@ -448,6 +449,7 @@ namespace Borealis
 
 	// Create a debug renderer
 	sData.debug_renderer = new MyDebugRenderer();
+	sData.draw_settings.mDrawShapeWireframe = true;
 
 	// Optional step: Before starting the physics simulation you can optimize the broad phase. This improves collision detection performance (it's pointless here because we only have 2 bodies).
 	// You should definitely not call this every frame or when e.g. streaming in a new level section as it is an expensive operation.

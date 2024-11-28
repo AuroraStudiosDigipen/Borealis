@@ -381,6 +381,15 @@ namespace Borealis
 		auto propType = prop.get_type();
 		if (propData)
 		{
+			if (propData.IsMap() && propData.size() == 0)
+			{
+				return false;
+			}
+			if (!propData.IsDefined())
+			{
+				return false;
+			}
+
 			if (propType.is_enumeration())
 			{
 				auto datastr = propData.as<std::string>();

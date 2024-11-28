@@ -326,6 +326,8 @@ namespace Borealis
 
 				PhysicsSystem::Update(dt);
 
+				PhysicsSystem::DrawDebug();
+
 				// Set entity values to Jolt transform.
 				for (auto entity : boxGroup)
 				{

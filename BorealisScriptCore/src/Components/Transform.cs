@@ -8,6 +8,18 @@ namespace Borealis
     public class Transform : Component
     {
         //public int childCount;
+        public new string name
+        {
+            get
+            {
+                InternalCalls.Entity_GetName(InstanceID, out string name);
+                return name;
+            }
+            set
+            {
+                InternalCalls.Entity_SetName(InstanceID, value);
+            }
+        }
         public new GameObject gameObject
         {
             get

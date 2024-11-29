@@ -766,7 +766,7 @@ namespace Borealis
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		auto& rb = entity.GetComponent<RigidBodyComponent>();
-		*kinematic == true? rb.movement = MovementType::Kinematic : rb.movement = MovementType::Static;
+		*kinematic == true? rb.movement = MovementType::Dynamic : rb.movement = MovementType::Static;
 	}
 	void RigidbodyComponent_GetIsKinematic(UUID uuid, bool* kinematic)
 	{

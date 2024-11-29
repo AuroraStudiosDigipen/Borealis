@@ -20,8 +20,7 @@ namespace Borealis
             }
             set
             {
-                Debug.Log(value);
-                InternalCalls.Entity_SetName(InstanceID, ref value);
+                InternalCalls.Entity_SetName(InstanceID, value);
             }
         }
         public Transform transform

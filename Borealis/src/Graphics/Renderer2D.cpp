@@ -76,7 +76,7 @@ namespace Borealis
 		static const uint32_t MaxFont = 10000;
 		static const uint32_t MaxCircleVertices = MaxCircles * 4;
 		static const uint32_t MaxLineVertices = MaxLines * 2;
-		static const uint32_t MaxFontVertices = MaxLines * 4;
+		static const uint32_t MaxFontVertices = MaxFont * 4;
 		static const uint32_t MaxVertices = MaxQuads * 4;
 		static const uint32_t MaxIndices = MaxQuads * 6;
 		static const uint32_t MaxTextureSlots = 16;
@@ -524,13 +524,14 @@ namespace Borealis
 	{
 		PROFILE_FUNCTION();
 
-		if (sData->LineVertexCount + 2 >= Renderer2DData::MaxLineVertices)
-		{
-			FlushReset();
-		}
+
 
 		for (LineInfo const& info : lineQueue)
 		{
+			if (sData->LineVertexCount + 2 >= Renderer2DData::MaxLineVertices)
+			{
+				FlushReset();
+			}
 			sData->LineBufferPtr->Position = info.p0;
 			sData->LineBufferPtr->Colour = info.color;
 			sData->LineBufferPtr++;
@@ -695,7 +696,11 @@ namespace Borealis
 
 	void Renderer2D::DrawString(const std::string& string, Ref<Font> font, const glm::mat4& transform, int entityID, float size, glm::vec4 colour)
 	{
+		if (!font) font = Font::GetDefaultFont();
+
 		Ref<Texture2D> fontAtlas = font->GetAtlasTexture();
+
+		if (!fontAtlas) return;
 
 		sData->FontTexture = fontAtlas;
 
@@ -703,11 +708,22 @@ namespace Borealis
 
 		double x = 0.0;
 		double fsScale = size / (fontInfo.ascenderY - fontInfo.descenderY);
+
 		double y = 0.0;
 
 		for (int i{}; i < string.size(); i++)
 		{
 			char character = string[i];
+
+			if (character == '\r')
+				continue;
+
+			if (character == '\n' || string[i + 1] == '\n')
+			{
+				x = 0;
+				//y -= fsScale * metrics.lineHeight + textParams.LineSpacing;
+				continue;
+			}
 
 			FontGlyph glyph = fontInfo.glyphs.at(character);
 
@@ -767,7 +783,7 @@ namespace Borealis
 
 	void Renderer2D::DrawString(TextComponent& text, TransformComponent& trans, int entityID)
 	{
-		DrawString(text.text, text.font, trans.GetTransform(), entityID, text.fontSize, text.colour);
+		DrawString(text.text, text.font, trans.GetTransform(), entityID, (float)text.fontSize, text.colour);
 	}
 
 	void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const glm::vec4& colour)

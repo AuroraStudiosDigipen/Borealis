@@ -44,6 +44,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <PrefabComponent.hpp>
 
 #include<EditorSerialiser.hpp>
+#include <Panels/CubemapPanel.hpp>
 
 namespace ImGui
 {
@@ -143,6 +144,7 @@ namespace Borealis {
 		PROFILE_FUNCTION();
 
 		Project::GetEditorAssetsManager()->Update();
+		mAssetImporter.Update();
 
 		if (Borealis::FrameBufferProperties spec = SceneManager::GetActiveScene()->GetEditorFB()->GetProperties();
 			mViewportSize.x > 0.0f && mViewportSize.y > 0.0f && // zero sized framebuffer is invalid
@@ -225,6 +227,11 @@ namespace Borealis {
 
 			//forward rendering
 			{
+				RenderPassConfig SkyBoxPass(RenderPassType::SkyboxPass, "SkyBox");
+				SkyBoxPass.AddSinkLinkage("renderTarget", "RunTimeBuffer");
+				SkyBoxPass.AddSinkLinkage("camera", "RunTimeCamera");
+				fconfig.AddPass(SkyBoxPass);
+
 				RenderPassConfig shadowPass(RenderPassType::Shadow, "ShadowPass");
 				shadowPass.AddSinkLinkage("shadowMap", "ShadowMapBuffer");
 				shadowPass.AddSinkLinkage("camera", "RunTimeCamera");
@@ -241,33 +248,38 @@ namespace Borealis {
 				Render2D.AddSinkLinkage("camera", "RunTimeCamera");
 				fconfig.AddPass(Render2D);
 
-				RenderPassConfig UIPass(RenderPassType::UIPass, "UIPass");
-				UIPass.AddSinkLinkage("renderTarget", "Render2D.renderTarget");
-				UIPass.AddSinkLinkage("camera", "RunTimeCamera");
-				fconfig.AddPass(UIPass);
-
 				RenderPassConfig RunTimeHighlight(RenderPassType::HighlightPass, "RunTimeHighlight");
 				RunTimeHighlight.AddSinkLinkage("camera", "RunTimeCamera");
-				RunTimeHighlight.AddSinkLinkage("renderTarget", "UIPass.renderTarget");
+				RunTimeHighlight.AddSinkLinkage("renderTarget", "Render2D.renderTarget");
 				fconfig.AddPass(RunTimeHighlight);
+
+				RenderPassConfig UIPass(RenderPassType::UIPass, "UIPass");
+				UIPass.AddSinkLinkage("renderTarget", "RunTimeHighlight.renderTarget");
+				UIPass.AddSinkLinkage("camera", "RunTimeCamera");
+				fconfig.AddPass(UIPass);
 			}
 
 			//forward rendering editor
 			{
+				RenderPassConfig editorSkyBoxPass(RenderPassType::SkyboxPass, "editorSkyBox");
+				editorSkyBoxPass.AddSinkLinkage("renderTarget", "EditorBuffer");
+				editorSkyBoxPass.AddSinkLinkage("camera", "EditorCamera");
+				fconfig.AddPass(editorSkyBoxPass);
+
 				RenderPassConfig editorShadowPass(RenderPassType::Shadow, "editorShadowPass");
 				editorShadowPass.AddSinkLinkage("shadowMap", "ShadowMapBuffer")
-				.AddSinkLinkage("camera", "EditorCamera");
+					.AddSinkLinkage("camera", "EditorCamera");
 				fconfig.AddPass(editorShadowPass);
 
 				RenderPassConfig editorRender3D(RenderPassType::Render3D, "editorRender3D");
 				editorRender3D.AddSinkLinkage("renderTarget", "EditorBuffer")
-				.AddSinkLinkage("shadowMap", "editorShadowPass.shadowMap")
-				.AddSinkLinkage("camera", "EditorCamera");
+					.AddSinkLinkage("shadowMap", "editorShadowPass.shadowMap")
+					.AddSinkLinkage("camera", "EditorCamera");
 				fconfig.AddPass(editorRender3D);
 
 				RenderPassConfig editorRender2D(RenderPassType::Render2D, "editorRender2D");
 				editorRender2D.AddSinkLinkage("renderTarget", "editorRender3D.renderTarget")
-				.AddSinkLinkage("camera", "EditorCamera");
+					.AddSinkLinkage("camera", "EditorCamera");
 				fconfig.AddPass(editorRender2D);
 
 				RenderPassConfig editorUIPass(RenderPassType::EditorUIPass, "EditorUI");
@@ -278,12 +290,11 @@ namespace Borealis {
 
 				RenderPassConfig ObjectPicking(RenderPassType::ObjectPicking, "ObjectPicking");
 				ObjectPicking.AddSinkLinkage("pixelBuffer", "PixelBuffer")
-				.AddSinkLinkage("renderTarget", "EditorUI.renderTarget")
-				.AddSinkLinkage("EntityIDSource", "EntityIDSource")
-				.AddSinkLinkage("ViewPortHovered", "ViewPortHovered")
-				.AddSinkLinkage("MouseSource", "MouseSource");
+					.AddSinkLinkage("renderTarget", "EditorUI.renderTarget")
+					.AddSinkLinkage("EntityIDSource", "EntityIDSource")
+					.AddSinkLinkage("ViewPortHovered", "ViewPortHovered")
+					.AddSinkLinkage("MouseSource", "MouseSource");
 				fconfig.AddPass(ObjectPicking);
-
 
 				RenderPassConfig editorHighlightPass(RenderPassType::EditorHighlightPass, "EditorHighlight");
 				editorHighlightPass.AddSinkLinkage("camera", "EditorCamera")
@@ -294,7 +305,7 @@ namespace Borealis {
 
 				RenderPassConfig highlightPass(RenderPassType::HighlightPass, "Highlight");
 				highlightPass.AddSinkLinkage("camera", "EditorCamera")
-				.AddSinkLinkage("renderTarget", "ObjectPicking.renderTarget");
+					.AddSinkLinkage("renderTarget", "ObjectPicking.renderTarget");
 				fconfig.AddPass(highlightPass);
 			}
 
@@ -617,6 +628,9 @@ namespace Borealis {
 					ImGui::Columns(1);
 
 				}
+
+				CubemapPanel::RenderCubemapSetting();
+
 			ImGui::End(); // Of Settings
 
 			SCPanel.ImGuiRender();
@@ -771,9 +785,6 @@ namespace Borealis {
 						}
 					
 				}
-
-
-
 			ImGui::End(); // Of Viewport
 			
 

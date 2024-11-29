@@ -138,6 +138,11 @@ namespace Borealis
 		Mesh::DrawQuad();
 	}
 
+	void Renderer3D::DrawCubeMap()
+	{
+		Mesh::DrawCubeMap();
+	}
+
 	void Renderer3D::BeginCommonShapes(glm::mat4 const& viewProj)
 	{
 		s3dData->mCommonShader->Bind();

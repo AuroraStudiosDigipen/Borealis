@@ -37,19 +37,48 @@ namespace Borealis
 
 		for (SkinnedMesh& mesh : mMeshes)
 		{
-			//always the same?
+			//uint32_t verticesCount, indicesCount;
+			//inFile.read(reinterpret_cast<char*>(&verticesCount), sizeof(verticesCount));
+			//mesh.SetVerticesCount(verticesCount);
+			//inFile.read(reinterpret_cast<char*>(&indicesCount), sizeof(indicesCount));
+			//mesh.SetIndicesCount(indicesCount);
+
+			//mesh.GetVertices().resize(verticesCount);
+			//mesh.GetIndices().resize(indicesCount);
+
+			//inFile.read(reinterpret_cast<char*>(mesh.GetVertices().data()), verticesCount * sizeof(SkinnedVertex));
+
+			//inFile.read(reinterpret_cast<char*>(mesh.GetIndices().data()), indicesCount * sizeof(uint32_t));
+
+			//mesh.SetupMesh();
+
 			uint32_t verticesCount, indicesCount;
 			inFile.read(reinterpret_cast<char*>(&verticesCount), sizeof(verticesCount));
 			mesh.SetVerticesCount(verticesCount);
 			inFile.read(reinterpret_cast<char*>(&indicesCount), sizeof(indicesCount));
 			mesh.SetIndicesCount(indicesCount);
 
+			std::vector<SkinnedVertexOld> oldVertex(verticesCount);
+			std::vector<unsigned int> oldIndices(indicesCount);
+
+			//mesh.GetVertices().resize(verticesCount);
+			//mesh.GetIndices().resize(indicesCount);
+
+			inFile.read(reinterpret_cast<char*>(oldVertex.data()), verticesCount * sizeof(SkinnedVertexOld));
+
+			inFile.read(reinterpret_cast<char*>(oldIndices.data()), indicesCount * sizeof(uint32_t));
+
 			mesh.GetVertices().resize(verticesCount);
-			mesh.GetIndices().resize(indicesCount);
+			std::vector<SkinnedVertex>& meshData = mesh.GetVertices();
+			for (size_t i{}; i < oldVertex.size(); ++i)
+			{
+				meshData[i].Position = oldVertex[i].Position;
+				meshData[i].Normal = oldVertex[i].Normal;
+				meshData[i].TexCoords = oldVertex[i].TexCoords;
+				meshData[i].BoneData = oldVertex[i].BoneData;
+			}
 
-			inFile.read(reinterpret_cast<char*>(mesh.GetVertices().data()), verticesCount * sizeof(SkinnedVertex));
-
-			inFile.read(reinterpret_cast<char*>(mesh.GetIndices().data()), indicesCount * sizeof(uint32_t));
+			mesh.GetIndices() = oldIndices;
 
 			mesh.SetupMesh();
 		}
@@ -143,5 +172,7 @@ namespace Borealis
 
 		outFile.close();
 	}
+
+	
 }
 

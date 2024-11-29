@@ -43,7 +43,7 @@ namespace Borealis
 		str = lightPrefix + ".specular";
 		shader->Set(str.c_str(), glm::vec3(lightComponent.color) * (lightComponent.Intensity * 0.5f));
 		str = lightPrefix + ".direction";
-		shader->Set(str.c_str(), lightComponent.direction);
+		shader->Set(str.c_str(), glm::radians(lightComponent.direction));
 		str = lightPrefix + ".innerOuterAngle";
 		shader->Set(str.c_str(), innerOuterSpot);
 		str = lightPrefix + ".linear";

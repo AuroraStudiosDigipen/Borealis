@@ -23,7 +23,6 @@ workspace "Borealis"
 	IncludeDir["ImGuizmo"] = "Borealis/lib/ImGuizmo"
 	IncludeDir["FMOD"] = "Borealis/lib/FMOD"
 	IncludeDir["Tracy"] = "Borealis/lib/tracy"
-	IncludeDir["STBI"] = "Borealis/lib/stb_image"
 	IncludeDir["JoltPhysics"] = "Borealis/lib/JoltPhysics"
 	IncludeDir["Mono"] = "Borealis/lib/mono/include"
 	IncludeDir["xproperty"] = "Borealis/lib/xproperty/include"
@@ -35,6 +34,8 @@ workspace "Borealis"
 	IncludeDir["MSDF"] = "BorealisEditor/lib/MSDF/Include"
 	IncludeDir["filewatch"] = "BorealisEditor/lib/filewatch"
 
+	
+	IncludeDir["Gli_compiler"] = "BorealisAssetCompiler/lib/gli"
 	IncludeDir["STBI_Compiler"] = "BorealisAssetCompiler/lib/stb_image"
   	IncludeDir["ISPC"] = "BorealisAssetCompiler/lib/ispc"
   	IncludeDir["compressonator"] = "BorealisAssetCompiler/lib/compressonator"
@@ -86,7 +87,7 @@ workspace "Borealis"
 	Library["MSDF_Release_LibBZ2"] = "%{LibraryDir.MSDF_Release}/bz2.lib"
 	Library["MSDF_Release_LibBrotli"] = "%{LibraryDir.MSDF_Release}/brotlidec.lib"
 	Library["MSDF_Release_LibBrotliCommon"] = "%{LibraryDir.MSDF_Release}/brotlicommon.lib"
-
+	
 	Library["meshoptimizer_Debug"] = "%{LibraryDir.meshoptimizer_Debug}/meshoptimizer.lib"
 	Library["meshoptimizer_Release"] = "%{LibraryDir.meshoptimizer_Release}/meshoptimizer.lib"
 	Library["Compressonator_Debug"] = "%{LibraryDir.Compressonator_Debug}/Compressonator_MTd.lib"
@@ -129,9 +130,7 @@ workspace "Borealis"
 			"%{prj.name}/lib/glm/glm/**.hpp",
 			"%{prj.name}/lib/glm/glm/**.inl",
 			"%{prj.name}/lib/imGuizmo/imGuizmo.h",
-			"%{prj.name}/lib/imGuizmo/imGuizmo.cpp",
-			"%{prj.name}/lib/stb_image/**.h",
-			"%{prj.name}/lib/stb_image/**.cpp"
+			"%{prj.name}/lib/imGuizmo/imGuizmo.cpp"
 		}
 
 		defines
@@ -158,7 +157,6 @@ workspace "Borealis"
 			"%{IncludeDir.ImGuizmo}",
 			"%{IncludeDir.FMOD}",
 			"%{IncludeDir.Tracy}",
-			"%{IncludeDir.STBI}",
 			"%{IncludeDir.JoltPhysics}",
 			"%{IncludeDir.Mono}",
 			"%{IncludeDir.xproperty}",
@@ -527,7 +525,8 @@ workspace "Borealis"
 			"%{IncludeDir.STBI_Compiler}",
 			"%{IncludeDir.ISPC}",
 			"%{IncludeDir.compressonator}",
-			"%{IncludeDir.meshoptimizer}"
+			"%{IncludeDir.meshoptimizer}",
+			"%{IncludeDir.Gli_compiler}"
 		}
 
 		defines

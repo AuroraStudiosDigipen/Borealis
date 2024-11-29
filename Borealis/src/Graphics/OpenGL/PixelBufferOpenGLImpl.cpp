@@ -42,7 +42,7 @@ namespace Borealis
 
 	int OpenGLPixelBuffer::ReadPixel(int x, int y)
 	{
-		if (x < 0 || x >= mProps.Width || y < 0 || y >= mProps.Height) 
+		if (x < 0 || x >= (int)mProps.Width || y < 0 || y >= (int)mProps.Height) 
 		{
 			return -1; // Return an invalid ID if out of bounds
 		}

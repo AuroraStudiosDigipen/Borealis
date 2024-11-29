@@ -54,7 +54,9 @@ namespace Borealis
 			\brief
 				Get meta data by handel
 		*************************************************************************/
-		AssetMetaData const& GetMetaData(AssetHandle assetHandle);
+		AssetMetaData const& GetMetaData(AssetHandle assetHandle) const;
+
+		AssetMetaData & GetMetaData(AssetHandle assetHandle);
 
 		/*!***********************************************************************
 			\brief

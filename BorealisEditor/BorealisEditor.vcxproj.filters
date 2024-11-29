@@ -72,6 +72,9 @@
     <ClInclude Include="inc\Panels\ContentBrowserPanel.hpp">
       <Filter>inc\Panels</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Panels\CubemapPanel.hpp">
+      <Filter>inc\Panels</Filter>
+    </ClInclude>
     <ClInclude Include="inc\Panels\SceneHierarchyPanel.hpp">
       <Filter>inc\Panels</Filter>
     </ClInclude>
@@ -138,6 +141,9 @@
       <Filter>src\Panels</Filter>
     </ClCompile>
     <ClCompile Include="src\Panels\ContentBrowserPanel.cpp">
+      <Filter>src\Panels</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Panels\CubemapPanel.cpp">
       <Filter>src\Panels</Filter>
     </ClCompile>
     <ClCompile Include="src\Panels\SceneHierarchyPanel.cpp">

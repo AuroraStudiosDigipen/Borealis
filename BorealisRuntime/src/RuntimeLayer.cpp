@@ -17,6 +17,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/RenderGraph/RenderGraph.hpp>
 #include <Scene/ComponentRegistry.hpp>
 #include <Scene/Serialiser.hpp>
+
+#include <Graphics/Font.hpp>
 namespace BorealisRuntime
 {
 	void RuntimeLayer::Init()
@@ -63,16 +65,44 @@ namespace BorealisRuntime
 
 
 		Borealis::SceneManager::GetActiveScene()->RuntimeStart(); // Temporarily
+
+		//TEMP
+		{
+			Borealis::Font font(std::filesystem::path("engineResources/fonts/OpenSans_Condensed-Bold.bfi"));
+			font.SetTexture(std::filesystem::path("engineResources/fonts/OpenSans_Condensed-Bold.dds"));
+			Borealis::Font::SetDefaultFont(MakeRef<Borealis::Font>(font));
+		}
 	}
 	void RuntimeLayer::UpdateFn(float dt)
 	{
+		int windowWidth = Borealis::ApplicationManager::Get().GetWindow()->GetWidth();
+		int windowHeight = Borealis::ApplicationManager::Get().GetWindow()->GetHeight();
+		if (Borealis::FrameBufferProperties spec = Borealis::SceneManager::GetActiveScene()->GetRunTimeFB()->GetProperties();
+			windowWidth > 0.0f && windowHeight > 0.0f && // zero sized framebuffer is invalid
+			(spec.Width != windowWidth || spec.Height != windowHeight))
+		{
+			Borealis::SceneManager::GetActiveScene()->GetRunTimeFB()->Resize((uint32_t)windowWidth, (uint32_t)windowHeight);
+		}
+
 		Borealis::Renderer2D::ResetStats();
+
+		Borealis::SceneManager::GetActiveScene()->GetRunTimeFB()->Bind();
 		Borealis::RenderCommand::Clear();
 		Borealis::RenderCommand::SetClearColor({ 0.f, 0.0f, 0.0f, 1 });
-		Borealis::SceneManager::GetActiveScene()->UpdateRuntime(dt);
+		Borealis::SceneManager::GetActiveScene()->GetRunTimeFB()->Unbind();
+
+		Borealis::RenderCommand::BindBackBuffer();
+		Borealis::RenderCommand::Clear();
+
+
 		//set render graph config manually for now
 		{
 			Borealis::RenderGraphConfig fconfig;
+			Borealis::RenderPassConfig SkyBoxPass(Borealis::RenderPassType::SkyboxPass, "SkyBox");
+			SkyBoxPass.AddSinkLinkage("renderTarget", "RunTimeBuffer");
+			SkyBoxPass.AddSinkLinkage("camera", "RunTimeCamera");
+			fconfig.AddPass(SkyBoxPass);
+
 			Borealis::RenderPassConfig shadowPass(Borealis::RenderPassType::Shadow, "ShadowPass");
 			shadowPass.AddSinkLinkage("shadowMap", "ShadowMapBuffer");
 			shadowPass.AddSinkLinkage("camera", "RunTimeCamera");
@@ -89,10 +119,25 @@ namespace BorealisRuntime
 			Render2D.AddSinkLinkage("camera", "RunTimeCamera");
 			fconfig.AddPass(Render2D);
 
+			Borealis::RenderPassConfig RunTimeHighlight(Borealis::RenderPassType::HighlightPass, "RunTimeHighlight");
+			RunTimeHighlight.AddSinkLinkage("camera", "RunTimeCamera");
+			RunTimeHighlight.AddSinkLinkage("renderTarget", "Render2D.renderTarget");
+			fconfig.AddPass(RunTimeHighlight);
+
+			Borealis::RenderPassConfig UIPass(Borealis::RenderPassType::UIPass, "UIPass");
+			UIPass.AddSinkLinkage("renderTarget", "RunTimeHighlight.renderTarget");
+			UIPass.AddSinkLinkage("camera", "RunTimeCamera");
+			fconfig.AddPass(UIPass);
+
+			Borealis::RenderPassConfig backBuffer(Borealis::RenderPassType::RenderToTarget, "BackBuffer");
+			backBuffer.AddSinkLinkage("renderSource", "RunTimeHighlight.renderTarget");
+			fconfig.AddPass(backBuffer);
+
 			Borealis::SceneManager::GetActiveScene()->SetRenderGraphConfig(fconfig);
+			Borealis::SceneManager::GetActiveScene()->UpdateRenderer(dt);
 		}
-		Borealis::SceneManager::GetActiveScene()->UpdateRenderer(dt);
-		//Borealis::SceneManager::GetActiveScene()->GetRunTimeFB()->Blit(0, mRuntimeFrameBuffer->GetProperties());
+
+		Borealis::SceneManager::GetActiveScene()->UpdateRuntime(dt);
 	}	
 	void RuntimeLayer::Free()
 	{

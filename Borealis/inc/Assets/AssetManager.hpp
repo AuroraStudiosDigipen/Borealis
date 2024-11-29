@@ -54,7 +54,7 @@ namespace Borealis
 			\brief
 				Get meta data by handle
 		*************************************************************************/
-		static AssetMetaData const& GetMetaData(AssetHandle handle)
+		static AssetMetaData & GetMetaData(AssetHandle handle)
 		{
 			return Project::GetEditorAssetsManager()->GetMetaData(handle);
 		}

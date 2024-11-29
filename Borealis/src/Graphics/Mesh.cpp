@@ -109,6 +109,8 @@ namespace Borealis
 
 	void Mesh::SetupMesh()
 	{
+		ComputeTangents();
+
 		glGenVertexArrays(1, &VAO);
 		glGenBuffers(1, &VBO);
 		glGenBuffers(1, &EBO);
@@ -131,12 +133,12 @@ namespace Borealis
 		// vertex texture coords
 		glEnableVertexAttribArray(2);
 		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
-		//// Tangents
-		//glEnableVertexAttribArray(3);
-		//glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(VertexData, Tangent));
-		//// Bitangents
-		//glEnableVertexAttribArray(4);
-		//glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(VertexData, Bitangent));
+		// Tangents
+		glEnableVertexAttribArray(3);
+		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Tangent));
+		// Bitangents
+		glEnableVertexAttribArray(4);
+		glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Bitangent));
 
 		// Unbind VAO
 		glBindVertexArray(0);
@@ -360,6 +362,61 @@ namespace Borealis
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		shader->Unbind();
+	}
+
+	void Mesh::DrawCubeMap()
+	{
+		static unsigned int CubeMapVAO = 0, CubeMapVBO = 0, CubeMapEBO = 0;
+		if (CubeMapVAO == 0)
+		{
+			const GLfloat cubeVertices[] =
+			{
+				// Positions        
+				-1.f, -1.f, -1.f,
+				 1.f, -1.f, -1.f,
+				 1.f,  1.f, -1.f,
+				-1.f,  1.f, -1.f,
+
+				-1.f, -1.f,  1.f,
+				 1.f, -1.f,  1.f,
+				 1.f,  1.f,  1.f,
+				-1.f,  1.f,  1.f
+			};
+
+			const GLuint cubeIndices[] =
+			{
+				0, 1, 2, 2, 3, 0, // Front face
+				4, 5, 6, 6, 7, 4, // Back face
+				4, 5, 1, 1, 0, 4, // Bottom face
+				3, 2, 6, 6, 7, 3, // Top face
+				4, 0, 3, 3, 7, 4, // Left face
+				5, 1, 2, 2, 6, 5  // Right face
+			};
+
+			glGenVertexArrays(1, &CubeMapVAO);
+			glGenBuffers(1, &CubeMapVBO);
+			glGenBuffers(1, &CubeMapEBO);
+
+			glBindVertexArray(CubeMapVAO);
+			glBindBuffer(GL_ARRAY_BUFFER, CubeMapVBO);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
+
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, CubeMapEBO);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cubeIndices), cubeIndices, GL_STATIC_DRAW);
+
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0); // Vertex positions
+			glEnableVertexAttribArray(0);
+		}
+
+		glBindVertexArray(CubeMapVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, CubeMapVBO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, CubeMapEBO);
+
+		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
 
 	void Mesh::DrawSphere(glm::vec3 center, float radius, glm::vec4 color, bool wireframe, Ref<Shader> shader, SphereSides side)
@@ -684,11 +741,11 @@ namespace Borealis
 
 	void Mesh::ComputeTangents() 
 	{
-		mVerticesData.resize(mVertices.size());
+		//mVertices.resize(mVertices.size());
 		// Initialize tangents and bitangents to zero
-		for (size_t i = 0; i < mVerticesData.size(); i++) {
-			mVerticesData[i].Tangent = glm::vec3(0.0f);
-			mVerticesData[i].Bitangent = glm::vec3(0.0f);
+		for (size_t i = 0; i < mVertices.size(); i++) {
+			mVertices[i].Tangent = glm::vec3(0.0f);
+			mVertices[i].Bitangent = glm::vec3(0.0f);
 		}
 
 		// Loop over each triangle
@@ -696,10 +753,6 @@ namespace Borealis
 			Vertex& v0 = mVertices[mIndices[i]];
 			Vertex& v1 = mVertices[mIndices[i + 1]];
 			Vertex& v2 = mVertices[mIndices[i + 2]];
-
-			VertexData& vd0 = mVerticesData[mIndices[i]];
-			VertexData& vd1 = mVerticesData[mIndices[i + 1]];
-			VertexData& vd2 = mVerticesData[mIndices[i + 2]];
 
 			// Positions
 			glm::vec3& p0 = v0.Position;
@@ -725,148 +778,19 @@ namespace Borealis
 			glm::vec3 bitangent = f * (-deltaPos1 * deltaUV2.x + deltaPos2 * deltaUV1.x);
 
 			// Accumulate the tangents and bitangents
-			vd0.Tangent += tangent;
-			vd1.Tangent += tangent;
-			vd2.Tangent += tangent;
+			v0.Tangent += tangent;
+			v1.Tangent += tangent;
+			v2.Tangent += tangent;
 
-			vd0.Bitangent += bitangent;
-			vd1.Bitangent += bitangent;
-			vd2.Bitangent += bitangent;
+			v0.Bitangent += bitangent;
+			v1.Bitangent += bitangent;
+			v2.Bitangent += bitangent;
 		}
 
 		// Normalize the tangents and bitangents
 		for (size_t i = 0; i < mVertices.size(); i++) {
-			mVerticesData[i].Tangent = glm::normalize(mVerticesData[i].Tangent);
-			mVerticesData[i].Bitangent = glm::normalize(mVerticesData[i].Bitangent);
+			mVertices[i].Tangent = glm::normalize(mVertices[i].Tangent);
+			mVertices[i].Bitangent = glm::normalize(mVertices[i].Bitangent);
 		}
 	}
-
-	//void Mesh::SetVertices(const std::vector<glm::vec3>& vertices)
-	//{
-	//	const size_t& size = vertices.size();
-	//	if (size > 0)
-	//	{
-	//		if (mVerticesCount == 0)
-	//		{
-	//			mVertices = new glm::vec3[size];
-	//			memcpy(mVertices, vertices.data(), size * sizeof(glm::vec3));
-	//		}
-	//		else
-	//		{
-	//			delete[] mVertices;
-	//			mVertices = new glm::vec3[size];
-	//			memcpy(mVertices, vertices.data(), size * sizeof(glm::vec3));
-	//		}
-	//	}
-	//	else
-	//	{
-	//		BOREALIS_CORE_WARN("Mesh::SetVertices() - No vertices to set");
-	//		return;
-	//	}
-	//	mVerticesCount = (uint32_t)size;
-	//}
-	//void Mesh::SetIndices(const std::vector<unsigned int>& indices)
-	//{
-	//	const size_t& size = indices.size();
-	//	if (size > 0)
-	//	{
-	//		if (mIndicesCount == 0)
-	//		{
-	//			mIndices = new unsigned[size];
-	//			memcpy(mIndices, indices.data(), size * sizeof(unsigned));
-	//		}
-	//		else
-	//		{
-	//			delete[] mIndices;
-	//			mIndices = new unsigned[size];
-	//			memcpy(mIndices, indices.data(), size * sizeof(unsigned));
-	//		}
-	//	}
-	//	else
-	//	{
-	//		BOREALIS_CORE_WARN("Mesh::SetIndices() - No index to set");
-	//		return;
-	//	}
-	//	mIndicesCount = (uint32_t)size;
-	//}
-	//void Mesh::SetNormals(const std::vector<glm::vec3>& normals)
-	//{
-	//	const size_t& size = normals.size();
-	//	if (size > 0)
-	//	{
-	//		if (mNormalsCount == 0)
-	//		{
-	//			mNormals = new glm::vec3[size];
-	//			memcpy(mNormals, normals.data(), size * sizeof(glm::vec3));
-	//		}
-	//		else
-	//		{
-	//			delete[] mNormals;
-	//			mNormals = new glm::vec3[size];
-	//			memcpy(mNormals, normals.data(), size * sizeof(glm::vec3));
-	//		}
-	//	}
-	//	else
-	//	{
-	//		BOREALIS_CORE_WARN("Mesh::SetNormals() - No normals to set");
-	//		return;
-	//	}
-	//	mNormalsCount = (uint32_t)size;
-	//}
-	//void Mesh::SetTexCoords(const std::vector<glm::vec2>& texCoords)
-	//{
-	//	const size_t& size = texCoords.size();
-	//	if (size > 0)
-	//	{
-	//		if (mTexCoordsCount == 0)
-	//		{
-	//			mTexCoords = new glm::vec2[size];
-	//			memcpy(mTexCoords, texCoords.data(), size * sizeof(glm::vec2));
-	//		}
-	//		else
-	//		{
-	//			delete[] mTexCoords;
-	//			mTexCoords = new glm::vec2[size];
-	//			memcpy(mTexCoords, texCoords.data(), size * sizeof(glm::vec2));
-	//		}
-	//	}
-	//	else
-	//	{
-	//		BOREALIS_CORE_WARN("Mesh::SetTexCoords() - No TexCoords to set");
-	//		return;
-	//	}
-	//	mTexCoordsCount = (uint32_t)size;
-	//}
-	//const glm::vec3* Mesh::GetVertices() const
-	//{
-	//	return mVertices;
-	//}
-	//const unsigned int* Mesh::GetIndices() const
-	//{
-	//	return mIndices;
-	//}
-	//const glm::vec3* Mesh::GetNormals() const
-	//{
-	//	return mNormals;
-	//}
-	//const glm::vec2* Mesh::GetTexCoords() const
-	//{
-	//	return mTexCoords;
-	//}
-	//uint32_t Mesh::GetVerticesCount() const
-	//{
-	//	return mVerticesCount;
-	//}
-	//uint32_t Mesh::GetIndicesCount() const
-	//{
-	//	return mIndicesCount;
-	//}
-	//uint32_t Mesh::GetNormalsCount() const
-	//{
-	//	return mNormalsCount;
-	//}
-	//uint32_t Mesh::GetTexCoordsCount() const
-	//{
-	//	return mTexCoordsCount;
-	//}
 }

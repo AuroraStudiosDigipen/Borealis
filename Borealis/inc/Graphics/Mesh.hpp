@@ -26,15 +26,10 @@ namespace Borealis
 		glm::vec3 Position;
 		glm::vec3 Normal;
 		glm::vec2 TexCoords;
-
-	};
-
-	struct VertexData
-	{
 		glm::vec3 Tangent;
 		glm::vec3 Bitangent;
-	};
 
+	};
 
 	struct BoundingSphere
 	{
@@ -117,6 +112,8 @@ namespace Borealis
 
 		static void DrawCube(glm::vec3 translation, glm::vec3 minExtent, glm::vec3 maxExtent, glm::vec4 color, bool wireframe, Ref<Shader> shader);
 
+		static void DrawCubeMap();
+
 		enum class SphereSides
 		{
 			BOTH,
@@ -149,7 +146,6 @@ namespace Borealis
 	private:
 		std::vector<unsigned int> mIndices;
 		std::vector<Vertex> mVertices;
-		std::vector<VertexData> mVerticesData;
 
 		uint32_t mVerticesCount; // Number of vertices
 		uint32_t mIndicesCount; // Number of indices

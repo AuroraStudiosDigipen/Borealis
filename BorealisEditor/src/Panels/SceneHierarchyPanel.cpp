@@ -32,6 +32,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <EditorAssets/MeshImporter.hpp>
 #include <EditorAssets/FontImporter.hpp>
 #include <EditorAssets/AssetImporter.hpp>
+#include <EditorAssets/MetaSerializer.hpp>
 #include <Assets/AssetManager.hpp>
 //#include <Assets/MeshImporter.hpp>
 //#include <Assets/FontImporter.hpp>
@@ -1061,7 +1062,44 @@ namespace Borealis
 				ImGui::SliderFloat("Blend Factor", &component.animator.mBlendFactor, 0.0f, 1.0f, "%.2f");
 			}
 		}
+
 		return isEdited;
+	}
+
+	void ShowTextureConfig(AssetMetaData & metaData)
+	{
+		TextureConfig config = GetConfig<TextureConfig>(metaData.Config);
+
+		const char* textureTypeNames[] = { "Default", "Normal Map" };
+		int selectedTextureType = static_cast<int>(config.type);
+
+		ImGui::Text("Texture Configuration");
+		if (ImGui::Combo("Texture Type", &selectedTextureType, textureTypeNames, IM_ARRAYSIZE(textureTypeNames))) {
+			config.type = static_cast<TextureType>(selectedTextureType);
+			metaData.Config = config;
+		}
+
+		const char* textureShapeNames[] = { "2D", "Cube Map" };
+		int selectedTextureShape = static_cast<int>(config.shape);
+
+		if (ImGui::Combo("Texture Shape", &selectedTextureShape, textureShapeNames, IM_ARRAYSIZE(textureShapeNames))) {
+			config.shape = static_cast<TextureShape>(selectedTextureShape);
+			metaData.Config = config;
+		}
+
+		bool sRGB = config.sRGB;
+		if (ImGui::Checkbox("sRGB", &sRGB)) {
+			config.sRGB = sRGB;
+			metaData.Config = config;
+		}
+
+		if (ImGui::Button("Apply"))
+		{
+			AssetMetaData newData = metaData;
+			newData.Config = config;
+			MetaFileSerializer::SaveMetaFile(newData);
+			AssetImporter::AddToRecompileQueue(newData);
+		}
 	}
 
 	SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& scene)
@@ -1201,7 +1239,7 @@ namespace Borealis
 			}
 			else if (ContentBrowserPanel::sSelectedAsset)
 			{
-				AssetMetaData const& metadata = AssetManager::GetMetaData(ContentBrowserPanel::sSelectedAsset);
+				AssetMetaData & metadata = AssetManager::GetMetaData(ContentBrowserPanel::sSelectedAsset);
 #ifdef _DEB
 				ImGui::Text(("UUID: " + std::to_string(metadata.Handle)).c_str());
 #endif
@@ -1212,6 +1250,7 @@ namespace Borealis
 				{
 				case AssetType::Texture2D:
 				{
+					ShowTextureConfig(metadata);
 					MaterialEditor::SetMaterial(0);
 					break;
 				}
@@ -1402,8 +1441,6 @@ namespace Borealis
 			}
 		return isEdited;
 	}
-
-	
 
 	static bool DrawScriptField(Ref<ScriptInstance> component)
 	{

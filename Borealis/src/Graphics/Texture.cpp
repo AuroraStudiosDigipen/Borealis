@@ -18,6 +18,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 namespace Borealis
 {
 	Ref<Texture2D> Texture2D::mDefault = nullptr;
+
+	Ref<TextureCubeMap> TextureCubeMap::mDefaultCubeMap = nullptr;
 	Ref<Texture2D> Texture2D::Create(const TextureInfo& textureInfo)
 	{
 		Ref<Texture2D> texture = nullptr;
@@ -72,8 +74,42 @@ namespace Borealis
 		}
 		return mDefault;
 	}
+
 	Ref<Asset> Texture2D::Load(AssetMetaData const& assetMetaData)
 	{
 		return Create(assetMetaData.CachePath.string());
+	}
+
+	Ref<TextureCubeMap> TextureCubeMap::Create(std::filesystem::path const& path)
+	{
+		Ref<TextureCubeMap> texture = nullptr;
+		switch (Renderer::GetAPI())
+		{
+		case RendererAPI::API::None: BOREALIS_CORE_ASSERT(false, "RendererAPI::None is not supported"); break;
+		case RendererAPI::API::OpenGL:
+			texture = MakeRef<OpenGLTextureCubeMap>(path);
+			if (!texture->IsValid())
+			{
+				texture = nullptr;
+			}
+			break;
+		}
+		return texture;
+
+		return Ref<TextureCubeMap>();
+	}
+
+	Ref<TextureCubeMap> TextureCubeMap::Load(AssetMetaData const& assetMetaData)
+	{
+		return Create(assetMetaData.CachePath);
+	}
+
+	Ref<TextureCubeMap> TextureCubeMap::GetDefaultCubeMap()
+	{
+		if (!mDefaultCubeMap)
+		{
+			mDefaultCubeMap = Create(std::filesystem::path("engineResources/Textures/SkyBoxPng4k.dds"));
+		}
+		return mDefaultCubeMap;
 	}
 }

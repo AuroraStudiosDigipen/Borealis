@@ -138,11 +138,11 @@ namespace Borealis
 
 		static bool IsCharacterOnGround(void* Character);
 
-		static bool shouldDebugDraw; // Declaration as static
+		static bool shouldDebugDraw;
 
-		static bool DebugDrawGet(); // Static getter
+		static bool DebugDrawGet(); 
 
-		static void DebugDrawSet(bool value); // Static setter
+		static void DebugDrawSet(bool value);
 	};
 
 }

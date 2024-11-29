@@ -1161,7 +1161,7 @@ namespace Borealis
 			if (btree.mBehaviourTreeData)
 			{
 				// Build the behavior tree
-				BehaviourNode rootNode;
+				BehaviourNode rootNode{};
 				BTreeFactory::Instance().BuildBehaviourTreeFromData(btree.mBehaviourTreeData, rootNode);
 				if (!btree.mBehaviourTrees) {
 					btree.mBehaviourTrees = MakeRef<BehaviourTree>(); // or std::shared_ptr, depending on its type

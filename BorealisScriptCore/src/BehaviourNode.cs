@@ -1,4 +1,5 @@
 ﻿
+using System;
 using System.Collections.Generic;
 
 namespace Borealis
@@ -6,8 +7,8 @@ namespace Borealis
     public class Blackboard
     {
         private Dictionary<string, IBlackboardValue> _data = new Dictionary<string, IBlackboardValue>();
-        static int x = 0;
-        public Blackboard() { Debug.Log(x); x++; }
+        private static int instanceCounter = 0;
+        public Blackboard() { Debug.Log(instanceCounter);  instanceCounter++; }
         public void SetValue<T>(string key, T value)
         {
             _data[key] = new BlackboardValue<T>(value);
@@ -51,7 +52,10 @@ namespace Borealis
 
     public class BehaviourNode
     {
-        private void InitBlackboard() { blackboard = new Blackboard(); }
+        private void InitBlackboard() {
+            Console.WriteLine("Blackboard Created");
+            blackboard = new Blackboard(); 
+        }
         public List<BehaviourNode> GetChildrenNodes()
         {
             return mChildren;
@@ -203,7 +207,16 @@ namespace Borealis
             SetResult(NodeResult.IN_PROGRESS);
         }
 
-        protected virtual void OnEnter() { }
+        protected virtual void OnEnter()
+        {
+            // Base logic is to mark as running
+            SetStatus(NodeStatus.RUNNING);
+            SetResult(NodeResult.IN_PROGRESS);
+
+            // And this node's children as ready to run
+            SetStatusChildren(NodeStatus.READY);
+            SetResultChildren(NodeResult.IN_PROGRESS);
+        }
         protected virtual void OnUpdate(float dt, GameObject gameobject) { }
 
         protected virtual void OnExit() { }
@@ -220,10 +233,11 @@ namespace Borealis
             SetResult(NodeResult.FAILURE);
         }
 
-        protected BehaviourNode mParent;  // Parent node reference
+        //protected BehaviourNode mParent;  // Parent node reference
+        public BehaviourNode mParent { get; private set; }
         protected List<BehaviourNode> mChildren = new List<BehaviourNode>();
 
-        private Blackboard blackboard;
+        private Blackboard blackboard = new Blackboard();
         //// Node type, status, and result
         private uint mDepth;  // Depth of the node in the behavior tree
         private NodeType mNodeType;

@@ -62,11 +62,11 @@ namespace Borealis
         params[0] = &depth;
         auto result = klass->InvokeMethod(mInstance->GetInstance(), method, params);
 
-        if (depth == 0)
-        {
-            auto method2 = klass->GetMethod("InitBlackboard", 0);
-            auto result2 = klass->InvokeMethod(mInstance->GetInstance(), method2, nullptr);
-        }
+        //if (depth == 0)
+        //{
+        //    auto method2 = klass->GetMethod("InitBlackboard", 0);
+        //    auto result2 = klass->InvokeMethod(mInstance->GetInstance(), method2, nullptr);
+        //}
     }
 
     /*
@@ -150,7 +150,7 @@ namespace Borealis
             auto klass = GetScriptClassUtils("BehaviourNode");
             auto method = klass->GetMethod("SetResult", 1);
             void* params[1];
-            auto r = NodeResult::SUCCESS;
+            auto r = NodeResult::IN_PROGRESS;
             params[0] = &r;
             klass->InvokeMethod(mInstance->GetInstance(), method, params);
         }

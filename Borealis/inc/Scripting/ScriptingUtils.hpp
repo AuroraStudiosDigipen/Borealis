@@ -140,7 +140,7 @@ namespace Borealis
 
 	MonoClass* GetScriptAttribute(std::string name);
 
-	void InitGameObject(MonoObject*& object, UUID id, std::string objectType);
+	void InitGameObject(MonoObject*& object, UUID id, std::string objectType, bool pin = true);
 
 }
 

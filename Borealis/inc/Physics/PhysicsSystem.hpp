@@ -33,7 +33,6 @@ namespace Borealis
 	};
 
 	using CollisionPair = std::pair<UUID, UUID>;
-	using CharacterCollisionPair = std::pair<void*, UUID>;
 
 	class Entity;
 	class PhysicsSystem
@@ -105,7 +104,6 @@ namespace Borealis
 
 		static UUID BodyIDToUUID(unsigned int bodyID);
 		static bool BodyIDToIsSensor(unsigned int bodyID);
-		static UUID CharacterIDToUUID(void* characterID);
 
 		static std::queue<CollisionPair>& GetCollisionEnterQueue();
 		static std::queue<CollisionPair>& GetCollisionPersistQueue();

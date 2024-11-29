@@ -112,8 +112,7 @@ public:
 		case Layers::MOVING:
 			return true; // Moving collides with everything
 		default:
-			JPH_ASSERT(false);
-			return false;
+			return true;
 		}
 	}
 };
@@ -186,8 +185,7 @@ public:
 		case Layers::MOVING:
 			return true;
 		default:
-			JPH_ASSERT(false);
-			return false;
+			return true;
 		}
 	}
 };
@@ -210,17 +208,6 @@ public:
 
 namespace Borealis
 {
-	class MyCharacterContactListener : public CharacterContactListener
-	{
-	public:
-		virtual void OnContactAdded(const CharacterVirtual* inCharacter,
-			const BodyID& inBodyID2,
-			const SubShapeID& inSubShapeID2,
-			RVec3Arg  	inContactPosition,
-			Vec3Arg  	inContactNormal,
-			CharacterContactSettings& ioSettings) override;
-	};
-
 
 	// An example contact listener
 	class MyContactListener : public ContactListener
@@ -292,19 +279,6 @@ namespace Borealis
 	static PhysicsSystemData sData;
 	static unordered_map<unsigned int, Borealis::UUID> bodyIDMapUUID;
 	static unordered_map<unsigned int, bool> bodySensorMap;
-	static unordered_map<void*, UUID> characterMapUUID;
-
-	void MyCharacterContactListener::OnContactAdded(const CharacterVirtual* inCharacter, const BodyID& inBodyID2, const SubShapeID& inSubShapeID2, RVec3Arg inContactPosition, Vec3Arg inContactNormal, CharacterContactSettings& ioSettings)
-	{
-		if (PhysicsSystem::BodyIDToIsSensor(inBodyID2.GetIndexAndSequenceNumber()))
-		{
-			sData.onTriggerPairAddedQueue.push({ PhysicsSystem::CharacterIDToUUID((void*)inCharacter), PhysicsSystem::BodyIDToUUID(inBodyID2.GetIndexAndSequenceNumber()) });
-		}
-		else
-		{
-			sData.onCollisionPairAddedQueue.push({ PhysicsSystem::CharacterIDToUUID((void*)inCharacter), PhysicsSystem::BodyIDToUUID(inBodyID2.GetIndexAndSequenceNumber()) });
-		}
-	}
 
 	void MyContactListener::OnContactAdded(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings)
 	{
@@ -617,11 +591,6 @@ namespace Borealis
 		return bodySensorMap[bodyID];
 	}
 
-	UUID PhysicsSystem::CharacterIDToUUID(void* character)
-	{
-		return characterMapUUID[character];
-	}
-
 	std::pair<glm::vec3, glm::vec3> PhysicsSystem::calculateBoundingVolume(const Model& model)
 	{
 		glm::vec3 minExtent{}, maxExtent{};
@@ -772,13 +741,16 @@ namespace Borealis
 		settings.mMaxStrength = character.strength;
 		settings.mMass = character.mass;
 		settings.mShape = shape;
+		settings.mInnerBodyShape = shape;
+		Entity BrEntity = SceneManager::GetActiveScene()->GetEntityByUUID(entityID);
+		settings.mInnerBodyLayer = BrEntity.GetComponent<TagComponent>().mLayer.toUint16();
 		settings.SetEmbedded();
 
-		character.listener = new MyCharacterContactListener();
 		character.controller = new CharacterVirtual(&settings, RVec3(transform.Translate.x, transform.Translate.y,transform.Translate.z), Quat::sIdentity(), sData.mSystem);
-		reinterpret_cast<CharacterVirtual*>(character.controller)->SetListener(reinterpret_cast<MyCharacterContactListener*>(character.listener));
-		characterMapUUID[character.controller] = entityID;
+		bodyIDMapUUID[reinterpret_cast<CharacterVirtual*>(character.controller)->GetInnerBodyID().GetIndexAndSequenceNumber()] = entityID;
+		bodySensorMap[reinterpret_cast<CharacterVirtual*>(character.controller)->GetInnerBodyID().GetIndexAndSequenceNumber()] = false;
 	}
+
 
 	void PhysicsSystem::PrePhysicsUpdate(float dt, void* Character)
 	{
@@ -802,8 +774,8 @@ namespace Borealis
 		mCharacter->ExtendedUpdate(dt,
 			-mCharacter->GetUp() * sData.mSystem->GetGravity().Length(),
 			update_settings,
-			sData.mSystem->GetDefaultBroadPhaseLayerFilter(Layers::MOVING),
-			sData.mSystem->GetDefaultLayerFilter(Layers::MOVING),
+			{},
+			{},
 			{ },
 			{ },
 			*sData.temp_allocator);
@@ -861,8 +833,6 @@ namespace Borealis
 		else
 			new_velocity = current_vertical_velocity;
 
-		// Gravity
-		new_velocity += (character_up_rotation * sData.mSystem->GetGravity()) * inDeltaTime;
 
 		if (player_controls_horizontal_velocity)
 		{
@@ -894,15 +864,15 @@ namespace Borealis
 
 	void PhysicsSystem::FreeCharacter(CharacterControlComponent& character)
 	{
-		characterMapUUID.erase(character.controller);
-		if (character.listener)
-			delete character.listener;
+
+		bodyIDMapUUID.erase(reinterpret_cast<CharacterVirtual*>(character.controller)->GetInnerBodyID().GetIndexAndSequenceNumber());
+		bodySensorMap.erase(reinterpret_cast<CharacterVirtual*>(character.controller)->GetInnerBodyID().GetIndexAndSequenceNumber());
+
 		if(character.controller)
 		delete character.controller;
 
 
 		character.controller = nullptr;
-		character.listener = nullptr;
 	}
 
 	class ObjectLayerFilterImpl : public ObjectLayerFilter

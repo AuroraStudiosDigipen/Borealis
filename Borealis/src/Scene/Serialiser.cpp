@@ -539,6 +539,12 @@ namespace Borealis
 						const YAML::Node& fieldData = field.second;
 						fieldData["Type"].as<std::string>();
 
+
+						if (scriptInstance->GetScriptClass()->mFields.find(fieldName) == scriptInstance->GetScriptClass()->mFields.end())
+						{
+							BOREALIS_CORE_WARN("Field not in script", fieldName, scriptName);
+							continue;
+						}
 						ScriptField scriptField = scriptInstance->GetScriptClass()->mFields[fieldName];
 
 						if ((scriptField.isPrivate() && !scriptField.hasSerializeField(scriptInstance->GetMonoClass()) || scriptField.hasHideInInspector(scriptInstance->GetMonoClass())))

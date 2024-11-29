@@ -239,15 +239,15 @@ namespace Borealis
 		return sScriptAttributes[name];
 	}
 
-	void InitGameObject(MonoObject*& object, UUID id, std::string objectType)
+	void InitGameObject(MonoObject*& object, UUID id, std::string objectType, bool pin)
 	{
 		object = mono_object_new(mono_domain_get(), ScriptingSystem::GetScriptClass(objectType)->GetMonoClass());
 		void* args[1];
 		MonoMethod* ctor = mono_class_get_method_from_name(ScriptingSystem::GetScriptClass(objectType)->GetMonoClass(), ".ctor", 1);
 
 		args[0] = &id;
-
-		mono_gchandle_new(object, true);
+		if (pin)
+			mono_gchandle_new(object, true);
 		mono_runtime_invoke(ctor, object, args, NULL);
 
 	}

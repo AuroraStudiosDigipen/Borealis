@@ -34,6 +34,7 @@ namespace Borealis
 
 	using CollisionPair = std::pair<UUID, UUID>;
 
+
 	class Entity;
 	class PhysicsSystem
 	{
@@ -137,6 +138,11 @@ namespace Borealis
 
 		static bool IsCharacterOnGround(void* Character);
 
+		static bool shouldDebugDraw; // Declaration as static
+
+		static bool DebugDrawGet(); // Static getter
+
+		static void DebugDrawSet(bool value); // Static setter
 	};
 
 }

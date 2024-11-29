@@ -561,6 +561,18 @@ namespace Borealis
 
 	}
 
+	bool PhysicsSystem::shouldDebugDraw = false;
+
+	bool PhysicsSystem::DebugDrawGet() 
+	{
+		return shouldDebugDraw;
+	}
+
+	void PhysicsSystem::DebugDrawSet(bool value)
+	{
+		shouldDebugDraw = value;
+	}
+
 	void PhysicsSystem::Update(float dt)
 	{
 		sData.mSystem->Update(dt, 1, sData.temp_allocator, sData.job_system);

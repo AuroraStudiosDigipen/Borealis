@@ -399,8 +399,8 @@ namespace Borealis
 				}
 
 				auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
-				lightComponent.position = TransformComponent::GetGlobalTranslate(brEntity);
-				lightComponent.direction = TransformComponent::GetGlobalRotation(brEntity);
+				lightComponent.position = transform.GetGlobalTranslate();
+				lightComponent.direction = transform.GetGlobalRotation();
 				Renderer3D::AddLight(lightComponent);
 
 				SetShadowVariable(lightComponent, shader, camera);
@@ -491,7 +491,7 @@ namespace Borealis
 
 				Frustum frustum = ComputeFrustum(viewProjMatrix);
 				BoundingSphere modelBoundingSphere = meshFilter.Model->mBoundingSphere;
-				modelBoundingSphere.Transform(TransformComponent::GetGlobalTransform(brEntity));
+				modelBoundingSphere.Transform(transform.GetGlobalTransform());
 
 
 				if (CullBoundingSphere(frustum, modelBoundingSphere))
@@ -508,12 +508,12 @@ namespace Borealis
 				SetShadowAndLight(shadowMap, materialShader, registryPtr, camera);
 				renderTarget->Bind();
 				Renderer3D::SetLights(materialShader);
-				Renderer3D::DrawMesh(TransformComponent::GetGlobalTransform(brEntity), meshFilter, meshRenderer, materialShader, (int)entity);
+				Renderer3D::DrawMesh(transform.GetGlobalTransform(), meshFilter, meshRenderer, materialShader, (int)entity);
 
 				if(Renderer3D::GetGlobalWireFrameMode())
 				{
 					AABB modelAABB = meshFilter.Model->mAABB;
-					modelAABB.Transform(TransformComponent::GetGlobalTransform(brEntity));
+					modelAABB.Transform(transform.GetGlobalTransform());
 					if (brEntity.HasComponent<BoxColliderComponent>())
 					{
 						auto& rigidbody = brEntity.GetComponent<BoxColliderComponent>();
@@ -601,7 +601,7 @@ namespace Borealis
 				renderTarget->Bind();
 				materialShader->Bind();
 				Renderer3D::SetLights(materialShader);
-				Renderer3D::DrawSkinnedMesh(TransformComponent::GetGlobalTransform(brEntity), skinnedMesh, materialShader, (int)entity);
+				Renderer3D::DrawSkinnedMesh(transform.GetGlobalTransform(), skinnedMesh, materialShader, (int)entity);
 				materialShader->Unbind();
 				renderTarget->Unbind();
 			}
@@ -645,7 +645,7 @@ namespace Borealis
 				}
 
 				auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-				Renderer2D::DrawSprite(TransformComponent::GetGlobalTransform(brEntity), sprite, (int)entity);
+				Renderer2D::DrawSprite(transform.GetGlobalTransform(), sprite, (int)entity);
 			}
 		}
 		{
@@ -659,7 +659,7 @@ namespace Borealis
 				}
 
 				auto [transform, circle] = group.get<TransformComponent, CircleRendererComponent>(entity);
-				Renderer2D::DrawCircle(TransformComponent::GetGlobalTransform(brEntity), circle.Colour, circle.thickness, circle.fade, (int)entity);
+				Renderer2D::DrawCircle(transform.GetGlobalTransform(), circle.Colour, circle.thickness, circle.fade, (int)entity);
 			}
 		}
 		{
@@ -673,7 +673,7 @@ namespace Borealis
 				}
 
 				auto [transform, text] = group.get<TransformComponent, TextComponent>(entity);
-				Renderer2D::DrawString(text.text, text.font, TransformComponent::GetGlobalTransform(brEntity), (int)entity, text.fontSize, text.colour);
+				Renderer2D::DrawString(text.text, text.font, transform.GetGlobalTransform(), (int)entity, text.fontSize, text.colour);
 			}
 		}
 
@@ -733,7 +733,7 @@ namespace Borealis
 				}
 				auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
 				if (!meshRenderer.active) { continue; }
-				Renderer3D::DrawMesh(TransformComponent::GetGlobalTransform(brEntity), meshFilter, meshRenderer, shader,(int)entity);
+				Renderer3D::DrawMesh(transform.GetGlobalTransform(), meshFilter, meshRenderer, shader,(int)entity);
 			}
 			RenderCommand::EnableBlend();
 		}
@@ -807,8 +807,8 @@ namespace Borealis
 					continue;
 				}
 				auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
-				lightComponent.position = TransformComponent::GetGlobalTranslate(brEntity);
-				lightComponent.direction = TransformComponent::GetGlobalRotation(brEntity);
+				lightComponent.position = transform.GetGlobalTranslate();
+				lightComponent.direction = transform.GetGlobalRotation();
 				Renderer3D::AddLight(lightComponent);
 			}
 			Renderer3D::SetLights(shader);
@@ -875,8 +875,8 @@ namespace Borealis
 				{
 					continue;
 				}
-				lightComponent.position = TransformComponent::GetGlobalTranslate(brEntity);
-				lightComponent.direction = TransformComponent::GetGlobalRotation(brEntity);
+				lightComponent.position = transform.GetGlobalTranslate();
+				lightComponent.direction = transform.GetGlobalRotation();
 
 				if (lightComponent.type == LightComponent::Type::Directional)
 				{
@@ -904,7 +904,7 @@ namespace Borealis
 						if (!meshRenderer.active) { continue; }
 
 						RenderCommand::EnableFrontFaceCull();
-						Renderer3D::DrawMesh(TransformComponent::GetGlobalTransform(brEntity), meshFilter, meshRenderer, shader, (int)entity);
+						Renderer3D::DrawMesh(transform.GetGlobalTransform(), meshFilter, meshRenderer, shader, (int)entity);
 						RenderCommand::EnableBackFaceCull();
 					}
 				}
@@ -928,7 +928,7 @@ namespace Borealis
 					if (!meshRenderer.active) { continue; }
 
 					RenderCommand::EnableFrontFaceCull();
-					Renderer3D::DrawHighlightedMesh(TransformComponent::GetGlobalTransform(brEntity), meshFilter, cascade_shadow_shader);
+					Renderer3D::DrawHighlightedMesh(transform.GetGlobalTransform(), meshFilter, cascade_shadow_shader);
 					RenderCommand::EnableBackFaceCull();
 				}
 
@@ -1095,7 +1095,7 @@ namespace Borealis
 				RenderCommand::EnablePolygonOffset();
 				RenderCommand::SetPolygonOffset(-1.f, -1.f);
 
-				glm::mat4 transform = TransformComponent::GetGlobalTransform(brEntity);
+				glm::mat4 transform = brEntity.GetComponent<TransformComponent>().GetGlobalTransform();
 
 				if (brEntity.HasComponent<SpriteRendererComponent>())
 				{
@@ -1301,7 +1301,7 @@ namespace Borealis
 				RenderCommand::EnablePolygonOffset();
 				RenderCommand::SetPolygonOffset(-1.f, 1.f);
 
-				glm::mat4 transform = TransformComponent::GetGlobalTransform(brEntity);
+				glm::mat4 transform = brEntity.GetComponent<TransformComponent>().GetGlobalTransform();
 
 				if (brEntity.HasComponent<SpriteRendererComponent>())
 				{
@@ -1376,7 +1376,7 @@ namespace Borealis
 	void RenderCanvasRecursive(Entity parent, const glm::mat4& canvasTransform)
 	{
 		if (!parent.HasComponent<TransformComponent>()) return;
-		glm::mat4 globalTansform = TransformComponent::GetGlobalTransform(parent);//(glm::mat4)parent.GetComponent<TransformComponent>();
+		glm::mat4 globalTansform = parent.GetComponent<TransformComponent>().GetGlobalTransform();//(glm::mat4)parent.GetComponent<TransformComponent>();
 		if (parent.HasComponent<CanvasRendererComponent>())
 		{
 			glm::mat4 transform = canvasTransform * globalTansform;
@@ -1450,7 +1450,7 @@ namespace Borealis
 
 					glm::mat4 canvasTransform = glm::translate(glm::mat4(1.f), glm::vec3{});
 					canvasTransform = glm::scale(canvasTransform, glm::vec3(canvas.canvasSize.x, canvas.canvasSize.y, 1.f));
-					TransformComponent::SetGlobalTransform(brEntity, canvasTransform);
+					transform.SetGlobalTransform(canvasTransform);
 				}
 
 				if (!canvas.canvasFrameBuffer)
@@ -1481,7 +1481,7 @@ namespace Borealis
 				{
 					glm::mat4 canvasTransform = glm::translate(glm::mat4(1.f), currTransfrom);
 					canvasTransform = glm::scale(canvasTransform, glm::vec3(canvas.canvasSize.x, canvas.canvasSize.y, 1.f));
-					TransformComponent::SetGlobalTransform(brEntity, canvasTransform);
+					transform.SetGlobalTransform(canvasTransform);
 				}
 			}
 		}
@@ -1563,7 +1563,7 @@ namespace Borealis
 
 				SpriteRendererComponent sprite;
 				sprite.Colour = { 0.f,0.f,100.f, 0.2f };
-				TransformComponent::SetGlobalTransform(brEntity, canvasTransform);
+				transform.SetGlobalTransform(canvasTransform);
 				Renderer2D::DrawSprite(canvasTransform, sprite, (int)entity);
 			}
 		}

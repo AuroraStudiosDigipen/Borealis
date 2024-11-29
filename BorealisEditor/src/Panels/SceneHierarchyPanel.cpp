@@ -1330,8 +1330,8 @@ namespace Borealis
 			if (payload) {
 				UUID data = *(const uint64_t*)payload->Data;
 				Entity childEntity = SceneManager::GetActiveScene()->GetEntityByUUID(data);
-				TransformComponent::ResetParent(childEntity);
-				TransformComponent::SetParent(childEntity, entity);
+				childEntity.GetComponent<TransformComponent>().ResetParent(childEntity);
+				childEntity.GetComponent<TransformComponent>().SetParent(childEntity, entity);
 			}
 			ImGui::EndDragDropTarget();
 		}
@@ -1380,7 +1380,7 @@ namespace Borealis
 			}
 			if (ImGui::MenuItem("Unparent Entity"))
 			{
-				TransformComponent::ResetParent(mSelectedEntity);
+				mSelectedEntity.GetComponent<TransformComponent>().ResetParent(mSelectedEntity);
 			}
 			ImGui::EndPopup();
 		}

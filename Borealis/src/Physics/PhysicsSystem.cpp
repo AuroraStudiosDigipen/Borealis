@@ -436,9 +436,9 @@ namespace Borealis
 		sData.mSystem->DrawBodies(sData.draw_settings, sData.debug_renderer);
 	}
 
-	void PhysicsSystem::PushTransform(ColliderComponent& collider, TransformComponent& transform, RigidBodyComponent* rigidbody, Entity entity)
+	void PhysicsSystem::PushTransform(ColliderComponent& collider, TransformComponent& transform, RigidBodyComponent* rigidbody)
 	{
-		auto entityTransform = TransformComponent::GetGlobalTransform(entity);
+		auto entityTransform = transform.GetGlobalTransform();
 		auto modelCenter = collider.center;
 		auto actualCenterVec4 = entityTransform * glm::vec4(modelCenter, 1.0f);
 		auto actualCenter = glm::vec3(actualCenterVec4.x, actualCenterVec4.y, actualCenterVec4.z);
@@ -489,7 +489,7 @@ namespace Borealis
 		}
 	}
 
-	void PhysicsSystem::PullTransform(ColliderComponent& collider, TransformComponent& transform, Entity& entity)
+	void PhysicsSystem::PullTransform(ColliderComponent& collider, TransformComponent& transform)
 	{
 		// Get position from the physics system (JPH::RVec3 to glm::vec3)
 		JPH::RVec3 newPosition = sData.body_interface->GetPosition((BodyID)collider.bodyID);
@@ -499,7 +499,7 @@ namespace Borealis
 		glm::quat rotation = glm::quat(newRotation.GetW(), newRotation.GetX(), newRotation.GetY(), newRotation.GetZ());
 		// Convert quaternion to Euler angles (quat to vec3) in degrees
 		glm::vec3 newRotate = glm::degrees(glm::eulerAngles(rotation));  // Euler angles in degrees
-		glm::vec3 newScale = TransformComponent::GetGlobalScale(entity);
+		glm::vec3 newScale = transform.GetGlobalScale();
 
 		glm::mat4 rotationMatrix = glm::mat4(glm::quat(glm::radians(newRotate)));
 		glm::mat4 translationMatrix = glm::mat4(1.f);
@@ -521,9 +521,9 @@ namespace Borealis
 		else
 		{
 			auto parentEntity = SceneManager::GetActiveScene()->GetEntityByUUID(transform.ParentID);
-			auto parentTransform = TransformComponent::GetGlobalTransform(parentEntity);
+			auto parentTransform = parentEntity.GetComponent<TransformComponent>().GetGlobalTransform();
 		
-				auto localTransform = newTransform * glm::inverse(parentTransform);
+				auto localTransform = glm::inverse(parentTransform) * newTransform;
 				Math::MatrixDecomposition(&localTransform, &transform.Translate, &transform.Rotation, &transform.Scale);
 			
 
@@ -1041,7 +1041,7 @@ namespace Borealis
 
 
 		auto brEntity = SceneManager::GetActiveScene()->GetEntityByUUID(entityID);
-		auto rotation = TransformComponent::GetGlobalRotation(brEntity);
+		auto rotation = transform.GetGlobalRotation();
 		auto tagComponent = brEntity.GetComponent<TagComponent>();
 
 		glm::quat quatRot = glm::quat(glm::radians(rotation));  // Assuming Rotation is in degrees

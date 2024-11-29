@@ -20,102 +20,100 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace Borealis
 {
-	glm::mat4 TransformComponent::GetGlobalTransform(Entity entity)
+	glm::mat4 TransformComponent::GetGlobalTransform()
 	{
-		std::vector<UUID> parentList;
-		UUID currID = entity.GetComponent<IDComponent>().ID;
+		std::stack<UUID> parentList;
+		UUID currID = ParentID;
 		while (currID != 0)
 		{
-			parentList.push_back(currID);
+			parentList.push(currID); // CBA
 			currID = SceneManager::GetActiveScene()->GetEntityByUUID(currID).GetComponent<TransformComponent>().ParentID;
 		}
 		glm::mat4 globalTransform(1.f);
 
-		// iterate in reverse order
-		for (auto it = parentList.begin(); it != parentList.end(); ++it)
+		while (parentList.size() > 0)
 		{
-			auto& tc = SceneManager::GetActiveScene()->GetEntityByUUID(*it).GetComponent<TransformComponent>();
+			auto& tc = SceneManager::GetActiveScene()->GetEntityByUUID(parentList.top()).GetComponent<TransformComponent>();
 			glm::mat4 localTransform = tc.GetTransform();
-			globalTransform = localTransform * globalTransform;
+			globalTransform = globalTransform * localTransform;
+			parentList.pop();
 		}
-
-		return globalTransform;
+		return globalTransform * GetTransform();
 	}
 
-	glm::vec3 TransformComponent::GetGlobalTranslate(Entity entity)
+	glm::vec3 TransformComponent::GetGlobalTranslate()
 	{
 		glm::vec3 globalTranslate(0.f);
 		glm::vec3 globalRotation(0.0f);
 		glm::vec3 globalScale(1.0f);
-		glm::mat4 matrix = TransformComponent::GetGlobalTransform(entity);
+		glm::mat4 matrix = GetGlobalTransform();
 		Math::MatrixDecomposition(&matrix, &globalTranslate, &globalRotation, &globalScale);
 		return globalTranslate;
 	}
 
-	glm::vec3 TransformComponent::GetGlobalRotation(Entity entity)
+	glm::vec3 TransformComponent::GetGlobalRotation()
 	{
 		glm::vec3 globalTranslate(0.f);
 		glm::vec3 globalRotation(0.0f);
 		glm::vec3 globalScale(1.0f);
-		glm::mat4 matrix = TransformComponent::GetGlobalTransform(entity);
+		glm::mat4 matrix = GetGlobalTransform();
 		Math::MatrixDecomposition(&matrix, &globalTranslate, &globalRotation, &globalScale);
 		return globalRotation;
 	}
 
-	glm::vec3 TransformComponent::GetGlobalScale(Entity entity)
+	glm::vec3 TransformComponent::GetGlobalScale()
 	{
 		glm::vec3 globalTranslate(0.f);
 		glm::vec3 globalRotation(0.0f);
 		glm::vec3 globalScale(1.0f);
-		glm::mat4 matrix = TransformComponent::GetGlobalTransform(entity);
+		glm::mat4 matrix = GetGlobalTransform();
 		Math::MatrixDecomposition(&matrix, &globalTranslate, &globalRotation, &globalScale);
 		return globalScale;
 	}
 
-	void TransformComponent::GetGlobalTransformComp(Entity entity, glm::vec3* translate, glm::vec3* rotate, glm::vec3* scale)
+	void TransformComponent::GetGlobalTransformComp(glm::vec3* translate, glm::vec3* rotate, glm::vec3* scale)
 	{
-		glm::mat4 matrix = TransformComponent::GetGlobalTransform(entity);
+		glm::mat4 matrix = GetGlobalTransform();
 		Math::MatrixDecomposition(&matrix, translate, rotate, scale);
 	}
 
-	void TransformComponent::SetGlobalTransform(Entity entity, glm::mat4 transform)
+	void TransformComponent::SetGlobalTransform(glm::mat4 transform)
 	{
-		if (entity.GetComponent<TransformComponent>().ParentID != 0)
+		if (ParentID != 0)
 		{
-			auto& tc = entity.GetComponent<TransformComponent>();
-			Entity parent = SceneManager::GetActiveScene()->GetEntityByUUID(entity.GetComponent<TransformComponent>().ParentID);
-			glm::mat4 parentInverse = glm::inverse(GetGlobalTransform(parent));
+			Entity parent = SceneManager::GetActiveScene()->GetEntityByUUID(ParentID);
+			glm::mat4 parentInverse = glm::inverse(parent.GetComponent<TransformComponent>().GetGlobalTransform());
 			glm::mat4 childRelativeTransform = parentInverse * transform;
-			Math::MatrixDecomposition(&childRelativeTransform, &tc.Translate, &tc.Rotation, &tc.Scale);
+			Math::MatrixDecomposition(&childRelativeTransform, &Translate, &Rotation, &Scale);
 		}
 		else
 		{
-			auto& tc = entity.GetComponent<TransformComponent>();
-			Math::MatrixDecomposition(&transform , &tc.Translate, &tc.Rotation, &tc.Scale);
+			Math::MatrixDecomposition(&transform , &Translate, &Rotation, &Scale);
 		}
 	}
 
 	 void TransformComponent::SetParent(Entity entity, Entity parent)
 	{
-		entity.GetComponent<TransformComponent>().ParentID = parent.GetUUID();
-		SetGlobalTransform(entity, GetGlobalTransform(entity));
+		auto globalMat = GetGlobalTransform();
+		ResetParent(entity);
+		ParentID = parent.GetUUID();
+		SetGlobalTransform(globalMat);
 		parent.GetComponent<TransformComponent>().ChildrenID.insert(entity.GetUUID());
 	}
 
 	 void TransformComponent::ResetParent(Entity entity)
 	{
-		auto& tc = entity.GetComponent<TransformComponent>();
-		auto mat = tc.GetGlobalTransform(entity);
-		Math::MatrixDecomposition(&mat, &tc.Translate, &tc.Rotation, &tc.Scale);
+		auto mat = GetGlobalTransform();
+		Math::MatrixDecomposition(&mat, &Translate, &Rotation, &Scale);
 
-		if (tc.ParentID != 0)
+		if (ParentID != 0)
 		{
-			auto parent = SceneManager::GetActiveScene()->GetEntityByUUID(tc.ParentID);
+			auto parent = SceneManager::GetActiveScene()->GetEntityByUUID(ParentID);
 			auto& parentTC = parent.GetComponent<TransformComponent>();
 			parentTC.ChildrenID.erase(entity.GetUUID());
 		}
 
-		tc.ParentID = 0;
+		ParentID = 0;
 	}
 }
 

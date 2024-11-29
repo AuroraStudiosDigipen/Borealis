@@ -460,7 +460,8 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		*outTranslation = TransformComponent::GetGlobalTranslate(entity);
+		auto& transform = entity.GetComponent<TransformComponent>();
+		*outTranslation = transform.GetGlobalTranslate();
 	}
 	void TransformComponent_SetTranslation(UUID uuid, glm::vec3* translation)
 	{
@@ -468,11 +469,11 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-
-		auto rotation = TransformComponent::GetGlobalRotation(entity);
-		auto scale = TransformComponent::GetGlobalScale(entity);
+		auto& tc = entity.GetComponent<TransformComponent>();
+		auto rotation = tc.GetGlobalRotation();
+		auto scale = tc.GetGlobalScale();
 		glm::mat4 transform = glm::translate(glm::mat4(1.0f), *translation) * glm::toMat4(glm::quat(rotation)) * glm::scale(glm::mat4(1.0f), scale);
-		TransformComponent::SetGlobalTransform(entity, transform);
+		tc.SetGlobalTransform(transform);
 	}
 	void TransformComponent_GetRotation(UUID uuid, glm::vec3* outRotation)
 	{
@@ -480,7 +481,8 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		*outRotation = TransformComponent::GetGlobalRotation(entity);
+		auto& transform = entity.GetComponent<TransformComponent>();
+		*outRotation = transform.GetGlobalRotation();
 	
 	}
 	void TransformComponent_SetRotation(UUID uuid, glm::vec3* rotation)
@@ -489,11 +491,11 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-
-		auto translate = TransformComponent::GetGlobalTranslate(entity);
-		auto scale = TransformComponent::GetGlobalScale(entity);
+		auto& tc = entity.GetComponent<TransformComponent>();
+		auto translate = tc.GetGlobalTranslate();
+		auto scale = tc.GetGlobalScale();
 		glm::mat4 transform = glm::translate(glm::mat4(1.0f), translate) * glm::toMat4(glm::quat(glm::radians(*rotation))) * glm::scale(glm::mat4(1.0f), scale);
-		TransformComponent::SetGlobalTransform(entity, transform);
+		tc.SetGlobalTransform(transform);
 
 	}
 	void TransformComponent_GetScale(UUID uuid, glm::vec3* outScale)
@@ -502,7 +504,8 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		*outScale = TransformComponent::GetGlobalScale(entity);
+		auto& transform = entity.GetComponent<TransformComponent>();
+		*outScale = transform.GetGlobalScale();
 	}
 	void TransformComponent_SetScale(UUID uuid, glm::vec3* scale)
 	{
@@ -510,11 +513,12 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		auto& tc = entity.GetComponent<TransformComponent>();
 
-		auto translate = TransformComponent::GetGlobalTranslate(entity);
-		auto rotation = TransformComponent::GetGlobalRotation(entity);
+		auto translate = tc.GetGlobalTranslate();
+		auto rotation = tc.GetGlobalRotation();
 		glm::mat4 transform = glm::translate(glm::mat4(1.0f), translate) * glm::toMat4(glm::quat(rotation)) * glm::scale(glm::mat4(1.0f), *scale);
-		TransformComponent::SetGlobalTransform(entity, transform);
+		tc.SetGlobalTransform(transform);
 	}
 
 	void TransformComponent_GetLocalTranslation(UUID uuid, glm::vec3* outTranslation)
@@ -582,9 +586,10 @@ namespace Borealis
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		Entity parent = scene->GetEntityByUUID(*parentID);
-		TransformComponent::ResetParent(entity);
+		auto& transform = entity.GetComponent<TransformComponent>();
+		transform.ResetParent(entity);
 		if (*parentID != 0)
-			TransformComponent::SetParent(entity, parent);
+			transform.SetParent(entity, parent);
 	}
 	void TransformComponent_GetChildCount(UUID uuid, int* count)
 	{
@@ -1243,8 +1248,8 @@ namespace Borealis
 				BOREALIS_CORE_ASSERT(scene, "Scene is null");
 				Entity entity = scene->GetEntityByUUID(ID);
 				BOREALIS_CORE_ASSERT(entity, "Entity is null");
-
-				auto translate = TransformComponent::GetGlobalTranslate(entity);
+				auto& transform = entity.GetComponent<TransformComponent>();
+				auto translate = transform.GetGlobalTranslate();
 				auto& audioSource = entity.GetComponent<AudioSourceComponent>();
 				AudioEngine::PlayAudio(audio, translate, audioSource.Volume, audioSource.isMute, audioSource.isLoop, audioSource.channelID);
 			}

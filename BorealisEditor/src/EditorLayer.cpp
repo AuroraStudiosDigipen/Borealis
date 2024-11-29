@@ -742,8 +742,7 @@ namespace Borealis {
 					const glm::mat4& cameraProjection = mEditorCamera.GetProjectionMatrix();
 					 
 					auto& tc = selectedEntity.GetComponent<TransformComponent>();
-					glm::mat4 transform = tc.GetTransform();
-					glm::mat4 globalTransform = TransformComponent::GetGlobalTransform(selectedEntity);
+					glm::mat4 globalTransform = tc.GetGlobalTransform();
 
 					bool snap = InputSystem::IsKeyPressed(Key::LeftShift);
 					float snapValue = 0.5f;
@@ -767,7 +766,7 @@ namespace Borealis {
 									// Get the parent entity
 									Entity parent = SceneManager::GetActiveScene()->GetEntityByUUID(tc.ParentID);
 									TransformComponent& parentTC = parent.GetComponent<TransformComponent>();
-									glm::mat4 parentInverse = glm::inverse(parentTC.GetGlobalTransform(parent));
+									glm::mat4 parentInverse = glm::inverse(parentTC.GetGlobalTransform());
 
 									// Compute the child's local transform relative to the parent
 									glm::mat4 childRelativeTransform = parentInverse * globalTransform;
@@ -976,7 +975,7 @@ namespace Borealis {
 		{
 			if (SCPanel.GetSelectedEntity())
 			{
-				mEditorCamera.SetFocalPoint(TransformComponent::GetGlobalTranslate(SCPanel.GetSelectedEntity()));
+				mEditorCamera.SetFocalPoint((SCPanel.GetSelectedEntity().GetComponent<TransformComponent>().GetGlobalTranslate()));
 			}
 			break;
 		}

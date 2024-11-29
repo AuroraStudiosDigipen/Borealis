@@ -72,7 +72,7 @@ namespace Borealis
 					continue;
 				}
 				auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-				Renderer2D::DrawSprite(TransformComponent::GetGlobalTransform(entityBR), sprite, (int)entity);
+				Renderer2D::DrawSprite(transform.GetGlobalTransform(), sprite, (int)entity);
 			}
 		}
 		{
@@ -85,7 +85,7 @@ namespace Borealis
 					continue;
 				}
 				auto [transform, circle] = group.get<TransformComponent, CircleRendererComponent>(entity);
-				Renderer2D::DrawCircle(TransformComponent::GetGlobalTransform(entityBR), circle.Colour, circle.thickness, circle.fade, (int)entity);
+				Renderer2D::DrawCircle(transform.GetGlobalTransform(), circle.Colour, circle.thickness, circle.fade, (int)entity);
 			}
 		}
 		{
@@ -116,8 +116,8 @@ namespace Borealis
 					continue;
 				}
 				auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
-				lightComponent.position = TransformComponent::GetGlobalTranslate(entityBR);
-				lightComponent.direction = TransformComponent::GetGlobalRotation(entityBR);	
+				lightComponent.position = transform.GetGlobalTranslate();
+				lightComponent.direction = transform.GetGlobalRotation();	
 				Renderer3D::AddLight(lightComponent);
 			}
 		}
@@ -133,7 +133,7 @@ namespace Borealis
 				auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
 				auto groupLight = mRegistry.group<>(entt::get<TransformComponent, LightComponent>);
 
-				Renderer3D::DrawMesh(TransformComponent::GetGlobalTransform(entityBR), meshFilter, meshRenderer, (int)entity);
+				Renderer3D::DrawMesh(transform.GetGlobalTransform(), meshFilter, meshRenderer, (int)entity);
 			}
 		}
 	}
@@ -296,7 +296,7 @@ namespace Borealis
 						continue;
 					}
 					auto [transform, box, rigidbody] = boxGroup.get<TransformComponent, BoxColliderComponent, RigidBodyComponent>(entity);
-					PhysicsSystem::PushTransform(box, transform, box.rigidBody, brEntity);
+					PhysicsSystem::PushTransform(box, transform, box.rigidBody);
 				}
 
 				auto sphereGroup = mRegistry.group<>(entt::get<TransformComponent, SphereColliderComponent, RigidBodyComponent>);
@@ -308,7 +308,7 @@ namespace Borealis
 						continue;
 					}
 					auto [transform, sphere, rigidbody] = sphereGroup.get<TransformComponent, SphereColliderComponent, RigidBodyComponent>(entity);
-					PhysicsSystem::PushTransform(sphere, transform, sphere.rigidBody, brEntity);
+					PhysicsSystem::PushTransform(sphere, transform, sphere.rigidBody);
 				}
 
 				auto capsuleGroup = mRegistry.group<>(entt::get<TransformComponent, CapsuleColliderComponent, RigidBodyComponent>);
@@ -320,7 +320,7 @@ namespace Borealis
 						continue;
 					}
 					auto [transform, capsule, rigidbody] = capsuleGroup.get<TransformComponent, CapsuleColliderComponent, RigidBodyComponent>(entity);
-					PhysicsSystem::PushTransform(capsule, transform, capsule.rigidBody, brEntity);
+					PhysicsSystem::PushTransform(capsule, transform, capsule.rigidBody);
 				}
 
 
@@ -338,7 +338,7 @@ namespace Borealis
 						continue;
 					}
 					auto [transform, box, rigidbody] = boxGroup.get<TransformComponent, BoxColliderComponent, RigidBodyComponent>(entity);
-					PhysicsSystem::PullTransform(box, transform, brEntity);
+					PhysicsSystem::PullTransform(box, transform);
 				}
 
 				for (auto entity : capsuleGroup)
@@ -349,7 +349,7 @@ namespace Borealis
 						continue;
 					}
 					auto [transform, capsule, rigidbody] = capsuleGroup.get<TransformComponent, CapsuleColliderComponent, RigidBodyComponent>(entity);
-					PhysicsSystem::PullTransform(capsule, transform, brEntity);
+					PhysicsSystem::PullTransform(capsule, transform);
 				}
 				for (auto entity : sphereGroup)
 				{
@@ -359,7 +359,7 @@ namespace Borealis
 						continue;
 					}
 					auto [transform, sphere, rigidbody] = sphereGroup.get<TransformComponent, SphereColliderComponent, RigidBodyComponent>(entity);
-					PhysicsSystem::PullTransform(sphere, transform, brEntity);
+					PhysicsSystem::PullTransform(sphere, transform);
 				}
 
 				while (!PhysicsSystem::GetCollisionEnterQueue().empty())
@@ -575,7 +575,7 @@ namespace Borealis
 
 					//camera.Camera.SetCameraType(SceneCamera::CameraType::Perspective);
 					mainCamera = &camera.Camera;
-					mainCameratransform = TransformComponent::GetGlobalTransform(brEntity);
+					mainCameratransform = transform.GetGlobalTransform();
 					break;
 				}
 			}
@@ -635,7 +635,7 @@ namespace Borealis
 					{
 						AudioEngine::StopChannel(audio.channelID);
 						audio.isPlaying = false;
-						audio.channelID = Borealis::AudioEngine::PlayAudio(audio.audio, TransformComponent::GetGlobalTranslate(brEntity), audio.Volume, audio.isMute, audio.isLoop, 0);
+						audio.channelID = Borealis::AudioEngine::PlayAudio(audio.audio, transform.GetGlobalTranslate(), audio.Volume, audio.isMute, audio.isLoop, 0);
 						//audio.channelID = Borealis::AudioEngine::PlayAudio(audio.audio->AudioPath, {}, audio.Volume, audio.isMute, audio.isLoop);
 					}
 				}
@@ -792,10 +792,10 @@ namespace Borealis
 					Entity brEntity { entity, this };
 					//camera.Camera.SetCameraType(SceneCamera::CameraType::Perspective);
 					mainCamera = &camera.Camera;
-					mainCameratransform = TransformComponent::GetGlobalTransform(brEntity);
+					mainCameratransform = transform.GetGlobalTransform();;
 
 					//mainCameratransform = glm::translate(mainCameratransform, glm::vec3{0.f,0.01f,0.f});
-					//TransformComponent::SetGlobalTransform(brEntity, mainCameratransform);
+					//transform.SetGlobalTransform(brEntity, mainCameratransform);
 
 					break;
 				}

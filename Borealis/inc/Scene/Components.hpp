@@ -79,14 +79,15 @@ namespace Borealis
 			return translation * rotation * scale;
 		}
 
-		static glm::mat4 GetGlobalTransform(Entity entity);
-		static glm::vec3 GetGlobalTranslate(Entity entity);
-		static glm::vec3 GetGlobalRotation(Entity entity);
-		static glm::vec3 GetGlobalScale(Entity entity);
-		static void GetGlobalTransformComp(Entity entity, glm::vec3* translate, glm::vec3* rotate, glm::vec3* scale);
-		static void SetGlobalTransform(Entity entity, glm::mat4 transform);
-		static void SetParent(Entity entity, Entity parent);
-		static void ResetParent(Entity entity);
+		glm::mat4 GetGlobalTransform();
+		glm::vec3 GetGlobalTranslate();
+		glm::vec3 GetGlobalRotation();
+		glm::vec3 GetGlobalScale();
+
+		void GetGlobalTransformComp(glm::vec3* translate, glm::vec3* rotate, glm::vec3* scale);
+		void SetGlobalTransform(glm::mat4 transform);
+		void SetParent(Entity entity, Entity parent);
+		void ResetParent(Entity entity);
 
 		operator glm::mat4() { return GetTransform(); }
 	};

@@ -524,13 +524,14 @@ namespace Borealis
 	{
 		PROFILE_FUNCTION();
 
-		if (sData->LineVertexCount + 2 >= Renderer2DData::MaxLineVertices)
-		{
-			FlushReset();
-		}
+
 
 		for (LineInfo const& info : lineQueue)
 		{
+			if (sData->LineVertexCount + 2 >= Renderer2DData::MaxLineVertices)
+			{
+				FlushReset();
+			}
 			sData->LineBufferPtr->Position = info.p0;
 			sData->LineBufferPtr->Colour = info.color;
 			sData->LineBufferPtr++;
@@ -717,7 +718,7 @@ namespace Borealis
 			if (character == '\r')
 				continue;
 
-			if (character == '\n' || string[i + 1])
+			if (character == '\n' || string[i + 1] == '\n')
 			{
 				x = 0;
 				//y -= fsScale * metrics.lineHeight + textParams.LineSpacing;

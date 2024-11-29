@@ -792,6 +792,10 @@ namespace Borealis
 					//camera.Camera.SetCameraType(SceneCamera::CameraType::Perspective);
 					mainCamera = &camera.Camera;
 					mainCameratransform = TransformComponent::GetGlobalTransform(brEntity);
+
+					//mainCameratransform = glm::translate(mainCameratransform, glm::vec3{0.f,0.01f,0.f});
+					//TransformComponent::SetGlobalTransform(brEntity, mainCameratransform);
+
 					break;
 				}
 			}

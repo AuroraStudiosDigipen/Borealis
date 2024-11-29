@@ -714,6 +714,16 @@ namespace Borealis
 		{
 			char character = string[i];
 
+			if (character == '\r')
+				continue;
+
+			if (character == '\n' || string[i + 1])
+			{
+				x = 0;
+				//y -= fsScale * metrics.lineHeight + textParams.LineSpacing;
+				continue;
+			}
+
 			FontGlyph glyph = fontInfo.glyphs.at(character);
 
 			glm::vec2 texCoordMin((float)glyph.altasBound.left, (float)glyph.altasBound.bottom);

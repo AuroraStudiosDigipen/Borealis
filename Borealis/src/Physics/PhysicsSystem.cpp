@@ -601,6 +601,7 @@ namespace Borealis
 		delete sData.contact_listener;
 		delete sData.temp_allocator;
 		delete sData.job_system;
+		delete sData.debug_renderer;
 		delete sData.mSystem;
 
 		delete Factory::sInstance;

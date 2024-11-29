@@ -150,6 +150,18 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_GetVolume );
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_SetVolume );
 
+		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_SetNextAnimation);
+		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_GetNextAnimation);
+		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_SetCurrentAnimation);
+		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_GetCurrentAnimation);
+		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_SetSpeed);
+		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_GetSpeed);
+		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_SetLooping);
+		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_GetLooping);
+		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_SetBlend);
+		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_GetBlend);
+		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_SwapBlendBuffer);
+
 	}
 	uint64_t GenerateUUID()
 	{
@@ -897,6 +909,108 @@ namespace Borealis
 				*max = collider.Max;
 				*size = collider.size;*/
 		}
+	}
+	void AnimatorComponent_SetCurrentAnimation(UUID uuid, UUID animation)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		if (animation == 0)
+		{
+			entity.GetComponent<AnimatorComponent>().animator.mNextAnimation = Ref<Animation>();
+			return;
+		}
+		entity.GetComponent<AnimatorComponent>().animation = AssetManager::GetAsset<Animation>(animation);
+	}
+	void AnimatorComponent_GetCurrentAnimation(UUID uuid, UUID* animation)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*animation = entity.GetComponent<AnimatorComponent>().animation->mAssetHandle;
+	}
+	void AnimatorComponent_SetBlend(UUID uuid, float blendValue)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<AnimatorComponent>().animator.mBlendFactor = blendValue;
+	}
+	void AnimatorComponent_GetBlend(UUID uuid, float* blendValue)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*blendValue = entity.GetComponent<AnimatorComponent>().animator.mBlendFactor;
+	}
+
+	void AnimatorComponent_SetSpeed(UUID uuid, float speed)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<AnimatorComponent>().speed = speed;
+	}
+	void AnimatorComponent_GetSpeed(UUID uuid, float* speed)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*speed = entity.GetComponent<AnimatorComponent>().speed;
+	}
+
+	void AnimatorComponent_SetLooping(UUID uuid, bool looping)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<AnimatorComponent>().loop = looping;
+	}
+	void AnimatorComponent_GetLooping(UUID uuid, bool* looping)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*looping = entity.GetComponent<AnimatorComponent>().loop;
+	}
+	void AnimatorComponent_SetNextAnimation(UUID uuid, UUID animation)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		if (animation == 0)
+		{
+			entity.GetComponent<AnimatorComponent>().animator.mNextAnimation = Ref<Animation>();
+			return;
+		}
+		entity.GetComponent<AnimatorComponent>().animator.mNextAnimation = AssetManager::GetAsset<Animation>(animation);
+	}
+	void AnimatorComponent_GetNextAnimation(UUID uuid, UUID* animation)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*animation = entity.GetComponent<AnimatorComponent>().animator.mNextAnimation->mAssetHandle;
+	}
+	void AnimatorComponent_SwapBlendBuffer(UUID uuid)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		auto firstAnimation = entity.GetComponent<AnimatorComponent>().animation;
+		entity.GetComponent<AnimatorComponent>().animation = entity.GetComponent<AnimatorComponent>().animator.mNextAnimation;
+		entity.GetComponent<AnimatorComponent>().animator.mNextAnimation = firstAnimation;
 	}
 	void Material_GetSprite(UUID uuid, UUID* spriteID)
 	{

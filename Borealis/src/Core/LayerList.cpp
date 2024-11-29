@@ -107,7 +107,7 @@ namespace Borealis
 		{
 			if (entity.GetComponent<TagComponent>().mLayer.test(i))
 			{
-				mLayerEntities[i].insert(3);
+				mLayerEntities[i].insert(entity.GetComponent<IDComponent>().ID);
 			}
 		}
 	}

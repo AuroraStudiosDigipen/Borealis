@@ -1565,6 +1565,18 @@ namespace Borealis
 							ImGui::EndDragDropTarget();
 						}
 						break;
+					case 3:
+						if (ImGui::BeginDragDropTarget())
+						{
+							if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropAnimationItem"))
+							{
+								UUID data = *(const uint64_t*)payload->Data;
+								InitGameObject(ObjData, data, field.mFieldClassName());
+								component->SetFieldValue(name, ObjData);
+							}
+							ImGui::EndDragDropTarget();
+						}
+						break;
 					default:
 						break;
 					}

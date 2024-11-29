@@ -332,6 +332,19 @@ namespace Borealis
 
 	void ColliderComponent_GetBounds(UUID uuid, glm::vec3* center, glm::vec3* extents, glm::vec3* min, glm::vec3* max, glm::vec3* size);
 
+	void AnimatorComponent_SetCurrentAnimation(UUID uuid, UUID animation);
+	void AnimatorComponent_GetCurrentAnimation(UUID uuid, UUID* animation);
+	void AnimatorComponent_SetBlend(UUID uuid, float blendValue);
+	void AnimatorComponent_GetBlend(UUID uuid, float* blendValue);
+	void AnimatorComponent_SetSpeed(UUID uuid, float blendValue);
+	void AnimatorComponent_GetSpeed(UUID uuid, float* blendValue);
+	void AnimatorComponent_SetLooping(UUID uuid, bool blendValue);
+	void AnimatorComponent_GetLooping(UUID uuid, bool* blendValue);
+	void AnimatorComponent_SetNextAnimation(UUID uuid, UUID animation);
+	void AnimatorComponent_GetNextAnimation(UUID uuid, UUID* animation);
+	void AnimatorComponent_SwapBlendBuffer(UUID uuid);
+
+
 	void Material_GetSprite(UUID uuid, UUID* spriteID);
 	void Material_SetSprite(UUID uuid, UUID* spriteID);
 

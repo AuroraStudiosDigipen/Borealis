@@ -145,21 +145,21 @@ namespace Borealis
             InternalCalls.SetActive(value, out InstanceID);
         }
 
-        public static GameObject[] FindObjectsWithLayerMask(int mask)
-        {
-            ulong[] allObjects = InternalCalls.GetAllUUIDs();
+        //public static GameObject[] FindObjectsWithLayerMask(int mask)
+        //{
+        //    //ulong[] allObjects = InternalCalls.GetAllUUIDs();
 
-            List<GameObject> objects = new List<GameObject>();
-            foreach (ulong id in allObjects)
-            {
-                GameObject obj = new GameObject(id);
-                if (InternalCalls.HasMask(id))
-                {
-                    objects.Add(obj);
-                }
-            }
-            return objects.ToArray();
-        }
+        //    //List<GameObject> objects = new List<GameObject>();
+        //    //foreach (ulong id in allObjects)
+        //    //{
+        //    //    GameObject obj = new GameObject(id);
+        //    //    if (InternalCalls.HasMask(id))
+        //    //    {
+        //    //        objects.Add(obj);
+        //    //    }
+        //    //}
+        //    //return objects.ToArray();
+        //}
 
     }
 }

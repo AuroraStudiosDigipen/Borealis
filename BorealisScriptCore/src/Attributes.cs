@@ -16,15 +16,16 @@ namespace Borealis
         }
     }
 
-    public class NativeComponent : Attribute { }
+    internal class NativeComponent : Attribute { }
 
     public enum AssetType : int
     {
         Sprite = 0,
         Material = 1,
-        Audio = 2
+        Audio = 2,
+        Animation = 3
     }
-    public class AssetField : Attribute 
+    internal class AssetField : Attribute 
     {
 
         public int Type;

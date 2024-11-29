@@ -9,10 +9,10 @@ namespace Borealis
         internal extern static void SetActive(bool value, out ulong entityID);
         
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static ulong GenerateUUID();
+        internal extern static ulong Generateulong();
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static ulong[] GetAllUUIDs();
+        internal extern static ulong[] GetAllulongs();
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static bool HasMask(ulong ID);
@@ -312,6 +312,42 @@ namespace Borealis
         internal extern static void AudioSource_GetVolume(ulong ID, out float volume);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void AudioSource_SetVolume(ulong ID, ref float volume);
+        #endregion
+
+        #region Animator
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void AnimatorComponent_SetCurrentAnimation(ulong uuid, ulong animation);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+
+        internal extern static void AnimatorComponent_GetCurrentAnimation(ulong uuid, out ulong animation);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+
+        internal extern static void AnimatorComponent_SetBlend(ulong uuid, float blendValue);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+
+        internal extern static void AnimatorComponent_GetBlend(ulong uuid, out float blendValue);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+
+        internal extern static void AnimatorComponent_SetSpeed(ulong uuid, float blendValue);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+
+        internal extern static void AnimatorComponent_GetSpeed(ulong uuid, out float blendValue);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+
+        internal extern static void AnimatorComponent_SetLooping(ulong uuid, bool blendValue);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void AnimatorComponent_GetLooping(ulong uuid, out bool blendValue);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void AnimatorComponent_SetNextAnimation(ulong uuid, ulong animation);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void AnimatorComponent_GetNextAnimation(ulong uuid, out ulong animation);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void AnimatorComponent_SwapBlendBuffer(ulong uuid);
+
         #endregion
     }
 }

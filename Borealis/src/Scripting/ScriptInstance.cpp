@@ -324,7 +324,7 @@ namespace Borealis
 		MonoObject* collider; \
 		InitGameObject(collider, colliderID, "Collider", false); \
 		void* params[1]; \
-		params[0] = &collider; \
+		params[0] = collider; \
 		mono_runtime_invoke(mScriptClass->GetMethod(#methodName, 1), mInstance, params, nullptr); \
 	}\
 

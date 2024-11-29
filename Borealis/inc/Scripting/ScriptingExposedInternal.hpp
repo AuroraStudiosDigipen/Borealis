@@ -109,6 +109,9 @@ namespace Borealis
 	void Entity_SetActive(uint64_t entityID, bool* active);
 	void Entity_GetActive(uint64_t entityID, bool* active);
 
+	void Entity_GetName(uint64_t entityID, MonoString** name);
+	void Entity_SetName(uint64_t entityID, MonoString* name);
+
 	void Entity_FindEntity(MonoString* name, UUID* ID);
 
 	float Time_GetDeltaTime();
@@ -380,6 +383,15 @@ namespace Borealis
 	void CharacterController_Move(uint64_t id, glm::vec3* motion);
 
 	void CharacterController_IsGrounded(uint64_t id, bool* grounded);
+
+	void AudioSource_GetClip(uint64_t ID, uint64_t* ClipID);
+	void AudioSource_SetClip(uint64_t ID, uint64_t* ClipID);
+	void AudioSource_PlayOneShot(uint64_t ID, float volume, uint64_t ClipID);
+	void AudioSource_IsPlaying(uint64_t ID,  bool* playing);
+	void AudioSource_GetLooping(uint64_t ID,  bool* looping);
+	void AudioSource_SetLooping(uint64_t ID,  bool* looping);
+	void AudioSource_GetVolume(uint64_t ID,  float* volume);
+	void AudioSource_SetVolume(uint64_t ID,  float* volume);
 
 }
 

@@ -326,6 +326,9 @@ namespace Borealis
 
 				PhysicsSystem::Update(dt);
 
+				//add this into a check mark to enable disable
+				PhysicsSystem::DrawDebug();
+
 				// Set entity values to Jolt transform.
 				for (auto entity : boxGroup)
 				{
@@ -458,7 +461,7 @@ namespace Borealis
 						for (auto& [name, script] : scriptComponent1.mScripts)
 						{
 
-							script->OnCollisionEnter(entity2.GetComponent<IDComponent>().ID);
+							script->OnTriggerEnter(collisionPair.second);
 
 						}
 					}
@@ -469,7 +472,7 @@ namespace Borealis
 						for (auto& [name, script] : scriptComponent2.mScripts)
 						{
 
-							script->OnCollisionEnter(entity1.GetComponent<IDComponent>().ID);
+							script->OnTriggerEnter(collisionPair.first);
 
 						}
 					}
@@ -488,7 +491,7 @@ namespace Borealis
 						auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
 						for (auto& [name, script] : scriptComponent1.mScripts)
 						{
-							script->OnCollisionStay(entity2.GetComponent<IDComponent>().ID);
+							script->OnTriggerStay(entity2.GetComponent<IDComponent>().ID);
 						}
 					}
 					if (entity2.HasComponent<ScriptComponent>())
@@ -497,7 +500,7 @@ namespace Borealis
 						for (auto& [name, script] : scriptComponent2.mScripts)
 						{
 
-							script->OnCollisionStay(entity1.GetComponent<IDComponent>().ID);
+							script->OnTriggerStay(entity1.GetComponent<IDComponent>().ID);
 
 						}
 					}
@@ -515,7 +518,7 @@ namespace Borealis
 						for (auto& [name, script] : scriptComponent1.mScripts)
 						{
 
-							script->OnCollisionExit(entity2.GetComponent<IDComponent>().ID);
+							script->OnTriggerExit(entity2.GetComponent<IDComponent>().ID);
 
 						}
 					}
@@ -526,7 +529,7 @@ namespace Borealis
 						for (auto& [name, script] : scriptComponent2.mScripts)
 						{
 
-							script->OnCollisionExit(entity1.GetComponent<IDComponent>().ID);
+							script->OnTriggerExit(entity1.GetComponent<IDComponent>().ID);
 
 						}
 					}
@@ -620,13 +623,18 @@ namespace Borealis
 				auto group = mRegistry.group<>(entt::get<TransformComponent, AudioSourceComponent>);
 				for (auto& entity : group)
 				{
+					Entity brEntity{ entity, this };
+					if (!brEntity.IsActive())
+					{
+						continue;
+					}
+
 					auto [transform, audio] = group.get<TransformComponent, AudioSourceComponent>(entity);
 					if (audio.isPlaying && (!Borealis::AudioEngine::isSoundPlaying(audio.channelID) || !audio.isLoop))
 					{
 						AudioEngine::StopChannel(audio.channelID);
 						audio.isPlaying = false;
-						Vector3 pos = { transform.Translate.x,transform.Translate.y,transform.Translate.z };
-						audio.channelID = Borealis::AudioEngine::PlayAudio(audio, pos, audio.Volume, audio.isMute, audio.isLoop, 0);
+						audio.channelID = Borealis::AudioEngine::PlayAudio(audio.audio, TransformComponent::GetGlobalTranslate(brEntity), audio.Volume, audio.isMute, audio.isLoop, 0);
 						//audio.channelID = Borealis::AudioEngine::PlayAudio(audio.audio->AudioPath, {}, audio.Volume, audio.isMute, audio.isLoop);
 					}
 				}
@@ -1037,7 +1045,17 @@ namespace Borealis
 				auto srcIT = srcScriptComponent.mScripts.find(dstIT->first);
 				for (auto property : scriptKlass->mFields)
 				{
-					if (!property.second.isMonoBehaviour() && !property.second.isGameObject() &&
+					if (property.second.isNativeComponent() && 
+						((!property.second.hasHideInInspector(scriptKlass->GetMonoClass()) && property.second.isPublic()) || 
+							(property.second.hasSerializeField(scriptKlass->GetMonoClass()))))
+					{
+						MonoObject* scriptReference = srcIT->second->GetFieldValue<MonoObject*>(property.first);
+						UUID scriptUUID = property.second.GetGameObjectID(scriptReference);
+						MonoObject* data;
+						InitGameObject(data , scriptUUID, property.second.mFieldClassName());
+						dstIT->second->SetFieldValue(property.first, data);
+					}
+					else if (!property.second.isMonoBehaviour() && !property.second.isGameObject() &&
 						((!property.second.hasHideInInspector(scriptKlass->GetMonoClass()) && property.second.isPublic())
 							|| (property.second.hasSerializeField(scriptKlass->GetMonoClass())))
 						)
@@ -1069,6 +1087,8 @@ namespace Borealis
 						MonoObject* Data = srcIT->second->GetFieldValue<MonoObject*>(property.first);
 
 						UUID monoBehaviourEntityID = property.second.GetAttachedID(Data);
+						BOREALIS_CORE_ASSERT(monoBehaviourEntityID != 0, "UUID is 0");
+
 						if (entitymap.find(monoBehaviourEntityID) != entitymap.end())
 						{
 							auto monoBehaviourEntity = entitymap.at(monoBehaviourEntityID);
@@ -1090,6 +1110,7 @@ namespace Borealis
 						MonoObject* DstData = dstIT->second->GetFieldValue<MonoObject*>(property.first);
 						MonoObject* Data = srcIT->second->GetFieldValue<MonoObject*>(property.first);
 						UUID setUUID = property.second.GetGameObjectID(Data);
+						BOREALIS_CORE_ASSERT(setUUID != 0, "UUID is 0");
 						InitGameObject(DstData, setUUID, property.second.mFieldClassName());
 						dstIT->second->SetFieldValue(property.first, DstData);
 					}
@@ -1229,7 +1250,8 @@ namespace Borealis
 			{
 				continue;
 			}
-			PhysicsSystem::addCharacter(brEntity.GetComponent<CharacterControlComponent>(), brEntity.GetComponent<TransformComponent>(), brEntity.GetComponent<CapsuleColliderComponent>());
+			auto entityID = mRegistry.get<IDComponent>(entity).ID;
+			PhysicsSystem::addCharacter(brEntity.GetComponent<CharacterControlComponent>(), brEntity.GetComponent<TransformComponent>(), brEntity.GetComponent<CapsuleColliderComponent>(), entityID);
 		}
 		auto BoxcharacterGroup = mRegistry.group<>(entt::get<TransformComponent, CharacterControlComponent, BoxColliderComponent>);
 		for (auto entity : BoxcharacterGroup)
@@ -1239,7 +1261,8 @@ namespace Borealis
 			{
 				continue;
 			}
-			PhysicsSystem::addCharacter(brEntity.GetComponent<CharacterControlComponent>(), brEntity.GetComponent<TransformComponent>(), brEntity.GetComponent<BoxColliderComponent>());
+			auto entityID = mRegistry.get<IDComponent>(entity).ID;
+			PhysicsSystem::addCharacter(brEntity.GetComponent<CharacterControlComponent>(), brEntity.GetComponent<TransformComponent>(), brEntity.GetComponent<BoxColliderComponent>(), entityID);
 		}
 		auto SpherecharacterGroup = mRegistry.group<>(entt::get<TransformComponent, CharacterControlComponent, SphereColliderComponent>);
 		for (auto entity : SpherecharacterGroup)
@@ -1249,7 +1272,8 @@ namespace Borealis
 			{
 				continue;
 			}
-			PhysicsSystem::addCharacter(brEntity.GetComponent<CharacterControlComponent>(), brEntity.GetComponent<TransformComponent>(), brEntity.GetComponent<SphereColliderComponent>());
+			auto entityID = mRegistry.get<IDComponent>(entity).ID;
+			PhysicsSystem::addCharacter(brEntity.GetComponent<CharacterControlComponent>(), brEntity.GetComponent<TransformComponent>(), brEntity.GetComponent<SphereColliderComponent>(), entityID);
 		}
 
 		auto IDView = mRegistry.view<IDComponent>();

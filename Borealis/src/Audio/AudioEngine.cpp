@@ -39,7 +39,7 @@ namespace Borealis
 
     };
 
-    static FMOD_VECTOR VectorToFmod(const Vector3& vPosition)
+    static FMOD_VECTOR VectorToFmod(const glm::vec3& vPosition)
     {
         FMOD_VECTOR fVec;
         fVec.x = vPosition.x;
@@ -135,11 +135,11 @@ namespace Borealis
         // Here you can add your logic for unloading sounds
     }
 
-    int AudioEngine::PlayAudio(const AudioSourceComponent& audio, const Vector3& vPosition, float fVolumedB, bool bMute, bool bLoop, int groupId)
+    int AudioEngine::PlayAudio(Ref<Audio> audio, const glm::vec3& vPosition, float fVolumedB, bool bMute, bool bLoop, int groupId)
     {
         int nChannelId = sgpImplementation->mnNextChannelId++;
 
-        FMOD::Sound* fmodSound = audio.audio->audioPtr;
+        FMOD::Sound* fmodSound = audio->audioPtr;
         if (!fmodSound) return -1;
 
         FMOD::Channel* pChannel = nullptr;
@@ -226,7 +226,7 @@ namespace Borealis
         }
     }
 
-    void AudioEngine::SetChannel3DPosition(int nChannelId, const Vector3& vPosition)
+    void AudioEngine::SetChannel3DPosition(int nChannelId, const glm::vec3& vPosition)
     {
         auto tFoundIt = sgpImplementation->mChannels.find(nChannelId);
         if (tFoundIt == sgpImplementation->mChannels.end())
@@ -245,7 +245,7 @@ namespace Borealis
         ErrorCheck(tFoundIt->second->setVolume(dbToVolume(fVolumedB)));
     }
 
-    void AudioEngine::SetListenerPosition(const Vector3& position, const Vector3& forward, const Vector3& up)
+    void AudioEngine::SetListenerPosition(const glm::vec3& position, const glm::vec3& forward, const glm::vec3& up)
     {
         FMOD_VECTOR pos = VectorToFmod(position);
         FMOD_VECTOR fwd = VectorToFmod(forward);

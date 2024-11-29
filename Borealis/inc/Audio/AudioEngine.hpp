@@ -9,16 +9,10 @@
 #include <iostream>
 #include <Scene/Components.hpp>
 #include <Assets/AssetMetaData.hpp>
+#include <glm/glm.hpp>
 
 namespace Borealis
 {
-    struct Vector3
-    {
-        float x;
-        float y;
-        float z;
-    };
-
     /*!***********************************************************************
     \class AudioEngine
     \brief Handles audio-related functionality, including initialization, playing sounds, and managing channels.
@@ -74,7 +68,7 @@ namespace Borealis
         \param fVolumedB
             The volume in decibels for the listener.
         *************************************************************************/
-        static void Set3DListenerAndOrientation(const Vector3& vPos = Vector3{ 0, 0, 0 }, float fVolumedB = 0.0f);
+        static void Set3DListenerAndOrientation(const glm::vec3& vPos = glm::vec3{ 0, 0, 0 }, float fVolumedB = 0.0f);
 
         /*!***********************************************************************
         \brief
@@ -94,7 +88,7 @@ namespace Borealis
         \return
             The ID of the channel where the sound is played.
         *************************************************************************/
-        static int PlayAudio(const AudioSourceComponent& audio, const Vector3& vPosition = Vector3{ 0, 0, 0 }, float fVolumedB = 5.0f, bool bMute = false, bool bLoop = false, int groupId = -1);
+        static int PlayAudio(Ref<Audio> audio, const glm::vec3& vPosition = glm::vec3{ 0, 0, 0 }, float fVolumedB = 5.0f, bool bMute = false, bool bLoop = false, int groupId = -1);
 
         /*!***********************************************************************
         \brief
@@ -128,7 +122,7 @@ namespace Borealis
         \param vPosition
             The 3D position to set for the sound.
         *************************************************************************/
-        static void SetChannel3DPosition(int nChannelId, const Vector3& vPosition);
+        static void SetChannel3DPosition(int nChannelId, const glm::vec3& vPosition);
 
         /*!***********************************************************************
         \brief
@@ -160,7 +154,7 @@ namespace Borealis
         \param up
             The upward orientation vector.
         *************************************************************************/
-        void SetListenerPosition(const Vector3& position, const Vector3& forward, const Vector3& up);
+        void SetListenerPosition(const glm::vec3& position, const glm::vec3& forward, const glm::vec3& up);
 
         /*!***********************************************************************
         \brief

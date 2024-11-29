@@ -33,6 +33,10 @@ namespace Borealis
 				Reference to the Script Class being created
 		*************************************************************************/
 		ScriptInstance(Ref<ScriptClass> scriptClass);
+
+		~ScriptInstance();
+
+		ScriptInstance(MonoObject* Instance);
 		
 		void Init(uint64_t UUIDAddress);
 
@@ -239,6 +243,7 @@ namespace Borealis
 
 		Ref<ScriptClass> mScriptClass;				// Script Class
 		MonoObject* mInstance;						// MonoObject Instance
+		uint32_t mGcHandle;
 		inline static char s_fieldValueBuffer[24];	// Field Value Buffer
 	};
 }

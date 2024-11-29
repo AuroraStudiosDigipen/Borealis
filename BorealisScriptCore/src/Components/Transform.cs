@@ -8,14 +8,20 @@ namespace Borealis
     public class Transform : Component
     {
         //public int childCount;
+        public new GameObject gameObject
+        {
+            get
+            {
+                return new GameObject(InstanceID);
+            }
+        }
+
         public Transform()
         {
         }
         public Transform(ulong id)
         {
             InstanceID = id;
-            gameObject = new GameObject(id);
-
         }
 
         public Vector3 rotation

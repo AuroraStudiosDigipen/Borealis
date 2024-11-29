@@ -703,17 +703,17 @@ namespace Borealis {
 				//}
 
 				//Create Entities from prefab
-				if (ImGui::BeginDragDropTarget())
-				{
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragPrefab"))
-					{
-						AssetHandle data = *(const uint64_t*)payload->Data;
-						Ref<Prefab> prefab = PrefabManager::GetPrefab(data);
-						prefab->CreateChild(SceneManager::GetActiveScene());
+				//if (ImGui::BeginDrapDropTargetWindow("DragPrefab"))
+				//{
+				//	if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragPrefab"))
+				//	{
+				//		AssetHandle data = *(const uint64_t*)payload->Data;
+				//		Ref<Prefab> prefab = PrefabManager::GetPrefab(data);
+				//		prefab->CreateChild(SceneManager::GetActiveScene());
 
-					}
-					ImGui::EndDragDropTarget();
-				}
+				//	}
+				//	ImGui::EndDragDropTarget();
+				//}
 
 				auto windowSize = ImGui::GetWindowSize();
 				ImVec2 minBound = ImGui::GetWindowPos();

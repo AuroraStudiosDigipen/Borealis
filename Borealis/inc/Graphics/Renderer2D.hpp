@@ -67,6 +67,7 @@ namespace Borealis
 		static void DrawBox(const glm::vec3& pMin, const glm::vec3& pMax, const glm::vec4& colour);
 
 		static void DrawLineFromQueue();
+		static void ClearDrawQueue();
 
 		struct Statistics
 		{

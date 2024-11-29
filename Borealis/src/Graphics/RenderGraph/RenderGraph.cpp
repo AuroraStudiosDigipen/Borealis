@@ -1659,6 +1659,8 @@ namespace Borealis
 			if (skipPass) continue;
 			pass->Execute(dt);
 		}
+
+		Renderer2D::ClearDrawQueue();
 	}
 
 	void RenderGraph::SetConfig(RenderGraphConfig renderGraphConfig)

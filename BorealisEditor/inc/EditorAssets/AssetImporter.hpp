@@ -29,6 +29,7 @@ namespace Borealis
 		ALL_FINE,
 		META_FILE_NOT_FOUND,
 		SOURCE_FILE_MODIFIED,
+		CACHE_NOT_FOUND,
 		UNKNOWN
 	};
 
@@ -91,6 +92,8 @@ namespace Borealis
 				verify meta file
 		*************************************************************************/
 		MetaErrorType VerifyMetaFile(std::filesystem::path path, AssetRegistry& assetRegistry);
+
+		bool CheckIfCacheFileMissing(AssetMetaData const& metaData);
 
 		void StartFileWatch();
 

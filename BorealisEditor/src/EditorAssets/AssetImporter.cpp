@@ -266,10 +266,10 @@ namespace Borealis
 		{
 			AssetMetaData metaData = MetaFileSerializer::GetAssetMetaDataFile(metaFilePath);
 			
-			//TODO Temp for now to ensure that the current proj gets updated, remove in future
-			{
-				metaData = MetaFileSerializer::CreateAssetMetaFile(metaData.SourcePath, metaData.Handle);
-			}
+			////TODO Temp for now to ensure that the current proj gets updated, remove in future
+			//{
+			//	metaData = MetaFileSerializer::CreateAssetMetaFile(metaData.SourcePath, metaData.Handle);
+			//}
 
 			if (assetRegistry.contains(metaData.Handle))
 			{
@@ -278,8 +278,6 @@ namespace Borealis
 					//Version difference, update to latest version
 					metaData = MetaFileSerializer::CreateAssetMetaFile(metaData.SourcePath, metaData.Handle);
 				}
-
-
 
 				//difference between source file and meta data
 				if (MetaFileSerializer::HashFile(metaData.SourcePath) != metaData.SourceFileHash)
@@ -291,6 +289,11 @@ namespace Borealis
 				{
 					return MetaErrorType::SOURCE_FILE_MODIFIED;
 				}
+				//cache file missing
+				else if (CheckIfCacheFileMissing(metaData))
+				{
+					return MetaErrorType::CACHE_NOT_FOUND;
+				}
 				else
 				{
 					mPathRegistry.insert({ hash, metaData.Handle });
@@ -301,6 +304,22 @@ namespace Borealis
 
 		return MetaErrorType::UNKNOWN;
 	}
+
+	bool AssetImporter::CheckIfCacheFileMissing(AssetMetaData const& metaData)
+	{
+		switch (metaData.Type)
+		{
+		case AssetType::Mesh:
+		case AssetType::Texture2D:
+			if (!std::filesystem::exists(metaData.CachePath))
+			{
+				return true;
+			}
+		default:
+			return false;
+		}
+	}
+
 	void AssetImporter::StartFileWatch()
 	{
 		filewatch::FileWatch<std::wstring> watchBuffer(

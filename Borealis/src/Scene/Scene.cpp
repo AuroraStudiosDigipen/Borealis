@@ -326,6 +326,9 @@ namespace Borealis
 
 				PhysicsSystem::Update(dt);
 
+				//add this into a check mark to enable disable
+				PhysicsSystem::DrawDebug();
+
 				// Set entity values to Jolt transform.
 				for (auto entity : boxGroup)
 				{

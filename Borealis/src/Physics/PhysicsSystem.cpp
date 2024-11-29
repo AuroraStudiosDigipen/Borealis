@@ -48,6 +48,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Jolt/Physics/Collision/Shape/ScaledShape.h>
 #include <Jolt/Physics/Collision/RayCast.h>
 #include <Jolt/Physics/Collision/CastResult.h>
+#include <Jolt/Renderer/DebugRendererSimple.h>
 
 #include <Graphics/Renderer2D.hpp>
 
@@ -241,12 +242,38 @@ namespace Borealis
 		virtual void OnContactRemoved(const SubShapeIDPair& inSubShapePair) override;
 	};
 
+	//Debug Renderer
+	class MyDebugRenderer : public JPH::DebugRendererSimple
+	{
+	public:
+		virtual void DrawLine(JPH::RVec3Arg inFrom, JPH::RVec3Arg inTo, JPH::ColorArg inColor) override
+		{
+			// Implement
+			Renderer2D::DrawLine(glm::vec3(inFrom.GetX(),inFrom.GetY(),inFrom.GetZ()), glm::vec3(inTo.GetX(),inTo.GetY(),inTo.GetZ()), glm::vec4(inColor.r,inColor.g,inColor.b,inColor.a));
+			//Renderer2D::DrawLine(glm::vec3(0.f), glm::vec3(100.f), glm::vec4(0.f,1.f,0.f,1.f));
+		}
+
+		virtual void DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RVec3Arg inV3, JPH::ColorArg inColor, ECastShadow inCastShadow) override
+		{
+			// Implement
+			BOREALIS_CORE_ERROR("DrawTriangle not implemented");
+		}
+
+		virtual void DrawText3D(JPH::RVec3Arg inPosition, const string_view& inString, JPH::ColorArg inColor, float inHeight) override
+		{
+			// Implement
+			BOREALIS_CORE_ERROR("DrawText3D not implemented");
+		}
+	};
+
 	struct PhysicsSystemData
 	{
 		JPH::PhysicsSystem* mSystem;
 		JPH::TempAllocatorImpl* temp_allocator;
 		JPH::JobSystemThreadPool* job_system;
 		JPH::BodyInterface* body_interface;
+		MyDebugRenderer* debug_renderer;
+		BodyManager::DrawSettings draw_settings;
 		BPLayerInterfaceImpl* broad_phase_layer_interface;
 		ObjectVsBroadPhaseLayerFilterImpl* object_vs_broadphase_layer_filter;
 		ObjectLayerPairFilterImpl* object_vs_object_layer_filter;
@@ -420,11 +447,20 @@ namespace Borealis
 	// variant of this. We're going to use the locking version (even though we're not planning to access bodies from multiple threads)
 	sData.body_interface = &sData.mSystem->GetBodyInterface();
 
+	// Create a debug renderer
+	sData.debug_renderer = new MyDebugRenderer();
+	sData.draw_settings.mDrawShapeWireframe = true;
+
 	// Optional step: Before starting the physics simulation you can optimize the broad phase. This improves collision detection performance (it's pointless here because we only have 2 bodies).
 	// You should definitely not call this every frame or when e.g. streaming in a new level section as it is an expensive operation.
 	// Instead insert all new objects in batches instead of 1 at a time to keep the broad phase efficient.
 	sData.mSystem->OptimizeBroadPhase();
 }
+
+	void PhysicsSystem::DrawDebug()
+	{
+		sData.mSystem->DrawBodies(sData.draw_settings, sData.debug_renderer);
+	}
 
 	void PhysicsSystem::PushTransform(ColliderComponent& collider, TransformComponent& transform, RigidBodyComponent* rigidbody, Entity entity)
 	{

@@ -5,11 +5,11 @@ namespace Borealis
 {
     [BTNodeClass(NodeType.CONTROLFLOW)]
 
-    public class Sequencer : BehaviourNode
+    public class Selector : BehaviourNode
     {
         private int currentIndex;
 
-        public Sequencer()
+        public Selector()
         {
             currentIndex = 0;
         }
@@ -22,25 +22,25 @@ namespace Borealis
 
         protected override void OnUpdate(float dt, GameObject gameobject)
         {
-            if (currentIndex >= mChildren.Count)
-            {
-                OnSuccess();
-                return;
-            }
-
+            // if any child succeeds, node succeeds
+            // if all children fail, node fails
             BehaviourNode currentNode = mChildren[currentIndex];
+            Debug.Log(currentNode.GetName());
             currentNode.Tick(dt, gameobject);
 
-            if (currentNode.HasFailed())
+            if (currentNode.HasSucceeded() == true)
             {
-                OnFailure();
+                OnSuccess();
             }
-            else if (currentNode.HasSucceeded())
+            else if (currentNode.HasFailed() == true)
             {
-                currentIndex++;
-                if (currentIndex >= mChildren.Count)
+                // move to the next node
+                ++currentIndex;
+
+                // if we hit size, that means all nodes failed
+                if (currentIndex == mChildren.Count)
                 {
-                    OnSuccess();
+                    OnFailure();
                 }
             }
         }

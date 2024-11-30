@@ -292,7 +292,7 @@ namespace Borealis
 		Direction direction = Direction::Y;
 	};
 
-	struct CharacterControlComponent
+	struct CharacterControllerComponent
 	{
 		float mass = 1.f;
 		float strength = 1.f;
@@ -306,15 +306,15 @@ namespace Borealis
 		glm::vec3 targetVelocity = { 0,0,0 };
 		glm::vec3 inMovementDirection = { 0,0,0 };
 
-		CharacterControlComponent() = default;
-		~CharacterControlComponent()
+		CharacterControllerComponent() = default;
+		~CharacterControllerComponent()
 		{
 			if (controller)
 			{
 				delete controller;
 			}
 		}
-		CharacterControlComponent(const CharacterControlComponent&) = default;
+		CharacterControllerComponent(const CharacterControllerComponent&) = default;
 	};
 
 	struct LightComponent

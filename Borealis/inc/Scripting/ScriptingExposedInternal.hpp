@@ -114,6 +114,8 @@ namespace Borealis
 
 	void Entity_FindEntity(MonoString* name, UUID* ID);
 
+	void Entity_GetEntitiesFromLayer(int32_t layerNum, MonoArray** objectArray);
+
 	float Time_GetDeltaTime();
 
 	/*!***********************************************************************

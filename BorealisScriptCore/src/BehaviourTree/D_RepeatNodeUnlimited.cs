@@ -21,6 +21,7 @@ namespace Borealis
         protected override void OnUpdate(float dt, GameObject gameobject)
         {
             BehaviourNode child = mChildren.FirstOrDefault();
+            child.Tick(dt, gameobject);
             if (child.HasSucceeded() == true)
             {
                 if (counter == 4)// counter does not increment hence infinite repeat

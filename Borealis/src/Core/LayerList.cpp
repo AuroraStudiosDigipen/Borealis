@@ -115,9 +115,15 @@ namespace Borealis
 	{
 		mLayerEntities.clear();
 	}
-	std::unordered_set<UUID>& LayerList::getEntitiesAtLayer(int index)
+	bool LayerList::getEntitiesAtLayer(int index, std::unordered_set<UUID>* ptr)
 	{
-		return mLayerEntities[index];
+		if (mLayerEntities.find(index) != mLayerEntities.end())
+		{
+			*ptr = mLayerEntities[index];
+			return true;
+		}
+		else
+			return false;
 	}
 }
 

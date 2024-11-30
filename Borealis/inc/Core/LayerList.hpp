@@ -36,7 +36,7 @@ namespace Borealis
 		static void Reset();
 		static void initializeEntity(Entity entity);
 		static void resetEntities();
-		static std::unordered_set<UUID>& getEntitiesAtLayer(int index);
+		static bool getEntitiesAtLayer(int index, std::unordered_set<UUID>* layer);
 	private:
 		static std::unordered_map<int, std::string> mIndexToLayer;
 		static std::unordered_map<std::string, int> mLayerToIndex;

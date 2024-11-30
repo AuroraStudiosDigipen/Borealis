@@ -108,8 +108,8 @@ namespace Borealis
 
             if (ImGui::Button("Open") && selectedIndex >= 0)
             {
-                std::filesystem::path directoryPath(".");
-                std::string selectedTree = behaviorTrees[selectedIndex] + ".btree";
+                std::filesystem::path directoryPath(Project::GetAssetsPath());
+                std::string selectedTree = directoryPath.string() + "/" + behaviorTrees[selectedIndex] + ".btree";
                 LoadBehaviorTree(selectedTree);
 
                 ImGui::CloseCurrentPopup();
@@ -923,7 +923,7 @@ namespace Borealis
 
 
         std::vector<std::string> behaviorTrees;
-        std::filesystem::path directoryPath(".");
+        std::filesystem::path directoryPath(Project::GetAssetsPath());
         try {
             if (!std::filesystem::exists(directoryPath) || !std::filesystem::is_directory(directoryPath)) {
                 BOREALIS_CORE_ERROR("Directory does not exist or is not a directory: {}", directoryPath);

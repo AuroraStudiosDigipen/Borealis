@@ -117,17 +117,17 @@ namespace Borealis
 
 		static void move(ColliderComponent& rigidbody, glm::vec3 motion);
 
-		static void addCharacter(CharacterControlComponent& character, TransformComponent& transform, ColliderComponent& collider, UUID entityID);
+		static void addCharacter(CharacterControllerComponent& character, TransformComponent& transform, ColliderComponent& collider, UUID entityID);
 
-		static void FreeCharacter(CharacterControlComponent& character);
+		static void FreeCharacter(CharacterControllerComponent& character);
 
-		static void HandleInput(float inDeltaTime, CharacterControlComponent& controllerComp);
+		static void HandleInput(float inDeltaTime, CharacterControllerComponent& controllerComp);
 
 		static void PrePhysicsUpdate(float dt, void* Character);
 
-		static void PushCharacterTransform(CharacterControlComponent& character, glm::vec3 position, glm::vec3 rotation);
+		static void PushCharacterTransform(CharacterControllerComponent& character, glm::vec3 position, glm::vec3 rotation);
 
-		static void PullCharacterTransform(CharacterControlComponent& character, glm::vec3& position, glm::vec3& rotation);
+		static void PullCharacterTransform(CharacterControllerComponent& character, glm::vec3& position, glm::vec3& rotation);
 
 		static bool RayCast(glm::vec3 origin, glm::vec3 direction, float maxDistance, Bitset32 LayerMask);
 

@@ -26,7 +26,6 @@ namespace Borealis
 	{
 
 	public:
-		ScriptInstance(MonoObject* object);
 
 		/*!***********************************************************************
 			\brief

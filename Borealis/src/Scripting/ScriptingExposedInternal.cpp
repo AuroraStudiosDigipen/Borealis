@@ -16,6 +16,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scripting/ScriptingExposedInternal.hpp>
 #include <Scripting/ScriptingSystem.hpp>
 #include <Scripting/ScriptInstance.hpp>
+#include <Scripting/ScriptingUtils.hpp>
 #include <Scene/SceneManager.hpp>
 #include <Core/UUID.hpp>
 #include <Core/LoggerSystem.hpp>
@@ -28,7 +29,6 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/Renderer2D.hpp>
 #include <Assets/AssetManager.hpp>
 #include <Audio/AudioEngine.hpp>
-
 namespace Borealis
 {
 	std::unordered_map<std::string, HasComponentFn> GCFM::mHasComponentFunctions;
@@ -55,6 +55,7 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(Entity_GetComponent);
 		BOREALIS_ADD_INTERNAL_CALL(Entity_GetName);
 		BOREALIS_ADD_INTERNAL_CALL(Entity_SetName);
+		BOREALIS_ADD_INTERNAL_CALL(Entity_GetEntitiesFromLayer);
 
 
 		BOREALIS_ADD_INTERNAL_CALL(Time_GetDeltaTime);
@@ -387,6 +388,19 @@ namespace Borealis
 			}
 		}
 		*ID = 0;
+	}
+	void Entity_GetEntitiesFromLayer(int32_t layerNum, MonoArray** objectArray)
+	{
+		std::unordered_set<UUID> entities;
+		bool output = LayerList::getEntitiesAtLayer(layerNum, &entities);
+		*objectArray = mono_array_new(mono_domain_get(), mono_get_object_class(), entities.size());
+		int counter = 0;
+		for (auto id : entities)
+		{
+			MonoObject* obj;
+			InitGameObject(obj, id, "GameObject");
+			mono_array_set(*objectArray, MonoObject*, counter++, obj);
+		}
 	}
 	glm::vec3 Input_GetMousePosition()
 	{
@@ -1193,18 +1207,18 @@ namespace Borealis
 	void CharacterController_Move(uint64_t id, glm::vec3* motion)
 	{
 		Entity entity = SceneManager::GetActiveScene()->GetEntityByUUID(id);
-		if (entity.HasComponent<CharacterControlComponent>())
+		if (entity.HasComponent<CharacterControllerComponent>())
 		{
-			entity.GetComponent<CharacterControlComponent>().inMovementDirection = *motion;
+			entity.GetComponent<CharacterControllerComponent>().inMovementDirection = *motion;
 		}
 	
 	}
 	void CharacterController_IsGrounded(uint64_t id, bool* grounded)
 	{
 		Entity entity = SceneManager::GetActiveScene()->GetEntityByUUID(id);
-		if (entity.HasComponent<CharacterControlComponent>())
+		if (entity.HasComponent<CharacterControllerComponent>())
 		{
-			*grounded = PhysicsSystem::IsCharacterOnGround(entity.GetComponent<CharacterControlComponent>().controller);
+			*grounded = PhysicsSystem::IsCharacterOnGround(entity.GetComponent<CharacterControllerComponent>().controller);
 		}
 		else
 		{

@@ -530,7 +530,7 @@ namespace Borealis
 		}
 	}
 
-	void PhysicsSystem::PushCharacterTransform(CharacterControlComponent& character, glm::vec3 position, glm::vec3 rotation)
+	void PhysicsSystem::PushCharacterTransform(CharacterControllerComponent& character, glm::vec3 position, glm::vec3 rotation)
 	{
 		// Convert position (glm::vec3 to Jolt's RVec3)
 		JPH::RVec3 newPosition = JPH::RVec3(position.x, position.y, position.z);
@@ -546,7 +546,7 @@ namespace Borealis
 		reinterpret_cast<CharacterVirtual*>(character.controller)->SetRotation(newRotation);
 	}
 
-	void PhysicsSystem::PullCharacterTransform(CharacterControlComponent& character, glm::vec3& position, glm::vec3& rotation)
+	void PhysicsSystem::PullCharacterTransform(CharacterControllerComponent& character, glm::vec3& position, glm::vec3& rotation)
 	{
 		// Get position from the physics system (JPH::RVec3 to glm::vec3)
 		JPH::RVec3 newPosition = reinterpret_cast<CharacterVirtual*>(character.controller)->GetPosition();
@@ -705,7 +705,7 @@ namespace Borealis
 		sData.body_interface->SetLinearVelocity((BodyID)rigidbody.bodyID, JoltMotion);
 	}
 
-	void PhysicsSystem::addCharacter(CharacterControlComponent& character, TransformComponent& transform, ColliderComponent& collider, UUID entityID)
+	void PhysicsSystem::addCharacter(CharacterControllerComponent& character, TransformComponent& transform, ColliderComponent& collider, UUID entityID)
 	{
 		CharacterVirtualSettings settings;
 		ShapeRefC shape;
@@ -788,7 +788,7 @@ namespace Borealis
 		return mCharacter->GetGroundState() != CharacterVirtual::EGroundState::InAir;
 	}
 
-	void PhysicsSystem::HandleInput(float inDeltaTime, CharacterControlComponent& controllerComp)
+	void PhysicsSystem::HandleInput(float inDeltaTime, CharacterControllerComponent& controllerComp)
 	{
 		CharacterVirtual* mCharacter = reinterpret_cast<CharacterVirtual*>(controllerComp.controller);
 
@@ -862,7 +862,7 @@ namespace Borealis
 		}*/
 	}
 
-	void PhysicsSystem::FreeCharacter(CharacterControlComponent& character)
+	void PhysicsSystem::FreeCharacter(CharacterControllerComponent& character)
 	{
 
 		bodyIDMapUUID.erase(reinterpret_cast<CharacterVirtual*>(character.controller)->GetInnerBodyID().GetIndexAndSequenceNumber());

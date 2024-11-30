@@ -105,11 +105,13 @@ namespace Borealis
         internal extern static void Entity_GetName(ulong id, out string name);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void Entity_SetName(ulong id, string name);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void Entity_GetEntitiesFromLayer(int layer, out GameObject[] entities);
 
         #endregion
 
         #region TransformComponent
-        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+[MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void TransformComponent_GetTranslation(ulong id, out Vector3 translation);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]

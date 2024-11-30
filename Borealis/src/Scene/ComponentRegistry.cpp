@@ -203,15 +203,15 @@ namespace Borealis
             
             .property("Bounciness", &RigidBodyComponent::bounciness);
 
-        registration::class_<CharacterControlComponent>("Character Controller Component")
+        registration::class_<CharacterControllerComponent>("Character Controller Component")
             (metadata("Component", true))
             .constructor<>()
-            .property("Mass", &CharacterControlComponent::mass)
-            .property("Max Slope Angle", &CharacterControlComponent::slopeAngle)
-            .property("Max Strength", &CharacterControlComponent::strength)
-            .property("Inertia", &CharacterControlComponent::enableInertia)
-            .property("Sliding", &CharacterControlComponent::sliding)
-            .property("Move In Air", &CharacterControlComponent::moveInAir);
+            .property("Mass", &CharacterControllerComponent::mass)
+            .property("Max Slope Angle", &CharacterControllerComponent::slopeAngle)
+            .property("Max Strength", &CharacterControllerComponent::strength)
+            .property("Inertia", &CharacterControllerComponent::enableInertia)
+            .property("Sliding", &CharacterControllerComponent::sliding)
+            .property("Move In Air", &CharacterControllerComponent::moveInAir);
 
         registration::class_<SpriteRendererComponent>("Sprite Renderer Component")
             .constructor<>()

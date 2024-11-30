@@ -27,6 +27,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scene/SceneCamera.hpp>
 #include "Graphics/Light.hpp"
 #include <Physics/PhysicsSystem.hpp>
+#include <AI/BehaviourTree/BTreeFactory.hpp>
 #include <Core/LayerList.hpp>
 
 namespace Borealis
@@ -1314,6 +1315,31 @@ namespace Borealis
 			}
 		
 		}
+
+		auto behaviourTreeGroup = mRegistry.group<>(entt::get<TransformComponent, BehaviourTreeComponent>);
+		for (auto entity : behaviourTreeGroup)
+		{
+			auto [transform, btree] = behaviourTreeGroup.get<TransformComponent, BehaviourTreeComponent>(entity);
+			auto entityID = mRegistry.get<IDComponent>(entity).ID;
+
+			//BTreeFactory::Instance().PrintTree(btree.mBehaviourTreeData, btree.mBehaviourTreeData->RootNodeID);
+			if (btree.mBehaviourTreeData)
+			{
+				// Build the behavior tree
+				BehaviourNode rootNode{};
+				BTreeFactory::Instance().BuildBehaviourTreeFromData(btree.mBehaviourTreeData, rootNode);
+				if (!btree.mBehaviourTrees) {
+					btree.mBehaviourTrees = MakeRef<BehaviourTree>(); // or std::shared_ptr, depending on its type
+				}
+				// Assign to btree.mBehaviourTrees
+				btree.mBehaviourTrees->SetRootNode(rootNode);
+			}
+			else
+			{
+				BOREALIS_CORE_ERROR("BehaviourTreeData is null for entity {}", entityID);
+			}
+		}
+
 	}
 
 	void Scene::RuntimeEnd()

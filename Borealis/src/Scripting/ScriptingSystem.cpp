@@ -28,6 +28,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scene/SceneManager.hpp>
 #include <Scene/Components.hpp>
 #include <Scene/Entity.hpp>
+#include <AI/BehaviourTree/BehaviourNode.hpp>
+#include <AI/BehaviourTree/BTreeFactory.hpp>
 
 #include <Core/Project.hpp>
 
@@ -160,8 +162,10 @@ namespace Borealis
 		ScriptingSystem::RegisterCSharpClass(ScriptClass("Borealis", "GameObject", assembly));
 		ScriptingSystem::RegisterCSharpClass(ScriptClass("Borealis", "Object", assembly));
 
-		MonoClass* attributeClass = mono_class_from_name(mono_get_corlib(), "System", "Attribute");
+		ScriptingSystem::RegisterCSharpClass(ScriptClass("Borealis", "BehaviourNode", assembly));
 
+		MonoClass* attributeClass = mono_class_from_name(mono_get_corlib(), "System", "Attribute");
+		MonoClass* behaviourNodeClass = mono_class_from_name(assemblyImage, "Borealis", "BehaviourNode");
 
 		for (int32_t i = 0; i < numTypes; i++)
 		{
@@ -256,6 +260,11 @@ namespace Borealis
 		int32_t numTypes = mono_table_info_get_rows(typeDefinitionsTable);
 
 		MonoClass* monoBehaviour = GetScriptClassUtils("MonoBehaviour")->GetMonoClass();
+		MonoClass* behaviourNodeClass = GetScriptClassUtils("BehaviourNode")->GetMonoClass();	
+
+		BTreeFactory::Instance().mControlFlowNames.clear();
+		BTreeFactory::Instance().mDecoratorNames.clear();
+		BTreeFactory::Instance().mLeafNames.clear();
 
 		for (int32_t i = 0; i < numTypes; i++)
 		{
@@ -276,6 +285,38 @@ namespace Borealis
 			{
 				// Register attribute
 				ScriptingSystem::RegisterCSharpClass(ScriptClass(nameSpace, className, sData->mScriptAssembly));
+			}
+			else if (mono_class_is_subclass_of(currClass, behaviourNodeClass, false))
+			{
+				// Register attribute
+				ScriptingSystem::RegisterCSharpClass(ScriptClass(nameSpace, className, sData->mScriptAssembly));
+
+				// Check attribute
+				MonoCustomAttrInfo* attributeInfo = mono_custom_attrs_from_class(currClass);
+				if (attributeInfo)
+				{
+					auto attributeClass = mono_custom_attrs_get_attr(attributeInfo, GetScriptAttribute("BTNodeClass"));
+					if (attributeClass)
+					{
+						auto field = mono_class_get_field_from_name(mono_object_get_class(attributeClass), "nodeType");
+						NodeType nodeType;
+						mono_field_get_value(attributeClass, field, &nodeType);
+						switch (nodeType)
+						{
+						case NodeType::CONTROLFLOW:
+							BTreeFactory::Instance().mControlFlowNames.insert(className);
+							break;
+						case NodeType::DECORATOR:
+							BTreeFactory::Instance().mDecoratorNames.insert(className);
+							break;
+						case NodeType::LEAF:
+							BTreeFactory::Instance().mLeafNames.insert(className);
+							break;
+						default:
+							break;
+						}
+					}
+				}
 			}
 			else
 			{

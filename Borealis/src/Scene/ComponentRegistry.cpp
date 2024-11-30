@@ -40,7 +40,8 @@ namespace Borealis
         registration::class_<BehaviourTreeComponent>("Behaviour Tree Component")
             (metadata("Component", true))
             .constructor<>()
-            .property("Behaviour Tree", &BehaviourTreeComponent::mBehaviourTrees);
+            //.property("Behaviour Tree", &BehaviourTreeComponent::mBehaviourTrees)
+            .property("Behaviour Tree Data", &BehaviourTreeComponent::mBehaviourTreeData);
 
         registration::class_<BoxColliderComponent>("Box Collider Component")
             (metadata("Component", true))

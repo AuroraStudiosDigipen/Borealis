@@ -10,15 +10,6 @@
     <Filter Include="inc\AI\BehaviourTree">
       <UniqueIdentifier>{FCC42480-E853-AE49-9172-C2447DE0BEEF}</UniqueIdentifier>
     </Filter>
-    <Filter Include="inc\AI\BehaviourTree\ControlFlow">
-      <UniqueIdentifier>{64E4F1CC-5035-DD0E-7999-CBD065497078}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="inc\AI\BehaviourTree\Decorator">
-      <UniqueIdentifier>{EE081CF4-DA2E-E65A-C374-6B26AF390B27}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="inc\AI\BehaviourTree\Leaf">
-      <UniqueIdentifier>{832911B9-EFEB-4443-389C-D3CFA49D1D21}</UniqueIdentifier>
-    </Filter>
     <Filter Include="inc\Assets">
       <UniqueIdentifier>{218EE30A-0D46-2558-764D-FEB36224C048}</UniqueIdentifier>
     </Filter>
@@ -127,15 +118,6 @@
     <Filter Include="src\AI\BehaviourTree">
       <UniqueIdentifier>{CA2D163D-B6BC-9F06-5FDB-B3014B49B0AC}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\AI\BehaviourTree\ControlFlow">
-      <UniqueIdentifier>{32F2B8F5-1E43-A437-47A7-92F9335737A1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\AI\BehaviourTree\Decorator">
-      <UniqueIdentifier>{3C4B894C-2871-53B3-11B7-D87EFD7B787F}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\AI\BehaviourTree\Leaf">
-      <UniqueIdentifier>{1143AAAD-7D05-DE37-C6B5-6CC432B7B615}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\Assets">
       <UniqueIdentifier>{6FFD3E05-5BB5-8052-C4BC-59AEB0931B43}</UniqueIdentifier>
     </Filter>
@@ -188,36 +170,6 @@
       <Filter>inc\AI\BehaviourTree</Filter>
     </ClInclude>
     <ClInclude Include="inc\AI\BehaviourTree\BehaviourTree.hpp">
-      <Filter>inc\AI\BehaviourTree</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\AI\BehaviourTree\Blackboard.hpp">
-      <Filter>inc\AI\BehaviourTree</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\AI\BehaviourTree\ControlFlow\C_Sequencer.hpp">
-      <Filter>inc\AI\BehaviourTree\ControlFlow</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\AI\BehaviourTree\Decorator\D_Delay.hpp">
-      <Filter>inc\AI\BehaviourTree\Decorator</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\AI\BehaviourTree\Leaf\L_CheckMouseClick.hpp">
-      <Filter>inc\AI\BehaviourTree\Leaf</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\AI\BehaviourTree\Leaf\L_Idle.hpp">
-      <Filter>inc\AI\BehaviourTree\Leaf</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\AI\BehaviourTree\Leaf\L_RotatingMotion.hpp">
-      <Filter>inc\AI\BehaviourTree\Leaf</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\AI\BehaviourTree\NodeHeaderCodeFormat.hpp">
-      <Filter>inc\AI\BehaviourTree</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\AI\BehaviourTree\NodesDef.hpp">
-      <Filter>inc\AI\BehaviourTree</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\AI\BehaviourTree\RegisterNodes.hpp">
-      <Filter>inc\AI\BehaviourTree</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\AI\BehaviourTree\ScanForNewNodes.hpp">
       <Filter>inc\AI\BehaviourTree</Filter>
     </ClInclude>
     <ClInclude Include="inc\Assets\Asset.hpp">
@@ -2050,30 +2002,6 @@
       <Filter>src\AI\BehaviourTree</Filter>
     </ClCompile>
     <ClCompile Include="src\AI\BehaviourTree\BehaviourTree.cpp">
-      <Filter>src\AI\BehaviourTree</Filter>
-    </ClCompile>
-    <ClCompile Include="src\AI\BehaviourTree\ControlFlow\C_Sequencer.cpp">
-      <Filter>src\AI\BehaviourTree\ControlFlow</Filter>
-    </ClCompile>
-    <ClCompile Include="src\AI\BehaviourTree\Decorator\D_Delay.cpp">
-      <Filter>src\AI\BehaviourTree\Decorator</Filter>
-    </ClCompile>
-    <ClCompile Include="src\AI\BehaviourTree\Leaf\L_CheckMouseClick.cpp">
-      <Filter>src\AI\BehaviourTree\Leaf</Filter>
-    </ClCompile>
-    <ClCompile Include="src\AI\BehaviourTree\Leaf\L_Idle.cpp">
-      <Filter>src\AI\BehaviourTree\Leaf</Filter>
-    </ClCompile>
-    <ClCompile Include="src\AI\BehaviourTree\Leaf\L_RotatingMotion.cpp">
-      <Filter>src\AI\BehaviourTree\Leaf</Filter>
-    </ClCompile>
-    <ClCompile Include="src\AI\BehaviourTree\NodeHeaderCodeFormat.cpp">
-      <Filter>src\AI\BehaviourTree</Filter>
-    </ClCompile>
-    <ClCompile Include="src\AI\BehaviourTree\RegisterNodes.cpp">
-      <Filter>src\AI\BehaviourTree</Filter>
-    </ClCompile>
-    <ClCompile Include="src\AI\BehaviourTree\ScanForNewNodes.cpp">
       <Filter>src\AI\BehaviourTree</Filter>
     </ClCompile>
     <ClCompile Include="src\Assets\Asset.cpp">

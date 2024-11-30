@@ -29,6 +29,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/Font.hpp>
 #include <Graphics/Framebuffer.hpp>
 #include <AI/BehaviourTree/BehaviourTree.hpp>
+#include <AI/BehaviourTree/BTreeFactory.hpp>
 #include <Core/UUID.hpp>
 #include <Core/Bitset32.hpp>
 #include <Audio/Audio.hpp>
@@ -425,9 +426,11 @@ namespace Borealis
 		//		tree->Update(dt);
 		//	}
 		//}
-
+		Ref<BehaviourTreeData> mBehaviourTreeData;
 		Ref<BehaviourTree> mBehaviourTrees;
-
+		// List of names in tree-style
+		//TreeData -> AssetManager with ID
+		//BehaviourNode mRoot;
 		BehaviourTreeComponent() = default;
 		BehaviourTreeComponent(const BehaviourTreeComponent&) = default;
 	};

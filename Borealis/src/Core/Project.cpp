@@ -147,7 +147,7 @@ namespace Borealis
 
 	std::string Project::GetAssetsPath()
 	{
-		return std::string();
+		return mProjectInfo.AssetsPath.string();
 	}
 
 	void Project::SaveProject()

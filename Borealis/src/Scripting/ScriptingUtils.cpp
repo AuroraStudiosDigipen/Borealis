@@ -129,7 +129,9 @@ namespace Borealis
 
 	MonoObject* InstantiateClass(MonoClass* klass)
 	{
-		return mono_object_new(mono_domain_get(), klass);
+		auto classInstance = mono_object_new(mono_domain_get(), klass);
+		mono_runtime_object_init(classInstance);
+		return classInstance;
 	}
 	
 	std::vector<uint8_t> mono_array_to_vector(MonoArray* monoArray)

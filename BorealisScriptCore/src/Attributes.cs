@@ -35,4 +35,13 @@ namespace Borealis
             Type = ((int)type);
         }
     }
+    public class BTNodeClass : Attribute
+    {
+        public NodeType nodeType;
+
+        public BTNodeClass(NodeType nodeType)
+        {
+            this.nodeType = nodeType;
+        }
+    }
 }

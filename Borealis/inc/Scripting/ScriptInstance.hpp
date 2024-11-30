@@ -19,13 +19,15 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/Core.hpp>
 #include <Core/LoggerSystem.hpp>
 #include <Scripting/ScriptClass.hpp>
-#include <Scene/Entity.hpp>
 namespace Borealis
 {
 	// Specifically meant for MonoBehaviours, not for other classes
 	class ScriptInstance : public std::enable_shared_from_this<ScriptInstance>
 	{
+
 	public:
+		ScriptInstance(MonoObject* object);
+
 		/*!***********************************************************************
 			\brief
 				Constructor for Script Instances

@@ -322,4 +322,85 @@ namespace Borealis
         // If no group is found, return -1 or handle the case accordingly
         return -1;
     }
+
+    int AudioEngine::Play(Ref<Audio> audio, const Vector3& position, float volumeDB, bool looping, AudioGroup group)
+    {
+        if (!audio || !audio->audioPtr) {
+            std::cerr << "Invalid audio reference" << std::endl;
+            return -1;
+        }
+
+        int channelId = sgpImplementation->mnNextChannelId++;
+
+        FMOD::Channel* channel = nullptr;
+        FMOD::Sound* sound = audio->audioPtr;
+
+        // Play the sound with pausing enabled initially
+        ErrorCheck(sgpImplementation->mpSystem->playSound(sound, nullptr, true, &channel));
+
+        if (channel) {
+            // Set 3D attributes if the sound is in 3D mode
+            FMOD_MODE mode;
+            sound->getMode(&mode);
+            if (mode & FMOD_3D) {
+                FMOD_VECTOR fmodPosition = VectorToFmod(position);
+                FMOD_VECTOR velocity = { 0.0f, 0.0f, 0.0f };
+                ErrorCheck(channel->set3DAttributes(&fmodPosition, &velocity));
+            }
+
+            // Set additional properties
+            ErrorCheck(channel->setVolume(dbToVolume(volumeDB)));
+            ErrorCheck(channel->setPaused(false));
+            ErrorCheck(channel->setMode(looping ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF));
+
+            // Assign channel to a group
+            int groupId = static_cast<int>(group);
+            auto itGroup = sgpImplementation->mChannelGroups.find(groupId);
+            if (itGroup != sgpImplementation->mChannelGroups.end()) {
+                ErrorCheck(channel->setChannelGroup(itGroup->second));
+            }
+
+            // Store the channel
+            sgpImplementation->mChannels[channelId] = channel;
+        }
+
+        return channelId; // Return the channel ID for tracking
+    }
+
+    void AudioEngine::PlayOneShot(Ref<Audio> audio, const Vector3& position, float volumeDB, AudioGroup group)
+    {
+        if (!audio || !audio->audioPtr) {
+            std::cerr << "Invalid audio reference" << std::endl;
+            return;
+        }
+
+        FMOD::Channel* channel = nullptr;
+        FMOD::Sound* sound = audio->audioPtr;
+
+        // Play the sound with no need for tracking
+        ErrorCheck(sgpImplementation->mpSystem->playSound(sound, nullptr, true, &channel));
+
+        if (channel) {
+            // Set 3D attributes if the sound is in 3D mode
+            FMOD_MODE mode;
+            sound->getMode(&mode);
+            if (mode & FMOD_3D) {
+                FMOD_VECTOR fmodPosition = VectorToFmod(position);
+                FMOD_VECTOR velocity = { 0.0f, 0.0f, 0.0f };
+                ErrorCheck(channel->set3DAttributes(&fmodPosition, &velocity));
+            }
+
+            // Set additional properties
+            ErrorCheck(channel->setVolume(dbToVolume(volumeDB)));
+            ErrorCheck(channel->setPaused(false));
+            ErrorCheck(channel->setMode(FMOD_LOOP_OFF)); // PlayOneShot is always non-looping
+
+            // Assign to group if applicable
+            int groupId = static_cast<int>(group);
+            auto itGroup = sgpImplementation->mChannelGroups.find(groupId);
+            if (itGroup != sgpImplementation->mChannelGroups.end()) {
+                ErrorCheck(channel->setChannelGroup(itGroup->second));
+            }
+        }
+    }
 }

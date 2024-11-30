@@ -417,6 +417,7 @@ namespace Borealis
 		//RegisterComponent<BoxColliderComponent>();
 		//RegisterComponent<CapsuleColliderComponent>();
 		RegisterComponent<CharacterControllerComponent>();
+		RegisterComponent<AudioSourceComponent>();
 		RegisterComponent<OutLineComponent>();
 
 		//RegisterComponent<LightComponent>();

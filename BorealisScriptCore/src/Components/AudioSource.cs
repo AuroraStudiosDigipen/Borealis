@@ -16,6 +16,11 @@ namespace Borealis
             InternalCalls.AudioSource_PlayOneShot(InstanceID, volumeScale, clip.InstanceID);
         }
 
+        public void Play()
+        {
+            InternalCalls.AudioSource_Play(InstanceID);
+        }
+
         public AudioClip clip
         {
             get

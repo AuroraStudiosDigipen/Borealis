@@ -145,6 +145,7 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_GetClip);
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_SetClip);
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_PlayOneShot);
+		BOREALIS_ADD_INTERNAL_CALL(AudioSource_Play);
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_IsPlaying );
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_GetLooping);
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_SetLooping);
@@ -1270,10 +1271,22 @@ namespace Borealis
 				auto& transform = entity.GetComponent<TransformComponent>();
 				auto translate = transform.GetGlobalTranslate();
 				auto& audioSource = entity.GetComponent<AudioSourceComponent>();
-				AudioEngine::PlayAudio(audio, translate, audioSource.Volume, audioSource.isMute, audioSource.isLoop, audioSource.channelID);
+				AudioEngine::PlayOneShot(audio, translate, volume, audioSource.group);
 			}
 		}
 		
+	}
+	void AudioSource_Play(uint64_t ID)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(ID);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		auto& transform = entity.GetComponent<TransformComponent>();
+		auto translate = transform.GetGlobalTranslate();
+		auto& audioSource = entity.GetComponent<AudioSourceComponent>();
+		if (audioSource.audio)
+			AudioEngine::Play(audioSource.audio, translate, audioSource.Volume, audioSource.isLoop, audioSource.group);
 	}
 	void AudioSource_IsPlaying(uint64_t ID, bool* playing)
 	{

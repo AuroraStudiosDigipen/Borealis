@@ -89,7 +89,7 @@ namespace Borealis
         \return
             The ID of the channel where the sound is played.
         *************************************************************************/
-        static int PlayAudio(Ref<Audio> audio, const glm::vec3& vPosition = glm::vec3{ 0, 0, 0 }, float fVolumedB = 5.0f, bool bMute = false, bool bLoop = false, int groupId = -1);
+        static int PlayAudio(AudioSourceComponent& audio, const glm::vec3& vPosition = glm::vec3{ 0, 0, 0 }, float fVolumedB = 5.0f, bool bMute = false, bool bLoop = false, int groupId = -1);
 
         /*!***********************************************************************
         \brief
@@ -219,9 +219,9 @@ namespace Borealis
 
         static int mDefaultGroupI; /*!< The default audio group ID */
 
-        int Play(Ref<Audio> audio, const Vector3& position, float volumeDB, bool looping, AudioGroup group);
+        static int Play(Ref<Audio> audio, const glm::vec3& position, float volumeDB, bool looping, AudioGroup group);
 
-        void PlayOneShot(Ref<Audio> audio, const Vector3& position, float volumeDB, AudioGroup group);
+        static void PlayOneShot(Ref<Audio> audio, const glm::vec3& position, float volumeDB, AudioGroup group);
 
     private:
         static std::map<int, float> mGroupVolumes; /*!< Map of group IDs and their volume levels */

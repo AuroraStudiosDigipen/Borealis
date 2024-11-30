@@ -138,6 +138,8 @@ namespace Borealis
 
 		static bool IsCharacterOnGround(void* Character);
 
+		static void UpdateScale(ColliderComponent& collider, TransformComponent& transform, RigidBodyComponent& rigidbody);
+
 		static bool shouldDebugDraw;
 
 		static bool DebugDrawGet(); 

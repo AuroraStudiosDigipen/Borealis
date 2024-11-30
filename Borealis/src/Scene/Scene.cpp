@@ -636,7 +636,7 @@ namespace Borealis
 					{
 						AudioEngine::StopChannel(audio.channelID);
 						audio.isPlaying = false;
-						audio.channelID = Borealis::AudioEngine::PlayAudio(audio.audio, transform.GetGlobalTranslate(), audio.Volume, audio.isMute, audio.isLoop, 0);
+						audio.channelID = Borealis::AudioEngine::PlayAudio(audio, transform.GetGlobalTranslate(), audio.Volume, audio.isMute, audio.isLoop, 0);
 						//audio.channelID = Borealis::AudioEngine::PlayAudio(audio.audio->AudioPath, {}, audio.Volume, audio.isMute, audio.isLoop);
 					}
 				}

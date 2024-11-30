@@ -11,6 +11,7 @@
 #include <Assets/AssetMetaData.hpp>
 #include <glm/glm.hpp>
 
+
 namespace Borealis
 {
     /*!***********************************************************************
@@ -217,6 +218,10 @@ namespace Borealis
         static Ref<Asset> Load(AssetMetaData const& assetMetaData);
 
         static int mDefaultGroupI; /*!< The default audio group ID */
+
+        int Play(Ref<Audio> audio, const Vector3& position, float volumeDB, bool looping, AudioGroup group);
+
+        void PlayOneShot(Ref<Audio> audio, const Vector3& position, float volumeDB, AudioGroup group);
 
     private:
         static std::map<int, float> mGroupVolumes; /*!< Map of group IDs and their volume levels */

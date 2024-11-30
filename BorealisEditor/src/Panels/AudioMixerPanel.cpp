@@ -37,14 +37,15 @@ namespace Borealis
         ImGui::Separator();
 
         // Render each audio group and control its volume
-        for (auto& [groupName, groupData] : mAudioGroups)
+        /*for (auto& [group, groupData] : mAudioGroups)
         {
+            const char* groupName = GetAudioGroupName(group);
             float& volume = groupData.volume;
-            if (ImGui::SliderFloat(groupName.c_str(), &volume, 0.0f, 1.0f))
+            if (ImGui::SliderFloat(groupName, &volume, 0.0f, 1.0f))
             {
-                SetGroupVolume(groupName, volume);
+                SetGroupVolume(group, volume);
             }
-        }
+        }*/
 
         //// Add group assignment for each AudioSourceComponent
         //for (auto& entity : mRegistry.view<AudioSourceComponent>())
@@ -87,14 +88,14 @@ namespace Borealis
         }
     }
 
-    void AudioMixerPanel::SetGroupVolume(const std::string& groupName, float volume)
-    {
-        auto it = mAudioGroups.find(groupName);
-        if (it != mAudioGroups.end())
-        {
-            int groupId = it->second.id;
-            it->second.volume = volume;
-            AudioEngine::SetGroupVolume(groupId, volume);
-        }
-    }
+    //void AudioMixerPanel::SetGroupVolume(const AudioGroup group, float volume)
+    //{
+    //    int groupId = static_cast<int>(group);  // Convert enum to integer
+    //    auto it = mAudioGroups.find(groupId);
+    //    if (it != mAudioGroups.end())
+    //    {
+    //        it->second.volume = volume;
+    //        AudioEngine::SetGroupVolume(groupId, volume);
+    //    }
+    //}
 }

@@ -33,6 +33,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/UUID.hpp>
 #include <Core/Bitset32.hpp>
 #include <Audio/Audio.hpp>
+#include <Audio/AudioGroup.hpp>
 
 
 namespace Borealis
@@ -385,7 +386,7 @@ namespace Borealis
 	
 	struct AudioSourceComponent
 	{
-		std::string groupName;
+		Borealis::AudioGroup group = Borealis::AudioGroup::Master;
 		bool isLoop = false;
 		bool isMute = false;
 		bool isPlaying = false;

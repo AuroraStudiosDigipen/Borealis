@@ -472,9 +472,10 @@ namespace Borealis
 		}
 
 		Renderer3D::BeginCommonShapes(viewProjMatrix);
-
+		Frustum frustum = ComputeFrustum(viewProjMatrix);
 		//mesh pass
 		{
+			static Ref<Shader> materialShader = nullptr;
 			auto group = registryPtr->group<>(entt::get<TransformComponent, MeshFilterComponent, MeshRendererComponent>);
 			for (auto& entity : group)
 			{
@@ -489,7 +490,6 @@ namespace Borealis
 
 				if (!meshFilter.Model || !meshRenderer.Material || !meshRenderer.active) continue;
 
-				Frustum frustum = ComputeFrustum(viewProjMatrix);
 				BoundingSphere modelBoundingSphere = meshFilter.Model->mBoundingSphere;
 				modelBoundingSphere.Transform(transform.GetGlobalTransform());
 
@@ -500,24 +500,27 @@ namespace Borealis
 					continue;
 				}
 
-				Ref<Shader> materialShader = meshRenderer.Material->GetShader();
+				if (!materialShader || materialShader != meshRenderer.Material->GetShader())
+				{
+					materialShader = meshRenderer.Material->GetShader();
+					Renderer3D::Begin(viewProjMatrix, materialShader);
 
-				Renderer3D::Begin(viewProjMatrix, materialShader);
 
+					SetShadowAndLight(shadowMap, materialShader, registryPtr, camera);
+					Renderer3D::SetLights(materialShader);
+				}
 
-				SetShadowAndLight(shadowMap, materialShader, registryPtr, camera);
 				renderTarget->Bind();
-				Renderer3D::SetLights(materialShader);
 				Renderer3D::DrawMesh(transform.GetGlobalTransform(), meshFilter, meshRenderer, materialShader, (int)entity);
 
-				if(Renderer3D::GetGlobalWireFrameMode())
+				if (Renderer3D::GetGlobalWireFrameMode())
 				{
 					AABB modelAABB = meshFilter.Model->mAABB;
 					modelAABB.Transform(transform.GetGlobalTransform());
 					if (brEntity.HasComponent<BoxColliderComponent>())
 					{
 						auto& rigidbody = brEntity.GetComponent<BoxColliderComponent>();
-						glm::vec3 half = {rigidbody.size.x/2, rigidbody.size.y/2, rigidbody.size.z/2};
+						glm::vec3 half = { rigidbody.size.x / 2, rigidbody.size.y / 2, rigidbody.size.z / 2 };
 						Renderer3D::DrawCube(rigidbody.center, -half, half, { 0.f,1.f,0.f,1.f }, true);
 						//rigidbody.minExtent = modelAABB.minExtent;
 						//rigidbody.maxExtent = modelAABB.maxExtent;
@@ -526,7 +529,9 @@ namespace Borealis
 				}
 				renderTarget->Unbind();
 			}
+			materialShader = nullptr;
 		}
+
 
 		//skinned mesh pass
 		{
@@ -543,7 +548,6 @@ namespace Borealis
 
 				if (!skinnedMesh.SkinnnedModel || !skinnedMesh.Material) continue;
 
-				Frustum frustum = ComputeFrustum(viewProjMatrix);
 
 				Ref<Shader> materialShader = skinnedMesh.Material->GetShader();
 
@@ -575,7 +579,7 @@ namespace Borealis
 						{
 							materialShader->Bind();
 							materialShader->Set("u_HasAnimation", true);
-							auto transforms = animatorComponent.animator.GetFinalBoneMatrices();
+							auto transforms =  animatorComponent.animator.GetFinalBoneMatrices();
 							for (int i = 0; i < transforms.size(); ++i)
 							{
 								std::string str = "u_FinalBonesMatrices[" + std::to_string(i) + "]";
@@ -694,6 +698,7 @@ namespace Borealis
 		if (shader) shader->Bind();
 		shader->Set("u_lightPass", false);
 		Ref<FrameBuffer> gBuffer = nullptr;
+		glm::mat4 viewProjMatrix{};
 		for (auto sink : sinkList)
 		{
 			if (sink->source)
@@ -715,11 +720,12 @@ namespace Borealis
 
 				if (sourcePtr->sourceType == RenderSourceType::Camera)
 				{
-					glm::mat4 viewProj = std::dynamic_pointer_cast<CameraSource>(sourcePtr)->GetViewProj();
-					shader->Set("u_ViewProjection", viewProj);
+					viewProjMatrix = std::dynamic_pointer_cast<CameraSource>(sourcePtr)->GetViewProj();
+					shader->Set("u_ViewProjection", viewProjMatrix);
 				}
 			}
 		}
+		Frustum frustum = ComputeFrustum(viewProjMatrix);
 
 		{
 			RenderCommand::DisableBlend();
@@ -733,6 +739,17 @@ namespace Borealis
 				}
 				auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
 				if (!meshRenderer.active) { continue; }
+
+				BoundingSphere modelBoundingSphere = meshFilter.Model->mBoundingSphere;
+				modelBoundingSphere.Transform(transform.GetGlobalTransform());
+
+
+				if (CullBoundingSphere(frustum, modelBoundingSphere))
+				{
+					//BOREALIS_CORE_INFO("Culling entity {}", (int)entity);
+					continue;
+				}
+
 				Renderer3D::DrawMesh(transform.GetGlobalTransform(), meshFilter, meshRenderer, shader,(int)entity);
 			}
 			RenderCommand::EnableBlend();
@@ -887,6 +904,7 @@ namespace Borealis
 				break; //TODO 1 shadow for now
 			}
 
+			Frustum frustum = ComputeFrustum(viewProjMatrix);
 
 			if(!directionalLight)
 			{
@@ -902,6 +920,18 @@ namespace Borealis
 						}
 						auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
 						if (!meshRenderer.active) { continue; }
+
+						BoundingSphere modelBoundingSphere = meshFilter.Model->mBoundingSphere;
+						modelBoundingSphere.Transform(transform.GetGlobalTransform());
+
+
+						if (CullBoundingSphere(frustum, modelBoundingSphere))
+						{
+							//BOREALIS_CORE_INFO("Culling entity {}", (int)entity);
+							continue;
+						}
+
+
 
 						RenderCommand::EnableFrontFaceCull();
 						Renderer3D::DrawMesh(transform.GetGlobalTransform(), meshFilter, meshRenderer, shader, (int)entity);
@@ -926,6 +956,17 @@ namespace Borealis
 					}
 					auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
 					if (!meshRenderer.active) { continue; }
+
+					BoundingSphere modelBoundingSphere = meshFilter.Model->mBoundingSphere;
+					modelBoundingSphere.Transform(transform.GetGlobalTransform());
+
+
+					if (CullBoundingSphere(frustum, modelBoundingSphere))
+					{
+						//BOREALIS_CORE_INFO("Culling entity {}", (int)entity);
+						continue;
+					}
+
 
 					RenderCommand::EnableFrontFaceCull();
 					Renderer3D::DrawHighlightedMesh(transform.GetGlobalTransform(), meshFilter, cascade_shadow_shader);

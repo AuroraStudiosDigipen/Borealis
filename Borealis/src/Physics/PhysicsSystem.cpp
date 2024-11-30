@@ -869,7 +869,11 @@ namespace Borealis
 		bodySensorMap.erase(reinterpret_cast<CharacterVirtual*>(character.controller)->GetInnerBodyID().GetIndexAndSequenceNumber());
 
 		if(character.controller)
-		delete character.controller;
+		{
+			auto InnerID = reinterpret_cast<CharacterVirtual*>(character.controller)->GetInnerBodyID();
+			delete character.controller;
+			sData.mSystem->GetBodyInterface().RemoveBody(InnerID);
+		}
 
 
 		character.controller = nullptr;
@@ -1014,6 +1018,20 @@ namespace Borealis
 		if (boxPtr)
 		{
 			glm::vec3 size = { boxPtr->size.x * 0.5f * transform.Scale.x, boxPtr->size.y * 0.5f * transform.Scale.y, boxPtr->size.z * 0.5f * transform.Scale.z };
+			if (size.x < 0)
+			{
+				size.x = -size.x;
+			}
+
+			if (size.y < 0)
+			{
+				size.y = -size.y;
+			}
+
+			if (size.z < 0)
+			{
+				size.z = -size.z;
+			}
 			BoxShapeSettings box_shape_settings(Vec3(size.x, size.y, size.z));
 			box_shape_settings.SetEmbedded();
 			shape_result = box_shape_settings.Create();

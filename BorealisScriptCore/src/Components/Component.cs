@@ -12,6 +12,19 @@
                 InstanceID = value.InstanceID;
             }
         }
+
+        public new string name
+        {
+            get
+            {
+                InternalCalls.Entity_GetName(InstanceID, out string name);
+                return name;
+            }
+            set
+            {
+                InternalCalls.Entity_SetName(InstanceID, value);
+            }
+        }
         public Transform transform
         {
             get

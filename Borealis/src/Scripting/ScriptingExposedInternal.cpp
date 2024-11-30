@@ -31,9 +31,9 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace Borealis
 {
-	std::unordered_map<MonoType*, HasComponentFn> GCFM::mHasComponentFunctions;
-	std::unordered_map<MonoType*, AddComponentFn> GCFM::mAddComponentFunctions;
-	std::unordered_map<MonoType*, RemoveComponentFn> GCFM::mRemoveComponentFunctions;
+	std::unordered_map<std::string, HasComponentFn> GCFM::mHasComponentFunctions;
+	std::unordered_map<std::string, AddComponentFn> GCFM::mAddComponentFunctions;
+	std::unordered_map<std::string, RemoveComponentFn> GCFM::mRemoveComponentFunctions;
 #define BOREALIS_ADD_INTERNAL_CALL(Name) mono_add_internal_call("Borealis.InternalCalls::" #Name, Name)
 	void RegisterInternals()
 	{
@@ -234,15 +234,17 @@ namespace Borealis
 		}
 
 		MonoType* CPPType = mono_reflection_type_get_type(reflectionType);
-		if (GCFM::mRemoveComponentFunctions.find(CPPType) != GCFM::mRemoveComponentFunctions.end())
+		char* typeName = mono_type_get_name(CPPType);
+		std::string strName(typeName);
+		mono_free(typeName);
+		if (GCFM::mRemoveComponentFunctions.find(strName) != GCFM::mRemoveComponentFunctions.end())
 		{
-			GCFM::mRemoveComponentFunctions.at(CPPType)(Entity);
+			GCFM::mRemoveComponentFunctions.at(strName)(Entity);
 		}
 		else
 		{
 			BOREALIS_CORE_WARN("Failed to create component: Entity.RemoveComponent");
-			char* typeName = mono_type_get_name(CPPType);
-			mono_free(typeName);
+			
 			return;
 		}
 	}
@@ -264,15 +266,16 @@ namespace Borealis
 		}
 
 		MonoType* CPPType = mono_reflection_type_get_type(reflectionType);
-		if (GCFM::mAddComponentFunctions.find(CPPType) != GCFM::mAddComponentFunctions.end())
+		char* typeName = mono_type_get_name(CPPType);
+		std::string strName(typeName);
+		mono_free(typeName);
+		if (GCFM::mAddComponentFunctions.find(typeName) != GCFM::mAddComponentFunctions.end())
 		{
-			GCFM::mAddComponentFunctions.at(CPPType)(Entity);
+			GCFM::mAddComponentFunctions.at(typeName)(Entity);
 		}
 		else
 		{
 			BOREALIS_CORE_WARN("Failed to create component: Entity.AddComponent");
-			char* typeName = mono_type_get_name(CPPType);
-			mono_free(typeName);
 			return;
 		}
 	}
@@ -294,15 +297,17 @@ namespace Borealis
 		}
 
 		MonoType* CPPType = mono_reflection_type_get_type(reflectionType);
-		if (GCFM::mHasComponentFunctions.find(CPPType) != GCFM::mHasComponentFunctions.end())
+		char* typeName = mono_type_get_name(CPPType);
+		std::string strName(typeName);
+		mono_free(typeName);
+
+		if (GCFM::mHasComponentFunctions.find(strName) != GCFM::mHasComponentFunctions.end())
 		{
-			return GCFM::mHasComponentFunctions.at(CPPType)(Entity);
+			return GCFM::mHasComponentFunctions.at(strName)(Entity);
 		}
 		else
 		{
 			BOREALIS_CORE_WARN("Failed to create component: Entity.HasComponent");
-			char* typeName = mono_type_get_name(CPPType);
-			mono_free(typeName);
 			return false;
 		}
 	}

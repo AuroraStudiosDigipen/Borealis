@@ -311,11 +311,15 @@ namespace Borealis
 		}
 		MonoType* managedType = mono_reflection_type_from_name(typeName.data(), mono_assembly_get_image(sData->mRoslynAssembly));
 
+
 		if (managedType)
 		{
-			GCFM::mHasComponentFunctions[managedType] = [](Entity& entity) { return entity.HasComponent<T>(); };
-			GCFM::mAddComponentFunctions[managedType] = [](Entity& entity) { entity.AddComponent<T>(); };
-			GCFM::mRemoveComponentFunctions[managedType] = [](Entity& entity) { entity.GetComponent<T>(); };
+			auto name = mono_type_get_name(managedType);
+			std::string strName(name);
+			mono_free(name);
+			GCFM::mHasComponentFunctions[strName] = [](Entity& entity) { return entity.HasComponent<T>(); };
+			GCFM::mAddComponentFunctions[strName] = [](Entity& entity) { entity.AddComponent<T>(); };
+			GCFM::mRemoveComponentFunctions[strName] = [](Entity& entity) { entity.GetComponent<T>(); };
 		}
 		else
 		{
@@ -332,10 +336,12 @@ namespace Borealis
 		//RegisterComponent<TagComponent>();
 		//RegisterComponent<CircleRendererComponent>();
 		//RegisterComponent<MeshFilterComponent>();
-		//RegisterComponent<MeshRendererComponent>();
+		RegisterComponent<MeshRendererComponent>();
 		//RegisterComponent<BoxColliderComponent>();
 		//RegisterComponent<CapsuleColliderComponent>();
-		//RegisterComponent<RigidBodyComponent>();
+		RegisterComponent<RigidBodyComponent>();
+		RegisterComponent<OutLineComponent>();
+
 		//RegisterComponent<LightComponent>();
 
 	}

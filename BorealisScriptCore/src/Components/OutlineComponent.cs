@@ -3,12 +3,12 @@
 namespace Borealis
 {
     [NativeComponent]
-    public class OutlineComponent : Component
+    public class OutLine : Component
     {
-        public OutlineComponent()
+        public OutLine()
         {
         }
-        public OutlineComponent(ulong id)
+        public OutLine(ulong id)
         {
             InstanceID = id;
             gameObject = new GameObject(id);

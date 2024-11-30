@@ -1,7 +1,7 @@
 #type vertex
 #version 410 core
 			
-layout(location = 0) in vec3 a_Position;
+layout(location = 0) in vec3 a_Position; //pack into more compressed formats, switch to Structs of arrays
 layout(location = 1) in vec3 a_Normal;
 layout(location = 2) in vec2 a_TexCoord;
 layout(location = 3) in vec3 a_Tangent;
@@ -11,14 +11,14 @@ layout(location = 6) in vec4 weights;
 
 //default variables
 uniform mat4 u_ModelTransform;
-uniform mat4 u_ViewProjection;
+uniform mat4 u_ViewProjection; //move to uniform buffer object
 uniform int u_EntityID;
 
 //Animation variables
 uniform bool u_HasAnimation;
 const int MAX_BONES = 128;
 const int MAX_BONE_INFLUENCE = 4;
-uniform mat4 u_FinalBonesMatrices[MAX_BONES];
+uniform mat4 u_FinalBonesMatrices[MAX_BONES]; //move to uniform buffer objects
 
 //shadow pass variables
 uniform bool shadowPass;
@@ -40,21 +40,22 @@ void ShadowPass()
 
 void Render3DPass()
 {
-	v_TexCoord = vec2(a_TexCoord.x, 1.0 - a_TexCoord.y); //flip the texture
+	v_TexCoord = vec2(a_TexCoord.x, 1.0 - a_TexCoord.y); //flip the texture //switch to compressonator
 
 	v_FragPos = vec3(u_ModelTransform * vec4(a_Position, 1.0));
 	
-	mat3 normalMatrix = transpose(inverse(mat3(u_ModelTransform)));
+	mat3 normalMatrix = transpose(inverse(mat3(u_ModelTransform))); //calculate T and N in compiler
     vec3 N = normalize(normalMatrix * a_Normal);
     vec3 T = normalize(normalMatrix * a_Tangent);
     T = normalize(T - dot(T, N) * N); // Gram-Schmidt orthogonalization
     vec3 B = cross(N, T);
-	//animation
-	vec4 TotalPosition = vec4(0.f);
 
     if(u_HasAnimation)
     {	
-		vec3 weightedNormal = vec3(0.0);
+		//animation
+		vec4 TotalPosition = vec4(0.f);
+
+		//vec3 weightedNormal = vec3(0.0);
         for(int i = 0 ; i < MAX_BONE_INFLUENCE ; i++)
         {
             if(boneIds[i] == -1) 
@@ -67,15 +68,12 @@ void Render3DPass()
             vec4 localPosition = u_FinalBonesMatrices[boneIds[i]] * vec4(a_Position,1.0f);
             TotalPosition += localPosition * weights[i];
 			
-			weightedNormal += weights[i] * mat3(u_FinalBonesMatrices[boneIds[i]]) * a_Normal;
+			//weightedNormal += weights[i] * mat3(u_FinalBonesMatrices[boneIds[i]]) * a_Normal;
 
 			//Need to apply weightedTangent and BitTangent as well
         }
-		N = normalize(weightedNormal);
-    }
+		//N = normalize(weightedNormal);
 
-	if(u_HasAnimation)
-	{
 		gl_Position = u_ViewProjection * u_ModelTransform * TotalPosition;	
 		v_LightPos = u_LightViewProjection * u_ModelTransform * TotalPosition;
 	}
@@ -109,7 +107,7 @@ void main()
 layout(location = 0) out vec4 fragColor;
 layout(location = 1) out int entityIDs;
 
-struct Material {
+struct Material { //move to uniform buffer object
 	sampler2D albedoMap;
 	sampler2D specularMap;
 	sampler2D metallicMap;
@@ -137,7 +135,7 @@ struct Material {
 	bool hasHeightMap;
 };
 
-struct Light 
+struct Light //move to uniform buffer object
 {
 	int type; // 0 = Spotlight, 1 = Directional , 2 = Point
 	vec3 position;
@@ -348,45 +346,6 @@ vec3 ComputePointLight(Light light, vec3 normal, vec3 viewDir)
 
 vec3 ComputeSpotLight(Light light, vec3 normal, vec3 viewDir)
 {
-	// vec3 lightDir = normalize(light.position - v_FragPos);
-
-	// float distance = length(light.position - v_FragPos);
-    // float attenuation = 1.0 / (1.0 + light.linear * distance + light.quadratic * distance * distance); 
-
-	// // ambient
-	// vec3 ambient = light.ambient * GetAlbedoColor().rgb;
-	// vec3 color = ambient;
-	// float metallic = GetMetallic();
-	// vec3 emission = GetEmission();
-
-	// vec3 halfwayDir = normalize(lightDir + viewDir);
-
-    // float diff = max(dot(normal, lightDir), 0.0);
-
-    // if (diff > 0.0)
-    // {
-    //     float spec = pow(max(dot(normal, halfwayDir), 0.0), u_Material.shininess * u_Material.smoothness);
-
-    //     float theta = dot(lightDir, normalize(-light.direction)); 
-
-    //     float epsilon = light.innerOuterAngle.x - light.innerOuterAngle.y;
-    //     float intensity = clamp((theta - light.innerOuterAngle.y) / epsilon, 0.0, 1.0); 
-
-    //     vec3 diffuse = light.diffuse * diff * (1.0 - metallic);
-    //     vec3 specular = light.specular * spec * GetSpecular() * metallic;
-
-	// 	ambient *= intensity * attenuation;
-	// 	diffuse *= intensity * attenuation;
-	// 	specular *= intensity * attenuation;
-
-	// 	//temp
-	// 	float shadowFactor = GetShadowFactor();
-
-    //     color = ambient + shadowFactor * (diffuse + specular + emission);
-    // }
-
-	// return color;
-
 	vec3 lightDir = normalize(light.position - v_FragPos);
 	float distance = length(light.position - v_FragPos);
 

@@ -872,17 +872,21 @@ namespace Borealis
 		mEntityMap.erase(entity.GetUUID());
 		if (hasRuntimeStarted)
 		{
-			if (entity.HasComponent<BoxColliderComponent>())
+			if (entity.HasComponent<CharacterControlComponent>())
+			{
+				PhysicsSystem::FreeCharacter(entity.GetComponent<CharacterControlComponent>());
+			}
+			else if (entity.HasComponent<BoxColliderComponent>())
 			{
 				PhysicsSystem::FreeRigidBody(entity.GetComponent<BoxColliderComponent>());
 				entity.GetComponent<BoxColliderComponent>().rigidBody = nullptr;
 			}
-			if (entity.HasComponent<SphereColliderComponent>())
+			else if (entity.HasComponent<SphereColliderComponent>())
 			{
 				PhysicsSystem::FreeRigidBody(entity.GetComponent<SphereColliderComponent>());
 				entity.GetComponent<SphereColliderComponent>().rigidBody = nullptr;
 			}
-			if (entity.HasComponent<CapsuleColliderComponent>())
+			else if (entity.HasComponent<CapsuleColliderComponent>())
 			{
 				PhysicsSystem::FreeRigidBody(entity.GetComponent<CapsuleColliderComponent>());
 				entity.GetComponent<CapsuleColliderComponent>().rigidBody = nullptr;
@@ -1315,10 +1319,20 @@ namespace Borealis
 	void Scene::RuntimeEnd()
 	{
 		hasRuntimeStarted = false;
+
+		{
+			auto characterView = mRegistry.view<CharacterControlComponent>();
+			for (auto entity : characterView)
+			{
+				PhysicsSystem::FreeCharacter(characterView.get<CharacterControlComponent>(entity));
+			}
+		}
+
 		{
 			auto boxView = mRegistry.view<BoxColliderComponent>();
 			for (auto entity : boxView)
 			{
+				if (!mRegistry.storage<CharacterControlComponent>().contains(entity))
 				PhysicsSystem::FreeRigidBody(boxView.get<BoxColliderComponent>(entity));
 			}
 		}
@@ -1327,6 +1341,7 @@ namespace Borealis
 			auto capsuleView = mRegistry.view<CapsuleColliderComponent>();
 			for (auto entity : capsuleView)
 			{
+				if (!mRegistry.storage<CharacterControlComponent>().contains(entity))
 				PhysicsSystem::FreeRigidBody(capsuleView.get<CapsuleColliderComponent>(entity));
 			}
 		}
@@ -1335,6 +1350,7 @@ namespace Borealis
 			auto sphereView = mRegistry.view<SphereColliderComponent>();
 			for (auto entity : sphereView)
 			{
+				if (!mRegistry.storage<CharacterControlComponent>().contains(entity))
 				PhysicsSystem::FreeRigidBody(sphereView.get<SphereColliderComponent>(entity));
 			}
 		}

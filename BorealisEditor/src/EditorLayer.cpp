@@ -227,10 +227,10 @@ namespace Borealis {
 
 			//forward rendering
 			{
-				RenderPassConfig SkyBoxPass(RenderPassType::SkyboxPass, "SkyBox");
-				SkyBoxPass.AddSinkLinkage("renderTarget", "RunTimeBuffer");
-				SkyBoxPass.AddSinkLinkage("camera", "RunTimeCamera");
-				fconfig.AddPass(SkyBoxPass);
+				//RenderPassConfig SkyBoxPass(RenderPassType::SkyboxPass, "SkyBox");
+				//SkyBoxPass.AddSinkLinkage("renderTarget", "RunTimeBuffer");
+				//SkyBoxPass.AddSinkLinkage("camera", "RunTimeCamera");
+				//fconfig.AddPass(SkyBoxPass);
 
 				RenderPassConfig shadowPass(RenderPassType::Shadow, "ShadowPass");
 				shadowPass.AddSinkLinkage("shadowMap", "ShadowMapBuffer");
@@ -261,10 +261,10 @@ namespace Borealis {
 
 			//forward rendering editor
 			{
-				RenderPassConfig editorSkyBoxPass(RenderPassType::SkyboxPass, "editorSkyBox");
-				editorSkyBoxPass.AddSinkLinkage("renderTarget", "EditorBuffer");
-				editorSkyBoxPass.AddSinkLinkage("camera", "EditorCamera");
-				fconfig.AddPass(editorSkyBoxPass);
+				//RenderPassConfig editorSkyBoxPass(RenderPassType::SkyboxPass, "editorSkyBox");
+				//editorSkyBoxPass.AddSinkLinkage("renderTarget", "EditorBuffer");
+				//editorSkyBoxPass.AddSinkLinkage("camera", "EditorCamera");
+				//fconfig.AddPass(editorSkyBoxPass);
 
 				RenderPassConfig editorShadowPass(RenderPassType::Shadow, "editorShadowPass");
 				editorShadowPass.AddSinkLinkage("shadowMap", "ShadowMapBuffer")
@@ -296,12 +296,12 @@ namespace Borealis {
 					.AddSinkLinkage("MouseSource", "MouseSource");
 				fconfig.AddPass(ObjectPicking);
 
-				RenderPassConfig editorHighlightPass(RenderPassType::EditorHighlightPass, "EditorHighlight");
-				editorHighlightPass.AddSinkLinkage("camera", "EditorCamera")
-					.AddSinkLinkage("renderTarget", "ObjectPicking.renderTarget")
-					.AddSinkLinkage("SelectedEntities", "SelectedEntities")
-					.AddSinkLinkage("EntityIDSource", "ObjectPicking.EntityIDSource");
-				fconfig.AddPass(editorHighlightPass);
+				//RenderPassConfig editorHighlightPass(RenderPassType::EditorHighlightPass, "EditorHighlight");
+				//editorHighlightPass.AddSinkLinkage("camera", "EditorCamera")
+				//	.AddSinkLinkage("renderTarget", "ObjectPicking.renderTarget")
+				//	.AddSinkLinkage("SelectedEntities", "SelectedEntities")
+				//	.AddSinkLinkage("EntityIDSource", "ObjectPicking.EntityIDSource");
+				//fconfig.AddPass(editorHighlightPass);
 
 				RenderPassConfig highlightPass(RenderPassType::HighlightPass, "Highlight");
 				highlightPass.AddSinkLinkage("camera", "EditorCamera")
@@ -327,16 +327,16 @@ namespace Borealis {
 
 			//deferred rendering editor
 			{
-				RenderPassConfig editorGeometricPass(RenderPassType::Geometry, "editorGeometricPass");
-				editorGeometricPass.AddSinkLinkage("gBuffer", "gBuffer");
-				editorGeometricPass.AddSinkLinkage("camera", "EditorCamera");
-				dconfig.AddPass(editorGeometricPass);
+				//RenderPassConfig editorGeometricPass(RenderPassType::Geometry, "editorGeometricPass");
+				//editorGeometricPass.AddSinkLinkage("gBuffer", "gBuffer");
+				//editorGeometricPass.AddSinkLinkage("camera", "EditorCamera");
+				//dconfig.AddPass(editorGeometricPass);
 
-				RenderPassConfig editorLightPass(RenderPassType::Lighting, "editorLightPass");
-				editorLightPass.AddSinkLinkage("gBuffer", "editorGeometricPass.gBuffer");
-				editorLightPass.AddSinkLinkage("renderTarget", "EditorBuffer");
-				editorLightPass.AddSinkLinkage("viewProj", "editorGeometricPass.camera");
-				dconfig.AddPass(editorLightPass);
+				//RenderPassConfig editorLightPass(RenderPassType::Lighting, "editorLightPass");
+				//editorLightPass.AddSinkLinkage("gBuffer", "editorGeometricPass.gBuffer");
+				//editorLightPass.AddSinkLinkage("renderTarget", "EditorBuffer");
+				//editorLightPass.AddSinkLinkage("viewProj", "editorGeometricPass.camera");
+				//dconfig.AddPass(editorLightPass);
 
 				//add render2d
 			}

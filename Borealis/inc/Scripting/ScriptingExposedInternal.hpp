@@ -29,9 +29,9 @@ namespace Borealis
 
 	typedef struct GenericComponentFunctionMaps
 	{
-		static std::unordered_map<MonoType*, HasComponentFn> mHasComponentFunctions;
-		static std::unordered_map<MonoType*, AddComponentFn> mAddComponentFunctions;
-		static std::unordered_map<MonoType*, RemoveComponentFn> mRemoveComponentFunctions;
+		static std::unordered_map<std::string, HasComponentFn> mHasComponentFunctions;
+		static std::unordered_map<std::string, AddComponentFn> mAddComponentFunctions;
+		static std::unordered_map<std::string, RemoveComponentFn> mRemoveComponentFunctions;
 	} GCFM;
 
 	/*!***********************************************************************

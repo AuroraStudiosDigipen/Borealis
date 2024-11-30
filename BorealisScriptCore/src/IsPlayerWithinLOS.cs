@@ -34,7 +34,7 @@ namespace Borealis
             if (distance > maxViewDistance)
             {
                 //set bool for player seen to false
-                //playerEntity.isSeen = false;
+                GetBlackboard().SetValue("playerInLOS", false);
                 OnFailure();
                 return;
             }
@@ -58,21 +58,13 @@ namespace Borealis
             // Check if the player is within the field of view (half the view angle)
             if (angleToPlayer <= (viewAngle / 2.0f))
             {
-                //std::cout << "Player is within LOS. Angle: " << angleToPlayer << std::endl;
-
-                // Update the player bool
-                //playerEntity.isSeen = true;
-                // Signal success
+                GetBlackboard().SetValue("playerInLOS", true);
+                GetBlackboard().SetValue("playerPosition", playerPosition);
                 OnSuccess();
             }
             else
             {
-                // std::cout << "Player is outside LOS. Angle: " << angleToPlayer << std::endl;
-
-                // Update the blackboard to indicate no LOS
-                //playerEntity.isSeen = false;
-
-                // Signal failure
+                GetBlackboard().SetValue("playerInLOS", false);
                 OnFailure();
             }
             
@@ -82,7 +74,6 @@ namespace Borealis
         protected override void OnExit()
         {
             // Cleanup if necessary
-            InternalCalls.Log("Exiting IsPlayerWithinLOS.");
             base.OnExit();
         }
     }

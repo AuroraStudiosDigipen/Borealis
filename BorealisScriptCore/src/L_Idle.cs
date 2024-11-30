@@ -25,12 +25,9 @@ namespace Borealis
         protected override void OnUpdate(float dt, GameObject gameobject)
         {
             timer -= dt;
-            Debug.Log("Idling time: " + timer);
 
-            GetBlackboard().SetValue("playerisseen", true);
             if (timer <= 0.0f)
             {
-                Debug.Log("Idling completed for GameObject" + GetBlackboard().GetValue<bool>("playerisseen"));
                 OnSuccess();
             }
         }

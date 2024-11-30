@@ -8,8 +8,9 @@ namespace Borealis
     {
         //MISSING WAY TO GET CHEESE POSITION
         public Vector3 cheesePosition; // The position of the cheese
-        public float detectionRadius = 50;     // Radius within which the cheese is considered "within range"
+        public float detectionRadius = 30;     // Radius within which the cheese is considered "within range"
         public float speed = 5;
+        public Vector3 closestCheesePosition;
         public IsCheeseWithinRange()
         {
         }
@@ -29,7 +30,21 @@ namespace Borealis
 
         protected override void OnUpdate(float dt, GameObject gameobject)
         {
+           // for (const auto&a : allAgents)
+           //{
+           //     if (a != agent && a->getAgentModel() == Agent::AgentModel::Ball)
+           //     {
+           //         Vec3 cheesePosition = a->get_position();
+           //         float distance = Vec3::Distance(agentPosition, cheesePosition);
 
+           //         if (distance < closestDistance)
+           //         {
+           //             closestDistance = distance;
+           //             closestCheesePosition = cheesePosition;
+           //             cheeseFound = true;
+           //         }
+           //     }
+           // }
             // Calculate the distance between the enemy and the cheese
             float distanceToCheese = Vector3.Distance(gameobject.transform.position, cheesePosition);
 
@@ -37,6 +52,8 @@ namespace Borealis
             if (distanceToCheese <= detectionRadius)
             {
                 Debug.Log($"Cheese is within radius: {distanceToCheese} <= {detectionRadius}");
+                GetBlackboard().SetValue("cheeseDetected",true);
+                GetBlackboard().SetValue("cheesePosition", closestCheesePosition);
                 OnSuccess(); // Condition passed
             }
             else

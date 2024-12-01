@@ -129,6 +129,8 @@ namespace Borealis
 
 		void SetCursorVisibility(bool visible);
 
+		void ToggleFullScreen();
+
 	private:
 		/*!***********************************************************************
 			\brief
@@ -152,6 +154,9 @@ namespace Borealis
 			const char* mTitle; // Title of the window
 			unsigned mWidth;	// Width of the window
 			unsigned mHeight;	// Height of the window
+			unsigned mPosX;
+			unsigned mPosY;
+			bool mIsFullScreen;
 			bool mIsVSync;		// Whether VSync is enabled
 
 			EventCallbackFn mEventCallback; // Callback function for events

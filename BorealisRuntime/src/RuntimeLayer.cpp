@@ -63,6 +63,7 @@ namespace BorealisRuntime
 			}
 		}
 
+		Borealis::ApplicationManager::Get().GetWindow()->SetFullScreen();
 
 		Borealis::SceneManager::GetActiveScene()->RuntimeStart(); // Temporarily
 

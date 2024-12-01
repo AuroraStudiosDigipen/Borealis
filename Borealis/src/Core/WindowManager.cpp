@@ -119,6 +119,30 @@ namespace Borealis
 		}
 	}
 
+	void WindowManager::ToggleFullScreen()
+	{
+		if (mData.mIsFullScreen)
+		{
+			glfwSetWindowMonitor((GLFWwindow*)mWindow, nullptr, mData.mPosX, mData.mPosY, mData.mWidth, mData.mHeight, 0);
+			mData.mIsFullScreen = false;
+		}
+		else
+		{
+			int windowedWidth, windowedHeight;
+			int windowedPosX, windowedPosY;
+			glfwGetWindowPos((GLFWwindow*)mWindow, &windowedPosX, &windowedPosY);
+			glfwGetWindowSize((GLFWwindow*)mWindow, &windowedWidth, &windowedHeight);
+			mData.mPosX = windowedPosX; mData.mPosY = windowedPosY;
+			mData.mWidth = windowedWidth; mData.mHeight = windowedHeight;
+
+			GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+			const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+
+			glfwSetWindowMonitor((GLFWwindow*)mWindow, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+			mData.mIsFullScreen = true;
+		}
+	}
+
 	/*!***********************************************************************
 		\brief
 			Initializes the window
@@ -131,6 +155,7 @@ namespace Borealis
 		mData.mWidth = properties.mWidth;
 		mData.mHeight = properties.mHeight;
 		mData.mTitle = properties.mTitle.c_str();
+		mData.mIsFullScreen = false;
 
 		BOREALIS_CORE_INFO("Creating window {0} with width ({1} and height {2})", mData.mTitle, mData.mWidth, mData.mHeight);
 		

@@ -212,6 +212,18 @@ namespace Borealis
 		out << YAML::EndSeq;
 		out << YAML::Key << "ActiveScene" << YAML::Value << SceneManager::GetActiveScene()->GetName();
 
+
+		out << YAML::Key << "LayerNames";
+		out << YAML::BeginMap;
+		for (int i = 6; i < 32; i++)
+		{
+			if (LayerList::HasIndex(i))
+			{
+				out << YAML::Key << i << YAML::Value << LayerList::IndexToLayer(i);
+			}
+		}
+		out << YAML::EndMap;
+
 		std::ofstream outStream(buildPath);
 		outStream << out.c_str();
 		outStream.close();

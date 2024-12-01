@@ -602,5 +602,7 @@ workspace "Borealis"
 				"%{Library.MSDF_Release_LibBZ2}",
 				"%{Library.MSDF_Release_LibBrotli}",
 				"%{Library.MSDF_Release_LibBrotliCommon}",
+				"%{Library.meshoptimizer_Release}",
+				"%{Library.Compressonator_Release}",
 				"Borealis/%{Library.YAML_Release}"
 			}

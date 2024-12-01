@@ -22,14 +22,9 @@ namespace Borealis
 
         protected override void OnUpdate(float dt, GameObject gameobject)
         {
-            if (currentIndex >= mChildren.Count)
-            {
-                OnSuccess();
-                return;
-            }
 
             BehaviourNode currentNode = mChildren[currentIndex];
-            Debug.Log(currentNode.GetName());
+            Debug.Log("Sequencer " + currentNode.GetName());
             currentNode.Tick(dt, gameobject);
 
             if (currentNode.HasFailed())
@@ -41,6 +36,8 @@ namespace Borealis
                 currentIndex++;
                 if (currentIndex >= mChildren.Count)
                 {
+                    currentIndex = 0;
+
                     OnSuccess();
                 }
             }

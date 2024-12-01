@@ -251,13 +251,13 @@ namespace Borealis {
 				fconfig.AddPass(Render2D);
 
 				RenderPassConfig UIPass(RenderPassType::UIPass, "UIPass");
-				UIPass.AddSinkLinkage("renderTarget", "RunTimeHighlight.renderTarget");
+				UIPass.AddSinkLinkage("renderTarget", "Render2D.renderTarget");
 				UIPass.AddSinkLinkage("camera", "RunTimeCamera");
 				fconfig.AddPass(UIPass);
 
 				RenderPassConfig RunTimeHighlight(RenderPassType::HighlightPass, "RunTimeHighlight");
 				RunTimeHighlight.AddSinkLinkage("camera", "RunTimeCamera");
-				RunTimeHighlight.AddSinkLinkage("renderTarget", "Render2D.renderTarget");
+				RunTimeHighlight.AddSinkLinkage("renderTarget", "UIPass.renderTarget");
 				fconfig.AddPass(RunTimeHighlight);
 			}
 

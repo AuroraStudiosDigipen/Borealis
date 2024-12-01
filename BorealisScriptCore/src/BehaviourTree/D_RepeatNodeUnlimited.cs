@@ -7,7 +7,6 @@ namespace Borealis
     public class RepeatNodeUnlimited : BehaviourNode
     {
         uint counter;
-
         public RepeatNodeUnlimited()
         {
         }
@@ -35,6 +34,8 @@ namespace Borealis
             }
             else if (child.HasFailed() == true)
             {
+                SetStatusChildren(NodeStatus.READY);
+                SetResultChildren(NodeResult.SUCCESS);
                 OnFailure();
             }
         }
@@ -42,6 +43,8 @@ namespace Borealis
         protected override void OnExit()
         {
             // Any cleanup if needed
+            Debug.Log("Stopping sound ");
+
             base.OnExit();
         }
     }

@@ -25,7 +25,6 @@ namespace Borealis
             // if any child succeeds, node succeeds
             // if all children fail, node fails
             BehaviourNode currentNode = mChildren[currentIndex];
-            Debug.Log(currentNode.GetName());
             currentNode.Tick(dt, gameobject);
 
             if (currentNode.HasSucceeded() == true)

@@ -45,6 +45,7 @@ namespace Borealis
 
 
 	Ref<FrameBuffer> mCascadeShadowMapBuffer = nullptr;
+	Ref<FrameBuffer> mCascadeShadowMapBufferEditor = nullptr;
 
 	//========================================================================
 	//BUFFER SOURCE
@@ -383,7 +384,7 @@ namespace Borealis
 		}
 	}
 
-	void SetShadowAndLight(Ref<RenderTargetSource> shadowMap, Ref<Shader> shader,  entt::registry* registryPtr, Ref<CameraSource> camera)
+	void SetShadowAndLight(Ref<RenderTargetSource> shadowMap, Ref<Shader> shader,  entt::registry* registryPtr, Ref<CameraSource> camera, bool editor)
 	{
 		//add light to light engine and shadow pass
 		{
@@ -417,10 +418,14 @@ namespace Borealis
 				}
 				else if(lightComponent.type == LightComponent::Type::Directional)
 				{
-					if (mCascadeShadowMapBuffer)
+					if (!editor && mCascadeShadowMapBuffer)
 					{
-
 						mCascadeShadowMapBuffer->BindDepthBuffer(1, true);
+						shader->Set("u_CascadeShadowMap", 1);
+					}
+					else if (editor && mCascadeShadowMapBufferEditor)
+					{
+						mCascadeShadowMapBufferEditor->BindDepthBuffer(1, true);
 						shader->Set("u_CascadeShadowMap", 1);
 					}
 				}
@@ -506,7 +511,7 @@ namespace Borealis
 					Renderer3D::Begin(viewProjMatrix, materialShader);
 
 
-					SetShadowAndLight(shadowMap, materialShader, registryPtr, camera);
+					SetShadowAndLight(shadowMap, materialShader, registryPtr, camera, editor);
 					Renderer3D::SetLights(materialShader);
 				}
 
@@ -556,7 +561,7 @@ namespace Borealis
 				materialShader->Bind();
 				materialShader->Set("u_HasAnimation", false);
 
-				SetShadowAndLight(shadowMap, materialShader, registryPtr, camera);
+				SetShadowAndLight(shadowMap, materialShader, registryPtr, camera, editor);
 				if (registryPtr->storage<AnimatorComponent>().contains(entity))
 				{
 					AnimatorComponent& animatorComponent = registryPtr->get<AnimatorComponent>(entity);
@@ -847,13 +852,11 @@ namespace Borealis
 	void ShadowPass::Execute(float dt)
 	{
 		PROFILE_FUNCTION();
-		shader->Bind();
-		shader->Set("shadowPass", true);
-
 
 		glm::mat4 viewProjMatrix{};
 		Ref<FrameBuffer> shadowMap = nullptr;
 		glm::vec3 cameraPosition{};
+		bool editor = false;
 
 		Ref<CameraSource> camera = nullptr;
 		for (auto sink : sinkList)
@@ -872,6 +875,7 @@ namespace Borealis
 
 				if (sourcePtr->sourceType == RenderSourceType::Camera)
 				{
+					editor = std::dynamic_pointer_cast<CameraSource>(sourcePtr)->editor;
 					cameraPosition = std::dynamic_pointer_cast<CameraSource>(sourcePtr)->position;
 					viewProjMatrix = std::dynamic_pointer_cast<CameraSource>(sourcePtr)->GetViewProj();
 
@@ -881,6 +885,9 @@ namespace Borealis
 		}
 
 		{
+
+
+			static bool editorChange = false;
 			bool directionalLight = false;
 			entt::basic_group group = registryPtr->group<>(entt::get<TransformComponent, LightComponent>);
 			for (auto& entity : group)
@@ -895,14 +902,53 @@ namespace Borealis
 				lightComponent.position = transform.GetGlobalTranslate();
 				lightComponent.direction = transform.GetGlobalRotation();
 
+				bool lightChange = false, cameraChange = false;
+				static glm::vec3 tempLightDir{};
+				static glm::vec3 tempPos{}, tempPosEditor{};
+
+				if (tempLightDir != lightComponent.direction) lightChange = true;
+
+				if (!editor)
+				{
+					if (glm::distance(tempPos, cameraPosition) > 20.f) cameraChange = true;
+				}
+				else
+				{
+					if (glm::distance(tempPosEditor, cameraPosition) > 20.f) cameraChange = true;
+				}
+
+				if (lightChange || cameraChange)
+				{
+					tempLightDir = lightComponent.direction;
+
+					if (editor)
+					{
+						tempPosEditor = cameraPosition;
+					}
+					else
+					{
+						tempPos = cameraPosition;
+						editorChange = false;
+					}
+				}
+				else
+				{
+					if(editorChange)
+						return;
+				}
+
 				if (lightComponent.type == LightComponent::Type::Directional)
 				{
 					directionalLight = true;
 				}
 
 				SetShadowVariable(lightComponent, shader, camera);
+
 				break; //TODO 1 shadow for now
 			}
+
+			shader->Bind();
+			shader->Set("shadowPass", true);
 
 			Frustum frustum = ComputeFrustum(viewProjMatrix);
 
@@ -941,9 +987,20 @@ namespace Borealis
 				shadowMap->Unbind();
 			}
 
+			Ref<FrameBuffer> CSMBuffer = nullptr;
+			if (editor)
+			{
+				editorChange = true;
+				CSMBuffer = mCascadeShadowMapBufferEditor;
+			}
+			else
+			{
+				CSMBuffer = mCascadeShadowMapBuffer;
+			}
+
 			if(directionalLight && S_SIMPLEMESH)
 			{
-				mCascadeShadowMapBuffer->Bind();
+				CSMBuffer->Bind();
 				RenderCommand::Clear();
 
 				auto group = registryPtr->group<>(entt::get<TransformComponent, MeshFilterComponent, MeshRendererComponent>);
@@ -967,13 +1024,12 @@ namespace Borealis
 						continue;
 					}
 
-
 					RenderCommand::EnableFrontFaceCull();
 					Renderer3D::DrawHighlightedMesh(transform.GetGlobalTransform(), meshFilter, cascade_shadow_shader);
 					RenderCommand::EnableBackFaceCull();
 				}
 
-				mCascadeShadowMapBuffer->Unbind();
+				CSMBuffer->Unbind();
 			}
 		}
 
@@ -1645,6 +1701,13 @@ namespace Borealis
 			FrameBufferProperties propsShadowMapBuffer{ 2024, 2024, false };
 			propsShadowMapBuffer.Attachments = { FramebufferTextureFormat::DepthArray };
 			mCascadeShadowMapBuffer = FrameBuffer::Create(propsShadowMapBuffer);
+		}
+
+		if (!mCascadeShadowMapBufferEditor)
+		{
+			FrameBufferProperties propsShadowMapBuffer{ 2024, 2024, false };
+			propsShadowMapBuffer.Attachments = { FramebufferTextureFormat::DepthArray };
+			mCascadeShadowMapBufferEditor = FrameBuffer::Create(propsShadowMapBuffer);
 		}
 	}
 

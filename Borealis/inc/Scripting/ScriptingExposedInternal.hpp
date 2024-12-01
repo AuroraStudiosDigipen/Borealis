@@ -348,6 +348,7 @@ namespace Borealis
 	void AnimatorComponent_SwapBlendBuffer(UUID uuid);
 
 	void SceneManager_SetActiveScene(MonoString* sceneName);
+	void SceneManager_Quit();
 	
 
 	void Material_GetSprite(UUID uuid, UUID* spriteID);

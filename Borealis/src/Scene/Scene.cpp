@@ -1370,6 +1370,7 @@ namespace Borealis
 		}
 		PhysicsSystem::EndScene();
 		LayerList::resetEntities();
+		AudioEngine::StopAllChannels();
 	}
 
 	Entity Scene::GetPrimaryCameraEntity()

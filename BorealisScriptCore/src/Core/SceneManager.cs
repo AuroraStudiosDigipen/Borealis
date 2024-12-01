@@ -7,5 +7,10 @@ namespace Borealis
         {
             InternalCalls.SceneManager_SetActiveScene(name);
         }
+
+        public static void Quit()
+        {
+            InternalCalls.SceneManager_Quit();
+        }
     }
 }

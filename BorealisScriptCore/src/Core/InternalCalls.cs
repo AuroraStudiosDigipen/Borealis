@@ -360,6 +360,8 @@ namespace Borealis
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
 
         internal extern static void SceneManager_SetActiveScene(string name);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void SceneManager_Quit();
         #endregion
     }
 }

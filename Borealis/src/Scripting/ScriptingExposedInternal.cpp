@@ -165,6 +165,7 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_SwapBlendBuffer);
 
 		BOREALIS_ADD_INTERNAL_CALL(SceneManager_SetActiveScene);
+		BOREALIS_ADD_INTERNAL_CALL(SceneManager_Quit);
 
 	}
 	uint64_t GenerateUUID()
@@ -1066,6 +1067,10 @@ namespace Borealis
 		SceneManager::NextSceneName = sceneNme;
 		SceneManager::ToNextScene = true;
 	}
+	void SceneManager_Quit()
+	{
+		ApplicationManager::Get().SetIsRunning(false);
+	}
 	void Material_GetSprite(UUID uuid, UUID* spriteID)
 	{
 		*spriteID = AssetManager::GetAsset<Material>(uuid)->GetTextureMaps().at(Material::Albedo)->mAssetHandle;
@@ -1315,7 +1320,7 @@ namespace Borealis
 		auto translate = transform.GetGlobalTranslate();
 		auto& audioSource = entity.GetComponent<AudioSourceComponent>();
 		if (audioSource.audio)
-			AudioEngine::Play(audioSource.audio, translate, audioSource.Volume, audioSource.isLoop, audioSource.group);
+			AudioEngine::PlayAudio(audioSource, translate, audioSource.Volume, audioSource.isMute, audioSource.isLoop);
 	}
 	void AudioSource_IsPlaying(uint64_t ID, bool* playing)
 	{

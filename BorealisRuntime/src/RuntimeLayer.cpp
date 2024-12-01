@@ -63,7 +63,7 @@ namespace BorealisRuntime
 			}
 		}
 
-		Borealis::ApplicationManager::Get().GetWindow()->SetFullScreen();
+		Borealis::ApplicationManager::Get().GetWindow()->ToggleFullScreen();
 
 		Borealis::SceneManager::GetActiveScene()->RuntimeStart(); // Temporarily
 
@@ -148,6 +148,11 @@ namespace BorealisRuntime
 			Borealis::SceneManager::ToNextScene = false;
 			Borealis::SceneManager::NextSceneName = "";
 			Borealis::SceneManager::GetActiveScene()->RuntimeStart();
+		}
+
+		if (!Borealis::ApplicationManager::Get().GetIsRunning())
+		{
+			Borealis::SceneManager::GetActiveScene()->RuntimeEnd();
 		}
 	}	
 	void RuntimeLayer::Free()

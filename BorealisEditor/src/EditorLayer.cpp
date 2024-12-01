@@ -1381,6 +1381,11 @@ namespace Borealis {
 		{
 			Renderer3D::SetGlobalWireFrameMode(!Renderer3D::GetGlobalWireFrameMode());
 		}
+		bool showCollide = PhysicsSystem::DebugDrawGet();
+		if (ImGui::Checkbox("Show Colliders", &showCollide))
+		{
+			PhysicsSystem::DebugDrawSet(showCollide);
+		}
 
 		ImGui::End();
 

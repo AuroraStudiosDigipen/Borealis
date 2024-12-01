@@ -561,6 +561,18 @@ namespace Borealis
 
 	}
 
+	bool PhysicsSystem::shouldDebugDraw = false;
+
+	bool PhysicsSystem::DebugDrawGet() 
+	{
+		return shouldDebugDraw;
+	}
+
+	void PhysicsSystem::DebugDrawSet(bool value)
+	{
+		shouldDebugDraw = value;
+	}
+
 	void PhysicsSystem::Update(float dt)
 	{
 		sData.mSystem->Update(dt, 1, sData.temp_allocator, sData.job_system);
@@ -1005,6 +1017,19 @@ namespace Borealis
 		}
 
 		return output;
+	}
+
+	void PhysicsSystem::UpdateScale(ColliderComponent& collider, TransformComponent& transform, RigidBodyComponent& rigidbody)
+	{
+		ShapeRefC currentShape = sData.body_interface->GetShape((BodyID)collider.bodyID);
+
+		Vec3 newScale(transform.Scale.x, transform.Scale.y, transform.Scale.z);
+
+		ScaledShape* scaledShape = new ScaledShape(currentShape, newScale);
+
+		sData.body_interface->SetShape((BodyID)collider.bodyID, scaledShape, true, EActivation::Activate);
+
+		delete currentShape;
 	}
 
 	void PhysicsSystem::addBody(TransformComponent& transform, RigidBodyComponent* rigidbody, ColliderComponent& collider, UUID entityID)

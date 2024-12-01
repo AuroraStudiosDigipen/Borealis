@@ -324,11 +324,7 @@ namespace Borealis
 					PhysicsSystem::PushTransform(capsule, transform, capsule.rigidBody);
 				}
 
-
-				PhysicsSystem::Update(dt);
-
-				//add this into a check mark to enable disable
-				
+				PhysicsSystem::Update(dt);				
 
 				// Set entity values to Jolt transform.
 				for (auto entity : boxGroup)
@@ -908,15 +904,6 @@ namespace Borealis
 	{
 		if (src.HasComponent<RigidBodyComponent>())
 			dst.AddOrReplaceComponent<RigidBodyComponent>(src.GetComponent<RigidBodyComponent>());
-
-		//if ((bool)dst.GetComponent<RigidBodyComponent>().isBox)
-		//{
-		//	PhysicsSystem::UpdateBoxValues(dst.GetComponent<RigidBodyComponent>());
-		//}
-		//else
-		//{
-		//	PhysicsSystem::UpdateSphereValues(dst.GetComponent<RigidBodyComponent>());
-		//}
 	}
 
 	template <>

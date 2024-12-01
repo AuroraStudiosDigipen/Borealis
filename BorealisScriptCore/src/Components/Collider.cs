@@ -27,6 +27,11 @@ namespace Borealis
             return gameObject.name == tag;
         }
 
+        public void UpdateScale()
+        {
+            InternalCalls.ColliderComponent_UpdateScale(GetInstanceID());
+        }
+
         public Bounds bounds
         {
             get

@@ -548,7 +548,8 @@ namespace Borealis
 						}
 					}
 				}
-				PhysicsSystem::DrawDebug();
+				if (PhysicsSystem::DebugDrawGet())
+					PhysicsSystem::DrawDebug();
 			}
 		}
 

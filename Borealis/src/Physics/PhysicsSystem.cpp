@@ -1019,17 +1019,54 @@ namespace Borealis
 		return output;
 	}
 
-	void PhysicsSystem::UpdateScale(ColliderComponent& collider, TransformComponent& transform, RigidBodyComponent& rigidbody)
+	void PhysicsSystem::UpdateScale(ColliderComponent& collider, TransformComponent& transform)
 	{
-		ShapeRefC currentShape = sData.body_interface->GetShape((BodyID)collider.bodyID);
 
-		Vec3 newScale(transform.Scale.x, transform.Scale.y, transform.Scale.z);
+		ShapeRefC shape;
+		ShapeSettings::ShapeResult shape_result;
 
-		ScaledShape* scaledShape = new ScaledShape(currentShape, newScale);
+		BoxColliderComponent* boxPtr = dynamic_cast<BoxColliderComponent*>(&collider);
+		SphereColliderComponent* spherePtr = dynamic_cast<SphereColliderComponent*>(&collider);
+		CapsuleColliderComponent* capsulePtr = dynamic_cast<CapsuleColliderComponent*>(&collider);
+		if (boxPtr)
+		{
+			glm::vec3 size = { boxPtr->size.x * 0.5f * transform.Scale.x, boxPtr->size.y * 0.5f * transform.Scale.y, boxPtr->size.z * 0.5f * transform.Scale.z };
+			if (size.x < 0)
+			{
+				size.x = -size.x;
+			}
 
-		sData.body_interface->SetShape((BodyID)collider.bodyID, scaledShape, true, EActivation::Activate);
+			if (size.y < 0)
+			{
+				size.y = -size.y;
+			}
 
-		delete currentShape;
+			if (size.z < 0)
+			{
+				size.z = -size.z;
+			}
+			BoxShapeSettings box_shape_settings(Vec3(size.x, size.y, size.z));
+			box_shape_settings.SetEmbedded();
+			shape_result = box_shape_settings.Create();
+			shape = shape_result.Get();
+		}
+		else if (spherePtr)
+		{
+			SphereShapeSettings sphere_shape_settings(spherePtr->radius * ((transform.Scale.x + transform.Scale.y + transform.Scale.z) * 0.33f)); //For sphere scaling of xy
+			sphere_shape_settings.SetEmbedded();
+			shape_result = sphere_shape_settings.Create();
+			shape = shape_result.Get();
+		}
+		else if (capsulePtr)
+		{
+			CapsuleShapeSettings capsule_shape_settings(capsulePtr->radius * (transform.Scale.x + transform.Scale.z) * 0.5f, capsulePtr->height * transform.Scale.y);
+			capsule_shape_settings.SetEmbedded();
+			shape_result = capsule_shape_settings.Create();
+			shape = shape_result.Get();
+		}
+		
+		sData.body_interface->SetShape((BodyID)collider.bodyID, shape, true, EActivation::Activate);
+
 	}
 
 	void PhysicsSystem::addBody(TransformComponent& transform, RigidBodyComponent* rigidbody, ColliderComponent& collider, UUID entityID)

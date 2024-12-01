@@ -8,6 +8,11 @@ namespace Borealis
     public class Transform : Component
     {
         //public int childCount;
+        // Temporarily here
+        public void UpdateScale()
+        {
+            InternalCalls.ColliderComponent_UpdateScale(GetInstanceID());
+        }
         public new string name
         {
             get

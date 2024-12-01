@@ -204,7 +204,8 @@ namespace Borealis
         #region ColliderComponent
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void ColliderComponent_GetBounds(ulong id, out Vector3 center, out Vector3 extents, out Vector3 max, out Vector3 min, out Vector3 size);
-
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ColliderComponent_UpdateScale(ulong id);
         #endregion
 
         #region Material

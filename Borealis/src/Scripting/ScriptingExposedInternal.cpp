@@ -110,7 +110,7 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(OutlineComponent_SetEnabled);
 
 		BOREALIS_ADD_INTERNAL_CALL(ColliderComponent_GetBounds);
-
+		BOREALIS_ADD_INTERNAL_CALL(ColliderComponent_UpdateScale);
 		BOREALIS_ADD_INTERNAL_CALL(Material_GetSprite);
 
 		BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_AddForce);
@@ -933,6 +933,27 @@ namespace Borealis
 				*min = collider.Min;
 				*max = collider.Max;
 				*size = collider.size;*/
+		}
+	}
+	void ColliderComponent_UpdateScale(UUID uuid)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		if (entity.HasComponent<CapsuleColliderComponent>())
+		{
+			auto& collider = entity.GetComponent<CapsuleColliderComponent>();
+			PhysicsSystem::UpdateScale(entity.GetComponent<CapsuleColliderComponent>(), entity.GetComponent<TransformComponent>());
+		}
+		else if (entity.HasComponent<BoxColliderComponent>())
+		{
+			auto& collider = entity.GetComponent<BoxColliderComponent>();
+			PhysicsSystem::UpdateScale(entity.GetComponent<BoxColliderComponent>(), entity.GetComponent<TransformComponent>());
+		}
+		else if (entity.HasComponent<SphereColliderComponent>())
+		{
+			auto& collider = entity.GetComponent<SphereColliderComponent>();
+			PhysicsSystem::UpdateScale(entity.GetComponent<SphereColliderComponent>(), entity.GetComponent<TransformComponent>());
 		}
 	}
 	void AnimatorComponent_SetCurrentAnimation(UUID uuid, UUID animation)

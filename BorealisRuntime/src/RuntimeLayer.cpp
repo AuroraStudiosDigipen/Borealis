@@ -138,6 +138,16 @@ namespace BorealisRuntime
 		}
 
 		Borealis::SceneManager::GetActiveScene()->UpdateRuntime(dt);
+
+		if (Borealis::SceneManager::ToNextScene)
+		{
+			Borealis::SceneManager::GetActiveScene()->RuntimeEnd();
+			Borealis::Serialiser serialiser(nullptr);
+			Borealis::SceneManager::SetActiveScene(Borealis::SceneManager::NextSceneName, serialiser);
+			Borealis::SceneManager::ToNextScene = false;
+			Borealis::SceneManager::NextSceneName = "";
+			Borealis::SceneManager::GetActiveScene()->RuntimeStart();
+		}
 	}	
 	void RuntimeLayer::Free()
 	{

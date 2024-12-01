@@ -113,6 +113,9 @@ namespace Borealis
 				Saves the active scene
 		*************************************************************************/
 		static void SaveActiveScene(Serialiser& serialiser);
+
+		static bool ToNextScene;
+		static std::string NextSceneName;
 	private:
 		static Ref<Scene> mActiveScene;
 		static std::unordered_map<std::string, std::string> mSceneLibrary; // Key: Scene Name, Value: Scene Path

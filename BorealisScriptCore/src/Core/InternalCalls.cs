@@ -317,6 +317,7 @@ namespace Borealis
         internal extern static void AudioSource_GetVolume(ulong ID, out float volume);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void AudioSource_SetVolume(ulong ID, ref float volume);
+
         #endregion
 
         #region Animator
@@ -353,6 +354,12 @@ namespace Borealis
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void AnimatorComponent_SwapBlendBuffer(ulong uuid);
 
+        #endregion
+
+        #region SceneManager
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+
+        internal extern static void SceneManager_SetActiveScene(string name);
         #endregion
     }
 }

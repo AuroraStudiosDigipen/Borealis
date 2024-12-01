@@ -164,6 +164,8 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_GetBlend);
 		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_SwapBlendBuffer);
 
+		BOREALIS_ADD_INTERNAL_CALL(SceneManager_SetActiveScene);
+
 	}
 	uint64_t GenerateUUID()
 	{
@@ -1057,6 +1059,12 @@ namespace Borealis
 		auto firstAnimation = entity.GetComponent<AnimatorComponent>().animation;
 		entity.GetComponent<AnimatorComponent>().animation = entity.GetComponent<AnimatorComponent>().animator.mNextAnimation;
 		entity.GetComponent<AnimatorComponent>().animator.mNextAnimation = firstAnimation;
+	}
+	void SceneManager_SetActiveScene(MonoString* sceneName)
+	{
+		std::string sceneNme = mono_string_to_utf8(sceneName);
+		SceneManager::NextSceneName = sceneNme;
+		SceneManager::ToNextScene = true;
 	}
 	void Material_GetSprite(UUID uuid, UUID* spriteID)
 	{

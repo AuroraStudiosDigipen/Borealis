@@ -145,6 +145,7 @@
     <Compile Include="src\Assets\Material.cs" />
     <Compile Include="src\Assets\Sprite.cs" />
     <Compile Include="src\Core\Attributes.cs" />
+    <Compile Include="src\Core\SceneManager.cs" />
     <Compile Include="src\Objects\Behaviour.cs" />
     <Compile Include="src\BehaviourTree\BehaviourNode.cs" />
     <Compile Include="src\BehaviourTree\C_Selector.cs" />

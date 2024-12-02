@@ -110,7 +110,6 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -142,7 +141,7 @@
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>ispc_texcomp.lib;lib\MSDF\Build\Release\msdf-atlas-gen.lib;lib\MSDF\Build\Release\msdfgen-core.lib;lib\MSDF\Build\Release\msdfgen-ext.lib;lib\MSDF\Build\Release\freetype.lib;lib\MSDF\Build\Release\libpng16.lib;lib\MSDF\Build\Release\bz2.lib;lib\MSDF\Build\Release\brotlidec.lib;lib\MSDF\Build\Release\brotlicommon.lib;..\Borealis\lib\yaml-cpp\lib\Rel\yaml-cpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ispc_texcomp.lib;lib\MSDF\Build\Release\msdf-atlas-gen.lib;lib\MSDF\Build\Release\msdfgen-core.lib;lib\MSDF\Build\Release\msdfgen-ext.lib;lib\MSDF\Build\Release\freetype.lib;lib\MSDF\Build\Release\libpng16.lib;lib\MSDF\Build\Release\bz2.lib;lib\MSDF\Build\Release\brotlidec.lib;lib\MSDF\Build\Release\brotlicommon.lib;lib\MeshOptimizer\Build\Release\meshoptimizer.lib;lib\compressonator\build\Release\Compressonator_MT.lib;..\Borealis\lib\yaml-cpp\lib\Rel\yaml-cpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>lib\ispc\build;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>

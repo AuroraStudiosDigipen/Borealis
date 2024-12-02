@@ -21,8 +21,7 @@
     <OutputPath>..\BorealisEditor\Resources\Scripts\Core\</OutputPath>
     <BaseIntermediateOutputPath>..\BorealisEditor\Resources\Scripts\Core\Intermediate\Debug\BorealisScriptCore\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
-    <DefineConstants>
-    </DefineConstants>
+    <DefineConstants></DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -34,8 +33,7 @@
     <OutputPath>..\BorealisEditor\Resources\Scripts\Core\</OutputPath>
     <BaseIntermediateOutputPath>..\BorealisEditor\Resources\Scripts\Core\Intermediate\Release\BorealisScriptCore\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
-    <DefineConstants>
-    </DefineConstants>
+    <DefineConstants></DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -47,8 +45,7 @@
     <OutputPath>..\BorealisEditor\Resources\Scripts\Core\</OutputPath>
     <BaseIntermediateOutputPath>..\BorealisEditor\Resources\Scripts\Core\Intermediate\Distribution\BorealisScriptCore\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
-    <DefineConstants>
-    </DefineConstants>
+    <DefineConstants></DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -144,12 +141,10 @@
     <Compile Include="src\Assets\AudioClip.cs" />
     <Compile Include="src\Assets\Material.cs" />
     <Compile Include="src\Assets\Sprite.cs" />
-    <Compile Include="src\Core\Attributes.cs" />
-    <Compile Include="src\Core\SceneManager.cs" />
-    <Compile Include="src\Objects\Behaviour.cs" />
     <Compile Include="src\BehaviourTree\BehaviourNode.cs" />
     <Compile Include="src\BehaviourTree\C_Selector.cs" />
     <Compile Include="src\BehaviourTree\C_Sequencer.cs" />
+    <Compile Include="src\BehaviourTree\D_RepeatNodeUnlimited.cs" />
     <Compile Include="src\Components\AnimatorComponent.cs" />
     <Compile Include="src\Components\AudioSource.cs" />
     <Compile Include="src\Components\CharacterController.cs" />
@@ -161,27 +156,29 @@
     <Compile Include="src\Components\SpriteRenderer.cs" />
     <Compile Include="src\Components\Text.cs" />
     <Compile Include="src\Components\Transform.cs" />
+    <Compile Include="src\Core\Attributes.cs" />
     <Compile Include="src\Core\Cursor.cs" />
-    <Compile Include="src\BehaviourTree\D_RepeatNodeUnlimited.cs" />
     <Compile Include="src\Core\Debug.cs" />
-    <Compile Include="src\Objects\GameObject.cs" />
     <Compile Include="src\Core\Input.cs" />
     <Compile Include="src\Core\InternalCalls.cs" />
     <Compile Include="src\Core\KeyCode.cs" />
     <Compile Include="src\Core\LayerMask.cs" />
+    <Compile Include="src\Core\SceneManager.cs" />
+    <Compile Include="src\Core\Time.cs" />
     <Compile Include="src\Math\Color.cs" />
     <Compile Include="src\Math\Color32.cs" />
     <Compile Include="src\Math\Mathf.cs" />
+    <Compile Include="src\Math\Physics.cs" />
     <Compile Include="src\Math\Quaternion.cs" />
+    <Compile Include="src\Math\Ray.cs" />
     <Compile Include="src\Math\Vector2.cs" />
     <Compile Include="src\Math\Vector3.cs" />
     <Compile Include="src\Math\Vector4.cs" />
+    <Compile Include="src\Objects\Behaviour.cs" />
+    <Compile Include="src\Objects\GameObject.cs" />
     <Compile Include="src\Objects\MonoBehaviour.cs" />
     <Compile Include="src\Objects\Object.cs" />
-    <Compile Include="src\Math\Physics.cs" />
-    <Compile Include="src\Math\Ray.cs" />
     <Compile Include="src\RoslynCompiler.cs" />
-    <Compile Include="src\Core\Time.cs" />
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>

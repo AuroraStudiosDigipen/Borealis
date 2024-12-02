@@ -196,6 +196,9 @@
     <ClInclude Include="inc\Audio\AudioEngine.hpp">
       <Filter>inc\Audio</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Audio\AudioGroup.hpp">
+      <Filter>inc\Audio</Filter>
+    </ClInclude>
     <ClInclude Include="inc\BorealisPCH.hpp">
       <Filter>inc</Filter>
     </ClInclude>
@@ -1989,9 +1992,6 @@
     </ClInclude>
     <ClInclude Include="lib\xproperty\include\xproperty\xproperty_config.hpp">
       <Filter>lib\xproperty\include\xproperty</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\Audio\AudioGroup.hpp">
-      <Filter>inc\Audio</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

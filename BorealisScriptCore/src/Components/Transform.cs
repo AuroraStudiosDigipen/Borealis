@@ -4,9 +4,38 @@ using System.IO;
 
 namespace Borealis
 {
+    [NativeComponent]
     public class Transform : Component
     {
         //public int childCount;
+        // Temporarily here
+        public void UpdateScale()
+        {
+            InternalCalls.ColliderComponent_UpdateScale(GetInstanceID());
+        }
+        public new string name
+        {
+            get
+            {
+                InternalCalls.Entity_GetName(InstanceID, out string name);
+                return name;
+            }
+            set
+            {
+                InternalCalls.Entity_SetName(InstanceID, value);
+            }
+        }
+        public new GameObject gameObject
+        {
+            get
+            {
+                return new GameObject(InstanceID);
+            }
+        }
+
+        public Transform()
+        {
+        }
         public Transform(ulong id)
         {
             InstanceID = id;

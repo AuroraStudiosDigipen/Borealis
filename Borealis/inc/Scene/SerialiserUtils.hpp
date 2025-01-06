@@ -299,6 +299,59 @@ namespace Borealis
 			}
 		}
 
+		if (propType == rttr::type::get<Ref<Texture2D>>())
+		{
+			if (propValue.get_value<Ref<Texture2D>>() == nullptr)
+			{
+				return false;
+			}
+			out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<Ref<Texture2D>>()->mAssetHandle;
+			return true;
+		}
+
+
+		if (propType == rttr::type::get<Ref<SkinnedModel>>())
+		{
+			if (propValue.get_value<Ref<SkinnedModel>>() == nullptr)
+			{
+				return false;
+			}
+			out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<Ref<SkinnedModel>>()->mAssetHandle;
+			return true;
+		}
+
+		if (propType == rttr::type::get<Ref<BehaviourTreeData>>())
+		{
+			if (propValue.get_value<Ref<BehaviourTreeData>>() == nullptr)
+			{
+				return false;
+			}
+			out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<Ref<BehaviourTreeData>>()->mAssetHandle;
+			return true;
+		}
+
+
+		if (propType == rttr::type::get<Ref<Animation>>())
+		{
+			if (propValue.get_value<Ref<Animation>>() == nullptr)
+			{
+				return false;
+			}
+			out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<Ref<Animation>>()->mAssetHandle;
+			return true;
+		}
+
+
+		if (propType == rttr::type::get<Ref<Audio>>())
+		{
+			if (propValue.get_value<Ref<Audio>>() == nullptr)
+			{
+				return false;
+			}
+			out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<Ref<Audio>>()->mAssetHandle;
+			return true;
+		}
+
 		if (propType.is_class() && propType.is_valid()) // all custom classes
 		{
 			out << YAML::Key << propName.to_string() << YAML::BeginMap;
@@ -338,6 +391,15 @@ namespace Borealis
 		auto propType = prop.get_type();
 		if (propData)
 		{
+			if (propData.IsMap() && propData.size() == 0)
+			{
+				return false;
+			}
+			if (!propData.IsDefined())
+			{
+				return false;
+			}
+
 			if (propType.is_enumeration())
 			{
 				auto datastr = propData.as<std::string>();
@@ -475,11 +537,53 @@ namespace Borealis
 				return true;
 			}
 
+			if (propType == rttr::type::get<Ref<SkinnedModel>>())
+			{
+				prop.set_value(instance, rttr::variant(AssetManager::GetAsset<SkinnedModel>(propData.as<uint64_t>())));
+				return true;
+			}
+
+			if (propType == rttr::type::get<Ref<Animation>>())
+			{
+				prop.set_value(instance, rttr::variant(AssetManager::GetAsset<Animation>(propData.as<uint64_t>())));
+				return true;
+			}
+
 			if (propType == rttr::type::get<Ref<Material>>())
 			{
 				prop.set_value(instance, rttr::variant(AssetManager::GetAsset<Material>(propData.as<uint64_t>())));
 				return true;
 			}
+
+			if (propType == rttr::type::get<Ref<Texture2D>>())
+			{
+				prop.set_value(instance, rttr::variant(AssetManager::GetAsset<Texture2D>(propData.as<uint64_t>())));
+				return true;
+			}
+
+			if (propType == rttr::type::get<Ref<SkinnedModel>>())
+			{
+				prop.set_value(instance, rttr::variant(AssetManager::GetAsset<SkinnedModel>(propData.as<uint64_t>())));
+				return true;
+			}
+
+			if (propType == rttr::type::get<Ref<Animation>>())
+			{
+				prop.set_value(instance, rttr::variant(AssetManager::GetAsset<Animation>(propData.as<uint64_t>())));
+				return true;
+			}
+
+			if (propType == rttr::type::get<Ref<Audio>>())
+			{
+				prop.set_value(instance, rttr::variant(AssetManager::GetAsset<Audio>(propData.as<uint64_t>())));
+				return true;
+			}
+			if (propType == rttr::type::get<Ref<BehaviourTreeData>>())
+			{
+				prop.set_value(instance, rttr::variant(AssetManager::GetAsset<BehaviourTreeData>(propData.as<uint64_t>())));
+				return true;
+			}
+
 
 			if (propType.is_class() && propType.is_valid()) // all custom classes
 			{

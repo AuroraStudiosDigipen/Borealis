@@ -76,8 +76,8 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>BorealisPCH.hpp</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;YAML_CPP_STATIC_DEFINE;JPH_FLOATING_POINT_EXCEPTIONS_ENABLED;JPH_CROSS_PLATFORM_DETERMINISTIC;JPH_ENABLE_ASSERTS;TRACY_ENABLE;BOREALIS_BUILD_DLL;_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;GLFW_INCLUDE_NONE;_DEB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>inc;lib\spdlog\include;lib\GLFW\include;lib\GLAD\include;lib\imgui;lib\glm;lib\ENTT\include;lib\yaml-cpp\include;lib\ImGuizmo;lib\FMOD;lib\tracy;lib\stb_image;lib\JoltPhysics;lib\mono\include;lib\xproperty\include;lib\gli;lib\RTTR\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;YAML_CPP_STATIC_DEFINE;JPH_FLOATING_POINT_EXCEPTIONS_ENABLED;JPH_CROSS_PLATFORM_DETERMINISTIC;JPH_ENABLE_ASSERTS;JPH_DEBUG_RENDERER;TRACY_ENABLE;BOREALIS_BUILD_DLL;_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;GLFW_INCLUDE_NONE;_DEB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>inc;lib\spdlog\include;lib\GLFW\include;lib\GLAD\include;lib\imgui;lib\glm;lib\ENTT\include;lib\yaml-cpp\include;lib\ImGuizmo;lib\FMOD;lib\tracy;lib\JoltPhysics;lib\mono\include;lib\xproperty\include;lib\gli;lib\RTTR\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -101,8 +101,8 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>BorealisPCH.hpp</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;YAML_CPP_STATIC_DEFINE;JPH_FLOATING_POINT_EXCEPTIONS_ENABLED;JPH_CROSS_PLATFORM_DETERMINISTIC;JPH_ENABLE_ASSERTS;TRACY_ENABLE;BOREALIS_BUILD_DLL;_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;GLFW_INCLUDE_NONE;_REL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>inc;lib\spdlog\include;lib\GLFW\include;lib\GLAD\include;lib\imgui;lib\glm;lib\ENTT\include;lib\yaml-cpp\include;lib\ImGuizmo;lib\FMOD;lib\tracy;lib\stb_image;lib\JoltPhysics;lib\mono\include;lib\xproperty\include;lib\gli;lib\RTTR\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;YAML_CPP_STATIC_DEFINE;JPH_FLOATING_POINT_EXCEPTIONS_ENABLED;JPH_CROSS_PLATFORM_DETERMINISTIC;JPH_ENABLE_ASSERTS;JPH_DEBUG_RENDERER;TRACY_ENABLE;BOREALIS_BUILD_DLL;_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;GLFW_INCLUDE_NONE;_REL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>inc;lib\spdlog\include;lib\GLFW\include;lib\GLAD\include;lib\imgui;lib\glm;lib\ENTT\include;lib\yaml-cpp\include;lib\ImGuizmo;lib\FMOD;lib\tracy;lib\JoltPhysics;lib\mono\include;lib\xproperty\include;lib\gli;lib\RTTR\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -130,8 +130,8 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>BorealisPCH.hpp</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;YAML_CPP_STATIC_DEFINE;JPH_FLOATING_POINT_EXCEPTIONS_ENABLED;JPH_CROSS_PLATFORM_DETERMINISTIC;JPH_ENABLE_ASSERTS;TRACY_ENABLE;BOREALIS_BUILD_DLL;_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;GLFW_INCLUDE_NONE;_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>inc;lib\spdlog\include;lib\GLFW\include;lib\GLAD\include;lib\imgui;lib\glm;lib\ENTT\include;lib\yaml-cpp\include;lib\ImGuizmo;lib\FMOD;lib\tracy;lib\stb_image;lib\JoltPhysics;lib\mono\include;lib\xproperty\include;lib\gli;lib\RTTR\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;YAML_CPP_STATIC_DEFINE;JPH_FLOATING_POINT_EXCEPTIONS_ENABLED;JPH_CROSS_PLATFORM_DETERMINISTIC;JPH_ENABLE_ASSERTS;JPH_DEBUG_RENDERER;TRACY_ENABLE;BOREALIS_BUILD_DLL;_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;GLFW_INCLUDE_NONE;_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>inc;lib\spdlog\include;lib\GLFW\include;lib\GLAD\include;lib\imgui;lib\glm;lib\ENTT\include;lib\yaml-cpp\include;lib\ImGuizmo;lib\FMOD;lib\tracy;lib\JoltPhysics;lib\mono\include;lib\xproperty\include;lib\gli;lib\RTTR\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -159,16 +159,6 @@
     <ClInclude Include="inc\AI\BehaviourTree\BTreeFactory.hpp" />
     <ClInclude Include="inc\AI\BehaviourTree\BehaviourNode.hpp" />
     <ClInclude Include="inc\AI\BehaviourTree\BehaviourTree.hpp" />
-    <ClInclude Include="inc\AI\BehaviourTree\Blackboard.hpp" />
-    <ClInclude Include="inc\AI\BehaviourTree\ControlFlow\C_Sequencer.hpp" />
-    <ClInclude Include="inc\AI\BehaviourTree\Decorator\D_Delay.hpp" />
-    <ClInclude Include="inc\AI\BehaviourTree\Leaf\L_CheckMouseClick.hpp" />
-    <ClInclude Include="inc\AI\BehaviourTree\Leaf\L_Idle.hpp" />
-    <ClInclude Include="inc\AI\BehaviourTree\Leaf\L_RotatingMotion.hpp" />
-    <ClInclude Include="inc\AI\BehaviourTree\NodeHeaderCodeFormat.hpp" />
-    <ClInclude Include="inc\AI\BehaviourTree\NodesDef.hpp" />
-    <ClInclude Include="inc\AI\BehaviourTree\RegisterNodes.hpp" />
-    <ClInclude Include="inc\AI\BehaviourTree\ScanForNewNodes.hpp" />
     <ClInclude Include="inc\Assets\Asset.hpp" />
     <ClInclude Include="inc\Assets\AssetConfigs.hpp" />
     <ClInclude Include="inc\Assets\AssetManager.hpp" />
@@ -177,6 +167,7 @@
     <ClInclude Include="inc\Assets\IAssetManager.hpp" />
     <ClInclude Include="inc\Audio\Audio.hpp" />
     <ClInclude Include="inc\Audio\AudioEngine.hpp" />
+    <ClInclude Include="inc\Audio\AudioGroup.hpp" />
     <ClInclude Include="inc\BorealisPCH.hpp" />
     <ClInclude Include="inc\Core\ApplicationManager.hpp" />
     <ClInclude Include="inc\Core\BitSet32.hpp" />
@@ -732,7 +723,6 @@
     <ClInclude Include="lib\glm\glm\vec4.hpp" />
     <ClInclude Include="lib\glm\glm\vector_relational.hpp" />
     <ClInclude Include="lib\imGuizmo\imGuizmo.h" />
-    <ClInclude Include="lib\stb_image\stb_image.h" />
     <ClInclude Include="lib\tracy\Tracy.hpp" />
     <ClInclude Include="lib\tracy\TracyD3D11.hpp" />
     <ClInclude Include="lib\tracy\TracyD3D12.hpp" />
@@ -781,18 +771,9 @@
     <ClCompile Include="lib\imGuizmo\imGuizmo.cpp">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="lib\stb_image\stb_image.cpp" />
     <ClCompile Include="src\AI\BehaviourTree\BTreeFactory.cpp" />
     <ClCompile Include="src\AI\BehaviourTree\BehaviourNode.cpp" />
     <ClCompile Include="src\AI\BehaviourTree\BehaviourTree.cpp" />
-    <ClCompile Include="src\AI\BehaviourTree\ControlFlow\C_Sequencer.cpp" />
-    <ClCompile Include="src\AI\BehaviourTree\Decorator\D_Delay.cpp" />
-    <ClCompile Include="src\AI\BehaviourTree\Leaf\L_CheckMouseClick.cpp" />
-    <ClCompile Include="src\AI\BehaviourTree\Leaf\L_Idle.cpp" />
-    <ClCompile Include="src\AI\BehaviourTree\Leaf\L_RotatingMotion.cpp" />
-    <ClCompile Include="src\AI\BehaviourTree\NodeHeaderCodeFormat.cpp" />
-    <ClCompile Include="src\AI\BehaviourTree\RegisterNodes.cpp" />
-    <ClCompile Include="src\AI\BehaviourTree\ScanForNewNodes.cpp" />
     <ClCompile Include="src\Assets\Asset.cpp" />
     <ClCompile Include="src\Assets\AssetManager.cpp" />
     <ClCompile Include="src\Assets\EditorAssetManager.cpp" />

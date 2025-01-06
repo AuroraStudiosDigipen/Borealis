@@ -49,6 +49,7 @@ namespace Borealis
 		MonoObject* result = mono_runtime_invoke(Method, object, nullptr, nullptr);
 		uint64_t id = *reinterpret_cast<uint64_t*>(mono_object_unbox(result));
 
+
 		return id;
 
 
@@ -147,6 +148,61 @@ namespace Borealis
 		auto type = mono_field_get_type(mMonoFieldType);
 		auto klass = mono_class_from_mono_type(type);
 		return mono_class_is_subclass_of(klass, ScriptingSystem::GetScriptClass("GameObject")->GetMonoClass(), false);
+	}
+	bool ScriptField::isNativeComponent() const
+	{
+		auto type = mono_field_get_type(mMonoFieldType);
+		auto klass = mono_class_from_mono_type(type);
+
+		MonoCustomAttrInfo* attributeInfo = mono_custom_attrs_from_class(klass);
+
+		if (attributeInfo)
+		{
+			auto attributeClass = mono_custom_attrs_get_attr(attributeInfo, GetScriptAttribute("NativeComponent"));
+			if (attributeClass)
+			{
+				return true;
+			}
+		}
+
+		return false;
+
+	}
+	bool ScriptField::isAssetField() const
+	{
+		auto type = mono_field_get_type(mMonoFieldType);
+		auto klass = mono_class_from_mono_type(type);
+
+		MonoCustomAttrInfo* attributeInfo = mono_custom_attrs_from_class(klass);
+
+		if (attributeInfo)
+		{
+			auto attributeClass = mono_custom_attrs_get_attr(attributeInfo, GetScriptAttribute("AssetField"));
+			if (attributeClass)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+	int ScriptField::GetAssetType() const
+	{
+		auto type = mono_field_get_type(mMonoFieldType);
+		auto klass = mono_class_from_mono_type(type);
+		MonoCustomAttrInfo* attributeInfo = mono_custom_attrs_from_class(klass);
+		int nodeType = -1;
+
+		if (attributeInfo)
+		{
+			auto attributeClass = mono_custom_attrs_get_attr(attributeInfo, GetScriptAttribute("AssetField"));
+			if (attributeClass)
+			{
+				auto field = mono_class_get_field_from_name(mono_object_get_class(attributeClass), "Type");
+				mono_field_get_value(attributeClass, field, &nodeType);
+			}
+		}
+		return nodeType;
 	}
 }
 

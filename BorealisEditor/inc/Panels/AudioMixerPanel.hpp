@@ -59,7 +59,7 @@ namespace Borealis
         \param groupName The name of the audio group
         \param volume The volume level to set (0.0 to 1.0)
         *************************************************************************/
-        void SetGroupVolume(const std::string& groupName, float volume);
+        void SetGroupVolume(const AudioGroup group, float volume);
 
         // Data
 

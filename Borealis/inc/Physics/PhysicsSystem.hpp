@@ -34,6 +34,7 @@ namespace Borealis
 
 	using CollisionPair = std::pair<UUID, UUID>;
 
+
 	class Entity;
 	class PhysicsSystem
 	{
@@ -59,14 +60,14 @@ namespace Borealis
    * \param bodyID The ID of the body.
    * \param transform The transform component of the body.
    */
-		static void PushTransform(ColliderComponent& collider, TransformComponent& transform, RigidBodyComponent* rigidbody, Entity entity);
+		static void PushTransform(ColliderComponent& collider, TransformComponent& transform, RigidBodyComponent* rigidbody);
 
 		/**
    * \brief Pulls the transform of the specified body from the physics system.
    * \param bodyID The ID of the body.
    * \param transform The transform component of the body.
    */
-		static void PullTransform(ColliderComponent& collider, TransformComponent& transform, Entity& entity);
+		static void PullTransform(ColliderComponent& collider, TransformComponent& transform);
 
         /**
         * \brief Adds a body to the physics system.
@@ -103,24 +104,31 @@ namespace Borealis
 		static void SetRotation(unsigned int bodyID, glm::vec3 rotation);
 
 		static UUID BodyIDToUUID(unsigned int bodyID);
+		static bool BodyIDToIsSensor(unsigned int bodyID);
 
 		static std::queue<CollisionPair>& GetCollisionEnterQueue();
 		static std::queue<CollisionPair>& GetCollisionPersistQueue();
 		static std::queue<CollisionPair>& GetCollisionExitQueue();
 
+		static std::queue<CollisionPair>& GetTriggerEnterQueue();
+		static std::queue<CollisionPair>& GetTriggerPersistQueue();
+		static std::queue<CollisionPair>& GetTriggerExitQueue();
+
+		static void DrawDebug();
+
 		static void move(ColliderComponent& rigidbody, glm::vec3 motion);
 
-		static void addCharacter(CharacterControlComponent& character, TransformComponent& transform, ColliderComponent& collider);
+		static void addCharacter(CharacterControllerComponent& character, TransformComponent& transform, ColliderComponent& collider, UUID entityID);
 
-		static void FreeCharacter(CharacterControlComponent& character);
+		static void FreeCharacter(CharacterControllerComponent& character);
 
-		static void HandleInput(float inDeltaTime, CharacterControlComponent& controllerComp);
+		static void HandleInput(float inDeltaTime, CharacterControllerComponent& controllerComp);
 
 		static void PrePhysicsUpdate(float dt, void* Character);
 
-		static void PushCharacterTransform(CharacterControlComponent& character, glm::vec3 position, glm::vec3 rotation);
+		static void PushCharacterTransform(CharacterControllerComponent& character, glm::vec3 position, glm::vec3 rotation);
 
-		static void PullCharacterTransform(CharacterControlComponent& character, glm::vec3& position, glm::vec3& rotation);
+		static void PullCharacterTransform(CharacterControllerComponent& character, glm::vec3& position, glm::vec3& rotation);
 
 		static bool RayCast(glm::vec3 origin, glm::vec3 direction, float maxDistance, Bitset32 LayerMask);
 
@@ -130,6 +138,13 @@ namespace Borealis
 
 		static bool IsCharacterOnGround(void* Character);
 
+		static void UpdateScale(ColliderComponent& collider, TransformComponent& transform);
+
+		static bool shouldDebugDraw;
+
+		static bool DebugDrawGet(); 
+
+		static void DebugDrawSet(bool value);
 	};
 
 }

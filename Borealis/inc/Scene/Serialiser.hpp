@@ -85,36 +85,11 @@ namespace Borealis
 		*************************************************************************/
 		static bool DeserialiseEditorStyle();
 
-		/*!***********************************************************************
-			\brief
-				Serialises the behaviour tree to a YAML file
-			\param[in] filepath
-				The path to the file to be serialised
-			\param[in] tree
-				The behaviour tree to be serialised
-			\return
-				True if the serialisation was successful, false otherwise
-		*************************************************************************/
-		static bool SerializeBehaviourNode(YAML::Emitter& out, const Ref<BehaviourNode> node);
-
 		entt::entity DeserialiseEntity(YAML::detail::iterator_value& node, entt::registry& registry, UUID& uuid);
 
 	private:
 
 		void SerializeEntity(YAML::Emitter& out, Entity& entity);
-		/*!***********************************************************************
-			\brief
-				Recursively parses the YAML node to construct the behavior tree.
-			\param[in] node
-				The current YAML node to parse.
-			\param[in] parentNode
-				The parent node in the behavior tree to which the parsed node will be added.
-			\param[in] tree
-				The behaviour tree object to which nodes are being added.
-			\param[in] parentDepth
-				The depth of the parent node in the behavior tree.
-		*************************************************************************/
-		void ParseTree(YAML::Node& node, Ref<BehaviourNode> parentNode, BehaviourTree& tree, int parentDepth);
 
 		Ref<Scene> mScene;
 

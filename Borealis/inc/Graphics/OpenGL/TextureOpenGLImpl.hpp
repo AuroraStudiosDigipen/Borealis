@@ -106,6 +106,84 @@ namespace Borealis
 		uint32_t mWidth, mHeight, mChannels; // Width, Height and Channels of the texture
 		GLenum mInternalFormat, mDataFormat; // Internal Format and Data Format of the texture
 	};
+
+	class OpenGLTextureCubeMap : public TextureCubeMap
+	{
+	public:
+		/*!***********************************************************************
+			\brief
+				Constructor for OpenGL Texture2D
+			\param[in] path
+				Path to the texture file
+		*************************************************************************/
+		OpenGLTextureCubeMap(const std::filesystem::path& path);
+
+		/*!***********************************************************************
+			\brief
+				Destructor for OpenGL Texture2D
+		*************************************************************************/
+		~OpenGLTextureCubeMap();
+
+		/*!***********************************************************************
+			\brief
+				Set Data of a texture
+			\param[in] data
+				Pointer to the data
+			\param[in] size
+				Size of the data
+		*************************************************************************/
+		void SetData(void* data, uint32_t size) override;
+
+		/*!***********************************************************************
+			\brief
+				Get Width of the texture
+			\return
+				Width of the texture
+		*************************************************************************/
+		uint32_t GetWidth() const override { return mWidth; }
+
+		/*!***********************************************************************
+			\brief
+				Get Height of the texture
+			\return
+				Height of the texture
+		*************************************************************************/
+		uint32_t GetHeight() const override { return mHeight; }
+
+		/*!***********************************************************************
+			\brief
+				Get Renderer ID of the texture
+			\return
+				Renderer ID of the texture
+		*************************************************************************/
+		uint32_t GetRendererID() const override { return mRendererID; }
+
+		/*!***********************************************************************
+			\brief
+				Bind the texture
+			\param[in] unit
+				Texture unit to bind the texture to
+		*************************************************************************/
+		void Bind(uint32_t unit = 0) const override;
+
+		bool IsValid() const override;
+
+		/*!***********************************************************************
+			\brief
+				Operator overload to check if two textures are the same
+			\param[in] other
+				Other texture to compare with
+			\return
+				True if the textures are the same, false otherwise
+		*************************************************************************/
+		bool operator==(const Texture& other) const override { return mRendererID == ((OpenGLTextureCubeMap&)other).mRendererID; }
+	private:
+		bool mValid;
+		std::string mPath; // Path to the texture file
+		uint32_t mRendererID; // Renderer ID of the texture
+		uint32_t mWidth, mHeight, mChannels; // Width, Height and Channels of the texture
+		GLenum mInternalFormat, mDataFormat; // Internal Format and Data Format of the texture
+	};
 }
 
 #endif

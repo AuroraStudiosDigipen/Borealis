@@ -78,7 +78,7 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;YAML_CPP_STATIC_DEFINE;JPH_FLOATING_POINT_EXCEPTIONS_ENABLED;JPH_CROSS_PLATFORM_DETERMINISTIC;JPH_ENABLE_ASSERTS;_DEB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;YAML_CPP_STATIC_DEFINE;JPH_FLOATING_POINT_EXCEPTIONS_ENABLED;JPH_CROSS_PLATFORM_DETERMINISTIC;JPH_ENABLE_ASSERTS;JPH_DEBUG_RENDERER;_DEB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\Borealis;..\Borealis\inc;..\Borealis\lib\spdlog\include;..\Borealis\lib\yaml-cpp\include;..\Borealis\lib\glm;..\Borealis\lib\imgui;inc;..\Borealis\lib\ENTT\include;..\Borealis\lib\ImGuizmo;lib\imgui-node-editor;lib\assimp\include;lib\MSDF\Include;lib\filewatch;..\Borealis\lib\RTTR\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
@@ -108,7 +108,7 @@ IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;YAML_CPP_STATIC_DEFINE;JPH_FLOATING_POINT_EXCEPTIONS_ENABLED;JPH_CROSS_PLATFORM_DETERMINISTIC;JPH_ENABLE_ASSERTS;_REL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;YAML_CPP_STATIC_DEFINE;JPH_FLOATING_POINT_EXCEPTIONS_ENABLED;JPH_CROSS_PLATFORM_DETERMINISTIC;JPH_ENABLE_ASSERTS;JPH_DEBUG_RENDERER;_REL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\Borealis;..\Borealis\inc;..\Borealis\lib\spdlog\include;..\Borealis\lib\yaml-cpp\include;..\Borealis\lib\glm;..\Borealis\lib\imgui;inc;..\Borealis\lib\ENTT\include;..\Borealis\lib\ImGuizmo;lib\imgui-node-editor;lib\assimp\include;lib\MSDF\Include;lib\filewatch;..\Borealis\lib\RTTR\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -142,7 +142,7 @@ IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;YAML_CPP_STATIC_DEFINE;JPH_FLOATING_POINT_EXCEPTIONS_ENABLED;JPH_CROSS_PLATFORM_DETERMINISTIC;JPH_ENABLE_ASSERTS;_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;YAML_CPP_STATIC_DEFINE;JPH_FLOATING_POINT_EXCEPTIONS_ENABLED;JPH_CROSS_PLATFORM_DETERMINISTIC;JPH_ENABLE_ASSERTS;JPH_DEBUG_RENDERER;_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\Borealis;..\Borealis\inc;..\Borealis\lib\spdlog\include;..\Borealis\lib\yaml-cpp\include;..\Borealis\lib\glm;..\Borealis\lib\imgui;inc;..\Borealis\lib\ENTT\include;..\Borealis\lib\ImGuizmo;lib\imgui-node-editor;lib\assimp\include;lib\MSDF\Include;lib\filewatch;..\Borealis\lib\RTTR\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -177,17 +177,18 @@ IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
     <ClInclude Include="inc\EditorAssets\AnimationImporter.hpp" />
     <ClInclude Include="inc\EditorAssets\AssetImporter.hpp" />
     <ClInclude Include="inc\EditorAssets\FontImporter.hpp" />
-    <ClInclude Include="inc\EditorAssets\MaterialEditor.hpp" />
     <ClInclude Include="inc\EditorAssets\MeshImporter.hpp" />
     <ClInclude Include="inc\EditorAssets\MetaSerializer.hpp" />
     <ClInclude Include="inc\EditorAssets\SkinnedMeshImporter.hpp" />
     <ClInclude Include="inc\EditorComponentRegistry.hpp" />
     <ClInclude Include="inc\EditorLayer.hpp" />
     <ClInclude Include="inc\EditorSerialiser.hpp" />
+    <ClInclude Include="inc\MaterialEditor.hpp" />
     <ClInclude Include="inc\Panels\AudioMixerPanel.hpp" />
     <ClInclude Include="inc\Panels\BTNodeEditorPanel.hpp" />
     <ClInclude Include="inc\Panels\ConsolePanel.hpp" />
     <ClInclude Include="inc\Panels\ContentBrowserPanel.hpp" />
+    <ClInclude Include="inc\Panels\CubemapPanel.hpp" />
     <ClInclude Include="inc\Panels\SceneHierarchyPanel.hpp" />
     <ClInclude Include="inc\Prefab.hpp" />
     <ClInclude Include="inc\PrefabComponent.hpp" />
@@ -201,17 +202,18 @@ IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
     <ClCompile Include="src\EditorAssets\AnimationImporter.cpp" />
     <ClCompile Include="src\EditorAssets\AssetImporter.cpp" />
     <ClCompile Include="src\EditorAssets\FontImporter.cpp" />
-    <ClCompile Include="src\EditorAssets\MaterialEditor.cpp" />
     <ClCompile Include="src\EditorAssets\MeshImporter.cpp" />
     <ClCompile Include="src\EditorAssets\MetaSerializer.cpp" />
     <ClCompile Include="src\EditorAssets\SkinnedMeshImporter.cpp" />
     <ClCompile Include="src\EditorComponentRegistry.cpp" />
     <ClCompile Include="src\EditorLayer.cpp" />
     <ClCompile Include="src\EditorSerialiser.cpp" />
+    <ClCompile Include="src\MaterialEditor.cpp" />
     <ClCompile Include="src\Panels\AudioMixerPanel.cpp" />
     <ClCompile Include="src\Panels\BTNodeEditorPanel.cpp" />
     <ClCompile Include="src\Panels\ConsolePanel.cpp" />
     <ClCompile Include="src\Panels\ContentBrowserPanel.cpp" />
+    <ClCompile Include="src\Panels\CubemapPanel.cpp" />
     <ClCompile Include="src\Panels\SceneHierarchyPanel.cpp" />
     <ClCompile Include="src\Prefab.cpp" />
     <ClCompile Include="src\PrefabManager.cpp" />

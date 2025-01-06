@@ -15,6 +15,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include "BorealisPCH.hpp"
 #include <mono/metadata/object.h>
+#include <mono/metadata/attrdefs.h>
+#include <mono/metadata/reflection.h>
 #include "Scripting/ScriptClass.hpp"
 #include <Scripting/ScriptingUtils.hpp>
 namespace Borealis
@@ -25,6 +27,56 @@ namespace Borealis
 		mClassName = className;
 		mMonoClass = GetClassInAssembly(assembly, namespaceName.c_str(), className.c_str());
 	}
+
+	bool ScriptClass::IsNativeComponent() const
+	{
+		MonoCustomAttrInfo* attributeInfo = mono_custom_attrs_from_class(mMonoClass);
+
+		if (attributeInfo)
+		{
+			auto attributeClass = mono_custom_attrs_get_attr(attributeInfo, GetScriptAttribute("NativeComponent"));
+			if (attributeClass)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	bool ScriptClass::IsAssetField() const
+	{
+		MonoCustomAttrInfo* attributeInfo = mono_custom_attrs_from_class(mMonoClass);
+
+		if (attributeInfo)
+		{
+			auto attributeClass = mono_custom_attrs_get_attr(attributeInfo, GetScriptAttribute("AssetField"));
+			if (attributeClass)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	int ScriptClass::GetAssetType() const
+	{
+		MonoCustomAttrInfo* attributeInfo = mono_custom_attrs_from_class(mMonoClass);
+		int nodeType = -1;
+
+		if (attributeInfo)
+		{
+			auto attributeClass = mono_custom_attrs_get_attr(attributeInfo, GetScriptAttribute("AssetField"));
+			if (attributeClass)
+			{
+				auto field = mono_class_get_field_from_name(mono_object_get_class(attributeClass), "Type");
+				mono_field_get_value(attributeClass, field, &nodeType);
+			}
+		}
+		return nodeType;
+	}
+
 
 	MonoObject* ScriptClass::Instantiate()
 	{

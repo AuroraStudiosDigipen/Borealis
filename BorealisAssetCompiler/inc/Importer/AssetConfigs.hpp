@@ -19,10 +19,24 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace BorealisAssetCompiler
 {
-	struct TextureConfig 
+	enum class TextureType
 	{
-		bool generateMipMaps;
-		bool sRGBA;
+		_DEFAULT,
+		_NORMAL_MAP
+	};
+
+	enum class TextureShape
+	{
+		_2D,
+		_CUBE
+	};
+
+	struct TextureConfig
+	{
+		TextureType type = TextureType::_DEFAULT;
+		TextureShape shape = TextureShape::_2D;
+		bool sRGB = true;
+		bool generateMipMaps = false;
 	};
 
 	struct MeshConfig

@@ -48,6 +48,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Jolt/Physics/Collision/Shape/ScaledShape.h>
 #include <Jolt/Physics/Collision/RayCast.h>
 #include <Jolt/Physics/Collision/CastResult.h>
+#include <Jolt/Renderer/DebugRendererSimple.h>
 
 #include <Graphics/Renderer2D.hpp>
 
@@ -111,8 +112,7 @@ public:
 		case Layers::MOVING:
 			return true; // Moving collides with everything
 		default:
-			JPH_ASSERT(false);
-			return false;
+			return true;
 		}
 	}
 };
@@ -185,8 +185,7 @@ public:
 		case Layers::MOVING:
 			return true;
 		default:
-			JPH_ASSERT(false);
-			return false;
+			return true;
 		}
 	}
 };
@@ -209,6 +208,7 @@ public:
 
 namespace Borealis
 {
+
 	// An example contact listener
 	class MyContactListener : public ContactListener
 	{
@@ -229,20 +229,48 @@ namespace Borealis
 		virtual void OnContactRemoved(const SubShapeIDPair& inSubShapePair) override;
 	};
 
+	//Debug Renderer
+	class MyDebugRenderer : public JPH::DebugRendererSimple
+	{
+	public:
+		virtual void DrawLine(JPH::RVec3Arg inFrom, JPH::RVec3Arg inTo, JPH::ColorArg inColor) override
+		{
+			// Implement
+			Renderer2D::DrawLine(glm::vec3(inFrom.GetX(),inFrom.GetY(),inFrom.GetZ()), glm::vec3(inTo.GetX(),inTo.GetY(),inTo.GetZ()), glm::vec4(inColor.r,inColor.g,inColor.b,inColor.a));
+			//Renderer2D::DrawLine(glm::vec3(0.f), glm::vec3(100.f), glm::vec4(0.f,1.f,0.f,1.f));
+		}
+
+		virtual void DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RVec3Arg inV3, JPH::ColorArg inColor, ECastShadow inCastShadow) override
+		{
+			// Implement
+			BOREALIS_CORE_ERROR("DrawTriangle not implemented");
+		}
+
+		virtual void DrawText3D(JPH::RVec3Arg inPosition, const string_view& inString, JPH::ColorArg inColor, float inHeight) override
+		{
+			// Implement
+			BOREALIS_CORE_ERROR("DrawText3D not implemented");
+		}
+	};
+
 	struct PhysicsSystemData
 	{
 		JPH::PhysicsSystem* mSystem;
 		JPH::TempAllocatorImpl* temp_allocator;
 		JPH::JobSystemThreadPool* job_system;
 		JPH::BodyInterface* body_interface;
+		MyDebugRenderer* debug_renderer;
+		BodyManager::DrawSettings draw_settings;
 		BPLayerInterfaceImpl* broad_phase_layer_interface;
 		ObjectVsBroadPhaseLayerFilterImpl* object_vs_broadphase_layer_filter;
 		ObjectLayerPairFilterImpl* object_vs_object_layer_filter;
 		MyContactListener* contact_listener;
 		MyBodyActivationListener* body_activation_listener;
+
 		std::queue<CollisionPair> onCollisionPairAddedQueue;
 		std::queue<CollisionPair> onCollisionPairRemovedQueue;
 		std::queue<CollisionPair> onCollisionPairPersistedQueue;
+
 		std::queue<CollisionPair> onTriggerPairAddedQueue;
 		std::queue<CollisionPair> onTriggerPairRemovedQueue;
 		std::queue<CollisionPair> onTriggerPairPersistedQueue;
@@ -250,13 +278,13 @@ namespace Borealis
 
 	static PhysicsSystemData sData;
 	static unordered_map<unsigned int, Borealis::UUID> bodyIDMapUUID;
+	static unordered_map<unsigned int, bool> bodySensorMap;
 
 	void MyContactListener::OnContactAdded(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings)
 	{
 		if (inBody1.IsSensor() || inBody2.IsSensor())
 		{
 			sData.onTriggerPairAddedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
-			spdlog::info("Trigger pair added");
 		}
 		else
 		{
@@ -269,7 +297,6 @@ namespace Borealis
 		if (inBody1.IsSensor() || inBody2.IsSensor())
 		{
 			sData.onTriggerPairPersistedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
-			spdlog::info("Trigger pair persisted");
 		}
 		else
 		{
@@ -277,28 +304,26 @@ namespace Borealis
 		}
 	}
 
-	static bool IsBodySensor(const JPH::BodyID& bodyID)
-	{
-		// Get the body lock interface (read-lock to ensure thread safety)
-		JPH::BodyLockRead lock(sData.mSystem->GetBodyLockInterface(), bodyID);
-		if (lock.Succeeded()) {
-			// Check if the body is a sensor
-			return lock.GetBody().IsSensor();
-		}
-
-		// If the body doesn't exist or is invalid, return false
-		return false;
-	}
-
 	void MyContactListener::OnContactRemoved(const SubShapeIDPair& inSubShapePair)
 	{
-		sData.onCollisionPairRemovedQueue.push({ PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody1ID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody2ID().GetIndexAndSequenceNumber())});
-		spdlog::info("Collision pair removed");
+		if (PhysicsSystem::BodyIDToIsSensor(inSubShapePair.GetBody1ID().GetIndexAndSequenceNumber()) || PhysicsSystem::BodyIDToIsSensor(inSubShapePair.GetBody2ID().GetIndexAndSequenceNumber()))
+		{
+			sData.onTriggerPairRemovedQueue.push({ PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody1ID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody2ID().GetIndexAndSequenceNumber()) });
+		}
+		else
+		{
+			sData.onCollisionPairRemovedQueue.push({ PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody1ID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody2ID().GetIndexAndSequenceNumber()) });
+		}
+		
 	}
 
 	std::queue<CollisionPair>& PhysicsSystem::GetCollisionEnterQueue() {return sData.onCollisionPairAddedQueue; }
 	std::queue<CollisionPair>& PhysicsSystem::GetCollisionPersistQueue() { return sData.onCollisionPairPersistedQueue; }
 	std::queue<CollisionPair>& PhysicsSystem::GetCollisionExitQueue() { return sData.onCollisionPairRemovedQueue; }
+
+	std::queue<CollisionPair>& PhysicsSystem::GetTriggerEnterQueue() { return sData.onTriggerPairAddedQueue; }
+	std::queue<CollisionPair>& PhysicsSystem::GetTriggerPersistQueue() { return sData.onTriggerPairPersistedQueue; }
+	std::queue<CollisionPair>& PhysicsSystem::GetTriggerExitQueue() { return sData.onTriggerPairRemovedQueue; }
 
 	void PhysicsSystem::EndScene()
 	{
@@ -313,6 +338,18 @@ namespace Borealis
 		while (!sData.onCollisionPairRemovedQueue.empty())
 		{
 			sData.onCollisionPairRemovedQueue.pop();
+		}
+		while (!sData.onTriggerPairAddedQueue.empty())
+		{
+			sData.onTriggerPairAddedQueue.pop();
+		}
+		while (!sData.onTriggerPairPersistedQueue.empty())
+		{
+			sData.onTriggerPairPersistedQueue.pop();
+		}
+		while (!sData.onTriggerPairRemovedQueue.empty())
+		{
+			sData.onTriggerPairRemovedQueue.pop();
 		}
 	}
 
@@ -384,15 +421,24 @@ namespace Borealis
 	// variant of this. We're going to use the locking version (even though we're not planning to access bodies from multiple threads)
 	sData.body_interface = &sData.mSystem->GetBodyInterface();
 
+	// Create a debug renderer
+	sData.debug_renderer = new MyDebugRenderer();
+	sData.draw_settings.mDrawShapeWireframe = true;
+
 	// Optional step: Before starting the physics simulation you can optimize the broad phase. This improves collision detection performance (it's pointless here because we only have 2 bodies).
 	// You should definitely not call this every frame or when e.g. streaming in a new level section as it is an expensive operation.
 	// Instead insert all new objects in batches instead of 1 at a time to keep the broad phase efficient.
 	sData.mSystem->OptimizeBroadPhase();
 }
 
-	void PhysicsSystem::PushTransform(ColliderComponent& collider, TransformComponent& transform, RigidBodyComponent* rigidbody, Entity entity)
+	void PhysicsSystem::DrawDebug()
 	{
-		auto entityTransform = TransformComponent::GetGlobalTransform(entity);
+		sData.mSystem->DrawBodies(sData.draw_settings, sData.debug_renderer);
+	}
+
+	void PhysicsSystem::PushTransform(ColliderComponent& collider, TransformComponent& transform, RigidBodyComponent* rigidbody)
+	{
+		auto entityTransform = transform.GetGlobalTransform();
 		auto modelCenter = collider.center;
 		auto actualCenterVec4 = entityTransform * glm::vec4(modelCenter, 1.0f);
 		auto actualCenter = glm::vec3(actualCenterVec4.x, actualCenterVec4.y, actualCenterVec4.z);
@@ -407,7 +453,7 @@ namespace Borealis
 		//// Create a scaled shape
 		//ScaledShape* scaledShape = new ScaledShape(oldShape, newScale);
 
-		//// Replace the body’s shape with the scaled shape
+		//// Replace the bodyï¿½s shape with the scaled shape
 		//sData.body_interface->SetShape((BodyID(rigidbody.bodyID)), scaledShape, true, EActivation::Activate);
 	
 		// Convert position (glm::vec3 to Jolt's RVec3)
@@ -428,25 +474,22 @@ namespace Borealis
 		{
 			if (rigidbody->movement == MovementType::Kinematic)
 			{
-				sData.body_interface->SetObjectLayer((BodyID)collider.bodyID, Layers::MOVING);
 				sData.body_interface->SetMotionType((BodyID)collider.bodyID, EMotionType::Kinematic, EActivation::Activate);
 			}
 			else if (rigidbody->movement == MovementType::Static)
 			{
-				sData.body_interface->SetObjectLayer((BodyID)collider.bodyID, Layers::NON_MOVING);
 				sData.body_interface->SetMotionType((BodyID)collider.bodyID, EMotionType::Static, EActivation::Activate);
 
 			}
 			else if (rigidbody->movement == MovementType::Dynamic)
 			{
-				sData.body_interface->SetObjectLayer((BodyID)collider.bodyID, Layers::MOVING);
 				sData.body_interface->SetMotionType((BodyID)collider.bodyID, EMotionType::Dynamic, EActivation::Activate);
 
 			}
 		}
 	}
 
-	void PhysicsSystem::PullTransform(ColliderComponent& collider, TransformComponent& transform, Entity& entity)
+	void PhysicsSystem::PullTransform(ColliderComponent& collider, TransformComponent& transform)
 	{
 		// Get position from the physics system (JPH::RVec3 to glm::vec3)
 		JPH::RVec3 newPosition = sData.body_interface->GetPosition((BodyID)collider.bodyID);
@@ -456,7 +499,7 @@ namespace Borealis
 		glm::quat rotation = glm::quat(newRotation.GetW(), newRotation.GetX(), newRotation.GetY(), newRotation.GetZ());
 		// Convert quaternion to Euler angles (quat to vec3) in degrees
 		glm::vec3 newRotate = glm::degrees(glm::eulerAngles(rotation));  // Euler angles in degrees
-		glm::vec3 newScale = TransformComponent::GetGlobalScale(entity);
+		glm::vec3 newScale = transform.GetGlobalScale();
 
 		glm::mat4 rotationMatrix = glm::mat4(glm::quat(glm::radians(newRotate)));
 		glm::mat4 translationMatrix = glm::mat4(1.f);
@@ -478,22 +521,16 @@ namespace Borealis
 		else
 		{
 			auto parentEntity = SceneManager::GetActiveScene()->GetEntityByUUID(transform.ParentID);
-			auto parentTransform = TransformComponent::GetGlobalTransform(parentEntity);
-			if (parentEntity.HasComponent<ScriptComponent>() && parentEntity.GetComponent<ScriptComponent>().HasScript("ThirdPersonController"))
-			{
-				auto& tc = parentEntity.GetComponent<TransformComponent>();
-				Math::MatrixDecomposition(&newTransform, &tc.Translate, &tc.Rotation, &tc.Scale);
-			}
-			else
-			{
-				auto localTransform = newTransform * glm::inverse(parentTransform);
+			auto parentTransform = parentEntity.GetComponent<TransformComponent>().GetGlobalTransform();
+		
+				auto localTransform = glm::inverse(parentTransform) * newTransform;
 				Math::MatrixDecomposition(&localTransform, &transform.Translate, &transform.Rotation, &transform.Scale);
-			}
+			
 
 		}
 	}
 
-	void PhysicsSystem::PushCharacterTransform(CharacterControlComponent& character, glm::vec3 position, glm::vec3 rotation)
+	void PhysicsSystem::PushCharacterTransform(CharacterControllerComponent& character, glm::vec3 position, glm::vec3 rotation)
 	{
 		// Convert position (glm::vec3 to Jolt's RVec3)
 		JPH::RVec3 newPosition = JPH::RVec3(position.x, position.y, position.z);
@@ -509,7 +546,7 @@ namespace Borealis
 		reinterpret_cast<CharacterVirtual*>(character.controller)->SetRotation(newRotation);
 	}
 
-	void PhysicsSystem::PullCharacterTransform(CharacterControlComponent& character, glm::vec3& position, glm::vec3& rotation)
+	void PhysicsSystem::PullCharacterTransform(CharacterControllerComponent& character, glm::vec3& position, glm::vec3& rotation)
 	{
 		// Get position from the physics system (JPH::RVec3 to glm::vec3)
 		JPH::RVec3 newPosition = reinterpret_cast<CharacterVirtual*>(character.controller)->GetPosition();
@@ -522,6 +559,18 @@ namespace Borealis
 		// Convert quaternion to Euler angles (quat to vec3) in degrees
 		rotation = glm::degrees(glm::eulerAngles(rotationQuat));  // Euler angles in degrees
 
+	}
+
+	bool PhysicsSystem::shouldDebugDraw = false;
+
+	bool PhysicsSystem::DebugDrawGet() 
+	{
+		return shouldDebugDraw;
+	}
+
+	void PhysicsSystem::DebugDrawSet(bool value)
+	{
+		shouldDebugDraw = value;
 	}
 
 	void PhysicsSystem::Update(float dt)
@@ -538,6 +587,7 @@ namespace Borealis
 		delete sData.contact_listener;
 		delete sData.temp_allocator;
 		delete sData.job_system;
+		delete sData.debug_renderer;
 		delete sData.mSystem;
 
 		delete Factory::sInstance;
@@ -546,6 +596,11 @@ namespace Borealis
 	UUID PhysicsSystem::BodyIDToUUID(unsigned int bodyID)
 	{
 		return bodyIDMapUUID[bodyID];
+	}
+
+	bool PhysicsSystem::BodyIDToIsSensor(unsigned int bodyID)
+	{
+		return bodySensorMap[bodyID];
 	}
 
 	std::pair<glm::vec3, glm::vec3> PhysicsSystem::calculateBoundingVolume(const Model& model)
@@ -566,7 +621,6 @@ namespace Borealis
 				maxExtent.z = std::max(maxExtent.z, vertex.Position.z);
 			}
 		}
-
 
 		glm::vec3 boundingVolumeCenter = (minExtent + maxExtent) * 0.5f;
 
@@ -663,7 +717,7 @@ namespace Borealis
 		sData.body_interface->SetLinearVelocity((BodyID)rigidbody.bodyID, JoltMotion);
 	}
 
-	void PhysicsSystem::addCharacter(CharacterControlComponent& character, TransformComponent& transform, ColliderComponent& collider)
+	void PhysicsSystem::addCharacter(CharacterControllerComponent& character, TransformComponent& transform, ColliderComponent& collider, UUID entityID)
 	{
 		CharacterVirtualSettings settings;
 		ShapeRefC shape;
@@ -682,14 +736,14 @@ namespace Borealis
 		}
 		else if (spherePtr)
 		{
-			SphereShapeSettings sphere_shape_settings(spherePtr->radius);
+			SphereShapeSettings sphere_shape_settings(spherePtr->radius *((transform.Scale.x + transform.Scale.y + transform.Scale.z) * 0.33f)); //For sphere scaling of xyz should be equal. 
 			sphere_shape_settings.SetEmbedded();
 			shape_result = sphere_shape_settings.Create();
 			shape = shape_result.Get();
 		}
 		else if (capsulePtr)
 		{
-			CapsuleShapeSettings capsule_shape_settings(capsulePtr->radius, capsulePtr->height);
+			CapsuleShapeSettings capsule_shape_settings(capsulePtr->radius * (transform.Scale.x + transform.Scale.z) * 0.5f, capsulePtr->height * transform.Scale.y); //For capsule scaling when Y is up, X and Z is the width and Y is the height.
 			capsule_shape_settings.SetEmbedded();
 			shape_result = capsule_shape_settings.Create();
 			shape = shape_result.Get();
@@ -699,16 +753,23 @@ namespace Borealis
 		settings.mMaxStrength = character.strength;
 		settings.mMass = character.mass;
 		settings.mShape = shape;
+		settings.mInnerBodyShape = shape;
+		Entity BrEntity = SceneManager::GetActiveScene()->GetEntityByUUID(entityID);
+		settings.mInnerBodyLayer = BrEntity.GetComponent<TagComponent>().mLayer.toUint16();
 		settings.SetEmbedded();
 
 		character.controller = new CharacterVirtual(&settings, RVec3(transform.Translate.x, transform.Translate.y,transform.Translate.z), Quat::sIdentity(), sData.mSystem);
+		bodyIDMapUUID[reinterpret_cast<CharacterVirtual*>(character.controller)->GetInnerBodyID().GetIndexAndSequenceNumber()] = entityID;
+		bodySensorMap[reinterpret_cast<CharacterVirtual*>(character.controller)->GetInnerBodyID().GetIndexAndSequenceNumber()] = false;
 	}
+
 
 	void PhysicsSystem::PrePhysicsUpdate(float dt, void* Character)
 	{
 		CharacterVirtual* mCharacter = reinterpret_cast<CharacterVirtual*>(Character);
 		bool sEnableStickToFloor = true;
 		bool sEnableWalkStairs = true;
+		auto vel = mCharacter->GetLinearVelocity();
 
 		// Settings for our update function
 		CharacterVirtual::ExtendedUpdateSettings update_settings;
@@ -725,8 +786,8 @@ namespace Borealis
 		mCharacter->ExtendedUpdate(dt,
 			-mCharacter->GetUp() * sData.mSystem->GetGravity().Length(),
 			update_settings,
-			sData.mSystem->GetDefaultBroadPhaseLayerFilter(Layers::MOVING),
-			sData.mSystem->GetDefaultLayerFilter(Layers::MOVING),
+			{},
+			{},
 			{ },
 			{ },
 			*sData.temp_allocator);
@@ -739,7 +800,7 @@ namespace Borealis
 		return mCharacter->GetGroundState() != CharacterVirtual::EGroundState::InAir;
 	}
 
-	void PhysicsSystem::HandleInput(float inDeltaTime, CharacterControlComponent& controllerComp)
+	void PhysicsSystem::HandleInput(float inDeltaTime, CharacterControllerComponent& controllerComp)
 	{
 		CharacterVirtual* mCharacter = reinterpret_cast<CharacterVirtual*>(controllerComp.controller);
 
@@ -784,8 +845,6 @@ namespace Borealis
 		else
 			new_velocity = current_vertical_velocity;
 
-		// Gravity
-		new_velocity += (character_up_rotation * sData.mSystem->GetGravity()) * inDeltaTime;
 
 		if (player_controls_horizontal_velocity)
 		{
@@ -815,10 +874,19 @@ namespace Borealis
 		}*/
 	}
 
-	void PhysicsSystem::FreeCharacter(CharacterControlComponent& character)
+	void PhysicsSystem::FreeCharacter(CharacterControllerComponent& character)
 	{
+
+		bodyIDMapUUID.erase(reinterpret_cast<CharacterVirtual*>(character.controller)->GetInnerBodyID().GetIndexAndSequenceNumber());
+		bodySensorMap.erase(reinterpret_cast<CharacterVirtual*>(character.controller)->GetInnerBodyID().GetIndexAndSequenceNumber());
+
 		if(character.controller)
-		delete character.controller;
+		{
+			auto InnerID = reinterpret_cast<CharacterVirtual*>(character.controller)->GetInnerBodyID();
+			delete character.controller;
+			sData.mSystem->GetBodyInterface().RemoveBody(InnerID);
+		}
+
 
 		character.controller = nullptr;
 	}
@@ -857,6 +925,10 @@ namespace Borealis
 		auto& narrowPhaseQuery = sData.mSystem->GetNarrowPhaseQuery();
 		RayCastResult result;
 		//result.mFraction = maxDistance;
+		if (LayerMask.to_ulong() == 0)
+		{
+			return narrowPhaseQuery.CastRay(ray, result);
+		}
 		return narrowPhaseQuery.CastRay(ray, result, {}, ObjectLayerFilterImpl(LayerMask));
 	}
 
@@ -864,11 +936,19 @@ namespace Borealis
 	bool PhysicsSystem::RayCast(glm::vec3 origin, glm::vec3 direction, RaycastHit* hitInfo, float maxDistance, Bitset32 LayerMask)
 	{
 		direction = glm::normalize(direction);
-
+		direction *= maxDistance; //set distance of ray
 		RRayCast ray{ Vec3(origin.x, origin.y, origin.z), Vec3(direction.x, direction.y, direction.z) };
 		auto& narrowPhaseQuery = sData.mSystem->GetNarrowPhaseQuery();
 		RayCastResult result;
-		bool output = narrowPhaseQuery.CastRay(ray, result, {}, ObjectLayerFilterImpl(LayerMask));
+		bool output;
+		if (LayerMask.to_ulong() == 0)
+		{
+			output = narrowPhaseQuery.CastRay(ray, result);
+		}
+		else
+		{
+			output = narrowPhaseQuery.CastRay(ray, result, {}, ObjectLayerFilterImpl(LayerMask));
+		}
 
 		hitInfo->colliderID = *(reinterpret_cast<uint32_t*>(&result.mBodyID));
 		hitInfo->distance = maxDistance * result.mFraction;
@@ -908,7 +988,14 @@ namespace Borealis
 		RayCollector collector;
 		RRayCast ray{ Vec3(origin.x, origin.y, origin.z), Vec3(direction.x, direction.y, direction.z) };
 		auto& narrowPhaseQuery = sData.mSystem->GetNarrowPhaseQuery();
-		narrowPhaseQuery.CastRay(ray, {}, collector, {}, ObjectLayerFilterImpl(LayerMask));
+		if (LayerMask.to_ulong() == 0)
+		{
+			narrowPhaseQuery.CastRay(ray, {}, collector);
+		}
+		else
+		{
+			narrowPhaseQuery.CastRay(ray, {}, collector, {}, ObjectLayerFilterImpl(LayerMask));
+		}
 		std::vector<RaycastHit> output;
 		for (auto hitResult : collector.hits)
 		{
@@ -932,6 +1019,56 @@ namespace Borealis
 		return output;
 	}
 
+	void PhysicsSystem::UpdateScale(ColliderComponent& collider, TransformComponent& transform)
+	{
+
+		ShapeRefC shape;
+		ShapeSettings::ShapeResult shape_result;
+
+		BoxColliderComponent* boxPtr = dynamic_cast<BoxColliderComponent*>(&collider);
+		SphereColliderComponent* spherePtr = dynamic_cast<SphereColliderComponent*>(&collider);
+		CapsuleColliderComponent* capsulePtr = dynamic_cast<CapsuleColliderComponent*>(&collider);
+		if (boxPtr)
+		{
+			glm::vec3 size = { boxPtr->size.x * 0.5f * transform.Scale.x, boxPtr->size.y * 0.5f * transform.Scale.y, boxPtr->size.z * 0.5f * transform.Scale.z };
+			if (size.x < 0)
+			{
+				size.x = -size.x;
+			}
+
+			if (size.y < 0)
+			{
+				size.y = -size.y;
+			}
+
+			if (size.z < 0)
+			{
+				size.z = -size.z;
+			}
+			BoxShapeSettings box_shape_settings(Vec3(size.x, size.y, size.z));
+			box_shape_settings.SetEmbedded();
+			shape_result = box_shape_settings.Create();
+			shape = shape_result.Get();
+		}
+		else if (spherePtr)
+		{
+			SphereShapeSettings sphere_shape_settings(spherePtr->radius * ((transform.Scale.x + transform.Scale.y + transform.Scale.z) * 0.33f)); //For sphere scaling of xy
+			sphere_shape_settings.SetEmbedded();
+			shape_result = sphere_shape_settings.Create();
+			shape = shape_result.Get();
+		}
+		else if (capsulePtr)
+		{
+			CapsuleShapeSettings capsule_shape_settings(capsulePtr->radius * (transform.Scale.x + transform.Scale.z) * 0.5f, capsulePtr->height * transform.Scale.y);
+			capsule_shape_settings.SetEmbedded();
+			shape_result = capsule_shape_settings.Create();
+			shape = shape_result.Get();
+		}
+		
+		sData.body_interface->SetShape((BodyID)collider.bodyID, shape, true, EActivation::Activate);
+
+	}
+
 	void PhysicsSystem::addBody(TransformComponent& transform, RigidBodyComponent* rigidbody, ColliderComponent& collider, UUID entityID)
 	{
 		ShapeRefC shape;
@@ -943,6 +1080,20 @@ namespace Borealis
 		if (boxPtr)
 		{
 			glm::vec3 size = { boxPtr->size.x * 0.5f * transform.Scale.x, boxPtr->size.y * 0.5f * transform.Scale.y, boxPtr->size.z * 0.5f * transform.Scale.z };
+			if (size.x < 0)
+			{
+				size.x = -size.x;
+			}
+
+			if (size.y < 0)
+			{
+				size.y = -size.y;
+			}
+
+			if (size.z < 0)
+			{
+				size.z = -size.z;
+			}
 			BoxShapeSettings box_shape_settings(Vec3(size.x, size.y, size.z));
 			box_shape_settings.SetEmbedded();
 			shape_result = box_shape_settings.Create();
@@ -950,14 +1101,14 @@ namespace Borealis
 		}
 		else if (spherePtr)
 		{
-			SphereShapeSettings sphere_shape_settings(spherePtr->radius);
+			SphereShapeSettings sphere_shape_settings(spherePtr->radius * ((transform.Scale.x + transform.Scale.y + transform.Scale.z) * 0.33f)); //For sphere scaling of xy
 			sphere_shape_settings.SetEmbedded();
 			shape_result = sphere_shape_settings.Create();
 			shape = shape_result.Get();
 		}
 		else if (capsulePtr)
 		{
-			CapsuleShapeSettings capsule_shape_settings(capsulePtr->radius, capsulePtr->height);
+			CapsuleShapeSettings capsule_shape_settings(capsulePtr->radius * (transform.Scale.x+transform.Scale.z) * 0.5f, capsulePtr->height * transform.Scale.y);
 			capsule_shape_settings.SetEmbedded();
 			shape_result = capsule_shape_settings.Create();
 			shape = shape_result.Get();
@@ -970,7 +1121,7 @@ namespace Borealis
 
 
 		auto brEntity = SceneManager::GetActiveScene()->GetEntityByUUID(entityID);
-		auto rotation = TransformComponent::GetGlobalRotation(brEntity);
+		auto rotation = transform.GetGlobalRotation();
 		auto tagComponent = brEntity.GetComponent<TagComponent>();
 
 		glm::quat quatRot = glm::quat(glm::radians(rotation));  // Assuming Rotation is in degrees
@@ -1014,20 +1165,27 @@ namespace Borealis
 		// Add it to the world
 		sData.body_interface->AddBody(body->GetID(), EActivation::Activate);
 
+		// Store the BodyID in the RigidBodyComponent
+		collider.bodyID = body->GetID().GetIndexAndSequenceNumber();
+
+
 		if (collider.isTrigger)
 		{
 			body->SetIsSensor(true);
+			bodySensorMap[collider.bodyID] = true;
+		}
+		else
+		{
+			bodySensorMap[collider.bodyID] = false;
 		}
 
-		// Store the BodyID in the RigidBodyComponent
-		collider.bodyID = body->GetID().GetIndexAndSequenceNumber();
 		bodyIDMapUUID[collider.bodyID] = entityID;
-		
 	}
 
 	void PhysicsSystem::FreeRigidBody(ColliderComponent& collider)
 	{
 		sData.body_interface->RemoveBody(JPH::BodyID(collider.bodyID));
 		bodyIDMapUUID.erase(collider.bodyID);
+		bodySensorMap.erase(collider.bodyID);
 	}
 }

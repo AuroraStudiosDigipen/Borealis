@@ -16,6 +16,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/Model.hpp>
 #include <Graphics/SkinnedModel.hpp>
 
+#include <Core/LoggerSystem.hpp>
+
 namespace Borealis
 {
 	void Model::Draw(const glm::mat4& transform, Ref<Shader> shader, int entityID)
@@ -37,24 +39,42 @@ namespace Borealis
 
 		for (Mesh& mesh : mMeshes) 
 		{
-			//always the same?
 			uint32_t verticesCount, indicesCount;
 			inFile.read(reinterpret_cast<char*>(&verticesCount), sizeof(verticesCount));
 			mesh.SetVerticesCount(verticesCount);
 			inFile.read(reinterpret_cast<char*>(&indicesCount), sizeof(indicesCount));
 			mesh.SetIndicesCount(indicesCount);
 
+			std::vector<MeshVertex> oldVertex(verticesCount);
+			std::vector<unsigned int> oldIndices(indicesCount);
+
+			//mesh.GetVertices().resize(verticesCount);
+			//mesh.GetIndices().resize(indicesCount);
+
+			inFile.read(reinterpret_cast<char*>(oldVertex.data()), verticesCount * sizeof(MeshVertex));
+
+			inFile.read(reinterpret_cast<char*>(oldIndices.data()), indicesCount * sizeof(uint32_t));
+
 			mesh.GetVertices().resize(verticesCount);
-			mesh.GetIndices().resize(indicesCount);
-
-			inFile.read(reinterpret_cast<char*>(mesh.GetVertices().data()), verticesCount * sizeof(MeshVertex));
-
-			inFile.read(reinterpret_cast<char*>(mesh.GetIndices().data()), indicesCount * sizeof(uint32_t));
+			std::vector<Vertex>& meshData = mesh.GetVertices();
+			for (size_t i{}; i < oldVertex.size(); ++i)
+			{
+				meshData[i].Position = oldVertex[i].Position;
+				meshData[i].Normal = oldVertex[i].Normal;
+				meshData[i].TexCoords = oldVertex[i].TexCoords;
+			}
+			
+			mesh.GetIndices() = oldIndices;
 
 			mesh.SetupMesh();
 
 			mesh.GenerateRitterBoundingSphere();
 			mesh.GenerateAABB();
+		}
+
+		//Temp
+		{
+
 		}
 
 		GenerateRitterBoundingSphere();

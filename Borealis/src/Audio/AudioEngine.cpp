@@ -17,6 +17,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Audio/Audio.hpp>
 #include "Audio/AudioEngine.hpp"
 #include <Scene/Components.hpp>
+#include <Audio/AudioGroup.hpp>
 
 namespace Borealis
 {
@@ -39,7 +40,7 @@ namespace Borealis
 
     };
 
-    static FMOD_VECTOR VectorToFmod(const Vector3& vPosition)
+    static FMOD_VECTOR VectorToFmod(const glm::vec3& vPosition)
     {
         FMOD_VECTOR fVec;
         fVec.x = vPosition.x;
@@ -135,7 +136,7 @@ namespace Borealis
         // Here you can add your logic for unloading sounds
     }
 
-    int AudioEngine::PlayAudio(const AudioSourceComponent& audio, const Vector3& vPosition, float fVolumedB, bool bMute, bool bLoop, int groupId)
+    int AudioEngine::PlayAudio(AudioSourceComponent& audio, const glm::vec3& vPosition, float fVolumedB, bool bMute, bool bLoop, int groupId)
     {
         int nChannelId = sgpImplementation->mnNextChannelId++;
 
@@ -166,17 +167,15 @@ namespace Borealis
             ErrorCheck(pChannel->setMode(bLoop ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF));
 
             // Assign the channel to the specified group using setChannelGroup
-            if (groupId != -1)
+            if (audio.group != AudioGroup::Master) // For now, assign all to Master
             {
+                int groupId = static_cast<int>(audio.group);  // Convert enum to integer
                 auto itGroup = sgpImplementation->mChannelGroups.find(groupId);
                 if (itGroup != sgpImplementation->mChannelGroups.end())
                 {
                     FMOD::ChannelGroup* pGroup = itGroup->second;
                     ErrorCheck(pChannel->setChannelGroup(pGroup));
                 }
-
-                // Record the group for this audio
-                sgpImplementation->mAudioGroupMap[fmodSound] = groupId;
             }
 
             sgpImplementation->mChannels[nChannelId] = pChannel;
@@ -184,6 +183,7 @@ namespace Borealis
 
         return nChannelId;
     }
+
 
 
 
@@ -220,13 +220,23 @@ namespace Borealis
 
     void AudioEngine::StopAllChannels()
     {
+        // Stop all tracked channels
         for (auto& channelPair : sgpImplementation->mChannels)
         {
             StopChannel(channelPair.first);
         }
+        sgpImplementation->mChannels.clear(); // Clear the map as all channels are stopped
+
+        // Stop all channels globally via the master group
+        FMOD::ChannelGroup* masterGroup = nullptr;
+        ErrorCheck(sgpImplementation->mpSystem->getMasterChannelGroup(&masterGroup));
+        if (masterGroup)
+        {
+            ErrorCheck(masterGroup->stop());
+        }
     }
 
-    void AudioEngine::SetChannel3DPosition(int nChannelId, const Vector3& vPosition)
+    void AudioEngine::SetChannel3DPosition(int nChannelId, const glm::vec3& vPosition)
     {
         auto tFoundIt = sgpImplementation->mChannels.find(nChannelId);
         if (tFoundIt == sgpImplementation->mChannels.end())
@@ -245,7 +255,7 @@ namespace Borealis
         ErrorCheck(tFoundIt->second->setVolume(dbToVolume(fVolumedB)));
     }
 
-    void AudioEngine::SetListenerPosition(const Vector3& position, const Vector3& forward, const Vector3& up)
+    void AudioEngine::SetListenerPosition(const glm::vec3& position, const glm::vec3& forward, const glm::vec3& up)
     {
         FMOD_VECTOR pos = VectorToFmod(position);
         FMOD_VECTOR fwd = VectorToFmod(forward);
@@ -326,5 +336,86 @@ namespace Borealis
     {
         Audio audio = LoadAudio(assetMetaData.SourcePath.string());
         return MakeRef<Audio>(audio);
+    }
+
+    int AudioEngine::Play(Ref<Audio> audio, const glm::vec3& position, float volumeDB, bool looping, AudioGroup group)
+    {
+        if (!audio || !audio->audioPtr) {
+            std::cerr << "Invalid audio reference" << std::endl;
+            return -1;
+        }
+
+        int channelId = sgpImplementation->mnNextChannelId++;
+
+        FMOD::Channel* channel = nullptr;
+        FMOD::Sound* sound = audio->audioPtr;
+
+        // Play the sound with pausing enabled initially
+        ErrorCheck(sgpImplementation->mpSystem->playSound(sound, nullptr, true, &channel));
+
+        if (channel) {
+            // Set 3D attributes if the sound is in 3D mode
+            FMOD_MODE mode;
+            sound->getMode(&mode);
+            if (mode & FMOD_3D) {
+                FMOD_VECTOR fmodPosition = VectorToFmod(position);
+                FMOD_VECTOR velocity = { 0.0f, 0.0f, 0.0f };
+                ErrorCheck(channel->set3DAttributes(&fmodPosition, &velocity));
+            }
+
+            // Set additional properties
+            ErrorCheck(channel->setVolume(dbToVolume(volumeDB)));
+            ErrorCheck(channel->setPaused(false));
+            ErrorCheck(channel->setMode(looping ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF));
+
+            // Assign channel to a group
+            int groupId = static_cast<int>(group);
+            auto itGroup = sgpImplementation->mChannelGroups.find(groupId);
+            if (itGroup != sgpImplementation->mChannelGroups.end()) {
+                ErrorCheck(channel->setChannelGroup(itGroup->second));
+            }
+
+            // Store the channel
+            sgpImplementation->mChannels[channelId] = channel;
+        }
+
+        return channelId; // Return the channel ID for tracking
+    }
+
+    void AudioEngine::PlayOneShot(Ref<Audio> audio, const glm::vec3& position, float volumeDB, AudioGroup group)
+    {
+        if (!audio || !audio->audioPtr) {
+            std::cerr << "Invalid audio reference" << std::endl;
+            return;
+        }
+
+        FMOD::Channel* channel = nullptr;
+        FMOD::Sound* sound = audio->audioPtr;
+
+        // Play the sound with no need for tracking
+        ErrorCheck(sgpImplementation->mpSystem->playSound(sound, nullptr, true, &channel));
+
+        if (channel) {
+            // Set 3D attributes if the sound is in 3D mode
+            FMOD_MODE mode;
+            sound->getMode(&mode);
+            if (mode & FMOD_3D) {
+                FMOD_VECTOR fmodPosition = VectorToFmod(position);
+                FMOD_VECTOR velocity = { 0.0f, 0.0f, 0.0f };
+                ErrorCheck(channel->set3DAttributes(&fmodPosition, &velocity));
+            }
+
+            // Set additional properties
+            ErrorCheck(channel->setVolume(dbToVolume(volumeDB)));
+            ErrorCheck(channel->setPaused(false));
+            ErrorCheck(channel->setMode(FMOD_LOOP_OFF)); // PlayOneShot is always non-looping
+
+            // Assign to group if applicable
+            int groupId = static_cast<int>(group);
+            auto itGroup = sgpImplementation->mChannelGroups.find(groupId);
+            if (itGroup != sgpImplementation->mChannelGroups.end()) {
+                ErrorCheck(channel->setChannelGroup(itGroup->second));
+            }
+        }
     }
 }

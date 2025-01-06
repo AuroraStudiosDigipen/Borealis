@@ -102,6 +102,8 @@ namespace Borealis
 		*************************************************************************/
 		void SetLineThickness(const float& thickness) override;
 
+		void BindBackBuffer() override;
+
 		void EnableBlend() override;
 
 		void DisableBlend() override;

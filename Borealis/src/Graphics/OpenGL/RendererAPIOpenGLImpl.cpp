@@ -15,6 +15,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <BorealisPCH.hpp>
 #include <glad/glad.h>
 #include "Graphics/OpenGL/RendererAPIOpenGLImpl.hpp"
+
+#include "Core/ApplicationManager.hpp"
 namespace Borealis
 {
 	void OpenGLRendererAPI::Init()
@@ -67,6 +69,13 @@ namespace Borealis
 	void OpenGLRendererAPI::SetLineThickness(const float& thickness)
 	{
 		glLineWidth(thickness);
+	}
+
+	void OpenGLRendererAPI::BindBackBuffer()
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		glViewport(0, 0, ApplicationManager::Get().GetWindow()->GetWidth(), ApplicationManager::Get().GetWindow()->GetHeight());
 	}
 
 	void OpenGLRendererAPI::EnableBlend()

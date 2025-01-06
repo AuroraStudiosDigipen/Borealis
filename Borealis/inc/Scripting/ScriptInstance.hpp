@@ -19,13 +19,14 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/Core.hpp>
 #include <Core/LoggerSystem.hpp>
 #include <Scripting/ScriptClass.hpp>
-#include <Scene/Entity.hpp>
 namespace Borealis
 {
 	// Specifically meant for MonoBehaviours, not for other classes
 	class ScriptInstance : public std::enable_shared_from_this<ScriptInstance>
 	{
+
 	public:
+
 		/*!***********************************************************************
 			\brief
 				Constructor for Script Instances
@@ -33,6 +34,10 @@ namespace Borealis
 				Reference to the Script Class being created
 		*************************************************************************/
 		ScriptInstance(Ref<ScriptClass> scriptClass);
+
+		~ScriptInstance();
+
+		ScriptInstance(MonoObject* Instance);
 		
 		void Init(uint64_t UUIDAddress);
 
@@ -177,9 +182,12 @@ namespace Borealis
 		void OnJointBreak();
 		void OnAnimatorMove();
 		void OnAnimatorIK();
-		void OnCollisionEnter(UUID entityID);
-		void OnCollisionExit(UUID entityID);
-		void OnCollisionStay(UUID entityID);
+		void OnCollisionEnter(UUID collisionData);
+		void OnCollisionExit(UUID collisionData);
+		void OnCollisionStay(UUID collisionData);
+		void OnTriggerEnter(UUID collisionData);
+		void OnTriggerExit(UUID collisionData);
+		void OnTriggerStay(UUID collisionData);
 
 		bool IsActive();
 
@@ -236,6 +244,7 @@ namespace Borealis
 
 		Ref<ScriptClass> mScriptClass;				// Script Class
 		MonoObject* mInstance;						// MonoObject Instance
+		uint32_t mGcHandle;
 		inline static char s_fieldValueBuffer[24];	// Field Value Buffer
 	};
 }

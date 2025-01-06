@@ -23,7 +23,6 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <AI/BehaviourTree/BehaviourNode.hpp>
 #include <Core/LoggerSystem.hpp>
 #include <ImGui/ImGuiFontLib.hpp>
-#include <AI/BehaviourTree/RegisterNodes.hpp>
 #include <Assets/AssetManager.hpp>
 #include <Scripting/ScriptInstance.hpp>
 #include <Scripting/ScriptField.hpp>
@@ -40,30 +39,6 @@ namespace Borealis
 	};
 	static std::queue<ScriptInitialData> scriptQueue;
 
-	void Serialiser::ParseTree(YAML::Node& node, Ref<BehaviourNode> parentNode, BehaviourTree& tree, int parentDepth)
-	{
-		// Extract the node name and depth
-		std::string nodeName = node["name"].as<std::string>();
-		int depth = node["depth"].as<int>();
-
-		// Create the node using NodeFactory based on its name
-		Ref<BehaviourNode> currentNode = Borealis::NodeFactory::CreateNodeByName(nodeName);
-		currentNode->SetDepth(depth);
-
-		// Add the current node to the tree
-		tree.AddNode(parentNode, currentNode, depth);
-
-		// Process children if they exist
-		if (node["children"])
-		{
-			for (auto childNode : node["children"])
-			{
-				// Recursively process each child node
-				ParseTree(childNode, currentNode, tree, depth);
-			}
-		}
-	}
-
 	void SerializeTexture(YAML::Emitter& out, Ref<Texture2D> texture)
 	{
 		if (texture)
@@ -73,23 +48,6 @@ namespace Borealis
 	}
 
 	Serialiser::Serialiser(const Ref<Scene>& scene) : mScene(scene) {}
-
-
-	bool Serialiser::SerializeBehaviourNode(YAML::Emitter& out, const Ref<BehaviourNode> node) {
-		out << YAML::Key << "name" << YAML::Value << node->GetName();
-		out << YAML::Key << "depth" << YAML::Value << node->GetDepth();
-		if (!node->mChildren.empty())
-		{
-			out << YAML::Key << "children" << YAML::Value << YAML::BeginSeq;
-			for (const auto& child : node->mChildren) {
-				out << YAML::BeginMap;
-				SerializeBehaviourNode(out, child); // Recursively serialize the child node
-				out << YAML::EndMap;
-			}
-			out << YAML::EndSeq;
-		}
-		return true;
-	}
 
 	void Serialiser::SerializeEntity(YAML::Emitter& out, Entity& entity)
 	{
@@ -165,9 +123,9 @@ namespace Borealis
 			SerializeComponent(out, entity.GetComponent<AudioSourceComponent>());
 		}
 
-		if (entity.HasComponent<CharacterControlComponent>())
+		if (entity.HasComponent<CharacterControllerComponent>())
 		{
-			SerializeComponent(out, entity.GetComponent<CharacterControlComponent>());
+			SerializeComponent(out, entity.GetComponent<CharacterControllerComponent>());
 		}
 
 		if (entity.HasComponent<BoxColliderComponent>())
@@ -186,27 +144,9 @@ namespace Borealis
 		{
 			SerializeComponent(out, entity.GetComponent<CapsuleColliderComponent>());
 		}
-
-
-
 		if (entity.HasComponent<BehaviourTreeComponent>())
 		{
 			SerializeComponent(out, entity.GetComponent<BehaviourTreeComponent>());
-			//out << YAML::Key << "BehaviourTreeComponent";
-			//out << YAML::BeginMap;
-
-			//auto& behaviourTreeComponent = entity.GetComponent<BehaviourTreeComponent>();
-			//
-			//for (auto& tree : behaviourTreeComponent.mBehaviourTrees)
-			//{
-			//	out << YAML::Key << "BehaviourTree";
-			//	out << YAML::BeginMap;
-			//	out << YAML::Key << "Tree Name" << YAML::Value << tree->GetBehaviourTreeName();
-			//	Serialiser::SerializeBehaviourNode(out, tree->GetRootNode());
-			//	out << YAML::EndMap;
-			//}
-
-			//out << YAML::EndMap;
 		}
 
 		if (entity.HasComponent<OutLineComponent>())
@@ -238,6 +178,27 @@ namespace Borealis
 
 				for (auto [name,field] : script->GetScriptClass()->mFields)
 				{
+					if ((field.isPrivate() && !field.hasSerializeField(script->GetMonoClass()) || field.hasHideInInspector(script->GetMonoClass())))
+					{
+						continue;
+					}
+
+
+
+					if (field.isAssetField() || field.isNativeComponent())
+					{
+						MonoObject* Data = script->GetFieldValue<MonoObject*>(name);
+						if (!Data)
+						{
+							continue;
+						}
+						out << YAML::Key << field.mName << YAML::BeginMap;
+						out << YAML::Key << "Type" << field.mFieldClassName().c_str();
+						out << YAML::Key << "Data" << YAML::Value << field.GetGameObjectID(Data);
+						out << YAML::EndMap;
+						continue;
+					}
+
 					if (field.isGameObject())
 					{
 						MonoObject* Data = script->GetFieldValue<MonoObject*>(name);
@@ -448,7 +409,7 @@ namespace Borealis
 		DeserialiseComponent<MeshRendererComponent>(entity, BorealisEntity);
 		DeserialiseComponent<RigidBodyComponent>(entity, BorealisEntity);
 		DeserialiseComponent<LightComponent>(entity, BorealisEntity);
-		DeserialiseComponent<CharacterControlComponent>(entity, BorealisEntity);
+		DeserialiseComponent<CharacterControllerComponent>(entity, BorealisEntity);
 		DeserialiseComponent<AudioSourceComponent>(entity, BorealisEntity);
 		DeserialiseComponent<AudioListenerComponent>(entity, BorealisEntity);
 		DeserialiseComponent<TextComponent>(entity, BorealisEntity);
@@ -460,6 +421,7 @@ namespace Borealis
 		DeserialiseComponent<BoxColliderComponent>(entity, BorealisEntity);
 		DeserialiseComponent<SphereColliderComponent>(entity, BorealisEntity);
 		DeserialiseComponent<CapsuleColliderComponent>(entity, BorealisEntity);
+		DeserialiseComponent<BehaviourTreeComponent>(entity, BorealisEntity);
 		DeserialiseAbstractItems(entity, BorealisEntity);
 		//auto behaviourTreeComponent = entity["BehaviourTreeComponent"];
 		/*
@@ -511,16 +473,31 @@ namespace Borealis
 				const YAML::Node& fields = script.second;
 				if (fields) {
 					for (const auto& field : fields) {
+
+
 						// Each field will have a name and a corresponding node
 						std::string fieldName = field.first.as<std::string>();
 						const YAML::Node& fieldData = field.second;
 						fieldData["Type"].as<std::string>();
 
+
+						if (scriptInstance->GetScriptClass()->mFields.find(fieldName) == scriptInstance->GetScriptClass()->mFields.end())
+						{
+							BOREALIS_CORE_WARN("Field not in script", fieldName, scriptName);
+							continue;
+						}
+						ScriptField scriptField = scriptInstance->GetScriptClass()->mFields[fieldName];
+
+						if ((scriptField.isPrivate() && !scriptField.hasSerializeField(scriptInstance->GetMonoClass()) || scriptField.hasHideInInspector(scriptInstance->GetMonoClass())))
+						{
+							continue;
+						}
+
 						if (fieldData["Type"].as<std::string>() == "GameObject")
 						{
 							uint64_t data = fieldData["Data"].as<uint64_t>();
 							MonoObject* field = nullptr;
-							InitGameObject(field, data);
+							InitGameObject(field, data, fieldData["Type"].as<std::string>());
 							scriptInstance->SetFieldValue(fieldName, field);
 							continue;
 						}
@@ -637,6 +614,14 @@ namespace Borealis
 							continue;
 						}
 
+						if (scriptInstance->GetScriptClass()->mFields[fieldName].isAssetField() || scriptInstance->GetScriptClass()->mFields[fieldName].isNativeComponent())
+						{
+							uint64_t data = fieldData["Data"].as<uint64_t>();
+							MonoObject* field = nullptr;
+							InitGameObject(field, data, fieldData["Type"].as<std::string>());
+							scriptInstance->SetFieldValue(fieldName, field);
+							continue;
+						}
 					}
 				}
 			}

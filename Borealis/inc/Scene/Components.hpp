@@ -27,10 +27,13 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/Animation/Animator.hpp>
 #include <Graphics/Material.hpp>
 #include <Graphics/Font.hpp>
+#include <Graphics/Framebuffer.hpp>
 #include <AI/BehaviourTree/BehaviourTree.hpp>
+#include <AI/BehaviourTree/BTreeFactory.hpp>
 #include <Core/UUID.hpp>
 #include <Core/Bitset32.hpp>
 #include <Audio/Audio.hpp>
+#include <Audio/AudioGroup.hpp>
 
 
 namespace Borealis
@@ -62,7 +65,7 @@ namespace Borealis
 		glm::vec3 Rotation{ 0.0f, 0.0f ,0.0f };
 		glm::vec3 Scale = { 1.0f, 1.0f, 1.0f };
 		UUID ParentID = 0;
-		std::unordered_set<UUID> ChildrenID;
+		std::unordered_set<UUID> ChildrenID{};
 	
 		TransformComponent() = default;
 		TransformComponent(const TransformComponent&) = default;
@@ -78,14 +81,15 @@ namespace Borealis
 			return translation * rotation * scale;
 		}
 
-		static glm::mat4 GetGlobalTransform(Entity entity);
-		static glm::vec3 GetGlobalTranslate(Entity entity);
-		static glm::vec3 GetGlobalRotation(Entity entity);
-		static glm::vec3 GetGlobalScale(Entity entity);
-		static void GetGlobalTransformComp(Entity entity, glm::vec3* translate, glm::vec3* rotate, glm::vec3* scale);
-		static void SetGlobalTransform(Entity entity, glm::mat4 transform);
-		static void SetParent(Entity entity, Entity parent);
-		static void ResetParent(Entity entity);
+		glm::mat4 GetGlobalTransform();
+		glm::vec3 GetGlobalTranslate();
+		glm::vec3 GetGlobalRotation();
+		glm::vec3 GetGlobalScale();
+
+		void GetGlobalTransformComp(glm::vec3* translate, glm::vec3* rotate, glm::vec3* scale);
+		void SetGlobalTransform(glm::mat4 transform);
+		void SetParent(Entity entity, Entity parent);
+		void ResetParent(Entity entity);
 
 		operator glm::mat4() { return GetTransform(); }
 	};
@@ -155,6 +159,7 @@ namespace Borealis
 	{
 		Ref<Material> Material = nullptr;
 		bool castShadow = true;
+		bool active = true;
 
 		MeshRendererComponent() = default;
 		MeshRendererComponent(const MeshRendererComponent&) = default;
@@ -173,6 +178,9 @@ namespace Borealis
 	{
 		Ref<Animation> animation = nullptr;
 		Animator animator{};
+		bool loop = true;
+		float speed = 1.f;
+		AssetHandle currentAnimationHandle;
 
 		AnimatorComponent() = default;
 		AnimatorComponent(const AnimatorComponent&) = default;
@@ -285,7 +293,7 @@ namespace Borealis
 		Direction direction = Direction::Y;
 	};
 
-	struct CharacterControlComponent
+	struct CharacterControllerComponent
 	{
 		float mass = 1.f;
 		float strength = 1.f;
@@ -299,15 +307,15 @@ namespace Borealis
 		glm::vec3 targetVelocity = { 0,0,0 };
 		glm::vec3 inMovementDirection = { 0,0,0 };
 
-		CharacterControlComponent() = default;
-		~CharacterControlComponent()
+		CharacterControllerComponent() = default;
+		~CharacterControllerComponent()
 		{
 			if (controller)
 			{
 				delete controller;
 			}
 		}
-		CharacterControlComponent(const CharacterControlComponent&) = default;
+		CharacterControllerComponent(const CharacterControllerComponent&) = default;
 	};
 
 	struct LightComponent
@@ -378,7 +386,7 @@ namespace Borealis
 	
 	struct AudioSourceComponent
 	{
-		std::string groupName;
+		Borealis::AudioGroup group = Borealis::AudioGroup::Master;
 		bool isLoop = false;
 		bool isMute = false;
 		bool isPlaying = false;
@@ -419,9 +427,11 @@ namespace Borealis
 		//		tree->Update(dt);
 		//	}
 		//}
-
+		Ref<BehaviourTreeData> mBehaviourTreeData;
 		Ref<BehaviourTree> mBehaviourTrees;
-
+		// List of names in tree-style
+		//TreeData -> AssetManager with ID
+		//BehaviourNode mRoot;
 		BehaviourTreeComponent() = default;
 		BehaviourTreeComponent(const BehaviourTreeComponent&) = default;
 	};
@@ -441,6 +451,7 @@ namespace Borealis
 	{
 		glm::vec2 canvasSize{};
 		float scaleFactor{};
+		Ref<FrameBuffer> canvasFrameBuffer = nullptr;
 		CanvasComponent() = default;
 		CanvasComponent(const CanvasComponent&) = default;
 	};

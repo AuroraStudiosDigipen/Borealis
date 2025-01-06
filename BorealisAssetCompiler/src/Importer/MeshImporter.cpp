@@ -20,6 +20,9 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include "Importer/AnimationImporter.hpp"
 #include "Importer/MeshImporter.hpp"
+
+#include <iostream>
+
 #include "Importer/SkinnedMeshImporter.hpp"
 #include "Importer/MeshOptimizer.hpp"
 

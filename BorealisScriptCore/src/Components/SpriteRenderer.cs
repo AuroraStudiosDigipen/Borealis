@@ -2,9 +2,20 @@
 
 namespace Borealis
 {
+    [NativeComponent]
     public class SpriteRenderer : Component
     {
         //public int childCount;
+        public SpriteRenderer()
+        {
+        }
+        public SpriteRenderer(ulong id)
+        {
+            InstanceID = id;
+            gameObject = new GameObject(id);
+
+        }
+
         public Color color
         {
             get
@@ -27,7 +38,13 @@ namespace Borealis
             }
             set
             {
-                InternalCalls.SpriteRendererComponent_SetSprite(gameObject.GetInstanceID(), ref value.InstanceID);
+                if (value is null)
+                {
+                    ulong zero = 0;
+                    InternalCalls.SpriteRendererComponent_SetSprite(gameObject.GetInstanceID(), ref zero);
+                }
+                else
+                    InternalCalls.SpriteRendererComponent_SetSprite(gameObject.GetInstanceID(), ref value.InstanceID);
             }
         }
     }

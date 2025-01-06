@@ -29,9 +29,9 @@ namespace Borealis
 
 	typedef struct GenericComponentFunctionMaps
 	{
-		static std::unordered_map<MonoType*, HasComponentFn> mHasComponentFunctions;
-		static std::unordered_map<MonoType*, AddComponentFn> mAddComponentFunctions;
-		static std::unordered_map<MonoType*, RemoveComponentFn> mRemoveComponentFunctions;
+		static std::unordered_map<std::string, HasComponentFn> mHasComponentFunctions;
+		static std::unordered_map<std::string, AddComponentFn> mAddComponentFunctions;
+		static std::unordered_map<std::string, RemoveComponentFn> mRemoveComponentFunctions;
 	} GCFM;
 
 	/*!***********************************************************************
@@ -104,10 +104,17 @@ namespace Borealis
 	*************************************************************************/
 	bool Entity_HasComponent(uint64_t entityID, MonoReflectionType* reflectionType);
 
+	void Entity_GetComponent(uint64_t entityID, MonoReflectionType* reflectionType, MonoObject** component);
+
 	void Entity_SetActive(uint64_t entityID, bool* active);
 	void Entity_GetActive(uint64_t entityID, bool* active);
 
+	void Entity_GetName(uint64_t entityID, MonoString** name);
+	void Entity_SetName(uint64_t entityID, MonoString* name);
+
 	void Entity_FindEntity(MonoString* name, UUID* ID);
+
+	void Entity_GetEntitiesFromLayer(int32_t layerNum, MonoArray** objectArray);
 
 	float Time_GetDeltaTime();
 
@@ -289,6 +296,10 @@ namespace Borealis
 	void RigidbodyComponent_GetRotation(UUID uuid, glm::vec3* velocity);
 	void RigidbodyComponent_SetRotation(UUID uuid, glm::vec3* velocity);
 
+	void RigidbodyComponent_SetIsKinematic(UUID uuid, bool* kinematic);
+	void RigidbodyComponent_GetIsKinematic(UUID uuid, bool* kinematic);
+
+
 	/*!***********************************************************************
 		\brief
 			Get color of sprite renderer component
@@ -315,9 +326,33 @@ namespace Borealis
 	void MeshRendererComponent_GetMaterial(UUID uuid, UUID* materialID);
 	void MeshRendererComponent_SetMaterial(UUID uuid, UUID* materialID);
 
+	void MeshRendererComponent_GetEnabled(UUID uuid, bool* state);
+	void MeshRendererComponent_SetEnabled(UUID uuid, bool* state);
+
+	void OutlineComponent_GetEnabled(UUID uuid, bool* state);
+	void OutlineComponent_SetEnabled(UUID uuid, bool* state);
+
 	void ColliderComponent_GetBounds(UUID uuid, glm::vec3* center, glm::vec3* extents, glm::vec3* min, glm::vec3* max, glm::vec3* size);
+	void ColliderComponent_UpdateScale(UUID uuid);
+
+	void AnimatorComponent_SetCurrentAnimation(UUID uuid, UUID animation);
+	void AnimatorComponent_GetCurrentAnimation(UUID uuid, UUID* animation);
+	void AnimatorComponent_SetBlend(UUID uuid, float blendValue);
+	void AnimatorComponent_GetBlend(UUID uuid, float* blendValue);
+	void AnimatorComponent_SetSpeed(UUID uuid, float blendValue);
+	void AnimatorComponent_GetSpeed(UUID uuid, float* blendValue);
+	void AnimatorComponent_SetLooping(UUID uuid, bool blendValue);
+	void AnimatorComponent_GetLooping(UUID uuid, bool* blendValue);
+	void AnimatorComponent_SetNextAnimation(UUID uuid, UUID animation);
+	void AnimatorComponent_GetNextAnimation(UUID uuid, UUID* animation);
+	void AnimatorComponent_SwapBlendBuffer(UUID uuid);
+
+	void SceneManager_SetActiveScene(MonoString* sceneName);
+	void SceneManager_Quit();
+	
 
 	void Material_GetSprite(UUID uuid, UUID* spriteID);
+	void Material_SetSprite(UUID uuid, UUID* spriteID);
 
 
 	/*!***********************************************************************
@@ -367,6 +402,16 @@ namespace Borealis
 	void CharacterController_Move(uint64_t id, glm::vec3* motion);
 
 	void CharacterController_IsGrounded(uint64_t id, bool* grounded);
+
+	void AudioSource_GetClip(uint64_t ID, uint64_t* ClipID);
+	void AudioSource_SetClip(uint64_t ID, uint64_t* ClipID);
+	void AudioSource_PlayOneShot(uint64_t ID, float volume, uint64_t ClipID);
+	void AudioSource_Play(uint64_t ID);
+	void AudioSource_IsPlaying(uint64_t ID,  bool* playing);
+	void AudioSource_GetLooping(uint64_t ID,  bool* looping);
+	void AudioSource_SetLooping(uint64_t ID,  bool* looping);
+	void AudioSource_GetVolume(uint64_t ID,  float* volume);
+	void AudioSource_SetVolume(uint64_t ID,  float* volume);
 
 }
 

@@ -39,9 +39,6 @@
     <ClInclude Include="inc\EditorAssets\FontImporter.hpp">
       <Filter>inc\EditorAssets</Filter>
     </ClInclude>
-    <ClInclude Include="inc\EditorAssets\MaterialEditor.hpp">
-      <Filter>inc\EditorAssets</Filter>
-    </ClInclude>
     <ClInclude Include="inc\EditorAssets\MeshImporter.hpp">
       <Filter>inc\EditorAssets</Filter>
     </ClInclude>
@@ -60,6 +57,9 @@
     <ClInclude Include="inc\EditorSerialiser.hpp">
       <Filter>inc</Filter>
     </ClInclude>
+    <ClInclude Include="inc\MaterialEditor.hpp">
+      <Filter>inc</Filter>
+    </ClInclude>
     <ClInclude Include="inc\Panels\AudioMixerPanel.hpp">
       <Filter>inc\Panels</Filter>
     </ClInclude>
@@ -70,6 +70,9 @@
       <Filter>inc\Panels</Filter>
     </ClInclude>
     <ClInclude Include="inc\Panels\ContentBrowserPanel.hpp">
+      <Filter>inc\Panels</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Panels\CubemapPanel.hpp">
       <Filter>inc\Panels</Filter>
     </ClInclude>
     <ClInclude Include="inc\Panels\SceneHierarchyPanel.hpp">
@@ -107,9 +110,6 @@
     <ClCompile Include="src\EditorAssets\FontImporter.cpp">
       <Filter>src\EditorAssets</Filter>
     </ClCompile>
-    <ClCompile Include="src\EditorAssets\MaterialEditor.cpp">
-      <Filter>src\EditorAssets</Filter>
-    </ClCompile>
     <ClCompile Include="src\EditorAssets\MeshImporter.cpp">
       <Filter>src\EditorAssets</Filter>
     </ClCompile>
@@ -128,6 +128,9 @@
     <ClCompile Include="src\EditorSerialiser.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\MaterialEditor.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="src\Panels\AudioMixerPanel.cpp">
       <Filter>src\Panels</Filter>
     </ClCompile>
@@ -138,6 +141,9 @@
       <Filter>src\Panels</Filter>
     </ClCompile>
     <ClCompile Include="src\Panels\ContentBrowserPanel.cpp">
+      <Filter>src\Panels</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Panels\CubemapPanel.cpp">
       <Filter>src\Panels</Filter>
     </ClCompile>
     <ClCompile Include="src\Panels\SceneHierarchyPanel.cpp">

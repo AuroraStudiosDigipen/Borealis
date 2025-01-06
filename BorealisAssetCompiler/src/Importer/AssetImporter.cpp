@@ -55,7 +55,7 @@ namespace BorealisAssetCompiler
 		switch (metaData.Type)
 		{
 		case AssetType::Texture2D:
-			TextureImporter::SaveFile(metaData.SourcePath, cachePath);
+			TextureImporter::SaveFile(metaData.SourcePath, metaData.Config, cachePath);
 			break;
 		case AssetType::Font:
 			FontImporter::SaveFile(metaData.SourcePath, cachePath);

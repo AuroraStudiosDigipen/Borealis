@@ -23,6 +23,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include "ispc_texcomp.h"
 
+#include "Importer/AssetConfigs.hpp"
+
 namespace BorealisAssetCompiler
 {
     struct DDSHeader {
@@ -64,12 +66,15 @@ namespace BorealisAssetCompiler
     class TextureImporter
     {
     public:
-        static void SaveFile(std::filesystem::path const& sourcePath, std::filesystem::path& cachePath);
+        static void SaveFile(std::filesystem::path const& sourcePath, AssetConfig& assetConfig, std::filesystem::path& cachePath);
 
         template <typename T>
         static void SaveFile(const T * bitmap, int width, int height, std::filesystem::path& cachePath);
+
+        static void CreateCubeMap(std::filesystem::path const& sourcePath, std::filesystem::path& cachePath);
+
+        static void SaveDDSFile(const std::string& filePath, int width, int height, const std::vector<uint8_t>& compressedData, DDSHeader header);
     private:
-        static void SaveDDSFile(const std::string& filePath, int width, int height, const std::vector<uint8_t>& compressedData);
     };
 
     //OPTIMIZE IT
@@ -115,7 +120,23 @@ namespace BorealisAssetCompiler
 
         CompressBlocksBC3(&srcSurface, compressedData.data());
 
-        SaveDDSFile(cachePath.string(), width, height, compressedData);
+        DDSHeader header = {};
+
+        header.dwMagic = 0x20534444;  // 'DDS '
+        header.dwSize = 124;
+        header.dwFlags = 0x1007;  // DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT
+        header.dwHeight = height;
+        header.dwWidth = width;
+        header.dwPitchOrLinearSize = (width / 4) * (height / 4) * 16;  // Compressed size for BC3 blocks
+        header.dwMipMapCount = 1;
+
+        header.ddpf.dwSize = 32;
+        header.ddpf.dwFlags = 4;  // DDPF_FOURCC
+        header.ddpf.dwFourCC = 0x35545844;  // 'DXT5' FourCC for BC3 (DXT5)
+
+        header.ddsCaps.dwCaps1 = 0x1000;  // DDSCAPS_TEXTURE
+
+        SaveDDSFile(cachePath.string(), width, height, compressedData, header);
     }
 }
 

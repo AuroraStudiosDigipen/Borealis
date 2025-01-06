@@ -9,7 +9,7 @@ namespace Borealis
         Impulse,
         VelocityChange
     }
-
+    [NativeComponent]
     public class Rigidbody : Component
     {
         //public int childCount;
@@ -20,6 +20,8 @@ namespace Borealis
         public Rigidbody(ulong id)
         {
             InstanceID = id;
+            gameObject = new GameObject(id);
+
         }
         public Vector3 Size
         {

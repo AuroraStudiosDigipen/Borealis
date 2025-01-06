@@ -2,16 +2,34 @@
 {
     public class Component : Object
     {
-        public GameObject gameObject { get; internal set; }
+        public GameObject gameObject {
+            get
+            {
+                return new GameObject(InstanceID);
+            }
+            set
+            {
+                InstanceID = value.InstanceID;
+            }
+        }
+
+        public new string name
+        {
+            get
+            {
+                InternalCalls.Entity_GetName(InstanceID, out string name);
+                return name;
+            }
+            set
+            {
+                InternalCalls.Entity_SetName(InstanceID, value);
+            }
+        }
         public Transform transform
         {
             get
             {
-                return gameObject.transform;
-            }
-            set
-            {
-                gameObject.transform = value;
+                return new Transform(InstanceID);
             }
         }
     }

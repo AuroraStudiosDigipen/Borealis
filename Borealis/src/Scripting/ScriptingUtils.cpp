@@ -57,6 +57,7 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(!status, mono_image_strerror(status));
 
 		MonoAssembly* assembly = mono_assembly_load_from_full(image, path.c_str(), &status, 0);
+
 		mono_image_close(image);
 
 		delete[] buffer;
@@ -128,7 +129,9 @@ namespace Borealis
 
 	MonoObject* InstantiateClass(MonoClass* klass)
 	{
-		return mono_object_new(mono_domain_get(), klass);
+		auto classInstance = mono_object_new(mono_domain_get(), klass);
+		mono_runtime_object_init(classInstance);
+		return classInstance;
 	}
 	
 	std::vector<uint8_t> mono_array_to_vector(MonoArray* monoArray)
@@ -238,13 +241,15 @@ namespace Borealis
 		return sScriptAttributes[name];
 	}
 
-	void InitGameObject(MonoObject*& object, UUID id)
+	void InitGameObject(MonoObject*& object, UUID id, std::string objectType, bool pin)
 	{
-		object = mono_object_new(mono_domain_get(), ScriptingSystem::GetScriptClass("GameObject")->GetMonoClass());
+		object = mono_object_new(mono_domain_get(), ScriptingSystem::GetScriptClass(objectType)->GetMonoClass());
 		void* args[1];
-		MonoMethod* ctor = mono_class_get_method_from_name(ScriptingSystem::GetScriptClass("GameObject")->GetMonoClass(), ".ctor", 1);
+		MonoMethod* ctor = mono_class_get_method_from_name(ScriptingSystem::GetScriptClass(objectType)->GetMonoClass(), ".ctor", 1);
 
 		args[0] = &id;
+		if (pin)
+			mono_gchandle_new(object, true);
 		mono_runtime_invoke(ctor, object, args, NULL);
 
 	}

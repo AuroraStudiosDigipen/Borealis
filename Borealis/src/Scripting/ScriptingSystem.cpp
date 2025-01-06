@@ -28,6 +28,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scene/SceneManager.hpp>
 #include <Scene/Components.hpp>
 #include <Scene/Entity.hpp>
+#include <AI/BehaviourTree/BehaviourNode.hpp>
+#include <AI/BehaviourTree/BTreeFactory.hpp>
 
 #include <Core/Project.hpp>
 
@@ -160,8 +162,10 @@ namespace Borealis
 		ScriptingSystem::RegisterCSharpClass(ScriptClass("Borealis", "GameObject", assembly));
 		ScriptingSystem::RegisterCSharpClass(ScriptClass("Borealis", "Object", assembly));
 
-		MonoClass* attributeClass = mono_class_from_name(mono_get_corlib(), "System", "Attribute");
+		ScriptingSystem::RegisterCSharpClass(ScriptClass("Borealis", "BehaviourNode", assembly));
 
+		MonoClass* attributeClass = mono_class_from_name(mono_get_corlib(), "System", "Attribute");
+		MonoClass* behaviourNodeClass = mono_class_from_name(assemblyImage, "Borealis", "BehaviourNode");
 
 		for (int32_t i = 0; i < numTypes; i++)
 		{
@@ -182,9 +186,75 @@ namespace Borealis
 				// Register attribute
 				LoadScriptAttribute(currClass);
 			}
+
 			else
 			{
 				continue;
+			}
+		}
+		for (int32_t i = 0; i < numTypes; i++)
+		{
+			uint32_t cols[MONO_TYPEDEF_SIZE];
+			mono_metadata_decode_row(typeDefinitionsTable, i, cols, MONO_TYPEDEF_SIZE);
+
+			const char* nameSpace = mono_metadata_string_heap(assemblyImage, cols[MONO_TYPEDEF_NAMESPACE]);
+			const char* className = mono_metadata_string_heap(assemblyImage, cols[MONO_TYPEDEF_NAME]);
+
+			MonoClass* currClass = mono_class_from_name(assemblyImage, nameSpace, className);
+			if (!currClass)
+			{
+				continue;
+			}
+			MonoCustomAttrInfo* attributeInfo = mono_custom_attrs_from_class(currClass);
+			if (attributeInfo)
+			{
+				if (mono_custom_attrs_get_attr(attributeInfo, GetScriptAttribute("NativeComponent")))
+				{
+					ScriptingSystem::RegisterCSharpClass(ScriptClass(nameSpace, className, sData->mRoslynAssembly));
+
+				}
+
+				if (mono_custom_attrs_get_attr(attributeInfo, GetScriptAttribute("AssetField")))
+				{
+					ScriptingSystem::RegisterCSharpClass(ScriptClass(nameSpace, className, sData->mRoslynAssembly));
+
+				}
+			}
+			if (behaviourNodeClass == currClass)
+			{
+				continue;
+			}
+			if (mono_class_is_subclass_of(currClass, behaviourNodeClass, false))
+			{
+				// Register attribute
+				ScriptingSystem::RegisterCSharpClass(ScriptClass(nameSpace, className, sData->mRoslynAssembly));
+
+				// Check attribute
+				MonoCustomAttrInfo* attributeInfo = mono_custom_attrs_from_class(currClass);
+				if (attributeInfo)
+				{
+					auto attributeClass = mono_custom_attrs_get_attr(attributeInfo, GetScriptAttribute("BTNodeClass"));
+					if (attributeClass)
+					{
+						auto field = mono_class_get_field_from_name(mono_object_get_class(attributeClass), "nodeType");
+						NodeType nodeType;
+						mono_field_get_value(attributeClass, field, &nodeType);
+						switch (nodeType)
+						{
+						case NodeType::CONTROLFLOW:
+							BTreeFactory::Instance().mControlFlowNames.insert(className);
+							break;
+						case NodeType::DECORATOR:
+							BTreeFactory::Instance().mDecoratorNames.insert(className);
+							break;
+						case NodeType::LEAF:
+							BTreeFactory::Instance().mLeafNames.insert(className);
+							break;
+						default:
+							break;
+						}
+					}
+				}
 			}
 		}
 	}
@@ -226,6 +296,11 @@ namespace Borealis
 		int32_t numTypes = mono_table_info_get_rows(typeDefinitionsTable);
 
 		MonoClass* monoBehaviour = GetScriptClassUtils("MonoBehaviour")->GetMonoClass();
+		MonoClass* behaviourNodeClass = GetScriptClassUtils("BehaviourNode")->GetMonoClass();	
+
+		BTreeFactory::Instance().mControlFlowNames.clear();
+		BTreeFactory::Instance().mDecoratorNames.clear();
+		BTreeFactory::Instance().mLeafNames.clear();
 
 		for (int32_t i = 0; i < numTypes; i++)
 		{
@@ -234,13 +309,50 @@ namespace Borealis
 
 			const char* nameSpace = mono_metadata_string_heap(assemblyImage, cols[MONO_TYPEDEF_NAMESPACE]);
 			const char* className = mono_metadata_string_heap(assemblyImage, cols[MONO_TYPEDEF_NAME]);
-
+			
 			MonoClass* currClass = mono_class_from_name(assemblyImage, nameSpace, className);
+			if (!currClass)
+			{
+				continue;
+			}
 
+			
 			if (mono_class_is_subclass_of(currClass, monoBehaviour, false))
 			{
 				// Register attribute
 				ScriptingSystem::RegisterCSharpClass(ScriptClass(nameSpace, className, sData->mScriptAssembly));
+			}
+			else if (mono_class_is_subclass_of(currClass, behaviourNodeClass, false))
+			{
+				// Register attribute
+				ScriptingSystem::RegisterCSharpClass(ScriptClass(nameSpace, className, sData->mScriptAssembly));
+
+				// Check attribute
+				MonoCustomAttrInfo* attributeInfo = mono_custom_attrs_from_class(currClass);
+				if (attributeInfo)
+				{
+					auto attributeClass = mono_custom_attrs_get_attr(attributeInfo, GetScriptAttribute("BTNodeClass"));
+					if (attributeClass)
+					{
+						auto field = mono_class_get_field_from_name(mono_object_get_class(attributeClass), "nodeType");
+						NodeType nodeType;
+						mono_field_get_value(attributeClass, field, &nodeType);
+						switch (nodeType)
+						{
+						case NodeType::CONTROLFLOW:
+							BTreeFactory::Instance().mControlFlowNames.insert(className);
+							break;
+						case NodeType::DECORATOR:
+							BTreeFactory::Instance().mDecoratorNames.insert(className);
+							break;
+						case NodeType::LEAF:
+							BTreeFactory::Instance().mLeafNames.insert(className);
+							break;
+						default:
+							break;
+						}
+					}
+				}
 			}
 			else
 			{
@@ -276,11 +388,15 @@ namespace Borealis
 		}
 		MonoType* managedType = mono_reflection_type_from_name(typeName.data(), mono_assembly_get_image(sData->mRoslynAssembly));
 
+
 		if (managedType)
 		{
-			GCFM::mHasComponentFunctions[managedType] = [](Entity& entity) { return entity.HasComponent<T>(); };
-			GCFM::mAddComponentFunctions[managedType] = [](Entity& entity) { entity.AddComponent<T>(); };
-			GCFM::mRemoveComponentFunctions[managedType] = [](Entity& entity) { entity.GetComponent<T>(); };
+			auto name = mono_type_get_name(managedType);
+			std::string strName(name);
+			mono_free(name);
+			GCFM::mHasComponentFunctions[strName] = [](Entity& entity) { return entity.HasComponent<T>(); };
+			GCFM::mAddComponentFunctions[strName] = [](Entity& entity) { entity.AddComponent<T>(); };
+			GCFM::mRemoveComponentFunctions[strName] = [](Entity& entity) { entity.GetComponent<T>(); };
 		}
 		else
 		{
@@ -297,10 +413,13 @@ namespace Borealis
 		//RegisterComponent<TagComponent>();
 		//RegisterComponent<CircleRendererComponent>();
 		//RegisterComponent<MeshFilterComponent>();
-		//RegisterComponent<MeshRendererComponent>();
+		RegisterComponent<MeshRendererComponent>();
 		//RegisterComponent<BoxColliderComponent>();
 		//RegisterComponent<CapsuleColliderComponent>();
-		//RegisterComponent<RigidBodyComponent>();
+		RegisterComponent<CharacterControllerComponent>();
+		RegisterComponent<AudioSourceComponent>();
+		RegisterComponent<OutLineComponent>();
+
 		//RegisterComponent<LightComponent>();
 
 	}

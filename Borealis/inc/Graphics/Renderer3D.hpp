@@ -80,6 +80,8 @@ namespace Borealis
 		static void DrawSkinnedMesh(const glm::mat4& transform, const SkinnedMeshRendererComponent & skinnedMeshRenderer, Ref<Shader> shader, int entityID = -1);
 
 		static void DrawQuad();
+
+		static void DrawCubeMap();
 		
 		static void BeginCommonShapes(glm::mat4 const& viewProj);
 

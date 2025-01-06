@@ -107,6 +107,9 @@ namespace Borealis {
 		*************************************************************************/
 		ImGuiLayer* GetImGuiLayer() const { return mImGuiLayer; }
 
+		bool GetIsRunning () const { return mIsRunning; }
+		void SetIsRunning(bool in) { mIsRunning = in; }
+
 	private:
 
 		/*!***********************************************************************

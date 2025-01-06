@@ -27,6 +27,15 @@ namespace Borealis
 		glm::vec3 Position;
 		glm::vec3 Normal;
 		glm::vec2 TexCoords;
+		glm::vec3 Tangent;
+		glm::vec3 Bitangent;
+		VertexBoneData BoneData;
+	};
+
+	struct SkinnedVertexOld {
+		glm::vec3 Position;
+		glm::vec3 Normal;
+		glm::vec2 TexCoords;
 		VertexBoneData BoneData;
 	};
 
@@ -59,9 +68,10 @@ namespace Borealis
 		void SetupMesh();
 	private:
 
+		void ComputeTangents();
+
 		std::vector<unsigned int> mIndices;
 		std::vector<SkinnedVertex> mVertices;
-		std::vector<VertexData> mVerticesData; //from mesh.hpp to move it somewhere in the future
 
 		uint32_t mVerticesCount; // Number of vertices
 		uint32_t mIndicesCount; // Number of indices

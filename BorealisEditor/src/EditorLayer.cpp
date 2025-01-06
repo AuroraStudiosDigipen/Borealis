@@ -25,6 +25,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scene/ComponentRegistry.hpp>
 #include <Scripting/ScriptingSystem.hpp>
 #include <Scripting/ScriptInstance.hpp>
+#include <Scripting/ScriptingUtils.hpp>
 #include <EditorLayer.hpp>
 #include <Prefab.hpp>
 #include <PrefabManager.hpp>
@@ -39,11 +40,11 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <EditorAssets/FontImporter.hpp>
 #include <EditorAssets/MeshImporter.hpp>
 //#include <Assets/FontImporter.hpp>
-#include <AI/BehaviourTree/RegisterNodes.hpp>
 #include <AI/BehaviourTree/BehaviourTree.hpp>
 #include <PrefabComponent.hpp>
 
 #include<EditorSerialiser.hpp>
+#include <Panels/CubemapPanel.hpp>
 
 namespace ImGui
 {
@@ -99,6 +100,8 @@ namespace Borealis {
 	void EditorLayer::Init()
 	{
 
+		
+
 		if (Serialiser::DeserialiseEditorStyle())
 		{
 			ImGuiLayer::SetLightThemeColours();
@@ -143,6 +146,7 @@ namespace Borealis {
 		PROFILE_FUNCTION();
 
 		Project::GetEditorAssetsManager()->Update();
+		mAssetImporter.Update();
 
 		if (Borealis::FrameBufferProperties spec = SceneManager::GetActiveScene()->GetEditorFB()->GetProperties();
 			mViewportSize.x > 0.0f && mViewportSize.y > 0.0f && // zero sized framebuffer is invalid
@@ -225,6 +229,11 @@ namespace Borealis {
 
 			//forward rendering
 			{
+				RenderPassConfig SkyBoxPass(RenderPassType::SkyboxPass, "SkyBox");
+				SkyBoxPass.AddSinkLinkage("renderTarget", "RunTimeBuffer");
+				SkyBoxPass.AddSinkLinkage("camera", "RunTimeCamera");
+				fconfig.AddPass(SkyBoxPass);
+
 				RenderPassConfig shadowPass(RenderPassType::Shadow, "ShadowPass");
 				shadowPass.AddSinkLinkage("shadowMap", "ShadowMapBuffer");
 				shadowPass.AddSinkLinkage("camera", "RunTimeCamera");
@@ -254,20 +263,25 @@ namespace Borealis {
 
 			//forward rendering editor
 			{
+				//RenderPassConfig editorSkyBoxPass(RenderPassType::SkyboxPass, "editorSkyBox");
+				//editorSkyBoxPass.AddSinkLinkage("renderTarget", "EditorBuffer");
+				//editorSkyBoxPass.AddSinkLinkage("camera", "EditorCamera");
+				//fconfig.AddPass(editorSkyBoxPass);
+
 				RenderPassConfig editorShadowPass(RenderPassType::Shadow, "editorShadowPass");
 				editorShadowPass.AddSinkLinkage("shadowMap", "ShadowMapBuffer")
-				.AddSinkLinkage("camera", "EditorCamera");
+					.AddSinkLinkage("camera", "EditorCamera");
 				fconfig.AddPass(editorShadowPass);
 
 				RenderPassConfig editorRender3D(RenderPassType::Render3D, "editorRender3D");
 				editorRender3D.AddSinkLinkage("renderTarget", "EditorBuffer")
-				.AddSinkLinkage("shadowMap", "editorShadowPass.shadowMap")
-				.AddSinkLinkage("camera", "EditorCamera");
+					.AddSinkLinkage("shadowMap", "editorShadowPass.shadowMap")
+					.AddSinkLinkage("camera", "EditorCamera");
 				fconfig.AddPass(editorRender3D);
 
 				RenderPassConfig editorRender2D(RenderPassType::Render2D, "editorRender2D");
 				editorRender2D.AddSinkLinkage("renderTarget", "editorRender3D.renderTarget")
-				.AddSinkLinkage("camera", "EditorCamera");
+					.AddSinkLinkage("camera", "EditorCamera");
 				fconfig.AddPass(editorRender2D);
 
 				RenderPassConfig editorUIPass(RenderPassType::EditorUIPass, "EditorUI");
@@ -278,23 +292,22 @@ namespace Borealis {
 
 				RenderPassConfig ObjectPicking(RenderPassType::ObjectPicking, "ObjectPicking");
 				ObjectPicking.AddSinkLinkage("pixelBuffer", "PixelBuffer")
-				.AddSinkLinkage("renderTarget", "EditorUI.renderTarget")
-				.AddSinkLinkage("EntityIDSource", "EntityIDSource")
-				.AddSinkLinkage("ViewPortHovered", "ViewPortHovered")
-				.AddSinkLinkage("MouseSource", "MouseSource");
+					.AddSinkLinkage("renderTarget", "EditorUI.renderTarget")
+					.AddSinkLinkage("EntityIDSource", "EntityIDSource")
+					.AddSinkLinkage("ViewPortHovered", "ViewPortHovered")
+					.AddSinkLinkage("MouseSource", "MouseSource");
 				fconfig.AddPass(ObjectPicking);
 
-
-				RenderPassConfig editorHighlightPass(RenderPassType::EditorHighlightPass, "EditorHighlight");
-				editorHighlightPass.AddSinkLinkage("camera", "EditorCamera")
-					.AddSinkLinkage("renderTarget", "ObjectPicking.renderTarget")
-					.AddSinkLinkage("SelectedEntities", "SelectedEntities")
-					.AddSinkLinkage("EntityIDSource", "ObjectPicking.EntityIDSource");
-				fconfig.AddPass(editorHighlightPass);
+				//RenderPassConfig editorHighlightPass(RenderPassType::EditorHighlightPass, "EditorHighlight");
+				//editorHighlightPass.AddSinkLinkage("camera", "EditorCamera")
+				//	.AddSinkLinkage("renderTarget", "ObjectPicking.renderTarget")
+				//	.AddSinkLinkage("SelectedEntities", "SelectedEntities")
+				//	.AddSinkLinkage("EntityIDSource", "ObjectPicking.EntityIDSource");
+				//fconfig.AddPass(editorHighlightPass);
 
 				RenderPassConfig highlightPass(RenderPassType::HighlightPass, "Highlight");
 				highlightPass.AddSinkLinkage("camera", "EditorCamera")
-				.AddSinkLinkage("renderTarget", "ObjectPicking.renderTarget");
+					.AddSinkLinkage("renderTarget", "ObjectPicking.renderTarget");
 				fconfig.AddPass(highlightPass);
 			}
 
@@ -316,16 +329,16 @@ namespace Borealis {
 
 			//deferred rendering editor
 			{
-				RenderPassConfig editorGeometricPass(RenderPassType::Geometry, "editorGeometricPass");
-				editorGeometricPass.AddSinkLinkage("gBuffer", "gBuffer");
-				editorGeometricPass.AddSinkLinkage("camera", "EditorCamera");
-				dconfig.AddPass(editorGeometricPass);
+				//RenderPassConfig editorGeometricPass(RenderPassType::Geometry, "editorGeometricPass");
+				//editorGeometricPass.AddSinkLinkage("gBuffer", "gBuffer");
+				//editorGeometricPass.AddSinkLinkage("camera", "EditorCamera");
+				//dconfig.AddPass(editorGeometricPass);
 
-				RenderPassConfig editorLightPass(RenderPassType::Lighting, "editorLightPass");
-				editorLightPass.AddSinkLinkage("gBuffer", "editorGeometricPass.gBuffer");
-				editorLightPass.AddSinkLinkage("renderTarget", "EditorBuffer");
-				editorLightPass.AddSinkLinkage("viewProj", "editorGeometricPass.camera");
-				dconfig.AddPass(editorLightPass);
+				//RenderPassConfig editorLightPass(RenderPassType::Lighting, "editorLightPass");
+				//editorLightPass.AddSinkLinkage("gBuffer", "editorGeometricPass.gBuffer");
+				//editorLightPass.AddSinkLinkage("renderTarget", "EditorBuffer");
+				//editorLightPass.AddSinkLinkage("viewProj", "editorGeometricPass.camera");
+				//dconfig.AddPass(editorLightPass);
 
 				//add render2d
 			}
@@ -597,6 +610,9 @@ namespace Borealis {
 					ImGui::Columns(1);
 
 				}
+
+				CubemapPanel::RenderCubemapSetting();
+
 			ImGui::End(); // Of Settings
 
 			SCPanel.ImGuiRender();
@@ -669,17 +685,17 @@ namespace Borealis {
 				//}
 
 				//Create Entities from prefab
-				if (ImGui::BeginDrapDropTargetWindow("DragPrefab"))
-				{
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragPrefab"))
-					{
-						AssetHandle data = *(const uint64_t*)payload->Data;
-						Ref<Prefab> prefab = PrefabManager::GetPrefab(data);
-						prefab->CreateChild(SceneManager::GetActiveScene());
+				//if (ImGui::BeginDrapDropTargetWindow("DragPrefab"))
+				//{
+				//	if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragPrefab"))
+				//	{
+				//		AssetHandle data = *(const uint64_t*)payload->Data;
+				//		Ref<Prefab> prefab = PrefabManager::GetPrefab(data);
+				//		prefab->CreateChild(SceneManager::GetActiveScene());
 
-					}
-					ImGui::EndDragDropTarget();
-				}
+				//	}
+				//	ImGui::EndDragDropTarget();
+				//}
 
 				auto windowSize = ImGui::GetWindowSize();
 				ImVec2 minBound = ImGui::GetWindowPos();
@@ -708,8 +724,7 @@ namespace Borealis {
 					const glm::mat4& cameraProjection = mEditorCamera.GetProjectionMatrix();
 					 
 					auto& tc = selectedEntity.GetComponent<TransformComponent>();
-					glm::mat4 transform = tc.GetTransform();
-					glm::mat4 globalTransform = TransformComponent::GetGlobalTransform(selectedEntity);
+					glm::mat4 globalTransform = tc.GetGlobalTransform();
 
 					bool snap = InputSystem::IsKeyPressed(Key::LeftShift);
 					float snapValue = 0.5f;
@@ -733,7 +748,7 @@ namespace Borealis {
 									// Get the parent entity
 									Entity parent = SceneManager::GetActiveScene()->GetEntityByUUID(tc.ParentID);
 									TransformComponent& parentTC = parent.GetComponent<TransformComponent>();
-									glm::mat4 parentInverse = glm::inverse(parentTC.GetGlobalTransform(parent));
+									glm::mat4 parentInverse = glm::inverse(parentTC.GetGlobalTransform());
 
 									// Compute the child's local transform relative to the parent
 									glm::mat4 childRelativeTransform = parentInverse * globalTransform;
@@ -751,9 +766,6 @@ namespace Borealis {
 						}
 					
 				}
-
-
-
 			ImGui::End(); // Of Viewport
 			
 
@@ -945,7 +957,7 @@ namespace Borealis {
 		{
 			if (SCPanel.GetSelectedEntity())
 			{
-				mEditorCamera.SetFocalPoint(TransformComponent::GetGlobalTranslate(SCPanel.GetSelectedEntity()));
+				mEditorCamera.SetFocalPoint((SCPanel.GetSelectedEntity().GetComponent<TransformComponent>().GetGlobalTranslate()));
 			}
 			break;
 		}
@@ -1366,6 +1378,11 @@ namespace Borealis {
 		if (ImGui::Button("Toggle Global WireFrame"))
 		{
 			Renderer3D::SetGlobalWireFrameMode(!Renderer3D::GetGlobalWireFrameMode());
+		}
+		bool showCollide = PhysicsSystem::DebugDrawGet();
+		if (ImGui::Checkbox("Show Colliders", &showCollide))
+		{
+			PhysicsSystem::DebugDrawSet(showCollide);
 		}
 
 		ImGui::End();

@@ -29,6 +29,11 @@ namespace Borealis
 
 		void Save();
 
+		std::map<std::string, BoneData> GetBoneDataMap() const { return mBoneDataMap; }
+		float GetDuration() const { return mDuration; }
+		float GetTicksPerSecond() const { return mTicksPerSecond; }
+		AssimpNodeData& GetRootNode() { return mRootNode; }
+
 		float mDuration;
 		float mTicksPerSecond;
 		std::vector<Bone> mBones;

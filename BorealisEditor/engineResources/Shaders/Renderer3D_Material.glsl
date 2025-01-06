@@ -1,24 +1,24 @@
 #type vertex
 #version 410 core
 			
-layout(location = 0) in vec3 a_Position;
+layout(location = 0) in vec3 a_Position; //pack into more compressed formats, switch to Structs of arrays
 layout(location = 1) in vec3 a_Normal;
 layout(location = 2) in vec2 a_TexCoord;
-// layout(location = 3) in vec3 a_Tangent;
-// layout(location = 4) in vec3 a_Bitangent;
-layout(location = 3) in ivec4 boneIds; 
-layout(location = 4) in vec4 weights;
+layout(location = 3) in vec3 a_Tangent;
+layout(location = 4) in vec3 a_Bitangent;
+layout(location = 5) in ivec4 boneIds; 
+layout(location = 6) in vec4 weights;
 
 //default variables
 uniform mat4 u_ModelTransform;
-uniform mat4 u_ViewProjection;
+uniform mat4 u_ViewProjection; //move to uniform buffer object
 uniform int u_EntityID;
 
 //Animation variables
 uniform bool u_HasAnimation;
 const int MAX_BONES = 128;
 const int MAX_BONE_INFLUENCE = 4;
-uniform mat4 u_FinalBonesMatrices[MAX_BONES];
+uniform mat4 u_FinalBonesMatrices[MAX_BONES]; //move to uniform buffer objects
 
 //shadow pass variables
 uniform bool shadowPass;
@@ -26,8 +26,8 @@ uniform mat4 u_LightViewProjection;
 
 out vec2 v_TexCoord;
 out vec3 v_FragPos;
-// out vec3 v_Tangent;
-// out vec3 v_Bitangent;
+out vec3 v_Tangent;
+out vec3 v_Bitangent;
 out vec3 v_Normal;
 out vec4 v_LightPos;
 flat out int v_EntityID;
@@ -40,21 +40,22 @@ void ShadowPass()
 
 void Render3DPass()
 {
-	v_TexCoord = vec2(a_TexCoord.x, 1.0 - a_TexCoord.y); //flip the texture
+	v_TexCoord = vec2(a_TexCoord.x, 1.0 - a_TexCoord.y); //flip the texture //switch to compressonator
 
 	v_FragPos = vec3(u_ModelTransform * vec4(a_Position, 1.0));
-	//v_Normal = mat3(transpose(inverse(u_ModelTransform))) * a_Normal;
 	
-	mat3 normalMatrix = transpose(inverse(mat3(u_ModelTransform)));
+	mat3 normalMatrix = transpose(inverse(mat3(u_ModelTransform))); //calculate T and N in compiler
     vec3 N = normalize(normalMatrix * a_Normal);
-    // vec3 T = normalize(normalMatrix * a_Tangent);
-    // T = normalize(T - dot(T, N) * N); // Gram-Schmidt orthogonalization
-    // vec3 B = cross(N, T);
-	//animation
-	vec4 TotalPosition = vec4(0.f);
+    vec3 T = normalize(normalMatrix * a_Tangent);
+    T = normalize(T - dot(T, N) * N); // Gram-Schmidt orthogonalization
+    vec3 B = cross(N, T);
 
     if(u_HasAnimation)
     {	
+		//animation
+		vec4 TotalPosition = vec4(0.f);
+
+		//vec3 weightedNormal = vec3(0.0);
         for(int i = 0 ; i < MAX_BONE_INFLUENCE ; i++)
         {
             if(boneIds[i] == -1) 
@@ -66,12 +67,13 @@ void Render3DPass()
             }
             vec4 localPosition = u_FinalBonesMatrices[boneIds[i]] * vec4(a_Position,1.0f);
             TotalPosition += localPosition * weights[i];
-            N = mat3(u_FinalBonesMatrices[boneIds[i]]) * a_Normal;
-        }
-    }
+			
+			//weightedNormal += weights[i] * mat3(u_FinalBonesMatrices[boneIds[i]]) * a_Normal;
 
-	if(u_HasAnimation)
-	{
+			//Need to apply weightedTangent and BitTangent as well
+        }
+		//N = normalize(weightedNormal);
+
 		gl_Position = u_ViewProjection * u_ModelTransform * TotalPosition;	
 		v_LightPos = u_LightViewProjection * u_ModelTransform * TotalPosition;
 	}
@@ -83,8 +85,8 @@ void Render3DPass()
 	
 	v_EntityID = u_EntityID;
 	v_Normal = N;
-    // v_Tangent = T;
-    // v_Bitangent = B;
+    v_Tangent = T;
+    v_Bitangent = B;
 }
 
 void main()
@@ -105,7 +107,7 @@ void main()
 layout(location = 0) out vec4 fragColor;
 layout(location = 1) out int entityIDs;
 
-struct Material {
+struct Material { //move to uniform buffer object
 	sampler2D albedoMap;
 	sampler2D specularMap;
 	sampler2D metallicMap;
@@ -133,7 +135,7 @@ struct Material {
 	bool hasHeightMap;
 };
 
-struct Light 
+struct Light //move to uniform buffer object
 {
 	int type; // 0 = Spotlight, 1 = Directional , 2 = Point
 	vec3 position;
@@ -153,10 +155,9 @@ in vec2 v_TexCoord;
 in vec3 v_FragPos;
 in vec3 v_Normal; 
 flat in int v_EntityID;
-// in vec3 v_Tangent;
-// in vec3 v_Bitangent;
+in vec3 v_Tangent;
+in vec3 v_Bitangent;
 in vec4 v_LightPos;
-//in vec3 v_Normal;
 
 uniform mat4 u_ViewProjection;
 uniform mat4 u_View;
@@ -164,12 +165,13 @@ uniform vec3 u_ViewPos;
 uniform Material u_Material;
 const int MAX_LIGHTS = 20;
 uniform Light u_Lights[20];
-uniform int u_LightsCount;
+uniform int u_LightsCount = 0;
 			
 
 uniform sampler2D u_ShadowMap;
 uniform sampler2DArray u_CascadeShadowMap;
 uniform bool shadowPass = false;
+uniform bool u_HasShadow = false;
 uniform mat4 u_LightSpaceMatrices[4];
 uniform float u_CascadePlaneDistances[4];
 uniform int cascadeCount;
@@ -300,7 +302,14 @@ vec3 ComputeDirectionalLight(Light light, vec3 normal, vec3 viewDir)
 		//temp
 		float shadowFactor = GetCascadeShadowFactor(lightDir, normal);
 
-        color = ambient + shadowFactor * (diffuse + specular + emission);
+        if(u_HasShadow)
+		{
+			color += shadowFactor * (diffuse + specular + emission);
+		}
+		else
+		{
+			color += (diffuse + specular + emission);
+		}
     }
 	return color;
 }
@@ -337,45 +346,6 @@ vec3 ComputePointLight(Light light, vec3 normal, vec3 viewDir)
 
 vec3 ComputeSpotLight(Light light, vec3 normal, vec3 viewDir)
 {
-	// vec3 lightDir = normalize(light.position - v_FragPos);
-
-	// float distance = length(light.position - v_FragPos);
-    // float attenuation = 1.0 / (1.0 + light.linear * distance + light.quadratic * distance * distance); 
-
-	// // ambient
-	// vec3 ambient = light.ambient * GetAlbedoColor().rgb;
-	// vec3 color = ambient;
-	// float metallic = GetMetallic();
-	// vec3 emission = GetEmission();
-
-	// vec3 halfwayDir = normalize(lightDir + viewDir);
-
-    // float diff = max(dot(normal, lightDir), 0.0);
-
-    // if (diff > 0.0)
-    // {
-    //     float spec = pow(max(dot(normal, halfwayDir), 0.0), u_Material.shininess * u_Material.smoothness);
-
-    //     float theta = dot(lightDir, normalize(-light.direction)); 
-
-    //     float epsilon = light.innerOuterAngle.x - light.innerOuterAngle.y;
-    //     float intensity = clamp((theta - light.innerOuterAngle.y) / epsilon, 0.0, 1.0); 
-
-    //     vec3 diffuse = light.diffuse * diff * (1.0 - metallic);
-    //     vec3 specular = light.specular * spec * GetSpecular() * metallic;
-
-	// 	ambient *= intensity * attenuation;
-	// 	diffuse *= intensity * attenuation;
-	// 	specular *= intensity * attenuation;
-
-	// 	//temp
-	// 	float shadowFactor = GetShadowFactor();
-
-    //     color = ambient + shadowFactor * (diffuse + specular + emission);
-    // }
-
-	// return color;
-
 	vec3 lightDir = normalize(light.position - v_FragPos);
 	float distance = length(light.position - v_FragPos);
 
@@ -411,7 +381,15 @@ vec3 ComputeSpotLight(Light light, vec3 normal, vec3 viewDir)
 
 		// Apply shadow factor to diffuse, specular, and emission
 		float shadowFactor = GetShadowFactor(lightDir, normal);
-        color += shadowFactor * (diffuse + specular + emission);
+		if(u_HasShadow)
+		{
+			color += shadowFactor * (diffuse + specular + emission);
+		}
+		else
+		{
+			color += (diffuse + specular + emission);
+		}
+        
     }
 
 	return color;
@@ -421,8 +399,8 @@ void Render3DPass()
 {
 	vec3 viewDir = normalize(u_ViewPos - v_FragPos);
 
-	mat3 TBN = mat3(vec3(0.f), vec3(0.f), v_Normal);
-	//mat3 TBN = mat3(v_Tangent, v_Bitangent, v_Normal);
+	//mat3 TBN = mat3(vec3(1.f), vec3(1.f), v_Normal);
+	mat3 TBN = mat3(v_Tangent, v_Bitangent, v_Normal);
 	vec3 normal;
     if (u_Material.hasNormalMap) 
     {
@@ -437,36 +415,29 @@ void Render3DPass()
         normal = normalize(v_Normal);
     }
 
-	// vec4 color;
-	// if (u_Light.type == 0) 
-	// {
-	// 	color = vec4(ComputeSpotLight(u_Light, normal, viewDir), GetAlbedoColor().a);
-	// }
-	// else if (u_Light.type == 1)
-	// {
-	// 	color = vec4(ComputeDirectionalLight(u_Light, normal, viewDir), GetAlbedoColor().a);
-	// }
-	// else if (u_Light.type == 2)
-	// {
-	// 	color = vec4(ComputePointLight(u_Light, normal, viewDir), GetAlbedoColor().a);
-	// }
-
 	vec4 color = vec4(0.0);  // Initialize the final color to zero
 
-	for (int i = 0; i < u_LightsCount; ++i)
+	if(u_LightsCount > 0)
 	{
-		if (u_Lights[i].type == 0)  // Spot Light
+		for (int i = 0; i < u_LightsCount; ++i)
 		{
-			color.rgb += ComputeSpotLight(u_Lights[i], normal, viewDir);
+			if (u_Lights[i].type == 0)  // Spot Light
+			{
+				color.rgb += ComputeSpotLight(u_Lights[i], normal, viewDir);
+			}
+			else if (u_Lights[i].type == 1)  // Directional Light
+			{
+				color.rgb += ComputeDirectionalLight(u_Lights[i], normal, viewDir);
+			}
+			else if (u_Lights[i].type == 2)  // Point Light
+			{
+				color.rgb += ComputePointLight(u_Lights[i], normal, viewDir);
+			}
 		}
-		else if (u_Lights[i].type == 1)  // Directional Light
-		{
-			color.rgb += ComputeDirectionalLight(u_Lights[i], normal, viewDir);
-		}
-		else if (u_Lights[i].type == 2)  // Point Light
-		{
-			color.rgb += ComputePointLight(u_Lights[i], normal, viewDir);
-		}
+	}
+	else
+	{
+		color = GetAlbedoColor();
 	}
 
 	// Apply the alpha channel from the albedo color

@@ -6,6 +6,8 @@
 
 namespace Borealis
 {
+    bool SceneManager::ToNextScene = false;
+    std::string SceneManager::NextSceneName;
     Ref<Scene> SceneManager::mActiveScene;
     std::unordered_map<std::string, std::string> SceneManager::mSceneLibrary;
 

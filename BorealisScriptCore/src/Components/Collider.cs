@@ -10,18 +10,26 @@ namespace Borealis
         public Vector3 min;
         public Vector3 size;
     }
+    [NativeComponent]
     public class Collider : Component
     {
+        public Collider() { }
         public Collider(ulong id)
         {
             InstanceID = id;
+            gameObject = new GameObject(id);
+            name = gameObject.name;
         }
 
-        public Collider() { }
 
         public bool CompareTag(string tag)
         {
             return gameObject.name == tag;
+        }
+
+        public void UpdateScale()
+        {
+            InternalCalls.ColliderComponent_UpdateScale(GetInstanceID());
         }
 
         public Bounds bounds

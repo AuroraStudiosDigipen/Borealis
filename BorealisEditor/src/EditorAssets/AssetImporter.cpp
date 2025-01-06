@@ -23,12 +23,26 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <EditorAssets/AssetImporter.hpp>
 #include <EditorAssets/MetaSerializer.hpp>
 
+#include <assimp/zlib.h>
 #include <Scripting/ScriptingSystem.hpp>
 #include <thread>
 
 namespace Borealis
 {
 	std::unique_ptr<filewatch::FileWatch<std::wstring>> fileWatcher = nullptr;
+	void AssetImporter::Update()
+	{
+		if (mQueue.empty()) return;
+
+		for (AssetMetaData const& metaData : mQueue)
+		{
+			ImportAsset(metaData);
+			AssetMetaData meta = MetaFileSerializer::GetAssetMetaDataFile(metaData.SourcePath.string() + ".meta");
+			AssetManager::InsertMetaData(meta);
+		}
+
+		mQueue.clear();
+	}
 	void AssetImporter::LoadRegistry(Borealis::ProjectInfo projectInfo)
 	{
 		//open registry database file
@@ -100,6 +114,11 @@ namespace Borealis
 		if (mPathRegistry.contains(hash)) return mPathRegistry.at(hash);
 
 		return {};
+	}
+
+	void AssetImporter::AddToRecompileQueue(AssetMetaData metaData)
+	{
+		mQueue.push_back(metaData);
 	}
 
 	void AssetImporter::InsertAssetHandle(std::filesystem::path const& path, AssetHandle handle)
@@ -246,6 +265,11 @@ namespace Borealis
 		else
 		{
 			AssetMetaData metaData = MetaFileSerializer::GetAssetMetaDataFile(metaFilePath);
+			
+			//TODO Temp for now to ensure that the current proj gets updated, remove in future
+			{
+				metaData = MetaFileSerializer::CreateAssetMetaFile(metaData.SourcePath, metaData.Handle);
+			}
 
 			if (assetRegistry.contains(metaData.Handle))
 			{
@@ -254,6 +278,8 @@ namespace Borealis
 					//Version difference, update to latest version
 					metaData = MetaFileSerializer::CreateAssetMetaFile(metaData.SourcePath, metaData.Handle);
 				}
+
+
 
 				//difference between source file and meta data
 				if (MetaFileSerializer::HashFile(metaData.SourcePath) != metaData.SourceFileHash)

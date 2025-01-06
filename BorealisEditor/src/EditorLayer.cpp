@@ -445,26 +445,6 @@ namespace Borealis {
 
 					if (ImGui::MenuItem("Open Project...","Ctrl+O")) {
 						LoadProject();
-
-						//Testing load all the prefab children
-						for (auto& item : SceneManager::GetActiveScene()->GetRegistry().view<entt::entity>()) {
-
-							Entity entity{ item, SceneManager::GetActiveScene().get() }; // Use GetActiveScene() here
-							if (entity.HasComponent<PrefabComponent>()) {
-								// Retrieve the PrefabComponent
-								auto& prefabComp = entity.GetComponent<PrefabComponent>();
-
-								// Get the parent UUID from the PrefabComponent
-								UUID parentUUID = prefabComp.mParentID;
-
-								// Find the associated prefab by its UUID
-								auto prefab = PrefabManager::GetPrefab(parentUUID);  // Use existing function GetPrefab
-								if (prefab) {
-									// Add the entity as a child to the found prefab
-									prefab->AddChild(MakeRef<Entity>(entity));
-								}
-							}
-						}
 					}
 
 					if (ImGui::MenuItem("Save Project...","Ctrl+S")) {
@@ -1035,6 +1015,24 @@ namespace Borealis {
 			SceneManager::SetActiveScene(fileName, serialiser);
 
 			DeserialiseEditorScene();
+		}
+		for (auto& item : SceneManager::GetActiveScene()->GetRegistry().view<entt::entity>()) {
+			Entity entity{ item, SceneManager::GetActiveScene().get() }; // Use GetActiveScene() here
+			if (entity.HasComponent<PrefabComponent>()) {
+				// Retrieve the PrefabComponent
+				auto& prefabComp = entity.GetComponent<PrefabComponent>();
+
+				// Get the parent UUID from the PrefabComponent
+				UUID parentUUID = prefabComp.mParentID;
+
+				// Find the associated prefab by its UUID
+				auto prefab = PrefabManager::GetPrefab(parentUUID);  // Use existing function GetPrefab
+				if (prefab) {
+					// Add the entity as a child to the found prefab
+					prefab->AddChild(MakeRef<Entity>(entity));
+					std::cout << "Added entity as child to prefab" << std::endl;
+				}
+			}
 		}
 
 	}

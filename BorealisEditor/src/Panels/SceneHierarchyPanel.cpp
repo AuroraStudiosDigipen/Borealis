@@ -1000,6 +1000,26 @@ namespace Borealis
 	{
 		mContext = scene;
 		mSelectedEntity = {};
+
+		//Testing load all the prefab children
+		for (auto& item : SceneManager::GetActiveScene()->GetRegistry().view<entt::entity>()) {
+			Entity entity{ item, SceneManager::GetActiveScene().get() }; // Use GetActiveScene() here
+			if (entity.HasComponent<PrefabComponent>()) {
+				// Retrieve the PrefabComponent
+				auto& prefabComp = entity.GetComponent<PrefabComponent>();
+
+				// Get the parent UUID from the PrefabComponent
+				UUID parentUUID = prefabComp.mParentID;
+
+				// Find the associated prefab by its UUID
+				auto prefab = PrefabManager::GetPrefab(parentUUID);  // Use existing function GetPrefab
+				if (prefab) {
+					// Add the entity as a child to the found prefab
+					prefab->AddChild(MakeRef<Entity>(entity));
+					std::cout << "Added entity as child to prefab" << std::endl;
+				}
+			}
+		}
 	}
 	void SceneHierarchyPanel::ImGuiRender()
 	{
@@ -1049,27 +1069,6 @@ namespace Borealis
 								mContext = SceneManager::GetActiveScene();
 								mSelectedEntity = {};
 
-								//Testing load all the prefab children
-								//PrefabManager::ClearAllPrefabChildren(); //Might not be needed
-								for (auto& item : mContext->mRegistry.view<entt::entity>())
-								{
-
-									Entity entity{ item, mContext.get() };
-									if (entity.HasComponent<PrefabComponent>()) {
-										// Retrieve the PrefabComponent
-										auto& prefabComp = entity.GetComponent<PrefabComponent>();
-
-										// Get the parent UUID from the PrefabComponent
-										UUID parentUUID = prefabComp.mParentID;
-
-										// Find the associated prefab by its UUID
-										auto prefab = PrefabManager::GetPrefab(parentUUID);  // Use existing function GetPrefab
-										if (prefab) {
-											// Add the entity as a child to the found prefab
-											prefab->AddChild(MakeRef<Entity>(entity));
-										}
-									}
-								}
 							}
 						}
 						ImGui::EndPopup();
@@ -1165,27 +1164,36 @@ namespace Borealis
 				}
 				case AssetType::Prefab:
 				{
-					//When click on prefab, get the UUID, and use the UUID to get the prefab that is in the prefab registry
-					//Update the prefab within the prefab registry.
+					// When clicking on a prefab, get the UUID, and use the UUID to get the prefab in the prefab registry
 					MaterialEditor::SetMaterial(0);
 					Ref<Prefab> selectedPrefab = PrefabManager::GetPrefab(ContentBrowserPanel::sSelectedAsset);
 					Entity prefabEntity(selectedPrefab->GetPrefabID(), PrefabManager::GetScenePtr());
 
-					//Deselect the entity
+					// Deselect the entity
 					mSelectedEntity = {};
 
-					//Draw prefabEntity
-					if(DrawComponents(prefabEntity))
+					// Draw prefabEntity and check for changes
+					if (DrawComponents(prefabEntity))
 					{
+						// Update all instances of the prefab
 						selectedPrefab->UpdateAllInstances();
+
+						// Get the prefab file path
+						AssetMetaData const& metadata = AssetManager::GetMetaData(ContentBrowserPanel::sSelectedAsset);
+						std::filesystem::path dir = metadata.SourcePath;
+						std::string dirString = dir.string(); // Convert to std::string
+
+						// Serialize the updated prefab
+						Serialiser serialiser(SceneManager::GetActiveScene());
+						serialiser.SerialisePrefab(dirString.c_str(), prefabEntity);
+
+						// Optionally, log the save operation
+						std::cout << "Prefab saved at: " << dirString << std::endl;
 					}
-	
-					//std::filesystem::path dir = metadata.SourcePath;
-					//std::string dirString = dir.string(); // Convert to std::string
-					//Serialiser::SerialisePrefab(dirString.c_str(), mSelectedPrefab);
 
 					break;
 				}
+
 				default:
 				{
 					MaterialEditor::SetMaterial(0);

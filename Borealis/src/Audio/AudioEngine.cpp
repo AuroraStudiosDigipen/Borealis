@@ -412,10 +412,11 @@ namespace Borealis
 
             // Assign to group if applicable
             int groupId = static_cast<int>(group);
-            auto itGroup = sgpImplementation->mChannelGroups.find(groupId);
+            auto itGroup = sgpImplementation->mChannelGroups.find(static_cast<int>(AudioGroup::SFX));
             if (itGroup != sgpImplementation->mChannelGroups.end()) {
                 ErrorCheck(channel->setChannelGroup(itGroup->second));
             }
+            channel->setPriority(64);
         }
     }
 }

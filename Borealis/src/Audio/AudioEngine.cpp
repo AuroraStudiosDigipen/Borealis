@@ -350,6 +350,10 @@ namespace Borealis
         FMOD::Channel* channel = nullptr;
         FMOD::Sound* sound = audio->audioPtr;
 
+        int chIndex = -1;
+        channel->getIndex(&chIndex);
+        std::cout << "BGM index : " << chIndex << '\n';
+
         // Play the sound with pausing enabled initially
         ErrorCheck(sgpImplementation->mpSystem->playSound(sound, nullptr, true, &channel));
 
@@ -395,6 +399,10 @@ namespace Borealis
         // Play the sound with no need for tracking
         ErrorCheck(sgpImplementation->mpSystem->playSound(sound, nullptr, true, &channel));
 
+        int chIndex = -1;
+        channel->getIndex(&chIndex);
+        std::cout << "audio index : " << chIndex << '\n';
+
         if (channel) {
             // Set 3D attributes if the sound is in 3D mode
             FMOD_MODE mode;
@@ -412,11 +420,10 @@ namespace Borealis
 
             // Assign to group if applicable
             int groupId = static_cast<int>(group);
-            auto itGroup = sgpImplementation->mChannelGroups.find(static_cast<int>(AudioGroup::SFX));
+            auto itGroup = sgpImplementation->mChannelGroups.find(groupId);
             if (itGroup != sgpImplementation->mChannelGroups.end()) {
                 ErrorCheck(channel->setChannelGroup(itGroup->second));
             }
-            channel->setPriority(64);
         }
     }
 }

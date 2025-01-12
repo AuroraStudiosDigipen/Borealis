@@ -34,7 +34,7 @@ namespace Borealis
 	class AssetManager
 	{
 	public:
-		static void RegisterAllAsset();
+		static void RegisterAllAssetType();
 
 		static void RegisterAsset(AssetInfo const& assetInfo);
 		
@@ -74,7 +74,7 @@ namespace Borealis
 
 		static void SetRunTime()
 		{
-			AssetManager::RegisterAllAsset();
+			AssetManager::RegisterAllAssetType();
 			Project::GetEditorAssetsManager()->LoadAssetRegistryRunTime("AssetRegistry.brdb");
 			ScriptingSystem::LoadScriptAssembliesNonThreaded("Cache/CSharp_Assembly.dll");
 		}

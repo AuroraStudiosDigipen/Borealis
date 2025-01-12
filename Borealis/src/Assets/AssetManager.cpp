@@ -25,7 +25,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace Borealis
 {
-	void AssetManager::RegisterAllAsset()
+	void AssetManager::RegisterAllAssetType()
 	{
 		std::vector<AssetInfo> infos{
 		//Asset Type					//Asset Name				//extensions			//load function			//Reload function

@@ -49,7 +49,7 @@ namespace BorealisAssetCompiler
 			AnimationImporter::LoadAnimations(anim, sourcePath.string());
 			AnimationImporter::SaveAnimation(anim, savePath);
 
-			cachePath.replace_extension(".skmesh");
+			//cachePath.replace_extension(".skmesh");
 			SkinnedMeshImporter::SaveSkinnedModel(skinnedModel, cachePath);
 		}
 		else
@@ -61,7 +61,7 @@ namespace BorealisAssetCompiler
 
 			OptimizeModel(model);
 
-			cachePath.replace_extension(".mesh");
+			//cachePath.replace_extension(".mesh");
 			SaveModel(model, cachePath);
 		}
 		assetConfig = config;

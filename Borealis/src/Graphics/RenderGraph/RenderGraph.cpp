@@ -743,8 +743,7 @@ namespace Borealis
 					continue;
 				}
 				auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
-				if (!meshRenderer.active) { continue; }
-
+				if (!meshFilter.Model || !meshRenderer.Material || !meshRenderer.active) continue;
 				BoundingSphere modelBoundingSphere = meshFilter.Model->mBoundingSphere;
 				modelBoundingSphere.Transform(transform.GetGlobalTransform());
 
@@ -885,8 +884,6 @@ namespace Borealis
 		}
 
 		{
-
-
 			static bool editorChange = false;
 			bool directionalLight = false;
 			entt::basic_group group = registryPtr->group<>(entt::get<TransformComponent, LightComponent>);
@@ -967,17 +964,16 @@ namespace Borealis
 						auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
 						if (!meshRenderer.active) { continue; }
 
+						if (!meshFilter.Model || !meshRenderer.Material || !meshRenderer.active) continue;
+
 						BoundingSphere modelBoundingSphere = meshFilter.Model->mBoundingSphere;
 						modelBoundingSphere.Transform(transform.GetGlobalTransform());
-
 
 						if (CullBoundingSphere(frustum, modelBoundingSphere))
 						{
 							//BOREALIS_CORE_INFO("Culling entity {}", (int)entity);
 							continue;
 						}
-
-
 
 						RenderCommand::EnableFrontFaceCull();
 						Renderer3D::DrawMesh(transform.GetGlobalTransform(), meshFilter, meshRenderer, shader, (int)entity);
@@ -1012,7 +1008,7 @@ namespace Borealis
 						continue;
 					}
 					auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
-					if (!meshRenderer.active) { continue; }
+					if (!meshFilter.Model || !meshRenderer.Material || !meshRenderer.active) continue;
 
 					BoundingSphere modelBoundingSphere = meshFilter.Model->mBoundingSphere;
 					modelBoundingSphere.Transform(transform.GetGlobalTransform());

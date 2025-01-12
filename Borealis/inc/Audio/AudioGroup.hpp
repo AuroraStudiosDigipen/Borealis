@@ -22,8 +22,8 @@ namespace Borealis {
 
     // Enum to represent different audio groups
     enum class AudioGroup {
-        Master,
-        Music,
+        Master = 0,
+        BGM,
         SFX
     };
 

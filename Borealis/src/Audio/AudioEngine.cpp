@@ -69,6 +69,21 @@ namespace Borealis
 
         // Initialize FMOD Core system
         ErrorCheck(mpSystem->init(32, FMOD_INIT_PROFILE_ENABLE, nullptr));
+
+        FMOD::ChannelGroup* bgmGroup = nullptr;
+        FMOD::ChannelGroup* sfxGroup = nullptr;
+        ErrorCheck(mpSystem->createChannelGroup("BGM", &bgmGroup));
+        ErrorCheck(mpSystem->createChannelGroup("SFX", &sfxGroup));
+
+        mChannelGroups[static_cast<int>(AudioGroup::BGM)] = bgmGroup;
+        mChannelGroups[static_cast<int>(AudioGroup::SFX)] = sfxGroup;
+
+        FMOD::ChannelGroup* masterGroup = nullptr;
+        ErrorCheck(mpSystem->getMasterChannelGroup(&masterGroup));
+        if (masterGroup) {
+            ErrorCheck(masterGroup->addGroup(bgmGroup));
+            ErrorCheck(masterGroup->addGroup(sfxGroup));
+        }
     }
 
     Implementation::~Implementation()
@@ -87,6 +102,7 @@ namespace Borealis
             if (!bIsPlaying)
             {
                 pStoppedChannels.push_back(it);
+                BOREALIS_CORE_INFO("Stop channel {}", it->first);
             }
         }
 
@@ -139,7 +155,7 @@ namespace Borealis
     int AudioEngine::PlayAudio(AudioSourceComponent& audio, const glm::vec3& vPosition, float fVolumedB, bool bMute, bool bLoop, int groupId)
     {
         int nChannelId = sgpImplementation->mnNextChannelId++;
-
+        
         FMOD::Sound* fmodSound = audio.audio->audioPtr;
         if (!fmodSound) return -1;
 
@@ -178,8 +194,16 @@ namespace Borealis
                 }
             }
 
+
             sgpImplementation->mChannels[nChannelId] = pChannel;
         }
+
+        std::cout << "Channel " << nChannelId << " is now playing." << std::endl;
+        std::cout << "Currently active channels: ";
+        for (const auto& channelPair : sgpImplementation->mChannels) {
+            std::cout << channelPair.first << " ";
+        }
+        std::cout << std::endl;
 
         return nChannelId;
     }
@@ -350,12 +374,12 @@ namespace Borealis
         FMOD::Channel* channel = nullptr;
         FMOD::Sound* sound = audio->audioPtr;
 
+        ErrorCheck(sgpImplementation->mpSystem->playSound(sound, nullptr, true, &channel));
         int chIndex = -1;
         channel->getIndex(&chIndex);
-        std::cout << "BGM index : " << chIndex << '\n';
+        std::cout << "Play BGM index : " << chIndex << '\n';
 
         // Play the sound with pausing enabled initially
-        ErrorCheck(sgpImplementation->mpSystem->playSound(sound, nullptr, true, &channel));
 
         if (channel) {
             // Set 3D attributes if the sound is in 3D mode
@@ -373,8 +397,7 @@ namespace Borealis
             ErrorCheck(channel->setMode(looping ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF));
 
             // Assign channel to a group
-            int groupId = static_cast<int>(group);
-            auto itGroup = sgpImplementation->mChannelGroups.find(groupId);
+            auto itGroup = sgpImplementation->mChannelGroups.find(static_cast<int>(AudioGroup::BGM));
             if (itGroup != sgpImplementation->mChannelGroups.end()) {
                 ErrorCheck(channel->setChannelGroup(itGroup->second));
             }
@@ -396,12 +419,14 @@ namespace Borealis
         FMOD::Channel* channel = nullptr;
         FMOD::Sound* sound = audio->audioPtr;
 
+        int channelId = sgpImplementation->mnNextChannelId++;
+
         // Play the sound with no need for tracking
         ErrorCheck(sgpImplementation->mpSystem->playSound(sound, nullptr, true, &channel));
 
         int chIndex = -1;
         channel->getIndex(&chIndex);
-        std::cout << "audio index : " << chIndex << '\n';
+        std::cout << "PlayOneShot audio index : " << chIndex << '\n';
 
         if (channel) {
             // Set 3D attributes if the sound is in 3D mode
@@ -419,8 +444,7 @@ namespace Borealis
             ErrorCheck(channel->setMode(FMOD_LOOP_OFF)); // PlayOneShot is always non-looping
 
             // Assign to group if applicable
-            int groupId = static_cast<int>(group);
-            auto itGroup = sgpImplementation->mChannelGroups.find(groupId);
+            auto itGroup = sgpImplementation->mChannelGroups.find(static_cast<int>(AudioGroup::SFX));
             if (itGroup != sgpImplementation->mChannelGroups.end()) {
                 ErrorCheck(channel->setChannelGroup(itGroup->second));
             }

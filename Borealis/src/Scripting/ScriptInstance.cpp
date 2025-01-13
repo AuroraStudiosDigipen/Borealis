@@ -288,10 +288,10 @@ namespace Borealis
 		{ \
 			return; \
 		} \
-		ScriptInstance collider(ScriptingSystem::GetScriptClass("Collider")); \
-		collider.SetFieldValue("InstanceID", &colliderID); \
+		MonoObject* collider; \
+		InitGameObject(collider, colliderID, "Collider", false); \
 		void* params[1]; \
-		params[0] = &collider; \
+		params[0] = collider; \
 		MonoObject* exception = nullptr; \
 		mono_runtime_invoke(mScriptClass->GetMethod(#methodName, 1), GetInstance(), params, &exception); \
 		if (exception) \

@@ -25,7 +25,7 @@ namespace Borealis
 	ScriptInstance::ScriptInstance(Ref<ScriptClass> scriptClass)
 	{
 		mScriptClass = scriptClass;
-		mGcHandle = mono_gchandle_new(scriptClass->Instantiate(), true);
+		mGcHandle = mono_gchandle_new(scriptClass->Instantiate(), false);
 		//mScriptClass->InvokeMethod(mInstance, mConstructor, &param);
 	}
 
@@ -38,7 +38,7 @@ namespace Borealis
 	{
 		MonoClass* klass = mono_object_get_class(Instance);
 		mScriptClass = ScriptingSystem::GetScriptClass(mono_class_get_name(klass));
-		mGcHandle = mono_gchandle_new(Instance, true);
+		mGcHandle = mono_gchandle_new(Instance, false);
 	}
 
 	void ScriptInstance::Init(uint64_t UUIDAddress)

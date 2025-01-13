@@ -178,10 +178,17 @@ namespace Borealis
 					}
 				}
 			}
-			static float accumDt = 0;
-			accumDt += dt;
-			int timeStep = std::max(1, (int)(accumDt / 1.66667f));
-			accumDt -= timeStep * 1.66667f;
+			static float accumDt = 0.0f; // Accumulated delta time
+			const float fixedTimeStep = 1.66667f; // Fixed update interval (~60 FPS)
+
+			accumDt += dt; // Accumulate elapsed time
+
+			// Calculate how many steps to process
+			int timeStep = static_cast<int>(accumDt / fixedTimeStep);
+
+			if (timeStep > 0) {
+				accumDt -= timeStep * fixedTimeStep; // Reduce accumulated time
+			}
 
 			auto BTview = mRegistry.view<BehaviourTreeComponent>();
 			for (auto entity : BTview)
@@ -323,7 +330,7 @@ namespace Borealis
 					auto [transform, capsule, rigidbody] = capsuleGroup.get<TransformComponent, CapsuleColliderComponent, RigidBodyComponent>(entity);
 					PhysicsSystem::PushTransform(capsule, transform, capsule.rigidBody);
 				}
-
+				for (int i = 0; i < timeStep; i++)
 				PhysicsSystem::Update(dt);				
 
 				// Set entity values to Jolt transform.

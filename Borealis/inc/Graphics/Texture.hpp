@@ -130,7 +130,7 @@ namespace Borealis
 
 		static Ref<Texture2D> GetDefaultTexture();
 
-		static Ref<Asset> Load(AssetMetaData const& assetMetaData);
+		static Ref<Asset> Load(std::filesystem::path const& cachePath, AssetMetaData const& assetMetaData);
 
 	private:
 		static Ref<Texture2D> mDefault;

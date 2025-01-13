@@ -332,9 +332,9 @@ namespace Borealis
         // If no group is found, return -1 or handle the case accordingly
         return -1;
     }
-    Ref<Asset> AudioEngine::Load(AssetMetaData const& assetMetaData)
+    Ref<Asset> AudioEngine::Load(std::filesystem::path const& cachePath, AssetMetaData const& assetMetaData)
     {
-        Audio audio = LoadAudio(assetMetaData.SourcePath.string());
+        Audio audio = LoadAudio((cachePath / std::to_string(assetMetaData.Handle)).string());
         return MakeRef<Audio>(audio);
     }
 

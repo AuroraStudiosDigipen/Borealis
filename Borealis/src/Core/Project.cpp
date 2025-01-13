@@ -49,6 +49,7 @@ namespace Borealis
 
 		mProjectInfo.ProjectPath = projectFilePath;
 		mProjectInfo.AssetsPath = projectFilePath;
+		mProjectInfo.CachePath = std::filesystem::path(projectFilePath).replace_filename("Cache");
 
 		projectFilePath += "/Project.brproj";
 
@@ -58,6 +59,7 @@ namespace Borealis
 
 		mProjectInfo.ProjectName = name;
 	}
+
 	bool Project::SetProjectPath(std::string path, std::string& activeSceneName)
 	{
 		// check if project path exists
@@ -71,6 +73,7 @@ namespace Borealis
 				mProjectInfo.ProjectPath = projectFilePath;
 				mProjectInfo.AssetsPath = projectFilePath + mProjectInfo.AssetsDirectoryName;
 				mProjectInfo.AssetsRegistryPath = projectFilePath + mProjectInfo.AssetsRegistryName;
+				mProjectInfo.CachePath = std::filesystem::path(mProjectInfo.AssetsPath).replace_filename("Cache");
 
 				LayerList::Reset();
 				////pass in project info

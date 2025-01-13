@@ -171,19 +171,19 @@ namespace Borealis
 		mAABB = aabb;
 	}
 
-	Ref<Asset> Model::Load(AssetMetaData const& assetMetaData)
+	Ref<Asset> Model::Load(std::filesystem::path const& cachePath, AssetMetaData const& assetMetaData)
 	{
 		MeshConfig config = GetConfig<MeshConfig>(assetMetaData.Config);
 		if (config.skinMesh)
 		{
 			SkinnedModel skinnedModel;
-			skinnedModel.LoadModel(assetMetaData.CachePath);
+			skinnedModel.LoadModel(cachePath/std::to_string(assetMetaData.Handle));
 			return MakeRef<SkinnedModel>(skinnedModel);
 		}
 		else
 		{
 			Model model;
-			model.LoadModel(assetMetaData.CachePath);
+			model.LoadModel(cachePath/std::to_string(assetMetaData.Handle));
 			return MakeRef<Model>(model);
 		}
 	}

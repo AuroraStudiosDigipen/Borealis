@@ -55,7 +55,7 @@ namespace Borealis
 		void GenerateRitterBoundingSphere();
 		void GenerateAABB();
 
-		static Ref<Asset> Load(AssetMetaData const& assetMetaData);
+		static Ref<Asset> Load(std::filesystem::path const& cachePath, AssetMetaData const& assetMetaData);
 
 		BoundingSphere mBoundingSphere{};
 		AABB mAABB;

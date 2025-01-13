@@ -43,6 +43,8 @@ namespace BorealisAssetCompiler
 
 			SkinnedMeshImporter::LoadFBXModel(skinnedModel, sourcePath.string());
 
+			OptimizeModel(skinnedModel);
+
 			Animation anim;
 			std::filesystem::path savePath = sourcePath;
 			savePath.replace_extension(".anim");
@@ -146,6 +148,8 @@ namespace BorealisAssetCompiler
 
 	void MeshImporter::SaveModel(Model const& model, std::filesystem::path& cachePath)
 	{
+		//Calculate tangent and bitangent
+		//convert to SOA
 		std::ofstream outFile(cachePath, std::ios::binary);
 
 		uint32_t meshCount = static_cast<uint32_t>(model.mMeshes.size());

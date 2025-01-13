@@ -609,16 +609,16 @@ namespace Borealis
 
 		for (const auto& mesh : model.mMeshes)
 		{
-			for (const auto& vertex : mesh.GetVertices())
+			for (const auto& pos : mesh.GetPosition())
 			{
 				// Update min and max extents for each axis
-				minExtent.x = std::min(minExtent.x, vertex.Position.x);
-				minExtent.y = std::min(minExtent.y, vertex.Position.y);
-				minExtent.z = std::min(minExtent.z, vertex.Position.z);
+				minExtent.x = std::min(minExtent.x, pos.x);
+				minExtent.y = std::min(minExtent.y, pos.y);
+				minExtent.z = std::min(minExtent.z, pos.z);
 														   
-				maxExtent.x = std::max(maxExtent.x, vertex.Position.x);
-				maxExtent.y = std::max(maxExtent.y, vertex.Position.y);
-				maxExtent.z = std::max(maxExtent.z, vertex.Position.z);
+				maxExtent.x = std::max(maxExtent.x, pos.x);
+				maxExtent.y = std::max(maxExtent.y, pos.y);
+				maxExtent.z = std::max(maxExtent.z, pos.z);
 			}
 		}
 

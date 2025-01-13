@@ -20,11 +20,11 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace Borealis
 {
-	void Model::Draw(const glm::mat4& transform, Ref<Shader> shader, int entityID)
+	void Model::Draw(const glm::mat4& transform, Ref<Shader> shader, int entityID, bool posOnly)
 	{
 		for (auto mesh : mMeshes)
 		{
-			mesh.Draw(transform, shader, entityID);
+			mesh.Draw(transform, shader, entityID, posOnly);
 		}
 	}
 
@@ -37,44 +37,61 @@ namespace Borealis
 
 		mMeshes.resize(meshCount);
 
-		for (Mesh& mesh : mMeshes) 
+		//for (Mesh& mesh : mMeshes) 
+		//{
+		//	uint32_t verticesCount, indicesCount;
+		//	inFile.read(reinterpret_cast<char*>(&verticesCount), sizeof(verticesCount));
+		//	mesh.SetVerticesCount(verticesCount);
+		//	inFile.read(reinterpret_cast<char*>(&indicesCount), sizeof(indicesCount));
+		//	mesh.SetIndicesCount(indicesCount);
+
+		//	std::vector<MeshVertex> oldVertex(verticesCount);
+		//	std::vector<unsigned int> oldIndices(indicesCount);
+
+		//	//mesh.GetVertices().resize(verticesCount);
+		//	//mesh.GetIndices().resize(indicesCount);
+
+		//	inFile.read(reinterpret_cast<char*>(oldVertex.data()), verticesCount * sizeof(MeshVertex));
+
+		//	inFile.read(reinterpret_cast<char*>(oldIndices.data()), indicesCount * sizeof(uint32_t));
+
+		//	mesh.GetVertices().resize(verticesCount);
+		//	std::vector<Vertex>& meshData = mesh.GetVertices();
+		//	for (size_t i{}; i < oldVertex.size(); ++i)
+		//	{
+		//		meshData[i].Position = oldVertex[i].Position;
+		//		meshData[i].Normal = oldVertex[i].Normal;
+		//		meshData[i].TexCoords = oldVertex[i].TexCoords;
+		//	}
+		//	
+		//	mesh.GetIndices() = oldIndices;
+
+		//	mesh.SetupMesh();
+
+		//	mesh.GenerateRitterBoundingSphere();
+		//	mesh.GenerateAABB();
+		//}
+
+		for (Mesh& mesh : mMeshes)
 		{
-			uint32_t verticesCount, indicesCount;
-			inFile.read(reinterpret_cast<char*>(&verticesCount), sizeof(verticesCount));
-			mesh.SetVerticesCount(verticesCount);
-			inFile.read(reinterpret_cast<char*>(&indicesCount), sizeof(indicesCount));
-			mesh.SetIndicesCount(indicesCount);
+			uint32_t vertexCount, indexCount;
+			inFile.read(reinterpret_cast<char*>(&vertexCount), sizeof(vertexCount));
+			inFile.read(reinterpret_cast<char*>(&indexCount), sizeof(indexCount));
 
-			std::vector<MeshVertex> oldVertex(verticesCount);
-			std::vector<unsigned int> oldIndices(indicesCount);
+			mesh.GetPosition().resize(vertexCount);
+			mesh.GetNormal().resize(vertexCount);
+			mesh.GetTexCoord().resize(vertexCount);
+			mesh.GetIndices().resize(indexCount);
 
-			//mesh.GetVertices().resize(verticesCount);
-			//mesh.GetIndices().resize(indicesCount);
-
-			inFile.read(reinterpret_cast<char*>(oldVertex.data()), verticesCount * sizeof(MeshVertex));
-
-			inFile.read(reinterpret_cast<char*>(oldIndices.data()), indicesCount * sizeof(uint32_t));
-
-			mesh.GetVertices().resize(verticesCount);
-			std::vector<Vertex>& meshData = mesh.GetVertices();
-			for (size_t i{}; i < oldVertex.size(); ++i)
-			{
-				meshData[i].Position = oldVertex[i].Position;
-				meshData[i].Normal = oldVertex[i].Normal;
-				meshData[i].TexCoords = oldVertex[i].TexCoords;
-			}
-			
-			mesh.GetIndices() = oldIndices;
+			inFile.read(reinterpret_cast<char*>(mesh.GetPosition().data()), vertexCount * sizeof(glm::vec3));
+			inFile.read(reinterpret_cast<char*>(mesh.GetNormal().data()), vertexCount * sizeof(glm::vec3));
+			inFile.read(reinterpret_cast<char*>(mesh.GetTexCoord().data()), vertexCount * sizeof(glm::vec2));
+			inFile.read(reinterpret_cast<char*>(mesh.GetIndices().data()), indexCount * sizeof(uint32_t));
 
 			mesh.SetupMesh();
 
 			mesh.GenerateRitterBoundingSphere();
 			mesh.GenerateAABB();
-		}
-
-		//Temp
-		{
-
 		}
 
 		GenerateRitterBoundingSphere();
@@ -85,26 +102,26 @@ namespace Borealis
 
 	void Model::SaveModel()
 	{
-		std::ofstream outFile("model.mesh", std::ios::binary);
+		//std::ofstream outFile("model.mesh", std::ios::binary);
 
-		uint32_t meshCount = static_cast<uint32_t>(mMeshes.size());
-		outFile.write(reinterpret_cast<const char*>(&meshCount), sizeof(meshCount));
+		//uint32_t meshCount = static_cast<uint32_t>(mMeshes.size());
+		//outFile.write(reinterpret_cast<const char*>(&meshCount), sizeof(meshCount));
 
-		for (const Mesh& mesh : mMeshes) {
-			// Write mesh header (vertexCount, indexCount, normalCount, texCoordCount)
-			uint32_t verticesCount = mesh.GetVerticesCount();
-			uint32_t indicesCount = mesh.GetIndicesCount();
-			outFile.write(reinterpret_cast<const char*>(&verticesCount), sizeof(verticesCount));
-			outFile.write(reinterpret_cast<const char*>(&indicesCount), sizeof(indicesCount));
+		//for (const Mesh& mesh : mMeshes) {
+		//	// Write mesh header (vertexCount, indexCount, normalCount, texCoordCount)
+		//	uint32_t verticesCount = mesh.GetVerticesCount();
+		//	uint32_t indicesCount = mesh.GetIndicesCount();
+		//	outFile.write(reinterpret_cast<const char*>(&verticesCount), sizeof(verticesCount));
+		//	outFile.write(reinterpret_cast<const char*>(&indicesCount), sizeof(indicesCount));
 
-			// Write vertices
-			outFile.write(reinterpret_cast<const char*>(mesh.GetVertices().data()), verticesCount * sizeof(Vertex));
+		//	// Write vertices
+		//	outFile.write(reinterpret_cast<const char*>(mesh.GetVertices().data()), verticesCount * sizeof(Vertex));
 
-			// Write indices
-			outFile.write(reinterpret_cast<const char*>(mesh.GetIndices().data()), indicesCount * sizeof(uint32_t));
-		}
+		//	// Write indices
+		//	outFile.write(reinterpret_cast<const char*>(mesh.GetIndices().data()), indicesCount * sizeof(uint32_t));
+		//}
 
-		outFile.close();
+		//outFile.close();
 	}
 
 	void Model::GenerateRitterBoundingSphere()

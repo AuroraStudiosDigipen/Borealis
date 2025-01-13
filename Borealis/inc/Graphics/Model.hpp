@@ -39,7 +39,7 @@ namespace Borealis
 			\brief
 				Renders the model
 		*************************************************************************/
-		void Draw(const glm::mat4& transform, Ref<Shader> shader, int entityID);
+		void Draw(const glm::mat4& transform, Ref<Shader> shader, int entityID, bool posOnly = false);
 
 		/*!***********************************************************************
 			\brief

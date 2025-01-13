@@ -116,7 +116,7 @@ namespace Borealis
 	{
 		if (meshFilter.Model)
 		{
-			meshFilter.Model->Draw(transform, shader, -1);
+			meshFilter.Model->Draw(transform, shader, -1, true);
 		}
 	}
 

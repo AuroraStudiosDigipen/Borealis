@@ -706,6 +706,7 @@ namespace Borealis {
 				mViewportBounds[1] = { maxBound.x, maxBound.y };
 
 				// Gizmo here:
+
 				Entity selectedEntity = SCPanel.GetSelectedEntity();
 				if (selectedEntity && mGizmoType != -1)
 				{
@@ -764,8 +765,100 @@ namespace Borealis {
 								tc.Scale = scale;
 							}
 						}
-					
 				}
+				
+				std::vector<Entity> selectedEntities = SCPanel.GetSelectedEntities();
+				if (!selectedEntities.empty() && mGizmoType != -1 && SCPanel.IsMultiSelect())
+				{
+					ImGuizmo::SetOrthographic(false);
+					ImGuizmo::SetDrawlist();
+					float windowWidth = (float)ImGui::GetWindowWidth();
+					float windowHeight = (float)ImGui::GetWindowHeight();
+					ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowWidth, windowHeight);
+
+					const glm::mat4& cameraView = mEditorCamera.GetViewMatrix();
+					const glm::mat4& cameraProjection = mEditorCamera.GetProjectionMatrix();
+
+					// Calculate the average transform position to place the gizmo at the center
+					glm::vec3 averageTranslation(0.0f);
+					glm::quat averageRotation(1.0f, 0.0f, 0.0f, 0.0f);
+					glm::vec3 averageScale(0.0f);
+
+					for (auto& entity : selectedEntities)
+					{
+						auto& tc = entity.GetComponent<TransformComponent>();
+						averageTranslation += tc.Translate;
+						averageScale += tc.Scale;
+
+						// Accumulate rotations as quaternions
+						glm::quat rotationQuat = glm::quat(glm::radians(tc.Rotation));
+						averageRotation = glm::normalize(averageRotation * rotationQuat);
+					}
+
+					averageTranslation /= static_cast<float>(selectedEntities.size());
+					averageScale /= static_cast<float>(selectedEntities.size());
+					glm::mat4 gizmoTransform = glm::translate(glm::mat4(1.0f), averageTranslation) *
+						glm::mat4_cast(averageRotation) *
+						glm::scale(glm::mat4(1.0f), averageScale);
+
+					bool snap = InputSystem::IsKeyPressed(Key::LeftShift);
+					float snapValue = 0.5f;
+					if (mGizmoType == ImGuizmo::OPERATION::ROTATE)
+						snapValue = 45.0f;
+
+					float snapValues[3] = { snapValue, snapValue, snapValue };
+
+					ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
+						(ImGuizmo::OPERATION)mGizmoType, ImGuizmo::MODE::LOCAL,
+						glm::value_ptr(gizmoTransform), nullptr, snap ? snapValues : nullptr);
+
+					if (!(InputSystem::IsKeyPressed(Key::LeftAlt) || InputSystem::IsKeyPressed(Key::RightAlt)))
+					{
+						if (ImGuizmo::IsUsing())
+						{
+							// Decompose the new gizmo transform
+							glm::vec3 gizmoTranslation, gizmoRotation, gizmoScale;
+							ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(gizmoTransform),
+								glm::value_ptr(gizmoTranslation),
+								glm::value_ptr(gizmoRotation),
+								glm::value_ptr(gizmoScale));
+
+							// Update each entity's transform based on the delta from the gizmo's center
+							for (auto& entity : selectedEntities)
+							{
+								auto& tc = entity.GetComponent<TransformComponent>();
+
+								if (tc.ParentID != 0)
+								{
+									// Handle parent-child relationships
+									Entity parent = SceneManager::GetActiveScene()->GetEntityByUUID(tc.ParentID);
+									TransformComponent& parentTC = parent.GetComponent<TransformComponent>();
+									glm::mat4 parentInverse = glm::inverse(parentTC.GetGlobalTransform());
+
+									// Compute the relative transform
+									glm::mat4 childRelativeTransform = parentInverse * gizmoTransform;
+									ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(childRelativeTransform),
+										glm::value_ptr(tc.Translate),
+										glm::value_ptr(tc.Rotation),
+										glm::value_ptr(tc.Scale));
+								}
+								else
+								{
+									// Apply global transform adjustments for entities without a parent
+									glm::vec3 deltaTranslation = gizmoTranslation - averageTranslation;
+									glm::vec3 deltaScale = gizmoScale / averageScale;
+									glm::vec3 deltaRotation = gizmoRotation - glm::degrees(glm::eulerAngles(glm::quat(glm::radians(tc.Rotation))));
+
+									tc.Translate += deltaTranslation;
+									tc.Scale *= deltaScale;
+									tc.Rotation += deltaRotation;
+								}
+							}
+						}
+					}
+				}
+
+
 			ImGui::End(); // Of Viewport
 			
 
@@ -805,15 +898,30 @@ namespace Borealis {
 				{
 					if (mHoveredEntity.IsValid())
 					{
-						SCPanel.SetSelectedEntity(mHoveredEntity);
-						mSelectedEntities.clear();
-						mSelectedEntities.push_back((uint32_t)mHoveredEntity);
+						//If use clicks on control and press, it should add to mEntities(group selection)
+						if (InputSystem::IsKeyPressed(Key::LeftControl))
+						{
+							SCPanel.SetSelectedEntity({}); //Clear selectedEntity
+							SCPanel.PushSelectedEntity(mHoveredEntity);
+							SCPanel.PrintAllSelectedEntities();
+							SCPanel.EnableMultiSelect();
+						}
+						else
+						{
+							SCPanel.SetSelectedEntity(mHoveredEntity);
+							SCPanel.ClearSelectedEntities();
+							//mSelectedEntities.clear();
+							//mSelectedEntities.push_back((uint32_t)mHoveredEntity);
+						}
+
 					}
 				}
 				else if (mViewportHovered && !ImGuizmo::IsOver())
 				{
 					SCPanel.SetSelectedEntity({});
-					mSelectedEntities.clear();
+					SCPanel.ClearSelectedEntities();
+					SCPanel.DisableMultiSelect();
+					//mSelectedEntities.clear();
 				}
 			}
 		}

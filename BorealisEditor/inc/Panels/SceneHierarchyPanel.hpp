@@ -68,6 +68,46 @@ namespace Borealis {
 				The entity to be set as selected
 		*************************************************************************/
 		void SetSelectedEntity(const Entity& entity) { mSelectedEntity = entity; }
+
+		//Multi Select tools
+		void PushSelectedEntity(const Entity& entity)
+		{
+			mSelectedEntities.push_back(entity);
+		}
+
+		void ClearSelectedEntities()
+		{
+			mSelectedEntities.clear();
+		}
+
+		void PrintAllSelectedEntities() {
+			std::cout << "Selected Entities: ";
+			for (const auto& entity : mSelectedEntities) {
+				std::cout << "Entity" << " "; // Adjust to match your `Entity` class
+			}
+			std::cout << std::endl;
+		}
+
+		void EnableMultiSelect()
+		{
+			mMultiSelect = true;
+		}
+
+		void DisableMultiSelect()
+		{
+			mMultiSelect = false;
+		}
+
+		bool IsMultiSelect()
+		{
+			return mMultiSelect;
+		}
+
+		std::vector<Entity> GetSelectedEntities() const 
+		{
+			return mSelectedEntities;
+		}
+
 	private:
 
 		/*!***********************************************************************
@@ -88,6 +128,9 @@ namespace Borealis {
 		Ref<Scene> mContext;
 		Entity mSelectedEntity;
 		Entity mSelectedPrefab;
+
+		std::vector<Entity> mSelectedEntities;
+		bool mMultiSelect = false;
 	};
 }
 

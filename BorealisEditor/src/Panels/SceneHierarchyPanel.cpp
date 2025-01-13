@@ -1123,7 +1123,6 @@ namespace Borealis
 				if (prefab) {
 					// Add the entity as a child to the found prefab
 					prefab->AddChild(MakeRef<Entity>(entity));
-					std::cout << "Added entity as child to prefab" << std::endl;
 				}
 			}
 		}

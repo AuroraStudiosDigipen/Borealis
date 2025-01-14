@@ -27,7 +27,8 @@ namespace Borealis
 {
 	void AssetManager::RegisterAllAssetType()
 	{
-		std::vector<AssetInfo> infos{
+		std::vector<AssetInfo> infos
+		{
 		//Asset Type					//Asset Name				//extensions			//load function			//Reload function
 		{ AssetType::None,				"AssetType::None",			{},						nullptr},
 		{ AssetType::Animation,			"AssetType::Animation",		{ ".anim" },			Animation::Load },

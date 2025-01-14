@@ -178,7 +178,8 @@ namespace Borealis
 		}
 		else
 		{
-			CreateCache(metaData);
+			if(!std::filesystem::is_directory(metaData.SourcePath))
+				CreateCache(metaData);
 			assetRegistry.at(metaData.Handle) = MetaFileSerializer::GetAssetMetaDataFile(metaData.SourcePath.string() + ".meta");
 		}
 
@@ -265,7 +266,7 @@ namespace Borealis
 		std::filesystem::path cacheFilePath = mCachePath;
 		cacheFilePath.append(std::to_string(metaData.Handle));
 		
-		if (!std::filesystem::exists(cacheFilePath))
+		if (!std::filesystem::exists(cacheFilePath) && !std::filesystem::is_directory(cacheFilePath))
 		{
 			return MetaErrorType::CACHE_FILE_NOT_FOUND;
 		}
@@ -288,19 +289,13 @@ namespace Borealis
 		//Update meta file
 	}
 
-	void CopyToCacheFolder(AssetMetaData& metaData)
+	void AssetImporter::CopyToCacheFolder(AssetMetaData& metaData)
 	{
 		//Copy file and move to cache folder
 		metaData.SourcePath;
 		//rename to metaData.handle;
 		//create at cache path, move to parent folder until the parent of Asset folder and copy into cache folder
-		std::filesystem::path cachePath = metaData.SourcePath;
-		while (cachePath.filename() != "Assets")
-		{
-			cachePath = cachePath.parent_path();
-		}
-		cachePath = cachePath.parent_path();
-		cachePath /= "Cache";
+		std::filesystem::path cachePath = mCachePath;
 		cachePath /= std::to_string(metaData.Handle);
 
 		std::filesystem::copy(metaData.SourcePath, cachePath, std::filesystem::copy_options::overwrite_existing);

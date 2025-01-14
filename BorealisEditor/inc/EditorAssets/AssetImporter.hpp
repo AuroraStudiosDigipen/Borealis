@@ -108,6 +108,8 @@ namespace Borealis
 
 		void HandleError(MetaErrorType errorType, AssetMetaData& metaData);
 
+		void CopyToCacheFolder(AssetMetaData& metaData);
+
 		/*!***********************************************************************
 			\brief
 				Create Cache file

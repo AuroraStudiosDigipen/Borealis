@@ -11,6 +11,11 @@ layout(location = 5) in int a_EntityID;
 
 uniform mat4 u_ViewProjection;
 
+// layout(std140) uniform Camera
+// {
+// 	mat4 u_ViewProjection;
+// };
+
 out vec2 v_LocalPosition;
 out vec4 v_Color;
 out float v_Thickness;

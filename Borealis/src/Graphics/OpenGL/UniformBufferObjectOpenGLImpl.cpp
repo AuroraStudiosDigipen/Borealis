@@ -40,5 +40,15 @@ namespace Borealis
 		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, data);
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	}
+
+	void UniformBufferObjectOpenGLImpl::BindToShader(uint32_t shaderID, const char* blockName, uint32_t binding)
+	{
+		GLuint blockIndex = glGetUniformBlockIndex(shaderID, blockName);
+		if (blockIndex == GL_INVALID_INDEX)
+		{
+			throw std::runtime_error(std::string("Uniform block '") + blockName + "' not found in the shader program!");
+		}
+		glUniformBlockBinding(shaderID, blockIndex, binding);
+	}
 }
 

@@ -6,6 +6,12 @@ layout(location = 1) in vec4 a_Color;
 
 uniform mat4 u_ViewProjection;
 
+// layout(std140) uniform Camera
+// {
+// 	mat4 u_ViewProjection;
+// };
+
+
 out vec4 v_Color;
 
 void main()

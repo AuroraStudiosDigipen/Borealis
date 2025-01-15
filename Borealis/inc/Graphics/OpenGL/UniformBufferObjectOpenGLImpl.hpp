@@ -27,6 +27,8 @@ namespace Borealis
 
 		virtual void SetData(const void* data, uint32_t size, uint32_t offset = 0) override;
 
+		static void BindToShader(uint32_t shaderID, const char* blockName, uint32_t binding);
+
 	private:
 		uint32_t mRendererID = 0;
 	};

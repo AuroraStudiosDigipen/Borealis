@@ -31,5 +31,14 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(false, "Unknown API");
 		return nullptr;
 	}
+
+	void UniformBufferObject::BindToShader(uint32_t shaderID, const char* blockName, uint32_t binding)
+	{
+		switch (Renderer::GetAPI())
+		{
+		case RendererAPI::API::None: BOREALIS_CORE_ASSERT(false, "No render api");
+		case RendererAPI::API::OpenGL:UniformBufferObjectOpenGLImpl::BindToShader(shaderID, blockName, binding); return;
+		}
+	}
 }
 

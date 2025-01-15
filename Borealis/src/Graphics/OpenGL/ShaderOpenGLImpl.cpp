@@ -32,6 +32,17 @@ namespace Borealis
 		size_t lastDot = filepath.rfind('.');
 		lastDot = lastDot == std::string::npos ? filepath.size() - lastSlash : lastDot - lastSlash;
 		mName = filepath.substr(lastSlash, lastDot);
+
+		GLint numExtensions;
+		glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions);
+
+		// Print all the extensions
+		std::cout << "Available OpenGL Extensions:" << std::endl;
+		for (GLint i = 0; i < numExtensions; ++i)
+		{
+			const char* extension = reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, i));
+			std::cout << extension << std::endl;
+		}
 	}
 	OpenGLShader::OpenGLShader(const std::string& name, const std::string& vertexSource, const std::string& fragmentSource) : mName(name)
 	{
@@ -46,6 +57,10 @@ namespace Borealis
 	{
 		PROFILE_FUNCTION();
 		glDeleteProgram(mRendererID);
+	}
+	uint32_t OpenGLShader::GetID()
+	{
+		return mRendererID;
 	}
 	void OpenGLShader::Bind() const
 	{

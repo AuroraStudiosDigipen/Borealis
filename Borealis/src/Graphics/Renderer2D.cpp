@@ -18,6 +18,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/VertexArray.hpp>
 #include <Graphics/Shader.hpp>
 #include <Graphics/RenderCommand.hpp>
+#include <Graphics/UniformBufferObject.hpp>
 
 namespace Borealis
 {
@@ -124,6 +125,13 @@ namespace Borealis
 		uint32_t LineVertexCount = 0;
 		uint32_t FontIndexCount = 0;
 		uint32_t TextureSlotIndex = 1; // 0: White texture
+
+		//struct CameraData
+		//{
+		//	glm::mat4 ViewProjection;
+		//};
+		//CameraData cameraData;
+		//Ref<UniformBufferObject> CameraUBO;
 	};
 	
 	
@@ -265,6 +273,13 @@ namespace Borealis
 		sData->VertexPos[1] = { 0.5f, -0.5f, 0.0f, 1.0f };
 		sData->VertexPos[2] = { 0.5f, 0.5f, 0.0f, 1.0f };
 		sData->VertexPos[3] = { -0.5f, 0.5f, 0.0f, 1.0f };
+
+		//sData->CameraUBO = UniformBufferObject::Create(sizeof(Renderer2DData::CameraData), 0);
+		//UniformBufferObject::BindToShader(sData->mQuadShader->GetID(), "Camera", 0);
+		//UniformBufferObject::BindToShader(sData->mCircleShader->GetID(), "Camera", 0);
+		//UniformBufferObject::BindToShader(sData->mLineShader->GetID(), "Camera", 0);
+		//UniformBufferObject::BindToShader(sData->mFontShader->GetID(), "Camera", 0);
+
 	}
 	void Renderer2D::Free()
 	{
@@ -327,6 +342,9 @@ namespace Borealis
 		sData->FontBufferPtr = sData->FontBufferBase;
 
 		sData->TextureSlotIndex = 1;
+
+		//sData->cameraData.ViewProjection = viewProj;
+		//sData->CameraUBO->SetData(&sData->cameraData, sizeof(Renderer2DData::CameraData));
 	}
 
 	void Renderer2D::End()

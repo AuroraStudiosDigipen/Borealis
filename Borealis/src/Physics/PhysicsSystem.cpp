@@ -1184,8 +1184,12 @@ namespace Borealis
 
 	void PhysicsSystem::FreeRigidBody(ColliderComponent& collider)
 	{
-		sPhysicsData.body_interface->RemoveBody(JPH::BodyID(collider.bodyID));
-		bodyIDMapUUID.erase(collider.bodyID);
-		bodySensorMap.erase(collider.bodyID);
+		if (collider.rigidBody)
+		{
+			sPhysicsData.body_interface->RemoveBody(JPH::BodyID(collider.bodyID));
+			sPhysicsData.body_interface->DestroyBody(JPH::BodyID(collider.bodyID));
+			bodyIDMapUUID.erase(collider.bodyID);
+			bodySensorMap.erase(collider.bodyID);
+		}
 	}
 }

@@ -227,6 +227,7 @@ namespace Borealis
 		Ref<FrameBuffer> mGFrameBuffer;
 		Ref<FrameBuffer> mShadowMapBuffer;
 		Ref<PixelBuffer> mPixelBuffer;
+		Ref<FrameBuffer> mAnimationBuffer;
 		RenderGraph mRenderGraph;
 	};
 }

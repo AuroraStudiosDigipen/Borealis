@@ -33,12 +33,16 @@ namespace Borealis
 		float GetDuration() const { return mDuration; }
 		float GetTicksPerSecond() const { return mTicksPerSecond; }
 		AssimpNodeData& GetRootNode() { return mRootNode; }
+		int GetFrameIndex(float currentTime) { return currentTime * mTicksPerSecond; }
+
+		void SetAudioTag(int index, std::string const& tag) { mAudioTag[index] = tag; }
 
 		float mDuration;
 		float mTicksPerSecond;
 		std::vector<Bone> mBones;
 		AssimpNodeData mRootNode;
 		std::map<std::string, BoneData> mBoneDataMap;
+		std::vector <std::string> mAudioTag;
 
 		static Ref<Asset> Load(AssetMetaData const& assetMetaData);
 

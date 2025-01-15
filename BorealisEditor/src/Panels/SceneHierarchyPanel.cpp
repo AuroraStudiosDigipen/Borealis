@@ -1006,7 +1006,7 @@ namespace Borealis
 				auto ContentRegionAvailable = ImGui::GetContentRegionAvail();
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4,4 });
 				float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
-				ImGui::Separator();
+				//ImGui::Separator();
 				open = ImGui::CollapsingHeader(name.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
 				ImGui::PopStyleVar();
 				ImGui::SameLine(ContentRegionAvailable.x - lineHeight * 0.5f); // Align to right (Button)
@@ -1057,6 +1057,46 @@ namespace Borealis
 				}
 
 				ImGui::SliderFloat("Blend Factor", &component.animator.mBlendFactor, 0.0f, 1.0f, "%.2f");
+
+				static bool showAnimationEditor = false;
+				static int currentFrame = 0;
+
+				if (ImGui::Button("Edit Animation"))
+					showAnimationEditor = !showAnimationEditor;
+
+				if (showAnimationEditor)
+				{
+					ImGui::Begin("Animation Editor");
+
+					//temp
+					ImVec2 viewportSize = ImGui::GetContentRegionAvail();
+					uint64_t screenID = static_cast<uint64_t>(SceneManager::GetActiveScene()->GetEditorFB()->GetColorAttachmentRendererID());
+					ImGui::Image((ImTextureID)screenID, ImVec2{ viewportSize.x, viewportSize.y }, ImVec2{ 0,1 }, ImVec2{ 1,0 });
+
+					if (ImGui::Button("Play")) component.animator.StartAnimation();
+					ImGui::SameLine();
+					if (ImGui::Button("Stop")) component.animator.StopAnimation();
+
+					currentFrame = component.animation->GetFrameIndex(component.animator.GetCurrentAnimationTime());
+					if (ImGui::SliderInt("##frame", &currentFrame, 0.f, component.animation->GetDuration()))
+					{
+						component.animator.SetCurrentTime(currentFrame);
+					}
+
+					ImGui::NewLine();
+
+					ImGui::Text("Audio Tag");
+					ImGui::SameLine();
+					char input_id[32];
+					snprintf(input_id, sizeof(input_id), "##Tag%f", currentFrame);
+					char buffer[256] = "";
+					if (ImGui::InputText(input_id, buffer, sizeof(buffer)))
+					{
+						component.animation->SetAudioTag(currentFrame, buffer);
+					}
+
+					ImGui::End();
+				}
 			}
 		}
 

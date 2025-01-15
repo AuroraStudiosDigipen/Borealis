@@ -52,13 +52,14 @@ namespace Borealis
 		{
 			mCurrentTime = fmod(mCurrentTime, mCurrentAnimation->mDuration);
 			mPlayed = false;
+			mIsPlaying = true;
 		}
 
 		if (mCurrentAnimation && !mPlayed)
 		{
 			if (!mNextAnimation) // temp
 			{
-				mCurrentTime += mCurrentAnimation->mTicksPerSecond * dt * mSpeed;
+				mCurrentTime += mIsPlaying? /*mCurrentAnimation->mTicksPerSecond **/ dt * mSpeed : 0.f;
 
 				if (mLoop)
 				{
@@ -91,6 +92,7 @@ namespace Borealis
 		mCurrentAnimation = animation;
 		mCurrentTime = 0.0f;
 		mPlayed = false;
+		mIsPlaying = true;
 	}
 
 	void Animator::CalculateBoneTransform(const AssimpNodeData* node, glm::mat4 parentTransform)

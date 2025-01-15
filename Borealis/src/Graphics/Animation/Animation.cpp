@@ -55,6 +55,19 @@ namespace Borealis
 		// Load mTicksPerSecond
 		inFile.read(reinterpret_cast<char*>(&mTicksPerSecond), sizeof(mTicksPerSecond));
 
+		// Load mAudioTag
+		/*uint32_t audioTagCount;
+		inFile.read(reinterpret_cast<char*>(&audioTagCount), sizeof(audioTagCount));
+		mAudioTag.resize(audioTagCount);
+
+		for (std::string& tag : mAudioTag)
+		{
+			uint32_t tagLength;
+			inFile.read(reinterpret_cast<char*>(&tagLength), sizeof(tagLength));
+			tag.resize(tagLength);
+			inFile.read(&tag[0], tagLength);
+		}*/
+
 		// Load the number of bones
 		uint32_t boneCount;
 		inFile.read(reinterpret_cast<char*>(&boneCount), sizeof(boneCount));
@@ -140,6 +153,17 @@ namespace Borealis
 
 		//save mTicksPerSecond
 		outFile.write(reinterpret_cast<const char*>(&mTicksPerSecond), sizeof(mTicksPerSecond));
+
+		//save mAudioTag
+		/*uint32_t audioTagCount = static_cast<uint32_t>(mAudioTag.size());
+		outFile.write(reinterpret_cast<const char*>(&audioTagCount), sizeof(audioTagCount));
+
+		for (const std::string& tag : mAudioTag)
+		{
+			uint32_t tagLength = static_cast<uint32_t>(tag.size());
+			outFile.write(reinterpret_cast<const char*>(&tagLength), sizeof(tagLength));
+			outFile.write(tag.data(), tagLength);
+		}*/
 
 		/*
 			for(bone : mBones)

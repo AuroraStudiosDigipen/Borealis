@@ -337,6 +337,9 @@
     <ClInclude Include="inc\Graphics\OpenGL\TextureOpenGLImpl.hpp">
       <Filter>inc\Graphics\OpenGL</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Graphics\OpenGL\UniformBufferObjectOpenGLImpl.hpp">
+      <Filter>inc\Graphics\OpenGL</Filter>
+    </ClInclude>
     <ClInclude Include="inc\Graphics\OpenGL\VertexArrayOpenGLImpl.hpp">
       <Filter>inc\Graphics\OpenGL</Filter>
     </ClInclude>
@@ -380,6 +383,9 @@
       <Filter>inc\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="inc\Graphics\Texture.hpp">
+      <Filter>inc\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Graphics\UniformBufferObject.hpp">
       <Filter>inc\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="inc\Graphics\VertexArray.hpp">
@@ -1993,12 +1999,6 @@
     <ClInclude Include="lib\xproperty\include\xproperty\xproperty_config.hpp">
       <Filter>lib\xproperty\include\xproperty</Filter>
     </ClInclude>
-    <ClInclude Include="inc\Graphics\UniformBufferObject.hpp">
-      <Filter>inc\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\Graphics\OpenGL\UniformBufferObjectOpenGLImpl.hpp">
-      <Filter>inc\Graphics\OpenGL</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lib\imGuizmo\imGuizmo.cpp">
@@ -2139,6 +2139,9 @@
     <ClCompile Include="src\Graphics\OpenGL\TextureOpenGLImpl.cpp">
       <Filter>src\Graphics\OpenGL</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\OpenGL\UniformBufferObjectOpenGLImpl.cpp">
+      <Filter>src\Graphics\OpenGL</Filter>
+    </ClCompile>
     <ClCompile Include="src\Graphics\OpenGL\VertexArrayOpenGLImpl.cpp">
       <Filter>src\Graphics\OpenGL</Filter>
     </ClCompile>
@@ -2182,6 +2185,9 @@
       <Filter>src\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\Texture.cpp">
+      <Filter>src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\UniformBufferObject.cpp">
       <Filter>src\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\VertexArray.cpp">
@@ -2243,12 +2249,6 @@
     </ClCompile>
     <ClCompile Include="src\Scripting\ScriptingUtils.cpp">
       <Filter>src\Scripting</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\UniformBufferObject.cpp">
-      <Filter>src\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\OpenGL\UniformBufferObjectOpenGLImpl.cpp">
-      <Filter>src\Graphics\OpenGL</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

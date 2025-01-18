@@ -32,7 +32,6 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace Borealis
 {
-
 	struct mySourceLocationData
 	{
 		const char* name;		//name of profiling zone
@@ -138,6 +137,10 @@ namespace Borealis
 		static void logWarning(const char* message);
 		static void logError(const char* message);
 
+		static void toggleProfiler();
+
+		inline static bool g_EnableProfiler;
+
 	private:
 		// Disable copying
 		TracyProfiler(const TracyProfiler&) = delete;
@@ -178,17 +181,26 @@ namespace Borealis
 
 // Macros for profiling
 #if ENGINE_PROFILE
-#define PROFILE_START(name) ::Borealis::TracyProfiler::markFrameStart(name)
-#define PROFILE_END() ::Borealis::TracyProfiler::markFrameEnd()
-#define PROFILE_SCOPE(name) static mySourceLocationData CONCATENATE(__source_location,__LINE__){ name, __FUNCTION__, __FILE__ , (uint32_t)__LINE__, 0 }; \
-::Borealis::TracyProfiler::startZone(&CONCATENATE(__source_location,__LINE__));
-#define PROFILE_FUNCTION() static mySourceLocationData CONCATENATE(__source_location,__LINE__){ nullptr, __FUNCTION__, __FILE__ , (uint32_t)__LINE__, 0 }; \
-::Borealis::TracyProfiler::startZone(&CONCATENATE(__source_location,__LINE__));
+#define PROFILE_START(name) \
+    if (Borealis::TracyProfiler::g_EnableProfiler) ::Borealis::TracyProfiler::markFrameStart(name)
+#define PROFILE_END() \
+    if (Borealis::TracyProfiler::g_EnableProfiler) ::Borealis::TracyProfiler::markFrameEnd()
+#define PROFILE_SCOPE(name) \
+    if (Borealis::TracyProfiler::g_EnableProfiler) { \
+        static Borealis::mySourceLocationData CONCATENATE(__source_location,__LINE__) { name, __FUNCTION__, __FILE__, (uint32_t)__LINE__, 0 }; \
+        ::Borealis::TracyProfiler::startZone(&CONCATENATE(__source_location,__LINE__)); \
+    }
+#define PROFILE_FUNCTION() \
+    if (Borealis::TracyProfiler::g_EnableProfiler) { \
+        static Borealis::mySourceLocationData CONCATENATE(__source_location,__LINE__) { nullptr, __FUNCTION__, __FILE__, (uint32_t)__LINE__, 0 }; \
+        ::Borealis::TracyProfiler::startZone(&CONCATENATE(__source_location,__LINE__)); \
+    }
 #else
-#define PROFILE_START(name) 
-#define PROFILE_END() 
-#define PROFILE_FUNCTION()
+#define PROFILE_START(name)
+#define PROFILE_END()
 #define PROFILE_SCOPE(name)
+#define PROFILE_FUNCTION()
 #endif
+
 
 #endif

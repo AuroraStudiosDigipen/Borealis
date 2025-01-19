@@ -354,6 +354,11 @@ namespace Borealis
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void AnimatorComponent_SwapBlendBuffer(ulong uuid);
 
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void AnimatorComponent_GetAnimationDuration(ulong uuid, out float duration);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void AnimatorComponent_GetCurrentTime(ulong uuid, out float duration);
         #endregion
 
         #region SceneManager

@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace Borealis
 {
     [NativeComponent]
@@ -86,9 +88,31 @@ namespace Borealis
             }
         }
 
+        public float currentTime
+        {
+            get
+            {
+                InternalCalls.AnimatorComponent_GetCurrentTime(gameObject.GetInstanceID(), out float time);
+                return time;
+            }
+        }
+
+        public float duration
+        {
+            get
+            {
+                InternalCalls.AnimatorComponent_GetAnimationDuration(gameObject.GetInstanceID(), out float duration);
+                return duration;
+            }
+        }
+
+
         public void SwapBlendBuffer()
         {
             InternalCalls.AnimatorComponent_SwapBlendBuffer(gameObject.GetInstanceID());
         }
     }
+           
+    
+
 }

@@ -252,7 +252,8 @@ namespace Borealis
             .constructor<>()
             .property("IsActive", &TagComponent::active)
             .property("Tag", &TagComponent::Tag)
-            .property("Layer", &TagComponent::mLayer);
+            .property("Layer", &TagComponent::mLayer)
+            .property("Hierarchy Layer", &TagComponent::mHierarchyLayer);
 
         registration::class_<TransformComponent>("Transform Component")
             (metadata("Component", true))

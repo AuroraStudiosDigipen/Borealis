@@ -1377,7 +1377,7 @@ namespace Borealis
 				{
 					if (InputSystem::IsKeyPressed(Key::LeftControl))
 					{
-						PushSelectedEntity(entity)
+						PushSelectedEntity(entity);
 					}
 				}
 			}

@@ -1,16 +1,17 @@
-/******************************************************************************/
-/*!
-\file		AudioMixerPanel.cpp
-\author 	Valerie Koh
-\par    	email: v.koh@digipen.edu
-\date   	November 2, 2024
-\brief		Defines the class Audio Mixer in Level Editor
+/******************************************************************************/ 
+/*! 
+\file       AudioMixerPanel.cpp 
+\author     Valerie Koh 
+\par        email: v.koh@digipen.edu 
+\date       November 2, 2024 
+\brief      Defines the class Audio Mixer in Level Editor 
 
 Copyright (C) 2023 DigiPen Institute of Technology.
 Reproduction or disclosure of this file or its contents without the
 prior written consent of DigiPen Institute of Technology is prohibited.
 */
-/******************************************************************************/
+/******************************************************************************/ 
+
 #include "Panels/AudioMixerPanel.hpp"
 #include <imgui.h>
 #include <Audio/AudioEngine.hpp>
@@ -28,46 +29,35 @@ namespace Borealis
     {
         ImGui::Begin("Audio Mixer");
 
-        // Master volume
-        if (ImGui::SliderFloat("Master Volume", &mMasterVolume, 0.0f, 1.0f))
+        // Master Volume Control
+        if (ImGui::SliderFloat("Master Volume (dB)", &mMasterVolume, -80.0f, 0.0f))
         {
             AudioEngine::SetMasterVolume(mMasterVolume);
         }
 
-        ImGui::Separator();
-
-        // Render each audio group and control its volume
-        /*for (auto& [group, groupData] : mAudioGroups)
-        {
-            const char* groupName = GetAudioGroupName(group);
-            float& volume = groupData.volume;
-            if (ImGui::SliderFloat(groupName, &volume, 0.0f, 1.0f))
-            {
-                SetGroupVolume(group, volume);
-            }
-        }*/
-
-        //// Add group assignment for each AudioSourceComponent
-        //for (auto& entity : mRegistry.view<AudioSourceComponent>())
+        // Individual Group Volume Controls
+        //if (ImGui::SliderFloat("BGM Volume (dB)", &mAudioGroups["BGM"].volume, -80.0f, 0.0f))
         //{
-        //    auto& audioSource = mRegistry.get<AudioSourceComponent>(entity);
-        //    
-        //    // Create dropdown for selecting the group
-        //    if (ImGui::BeginCombo("Select Group", audioSource.groupName.c_str()))
-        //    {
-        //        for (auto& [groupName, groupData] : mAudioGroups)
-        //        {
-        //            bool isSelected = (groupName == audioSource.groupName);
-        //            if (ImGui::Selectable(groupName.c_str(), isSelected))
-        //            {
-        //                audioSource.groupName = groupName;  // Assign the selected group to the audio source
-        //            }
-        //        }
-        //        ImGui::EndCombo();
-        //    }
+        //    AudioEngine::SetGroupVolume("BGM", mAudioGroups["BGM"].volume);
+        //}
+        //if (ImGui::SliderFloat("SFX Volume (dB)", &mAudioGroups["SFX"].volume, -80.0f, 0.0f))
+        //{
+        //    AudioEngine::SetGroupVolume("SFX", mAudioGroups["SFX"].volume);
         //}
 
-        // Add group button
+        ImGui::Separator();
+
+        // Render dynamic controls for each audio group
+        for (auto& [groupName, groupData] : mAudioGroups)
+        {
+            float& volume = groupData.volume;
+            if (ImGui::SliderFloat((groupName + " Volume (dB)").c_str(), &volume, -80.0f, 0.0f))
+            {
+                AudioEngine::SetGroupVolume(groupName, volume);
+            }
+        }
+
+        // Add new audio group dynamically
         static char newGroupName[32] = "";
         ImGui::InputText("New Group", newGroupName, sizeof(newGroupName));
         if (ImGui::Button("Add Group"))
@@ -83,19 +73,9 @@ namespace Borealis
     {
         if (mAudioGroups.find(groupName) == mAudioGroups.end())
         {
-            int groupId = (groupName == "Music") ? 0 : AudioEngine::CreateGroup(groupName);  // Set group ID to 0 for "Music"
-            mAudioGroups[groupName] = { groupId, 1.0f }; // Store group ID and default volume
+            // Create a new audio group dynamically
+            AudioEngine::CreateGroup(groupName);
+            mAudioGroups[groupName] = { 1 }; // Default volume is 1.0 (full volume)
         }
     }
-
-    //void AudioMixerPanel::SetGroupVolume(const AudioGroup group, float volume)
-    //{
-    //    int groupId = static_cast<int>(group);  // Convert enum to integer
-    //    auto it = mAudioGroups.find(groupId);
-    //    if (it != mAudioGroups.end())
-    //    {
-    //        it->second.volume = volume;
-    //        AudioEngine::SetGroupVolume(groupId, volume);
-    //    }
-    //}
 }

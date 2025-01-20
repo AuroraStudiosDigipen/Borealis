@@ -1321,7 +1321,7 @@ namespace Borealis
 		auto& audioSource = entity.GetComponent<AudioSourceComponent>();
 		if (audioSource.audio)
 			/*AudioEngine::PlayAudio(audioSource, translate, audioSource.Volume, audioSource.isMute, audioSource.isLoop)*/
-			AudioEngine::Play(audioSource.audio, translate, audioSource.Volume, audioSource.isLoop, AudioGroup::BGM);
+			AudioEngine::Play(audioSource.audio, translate, audioSource.Volume, audioSource.isLoop, "BGM");
 	}
 	void AudioSource_IsPlaying(uint64_t ID, bool* playing)
 	{

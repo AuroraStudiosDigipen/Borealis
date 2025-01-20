@@ -31,12 +31,12 @@ namespace Borealis
 
         int mnNextChannelId;
         typedef std::map<int, FMOD::Channel*> ChannelMap;
-        typedef std::map<int, FMOD::ChannelGroup*> ChannelGroupMap;
+        typedef std::map<std::string, FMOD::ChannelGroup*> ChannelGroupMap;
 
         ChannelMap mChannels;
         ChannelGroupMap mChannelGroups;
-        typedef std::map<FMOD::Sound*, int> AudioGroupMap;
-        AudioGroupMap mAudioGroupMap;
+        //typedef std::map<FMOD::Sound*, int> AudioGroupMap;
+        //AudioGroupMap mAudioGroupMap;
 
     };
 
@@ -72,15 +72,21 @@ namespace Borealis
 
         FMOD::ChannelGroup* bgmGroup = nullptr;
         FMOD::ChannelGroup* sfxGroup = nullptr;
-        ErrorCheck(mpSystem->createChannelGroup("BGM", &bgmGroup));
-        ErrorCheck(mpSystem->createChannelGroup("SFX", &sfxGroup));
-
-        mChannelGroups[static_cast<int>(AudioGroup::BGM)] = bgmGroup;
-        mChannelGroups[static_cast<int>(AudioGroup::SFX)] = sfxGroup;
-
         FMOD::ChannelGroup* masterGroup = nullptr;
+
+        ErrorCheck(mpSystem->createChannelGroup(Borealis::AudioGroups::BGM.c_str(), &bgmGroup));
+        ErrorCheck(mpSystem->createChannelGroup(Borealis::AudioGroups::SFX.c_str(), &sfxGroup));
         ErrorCheck(mpSystem->getMasterChannelGroup(&masterGroup));
-        if (masterGroup) {
+
+        mChannelGroups[Borealis::AudioGroups::BGM] = bgmGroup;
+        mChannelGroups[Borealis::AudioGroups::SFX] = sfxGroup;
+        mChannelGroups[Borealis::AudioGroups::Master] = masterGroup;
+
+        //FMOD::ChannelGroup* masterGroup = nullptr;
+        //ErrorCheck(mpSystem->getMasterChannelGroup(&masterGroup));
+
+        if (masterGroup)
+        {
             ErrorCheck(masterGroup->addGroup(bgmGroup));
             ErrorCheck(masterGroup->addGroup(sfxGroup));
         }
@@ -152,7 +158,7 @@ namespace Borealis
         // Here you can add your logic for unloading sounds
     }
 
-    int AudioEngine::PlayAudio(AudioSourceComponent& audio, const glm::vec3& vPosition, float fVolumedB, bool bMute, bool bLoop, int groupId)
+    int AudioEngine::PlayAudio(AudioSourceComponent& audio, const glm::vec3& vPosition, float fVolumedB, bool bMute, bool bLoop, const std::string& groupName)
     {
         int nChannelId = sgpImplementation->mnNextChannelId++;
         
@@ -183,17 +189,11 @@ namespace Borealis
             ErrorCheck(pChannel->setMode(bLoop ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF));
 
             // Assign the channel to the specified group using setChannelGroup
-            if (audio.group != AudioGroup::Master) // For now, assign all to Master
+            auto itGroup = sgpImplementation->mChannelGroups.find(groupName);
+            if (itGroup != sgpImplementation->mChannelGroups.end())
             {
-                int groupId = static_cast<int>(audio.group);  // Convert enum to integer
-                auto itGroup = sgpImplementation->mChannelGroups.find(groupId);
-                if (itGroup != sgpImplementation->mChannelGroups.end())
-                {
-                    FMOD::ChannelGroup* pGroup = itGroup->second;
-                    ErrorCheck(pChannel->setChannelGroup(pGroup));
-                }
+                ErrorCheck(pChannel->setChannelGroup(itGroup->second));
             }
-
 
             sgpImplementation->mChannels[nChannelId] = pChannel;
         }
@@ -207,9 +207,6 @@ namespace Borealis
 
         return nChannelId;
     }
-
-
-
 
     bool AudioEngine::isSoundPlaying(int nChannelId)
     {
@@ -290,8 +287,9 @@ namespace Borealis
 
     float AudioEngine::dbToVolume(float dB)
     {
-        return powf(10.0f, 0.05f * dB);
+        return powf(10.0f, dB / 20.0f);  // Correct dB to linear conversion
     }
+
 
     float AudioEngine::VolumeTodb(float volume)
     {
@@ -305,66 +303,77 @@ namespace Borealis
 
     void AudioEngine::SetMasterVolume(float fVolumedB)
     {
-        // Convert from dB to linear volume
         float volume = dbToVolume(fVolumedB);
 
-        // Get the master channel group from the system
         FMOD::ChannelGroup* masterGroup = nullptr;
-        ErrorCheck(sgpImplementation->mpSystem->getMasterChannelGroup(&masterGroup));
-
-        // Set the volume for the master channel group
-        ErrorCheck(masterGroup->setVolume(volume));
+        if (ErrorCheck(sgpImplementation->mpSystem->getMasterChannelGroup(&masterGroup)) == 0 && masterGroup)
+        {
+            ErrorCheck(masterGroup->setVolume(volume));
+        }
+        else
+        {
+            std::cerr << "Error: Could not retrieve master channel group!" << std::endl;
+        }
     }
 
 
     int AudioEngine::CreateGroup(const std::string& groupName)
     {
         FMOD::ChannelGroup* pGroup = nullptr;
-        ErrorCheck(sgpImplementation->mpSystem->createChannelGroup(groupName.c_str(), &pGroup));
+        if (ErrorCheck(sgpImplementation->mpSystem->createChannelGroup(groupName.c_str(), &pGroup)) == 0)
+        {
+            sgpImplementation->mChannelGroups[groupName] = pGroup;
+            return 0; // Success
+        }
 
-        int groupId = mNextGroupId++;  // Use the static variable to generate unique group IDs
-        sgpImplementation->mChannelGroups[groupId] = pGroup;
-
-        return groupId;
+        std::cerr << "Error creating group: " << groupName << std::endl;
+        return -1; // Failure
     }
 
-
-    void AudioEngine::SetGroupVolume(int groupId, float fVolumedB)
+    void AudioEngine::SetGroupVolume(const std::string& groupName, float fVolumedB)
     {
-        // Find the channel group in the map using groupId
-        auto it = sgpImplementation->mChannelGroups.find(groupId);
+        float volume = dbToVolume(fVolumedB);
+
+        auto it = sgpImplementation->mChannelGroups.find(groupName);
         if (it != sgpImplementation->mChannelGroups.end())
         {
-            // Set the volume for this channel group, converting from dB to linear scale
-            ErrorCheck(it->second->setVolume(dbToVolume(fVolumedB)));
+            ErrorCheck(it->second->setVolume(volume));
+
+            float appliedVolume = 0.0f;
+            it->second->getVolume(&appliedVolume);
+            std::cout << "Set Group Volume for " << groupName
+                << " Volume (dB): " << fVolumedB
+                << ", Linear Scale: " << appliedVolume << std::endl;
         }
         else
         {
-            // Handle the case where the groupId doesn't exist (optional logging or error handling)
-            std::cerr << "Error: Group ID " << groupId << " not found." << std::endl;
+            std::cerr << "Error: Group \"" << groupName << "\" not found!" << std::endl;
         }
     }
 
-    int AudioEngine::GetGroupIdForAudio(FMOD::Sound* fmodSound)
-    {
-        auto it = sgpImplementation->mAudioGroupMap.find(fmodSound);
-        if (it != sgpImplementation->mAudioGroupMap.end())
-        {
-            return it->second;  // Return the group ID
-        }
 
-        // If no group is found, return -1 or handle the case accordingly
-        return -1;
-    }
+    //int AudioEngine::GetGroupIdForAudio(FMOD::Sound* fmodSound)
+    //{
+    //    auto it = sgpImplementation->mAudioGroupMap.find(fmodSound);
+    //    if (it != sgpImplementation->mAudioGroupMap.end())
+    //    {
+    //        return it->second;  // Return the group ID
+    //    }
+
+    //    // If no group is found, return -1 or handle the case accordingly
+    //    return -1;
+    //}
+
     Ref<Asset> AudioEngine::Load(AssetMetaData const& assetMetaData)
     {
         Audio audio = LoadAudio(assetMetaData.SourcePath.string());
         return MakeRef<Audio>(audio);
     }
 
-    int AudioEngine::Play(Ref<Audio> audio, const glm::vec3& position, float volumeDB, bool looping, AudioGroup group)
+    int AudioEngine::Play(Ref<Audio> audio, const glm::vec3& position, float volumeDB, bool looping, const std::string& groupName)
     {
-        if (!audio || !audio->audioPtr) {
+        if (!audio || !audio->audioPtr) 
+        {
             std::cerr << "Invalid audio reference" << std::endl;
             return -1;
         }
@@ -381,7 +390,8 @@ namespace Borealis
 
         // Play the sound with pausing enabled initially
 
-        if (channel) {
+        if (channel) 
+        {
             // Set 3D attributes if the sound is in 3D mode
             FMOD_MODE mode;
             sound->getMode(&mode);
@@ -397,8 +407,9 @@ namespace Borealis
             ErrorCheck(channel->setMode(looping ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF));
 
             // Assign channel to a group
-            auto itGroup = sgpImplementation->mChannelGroups.find(static_cast<int>(AudioGroup::BGM));
-            if (itGroup != sgpImplementation->mChannelGroups.end()) {
+            auto itGroup = sgpImplementation->mChannelGroups.find(groupName);
+            if (itGroup != sgpImplementation->mChannelGroups.end()) 
+            {
                 ErrorCheck(channel->setChannelGroup(itGroup->second));
             }
 
@@ -409,9 +420,10 @@ namespace Borealis
         return channelId; // Return the channel ID for tracking
     }
 
-    void AudioEngine::PlayOneShot(Ref<Audio> audio, const glm::vec3& position, float volumeDB, AudioGroup group)
+    void AudioEngine::PlayOneShot(Ref<Audio> audio, const glm::vec3& position, float volumeDB, const std::string& groupName)
     {
-        if (!audio || !audio->audioPtr) {
+        if (!audio || !audio->audioPtr) 
+        {
             std::cerr << "Invalid audio reference" << std::endl;
             return;
         }
@@ -428,11 +440,13 @@ namespace Borealis
         channel->getIndex(&chIndex);
         std::cout << "PlayOneShot audio index : " << chIndex << '\n';
 
-        if (channel) {
+        if (channel) 
+        {
             // Set 3D attributes if the sound is in 3D mode
             FMOD_MODE mode;
             sound->getMode(&mode);
-            if (mode & FMOD_3D) {
+            if (mode & FMOD_3D) 
+            {
                 FMOD_VECTOR fmodPosition = VectorToFmod(position);
                 FMOD_VECTOR velocity = { 0.0f, 0.0f, 0.0f };
                 ErrorCheck(channel->set3DAttributes(&fmodPosition, &velocity));
@@ -444,8 +458,9 @@ namespace Borealis
             ErrorCheck(channel->setMode(FMOD_LOOP_OFF)); // PlayOneShot is always non-looping
 
             // Assign to group if applicable
-            auto itGroup = sgpImplementation->mChannelGroups.find(static_cast<int>(AudioGroup::SFX));
-            if (itGroup != sgpImplementation->mChannelGroups.end()) {
+            auto itGroup = sgpImplementation->mChannelGroups.find(groupName);
+            if (itGroup != sgpImplementation->mChannelGroups.end()) 
+            {
                 ErrorCheck(channel->setChannelGroup(itGroup->second));
             }
         }

@@ -386,7 +386,7 @@ namespace Borealis
 	
 	struct AudioSourceComponent
 	{
-		Borealis::AudioGroup group = Borealis::AudioGroup::Master;
+		std::string group = "Master";
 		bool isLoop = false;
 		bool isMute = false;
 		bool isPlaying = false;

@@ -163,6 +163,9 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_SetBlend);
 		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_GetBlend);
 		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_SwapBlendBuffer);
+		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_GetCurrentTime);
+		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_GetAnimationDuration);
+
 
 		BOREALIS_ADD_INTERNAL_CALL(SceneManager_SetActiveScene);
 		BOREALIS_ADD_INTERNAL_CALL(SceneManager_Quit);
@@ -1060,6 +1063,22 @@ namespace Borealis
 		auto firstAnimation = entity.GetComponent<AnimatorComponent>().animation;
 		entity.GetComponent<AnimatorComponent>().animation = entity.GetComponent<AnimatorComponent>().animator.mNextAnimation;
 		entity.GetComponent<AnimatorComponent>().animator.mNextAnimation = firstAnimation;
+	}
+	void AnimatorComponent_GetCurrentTime(UUID uuid, float* currentTime)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*currentTime = entity.GetComponent<AnimatorComponent>().animator.GetCurrentAnimationTime();
+	}
+	void AnimatorComponent_GetAnimationDuration(UUID uuid, float* duration)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*duration = entity.GetComponent<AnimatorComponent>().animator.GetAnimationDuration();
 	}
 	void SceneManager_SetActiveScene(MonoString* sceneName)
 	{

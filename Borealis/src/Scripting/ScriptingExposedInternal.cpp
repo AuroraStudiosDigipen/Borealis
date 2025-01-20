@@ -140,6 +140,7 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(Physics_RaycastAll);
 
 		BOREALIS_ADD_INTERNAL_CALL(CharacterController_Move);
+		BOREALIS_ADD_INTERNAL_CALL(CharacterController_Jump);
 		BOREALIS_ADD_INTERNAL_CALL(CharacterController_IsGrounded);
 
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_GetClip);
@@ -1266,6 +1267,15 @@ namespace Borealis
 			entity.GetComponent<CharacterControllerComponent>().inMovementDirection = *motion;
 		}
 	
+	}
+	void CharacterController_Jump(uint64_t id, float jumpSpeed)
+	{
+		Entity entity = SceneManager::GetActiveScene()->GetEntityByUUID(id);
+		if (entity.HasComponent<CharacterControllerComponent>())
+		{
+			entity.GetComponent<CharacterControllerComponent>().jumpSpeed = jumpSpeed;
+			entity.GetComponent<CharacterControllerComponent>().isJump = true;
+		}
 	}
 	void CharacterController_IsGrounded(uint64_t id, bool* grounded)
 	{

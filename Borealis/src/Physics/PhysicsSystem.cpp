@@ -14,7 +14,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include "BorealisPCH.hpp"
 
-// STL includes
+// STL includes+
 #include <iostream>
 #include <cstdarg>
 #include <thread>
@@ -804,7 +804,6 @@ namespace Borealis
 	{
 		CharacterVirtual* mCharacter = reinterpret_cast<CharacterVirtual*>(controllerComp.controller);
 
-		mCharacter->GetGroundState();
 		bool player_controls_horizontal_velocity = controllerComp.enableInertia || mCharacter->IsSupported();
 		if (player_controls_horizontal_velocity)
 		{
@@ -841,10 +840,19 @@ namespace Borealis
 		{
 			// Assume velocity of ground when on ground
 			new_velocity = ground_velocity;
+
+			// Jump
+			if (controllerComp.isJump && moving_towards_ground)
+			{
+				new_velocity += controllerComp.jumpSpeed * mCharacter->GetUp();
+				controllerComp.isJump = false;
+			}
 		}
 		else
 			new_velocity = current_vertical_velocity;
 
+		// Gravity
+		new_velocity += (character_up_rotation * sPhysicsData.mSystem->GetGravity()) * inDeltaTime;
 
 		if (player_controls_horizontal_velocity)
 		{

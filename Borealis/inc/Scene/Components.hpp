@@ -52,6 +52,7 @@ namespace Borealis
 		bool active = true;
 		std::string Tag;
 		Bitset32 mLayer;
+		int mHierarchyLayer = 0;
 
 		TagComponent() = default;
 		TagComponent(const TagComponent&) = default;

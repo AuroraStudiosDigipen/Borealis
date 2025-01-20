@@ -1107,6 +1107,7 @@ namespace Borealis
 	{
 		mContext = scene;
 		mSelectedEntity = {};
+		ClearSelectedEntities();
 
 		//Testing load all the prefab children
 		for (auto& item : SceneManager::GetActiveScene()->GetRegistry().view<entt::entity>()) {
@@ -1174,7 +1175,7 @@ namespace Borealis
 								SceneManager::SetActiveScene(name, serialiser);
 								mContext = SceneManager::GetActiveScene();
 								mSelectedEntity = {};
-
+								ClearSelectedEntities();
 							}
 						}
 						ImGui::EndPopup();
@@ -1189,11 +1190,10 @@ namespace Borealis
 			ImGui::PopStyleColor();
 		}
 
-		
-
-		if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered()) // Deselect
+		if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered() && !InputSystem::IsKeyPressed(Key::LeftControl)) // Deselect
 		{
 			mSelectedEntity = {};
+			ClearSelectedEntities();
 		}
 
 		// Right click on blank space	
@@ -1219,7 +1219,6 @@ namespace Borealis
 			}
 			ImGui::EndDragDropTarget();
 		}
-
 
 		ImGui::End();
 
@@ -1359,11 +1358,31 @@ namespace Borealis
 		{
 			if (ImGui::IsItemHovered())
 			{
-				mSelectedEntity = entity;
+				//When it is single select mode, it will just select the entity
+				// When i am holding control and click, it will add to multi select	
+				//When it is in multi select mode, if click without holding control, it will not add to multi select
+				if (!IsMultiSelect())
+				{
+					if (InputSystem::IsKeyPressed(Key::LeftControl))
+					{	
+						EnableMultiSelect();
+						PushSelectedEntity(entity);
+					}
+					else
+					{
+						mSelectedEntity = entity;
+					}
+				}
+				else
+				{
+					if (InputSystem::IsKeyPressed(Key::LeftControl))
+					{
+						PushSelectedEntity(entity)
+					}
+				}
 			}
 		}
 		
-
 		bool entityDeleted = false;
 		if (ImGui::BeginPopupContextItem())
 		{
@@ -2279,6 +2298,7 @@ namespace Borealis
 					if (ImGui::DragFloat("Far", &orthographicFar))
 					{
 						cameraComponent.Camera.SetOrthoFar(orthographicFar);
+					}
 					}
 
 					ImGui::Checkbox("Fixed Aspect Ratio", &cameraComponent.FixedAspectRatio);

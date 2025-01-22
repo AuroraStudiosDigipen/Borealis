@@ -48,6 +48,7 @@ namespace Borealis
 		UniformBufferObject::BindToShader(s3dData->mCommonShader->GetID(), "Camera", CAMERA_BIND);
 
 		UniformBufferObject::BindToShader(s3dData->mModelShader->GetID(), "MaterialUBO", MATERIAL_ARRAY_BIND);
+		UniformBufferObject::BindToShader(s3dData->mModelShader->GetID(), "AnimationUBO", ANIMATION_BIND);
 	}
 
 	void Renderer3D::Begin(const EditorCamera& camera)
@@ -132,6 +133,11 @@ namespace Borealis
 			}
 			else
 			{
+				if (drawCall.drawData.hasAnimation)
+					drawCall.shaderID->Set("u_HasAnimation", true);
+				else
+					drawCall.shaderID->Set("u_HasAnimation", false);
+
 				std::get<Ref<SkinnedModel>>(drawCall.model)->Draw(drawCall.transform, drawCall.shaderID, drawCall.entityID);
 			}
 		}
@@ -191,8 +197,10 @@ namespace Borealis
 			//}
 
 			//skinnedMeshRenderer.SkinnnedModel->Draw(transform, shader, entityID);
-
-			AddToDrawQueue(skinnedMeshRenderer.SkinnnedModel, shader, skinnedMeshRenderer.Material, entityID, transform);
+			DrawData drawData;
+			if (skinnedMeshRenderer.SkinnnedModel->mAnimation)
+				drawData.hasAnimation = true;
+			AddToDrawQueue(skinnedMeshRenderer.SkinnnedModel, shader, skinnedMeshRenderer.Material, entityID, transform, drawData);
 		}
 	}
 
@@ -302,13 +310,16 @@ namespace Borealis
 		}
 	}
 
-	void Renderer3D::AddToDrawQueue(std::variant<Ref<Model>, Ref<SkinnedModel>> model, Ref<Shader> shaderID, Ref<Material> materialHash, uint32_t entityID, glm::mat4 const& transform)
+	void Renderer3D::AddToDrawQueue(std::variant<Ref<Model>, Ref<SkinnedModel>> model, Ref<Shader> shaderID, Ref<Material> materialHash, uint32_t entityID, glm::mat4 const& transform, std::optional<DrawData> drawData)
 	{
 		if(!materialMap.contains(materialHash->hash))
 		{
 			materialMap.insert({ materialHash->hash, materialHash });
 			mNewMaterialAdded = true;
 		}
-		drawQueue.push_back({ model, shaderID, materialHash->hash, entityID, transform });
+		if(drawData.has_value())
+			drawQueue.push_back({ model, shaderID, materialHash->hash, entityID, transform, drawData.value()});
+		else
+			drawQueue.push_back({ model, shaderID, materialHash->hash, entityID, transform });
 	}
 }

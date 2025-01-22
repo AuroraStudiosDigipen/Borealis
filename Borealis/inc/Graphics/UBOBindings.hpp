@@ -19,6 +19,8 @@ namespace Borealis
 {
 #define CAMERA_BIND 0
 #define MATERIAL_ARRAY_BIND 1
+#define LIGHTING_BIND 2
+#define ANIMATION_BIND 3
 }
 
 #endif

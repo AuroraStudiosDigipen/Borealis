@@ -22,7 +22,12 @@ uniform int u_EntityID;
 uniform bool u_HasAnimation;
 const int MAX_BONES = 128;
 const int MAX_BONE_INFLUENCE = 4;
-uniform mat4 u_FinalBonesMatrices[MAX_BONES]; //move to uniform buffer objects
+//uniform mat4 u_FinalBonesMatrices[MAX_BONES]; //move to uniform buffer objects
+
+layout(std140) uniform AnimationUBO
+{
+	mat4 u_FinalBonesMatrices[MAX_BONES];
+};
 
 //shadow pass variables
 uniform bool shadowPass;

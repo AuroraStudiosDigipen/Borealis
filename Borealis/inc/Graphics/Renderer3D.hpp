@@ -98,6 +98,11 @@ namespace Borealis
 
 		static void UpdateMaterialUBO();
 
+		struct DrawData
+		{
+			bool hasAnimation{};
+		};
+
 		struct DrawCall
 		{
 			std::variant<Ref<Model>,Ref<SkinnedModel>> model;
@@ -105,6 +110,7 @@ namespace Borealis
 			std::size_t materialHash;
 			uint32_t entityID;
 			glm::mat4 transform;
+			DrawData drawData;
 		};
 
 	private:
@@ -115,7 +121,7 @@ namespace Borealis
 		inline static std::vector<DrawCall> drawQueue;
 		inline static std::unordered_map<std::size_t, Ref<Material>> materialMap;
 		inline static std::unordered_map<std::size_t, MaterialUBOData> materialUBODataMap;
-		static void AddToDrawQueue(std::variant<Ref<Model>, Ref<SkinnedModel>> model, Ref<Shader> shaderID, Ref<Material> materialHash, uint32_t entityID, glm::mat4 const& transform);
+		static void AddToDrawQueue(std::variant<Ref<Model>, Ref<SkinnedModel>> model, Ref<Shader> shaderID, Ref<Material> materialHash, uint32_t entityID, glm::mat4 const& transform, std::optional<DrawData> drawData = std::nullopt);
 	};
 }
 

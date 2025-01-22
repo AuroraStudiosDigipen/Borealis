@@ -25,6 +25,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scene/SceneManager.hpp>
 
 #include <Graphics/PixelBuffer.hpp>
+#include <Graphics/UniformBufferObject.hpp>
+#include <Graphics/UBOBindings.hpp>
 
 //shadows
 #define S_MATERIALSHADOW true
@@ -46,6 +48,18 @@ namespace Borealis
 
 	Ref<FrameBuffer> mCascadeShadowMapBuffer = nullptr;
 	Ref<FrameBuffer> mCascadeShadowMapBufferEditor = nullptr;
+
+	struct RenderData
+	{
+		struct CameraData
+		{
+			glm::mat4 ViewProjection;
+		};
+		CameraData cameraData;
+		Ref<UniformBufferObject> CameraUBO;
+	};
+
+	static std::unique_ptr<RenderData> sData;
 
 	//========================================================================
 	//BUFFER SOURCE
@@ -388,6 +402,7 @@ namespace Borealis
 	{
 		//add light to light engine and shadow pass
 		{
+			shader->Bind();
 			shader->Set("shadowPass", false);
 			shader->Set("u_HasShadow", false);
 			entt::basic_group group = registryPtr->group<>(entt::get<TransformComponent, LightComponent>);
@@ -405,7 +420,6 @@ namespace Borealis
 				Renderer3D::AddLight(lightComponent);
 
 				SetShadowVariable(lightComponent, shader, camera);
-
 				shader->Bind();
 				shader->Set("u_HasShadow", true);
 				if (lightComponent.type == LightComponent::Type::Spot)
@@ -454,6 +468,8 @@ namespace Borealis
 		{
 			if (sink->source->sourceType == RenderSourceType::Camera)
 			{
+				sData->cameraData.ViewProjection = std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj();
+				sData->CameraUBO->SetData(&sData->cameraData, sizeof(RenderData::CameraData));
 				viewProjMatrix = std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj();
 				editor = std::dynamic_pointer_cast<CameraSource>(sink->source)->editor;
 				camPos = std::dynamic_pointer_cast<CameraSource>(sink->source)->position;
@@ -476,7 +492,6 @@ namespace Borealis
 			}
 		}
 
-		Renderer3D::BeginCommonShapes(viewProjMatrix);
 		Frustum frustum = ComputeFrustum(viewProjMatrix);
 		//mesh pass
 		{
@@ -501,7 +516,6 @@ namespace Borealis
 
 				if (CullBoundingSphere(frustum, modelBoundingSphere))
 				{
-					//BOREALIS_CORE_INFO("Culling entity {}", (int)entity);
 					continue;
 				}
 
@@ -509,114 +523,110 @@ namespace Borealis
 				{
 					materialShader = meshRenderer.Material->GetShader();
 					Renderer3D::Begin(viewProjMatrix, materialShader);
-
-
 					SetShadowAndLight(shadowMap, materialShader, registryPtr, camera, editor);
 					Renderer3D::SetLights(materialShader);
 				}
 
-				renderTarget->Bind();
 				Renderer3D::DrawMesh(transform.GetGlobalTransform(), meshFilter, meshRenderer, materialShader, (int)entity);
 
-				if (Renderer3D::GetGlobalWireFrameMode())
-				{
-					AABB modelAABB = meshFilter.Model->mAABB;
-					modelAABB.Transform(transform.GetGlobalTransform());
-					if (brEntity.HasComponent<BoxColliderComponent>())
-					{
-						auto& rigidbody = brEntity.GetComponent<BoxColliderComponent>();
-						glm::vec3 half = { rigidbody.size.x / 2, rigidbody.size.y / 2, rigidbody.size.z / 2 };
-						Renderer3D::DrawCube(rigidbody.center, -half, half, { 0.f,1.f,0.f,1.f }, true);
-						//rigidbody.minExtent = modelAABB.minExtent;
-						//rigidbody.maxExtent = modelAABB.maxExtent;
-						//Renderer3D::DrawCube(transform.Translate, rigidbody.minExtent, rigidbody.maxExtent, { 0.f,1.f,0.f,1.f }, true);
-					}
-				}
-				renderTarget->Unbind();
+				//renderTarget->Bind();
+				//if (Renderer3D::GetGlobalWireFrameMode())
+				//{
+				//	AABB modelAABB = meshFilter.Model->mAABB;
+				//	modelAABB.Transform(transform.GetGlobalTransform());
+				//	if (brEntity.HasComponent<BoxColliderComponent>())
+				//	{
+				//		auto& rigidbody = brEntity.GetComponent<BoxColliderComponent>();
+				//		glm::vec3 half = { rigidbody.size.x / 2, rigidbody.size.y / 2, rigidbody.size.z / 2 };
+				//		Renderer3D::DrawCube(rigidbody.center, -half, half, { 0.f,1.f,0.f,1.f }, true);
+				//	}
+				//}
+				//renderTarget->Unbind();
 			}
 			materialShader = nullptr;
 		}
 
-
 		//skinned mesh pass
 		{
-			auto group = registryPtr->group<>(entt::get<TransformComponent, SkinnedMeshRendererComponent>);
-			for (auto& entity : group)
-			{
-				Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
-				if (!brEntity.IsActive())
-				{
-					continue;
-				}
+			////Add uniforms to drawInfo, pass it to drawqueue
+			////Add lights and animations to UBO
+			//auto group = registryPtr->group<>(entt::get<TransformComponent, SkinnedMeshRendererComponent>);
+			//for (auto& entity : group)
+			//{
+			//	Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
+			//	if (!brEntity.IsActive())
+			//	{
+			//		continue;
+			//	}
 
-				auto [transform, skinnedMesh] = group.get<TransformComponent, SkinnedMeshRendererComponent>(entity);
+			//	auto [transform, skinnedMesh] = group.get<TransformComponent, SkinnedMeshRendererComponent>(entity);
 
-				if (!skinnedMesh.SkinnnedModel || !skinnedMesh.Material) continue;
+			//	if (!skinnedMesh.SkinnnedModel || !skinnedMesh.Material) continue;
 
 
-				Ref<Shader> materialShader = skinnedMesh.Material->GetShader();
+			//	Ref<Shader> materialShader = skinnedMesh.Material->GetShader();
 
-				Renderer3D::Begin(viewProjMatrix, materialShader);
+			//	//Renderer3D::Begin(viewProjMatrix, materialShader);
 
-				materialShader->Bind();
-				materialShader->Set("u_HasAnimation", false);
+			//	materialShader->Bind();
+			//	materialShader->Set("u_HasAnimation", false);
 
-				SetShadowAndLight(shadowMap, materialShader, registryPtr, camera, editor);
-				if (registryPtr->storage<AnimatorComponent>().contains(entity))
-				{
-					AnimatorComponent& animatorComponent = registryPtr->get<AnimatorComponent>(entity);
+			//	//SetShadowAndLight(shadowMap, materialShader, registryPtr, camera, editor);
+			//	if (registryPtr->storage<AnimatorComponent>().contains(entity))
+			//	{
+			//		AnimatorComponent& animatorComponent = registryPtr->get<AnimatorComponent>(entity);
 
-					if (animatorComponent.animation && (!animatorComponent.animator.HasAnimation() || animatorComponent.currentAnimationHandle != animatorComponent.animation->mAssetHandle))
-					{
-						animatorComponent.currentAnimationHandle = animatorComponent.animation->mAssetHandle;
-						animatorComponent.animator.PlayAnimation(animatorComponent.animation);
-						skinnedMesh.SkinnnedModel->AssignAnimation(animatorComponent.animation);
-					}
+			//		if (animatorComponent.animation && (!animatorComponent.animator.HasAnimation() || animatorComponent.currentAnimationHandle != animatorComponent.animation->mAssetHandle))
+			//		{
+			//			animatorComponent.currentAnimationHandle = animatorComponent.animation->mAssetHandle;
+			//			animatorComponent.animator.PlayAnimation(animatorComponent.animation);
+			//			skinnedMesh.SkinnnedModel->AssignAnimation(animatorComponent.animation);
+			//		}
 
-					if (animatorComponent.animation)
-					{
-						animatorComponent.animator.SetLoop(animatorComponent.loop);
-						animatorComponent.animator.SetSpeed(animatorComponent.speed);
+			//		if (animatorComponent.animation)
+			//		{
+			//			animatorComponent.animator.SetLoop(animatorComponent.loop);
+			//			animatorComponent.animator.SetSpeed(animatorComponent.speed);
 
-						animatorComponent.animator.UpdateAnimation(dt);
+			//			animatorComponent.animator.UpdateAnimation(dt);
 
-						if (skinnedMesh.SkinnnedModel->mAnimation)
-						{
-							materialShader->Bind();
-							materialShader->Set("u_HasAnimation", true);
-							auto transforms =  animatorComponent.animator.GetFinalBoneMatrices();
-							for (int i = 0; i < transforms.size(); ++i)
-							{
-								std::string str = "u_FinalBonesMatrices[" + std::to_string(i) + "]";
-								materialShader->Set(str.c_str(), transforms[i]);
-							}
-							materialShader->Unbind();
-						}
-					}
-				}
+			//			if (skinnedMesh.SkinnnedModel->mAnimation)
+			//			{
+			//				materialShader->Bind();
+			//				materialShader->Set("u_HasAnimation", true);
+			//				auto transforms =  animatorComponent.animator.GetFinalBoneMatrices();
 
-				//Frustum frustum = ComputeFrustum(projMatrix * viewMatrix);
-				//BoundingSphere modelBoundingSphere = skinnedMesh.SKinnedModel->mBoundingSphere;
-				//modelBoundingSphere.Transform(transform);
+			//				//update UBO
+			//				for (int i = 0; i < transforms.size(); ++i)
+			//				{
+			//					std::string str = "u_FinalBonesMatrices[" + std::to_string(i) + "]";
+			//					materialShader->Set(str.c_str(), transforms[i]);
+			//				}
+			//				materialShader->Unbind();
+			//			}
+			//		}
+			//	}
 
-				//if (CullBoundingSphere(frustum, modelBoundingSphere))
-				//{
-				//	BOREALIS_CORE_INFO("Culling entity {}", (int)entity);
-				//	continue;
-				//}
+			//	//Frustum frustum = ComputeFrustum(projMatrix * viewMatrix);
+			//	//BoundingSphere modelBoundingSphere = skinnedMesh.SKinnedModel->mBoundingSphere;
+			//	//modelBoundingSphere.Transform(transform);
 
-				//Renderer3D::SetLights(shader);
+			//	//if (CullBoundingSphere(frustum, modelBoundingSphere))
+			//	//{
+			//	//	BOREALIS_CORE_INFO("Culling entity {}", (int)entity);
+			//	//	continue;
+			//	//}
 
-				renderTarget->Bind();
-				materialShader->Bind();
-				Renderer3D::SetLights(materialShader);
-				Renderer3D::DrawSkinnedMesh(transform.GetGlobalTransform(), skinnedMesh, materialShader, (int)entity);
-				materialShader->Unbind();
-				renderTarget->Unbind();
-			}
+			//	//Renderer3D::SetLights(shader);
+
+			//	Renderer3D::SetLights(materialShader);
+			//	Renderer3D::DrawSkinnedMesh(transform.GetGlobalTransform(), skinnedMesh, materialShader, (int)entity);
+			//}
 		}
 
+		renderTarget->Bind();
 		Renderer3D::End();
+		renderTarget->Unbind();
 	}
 
 	void Render2D::Execute(float dt)
@@ -629,6 +639,8 @@ namespace Borealis
 		{
 			if (sink->source->sourceType == RenderSourceType::Camera)
 			{
+				//sData->cameraData.ViewProjection = std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj();
+				//sData->CameraUBO->SetData(&sData->cameraData, sizeof(RenderData::CameraData));
 				Renderer2D::Begin(std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj());
 				editor = std::dynamic_pointer_cast<CameraSource>(sink->source)->editor;
 			}
@@ -1704,6 +1716,12 @@ namespace Borealis
 			FrameBufferProperties propsShadowMapBuffer{ 2024, 2024, false };
 			propsShadowMapBuffer.Attachments = { FramebufferTextureFormat::DepthArray };
 			mCascadeShadowMapBufferEditor = FrameBuffer::Create(propsShadowMapBuffer);
+		}
+
+		if(!sData)
+		{
+			sData = std::make_unique<RenderData>();
+			sData->CameraUBO = UniformBufferObject::Create(sizeof(RenderData::CameraData), CAMERA_BIND);
 		}
 	}
 

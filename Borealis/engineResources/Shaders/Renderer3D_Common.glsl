@@ -4,7 +4,11 @@
 layout(location = 0) in vec3 a_Position;  // Vertex position
 layout(location = 1) in vec3 a_Normal;
 
-uniform mat4 u_ViewProjection;
+//uniform mat4 u_ViewProjection;
+layout(std140) uniform Camera
+{
+	mat4 u_ViewProjection;
+};
 uniform mat4 u_ModelTransform;
 
 void MainPass()

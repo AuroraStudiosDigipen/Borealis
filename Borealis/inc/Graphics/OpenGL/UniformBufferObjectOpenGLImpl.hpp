@@ -26,6 +26,7 @@ namespace Borealis
 		virtual ~UniformBufferObjectOpenGLImpl();
 
 		virtual void SetData(const void* data, uint32_t size, uint32_t offset = 0) override;
+		static int GetBlockSize(uint32_t shaderID, const char* blockName);
 
 		static void BindToShader(uint32_t shaderID, const char* blockName, uint32_t binding);
 

@@ -44,21 +44,21 @@ namespace Borealis
 		//	BOREALIS_CORE_INFO("{}", extension);
 		//}
 
-		int maxUBOBindings;
-		glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &maxUBOBindings);
-		BOREALIS_CORE_INFO("Max UBO bindings: {}", maxUBOBindings);
+		//int maxUBOBindings;
+		//glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &maxUBOBindings);
+		//BOREALIS_CORE_INFO("Max UBO bindings: {}", maxUBOBindings);
 
-		int maxUBOSize;
-		glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &maxUBOSize);
-		BOREALIS_CORE_INFO("Max UBO size: {} bytes", maxUBOSize);
+		//int maxUBOSize;
+		//glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &maxUBOSize);
+		//BOREALIS_CORE_INFO("Max UBO size: {} bytes", maxUBOSize);
 
-		int maxArrayLayers;
-		glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &maxArrayLayers);
-		BOREALIS_CORE_INFO("Max texture array layers: {}" ,maxArrayLayers);
+		//int maxArrayLayers;
+		//glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &maxArrayLayers);
+		//BOREALIS_CORE_INFO("Max texture array layers: {}" ,maxArrayLayers);
 
-		int maxTextureUnits;
-		glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &maxTextureUnits);
-		BOREALIS_CORE_INFO("Max combined texture units: {}" ,maxTextureUnits);
+		//int maxTextureUnits;
+		//glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &maxTextureUnits);
+		//BOREALIS_CORE_INFO("Max combined texture units: {}" ,maxTextureUnits);
 	}
 	OpenGLShader::OpenGLShader(const std::string& name, const std::string& vertexSource, const std::string& fragmentSource) : mName(name)
 	{

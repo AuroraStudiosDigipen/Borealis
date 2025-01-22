@@ -207,7 +207,12 @@ namespace Borealis
 		*************************************************************************/
 		std::unordered_map<Props, glm::vec2> GetPropertiesVec2() const { return mPropertiesVec2; }
 
+		std::size_t hash = 0;
+
 		Ref<Shader> GetShader() { return mShader; }
+
+		int GetIndex() { return mMaterialIndex; }
+		void SetIndex(int index) { mMaterialIndex = index; }
 
 		/*!***********************************************************************
 			\brief
@@ -257,8 +262,29 @@ namespace Borealis
 		std::unordered_map<Props, glm::vec2> mPropertiesVec2; //Properties
 		Ref<Shader> mShader; //Shader
 		std::string mName;
+		int mMaterialIndex = -1;
 
 		RTTR_ENABLE(Asset)
 	}; //class Material
+
+	struct MaterialUBOData
+	{
+		glm::vec4 albedoColor;
+		glm::vec4 specularColor;
+		glm::vec4 emissionColor;
+
+		glm::vec2 tiling;
+		glm::vec2 offset;
+
+		float smoothness = 0;
+		float shininess = 0;
+		float metallic = 0;
+		float padding1 = 0;
+
+		int hasAlbedoMap = 0;
+		int hasSpecularMap = 0;
+		int hasNormalMap = 0;
+		int hasMetallicMap = 0;
+	};
 } //namespace Borealis
 #endif

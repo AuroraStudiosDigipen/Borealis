@@ -266,7 +266,7 @@ namespace Borealis
 		std::filesystem::path cacheFilePath = mCachePath;
 		cacheFilePath.append(std::to_string(metaData.Handle));
 		
-		if (!std::filesystem::exists(cacheFilePath) && !std::filesystem::is_directory(cacheFilePath))
+		if (!std::filesystem::exists(cacheFilePath) && !std::filesystem::is_directory(metaData.SourcePath))
 		{
 			return MetaErrorType::CACHE_FILE_NOT_FOUND;
 		}

@@ -19,6 +19,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/Shader.hpp>
 #include <Graphics/RenderCommand.hpp>
 #include <Graphics/UniformBufferObject.hpp>
+#include <Graphics/UBOBindings.hpp>
 
 namespace Borealis
 {
@@ -125,13 +126,6 @@ namespace Borealis
 		uint32_t LineVertexCount = 0;
 		uint32_t FontIndexCount = 0;
 		uint32_t TextureSlotIndex = 1; // 0: White texture
-
-		//struct CameraData
-		//{
-		//	glm::mat4 ViewProjection;
-		//};
-		//CameraData cameraData;
-		//Ref<UniformBufferObject> CameraUBO;
 	};
 	
 	
@@ -274,11 +268,10 @@ namespace Borealis
 		sData->VertexPos[2] = { 0.5f, 0.5f, 0.0f, 1.0f };
 		sData->VertexPos[3] = { -0.5f, 0.5f, 0.0f, 1.0f };
 
-		//sData->CameraUBO = UniformBufferObject::Create(sizeof(Renderer2DData::CameraData), 0);
-		//UniformBufferObject::BindToShader(sData->mQuadShader->GetID(), "Camera", 0);
-		//UniformBufferObject::BindToShader(sData->mCircleShader->GetID(), "Camera", 0);
-		//UniformBufferObject::BindToShader(sData->mLineShader->GetID(), "Camera", 0);
-		//UniformBufferObject::BindToShader(sData->mFontShader->GetID(), "Camera", 0);
+		UniformBufferObject::BindToShader(sData->mQuadShader->GetID(), "Camera", CAMERA_BIND);
+		UniformBufferObject::BindToShader(sData->mCircleShader->GetID(), "Camera", CAMERA_BIND);
+		UniformBufferObject::BindToShader(sData->mLineShader->GetID(), "Camera", CAMERA_BIND);
+		UniformBufferObject::BindToShader(sData->mFontShader->GetID(), "Camera", CAMERA_BIND);
 
 	}
 	void Renderer2D::Free()
@@ -317,26 +310,14 @@ namespace Borealis
 
 	void Renderer2D::Begin(glm::mat4 viewProj)
 	{
-		sData->mQuadShader->Bind();
-		sData->mQuadShader->Set("u_ViewProjection", viewProj);
-
 		sData->QuadIndexCount = 0;
 		sData->QuadBufferPtr = sData->QuadBufferBase;
-
-		sData->mCircleShader->Bind();
-		sData->mCircleShader->Set("u_ViewProjection", viewProj);
 
 		sData->CircleIndexCount = 0;
 		sData->CircleBufferPtr = sData->CircleBufferBase;
 
-		sData->mLineShader->Bind();
-		sData->mLineShader->Set("u_ViewProjection", viewProj);
-
 		sData->LineVertexCount = 0;
 		sData->LineBufferPtr = sData->LineBufferBase;
-
-		sData->mFontShader->Bind();
-		sData->mFontShader->Set("u_ViewProjection", viewProj);
 
 		sData->FontIndexCount = 0;
 		sData->FontBufferPtr = sData->FontBufferBase;

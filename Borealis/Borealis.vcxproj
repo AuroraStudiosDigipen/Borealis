@@ -230,6 +230,7 @@
     <ClInclude Include="inc\Graphics\SkinnedModel.hpp" />
     <ClInclude Include="inc\Graphics\SubTexture2D.hpp" />
     <ClInclude Include="inc\Graphics\Texture.hpp" />
+    <ClInclude Include="inc\Graphics\UBOBindings.hpp" />
     <ClInclude Include="inc\Graphics\UniformBufferObject.hpp" />
     <ClInclude Include="inc\Graphics\VertexArray.hpp" />
     <ClInclude Include="inc\ImGui\ImGuiFontLib.hpp" />

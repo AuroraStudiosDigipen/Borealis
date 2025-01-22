@@ -107,6 +107,7 @@ namespace Borealis
 
     Material::Material(std::filesystem::path path)
     {
+        hash = std::hash<std::string>{}(path.string());
         //temp until add to material meta config
         mShader = Shader::GetDefault3DMaterialShader();
 

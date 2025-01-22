@@ -385,6 +385,9 @@
     <ClInclude Include="inc\Graphics\Texture.hpp">
       <Filter>inc\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Graphics\UBOBindings.hpp">
+      <Filter>inc\Graphics</Filter>
+    </ClInclude>
     <ClInclude Include="inc\Graphics\UniformBufferObject.hpp">
       <Filter>inc\Graphics</Filter>
     </ClInclude>

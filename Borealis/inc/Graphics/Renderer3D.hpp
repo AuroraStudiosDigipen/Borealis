@@ -95,9 +95,27 @@ namespace Borealis
 	
 		static void SetGlobalWireFrameMode(bool wireFrameMode);
 		static bool GetGlobalWireFrameMode();
+
+		static void UpdateMaterialUBO();
+
+		struct DrawCall
+		{
+			std::variant<Ref<Model>,Ref<SkinnedModel>> model;
+			Ref<Shader> shaderID;
+			std::size_t materialHash;
+			uint32_t entityID;
+			glm::mat4 transform;
+		};
+
 	private:
 		inline static bool mGlobalWireFrame = false;
+		inline static bool mNewMaterialAdded = false;
 		static LightEngine mLightEngine;
+
+		inline static std::vector<DrawCall> drawQueue;
+		inline static std::unordered_map<std::size_t, Ref<Material>> materialMap;
+		inline static std::unordered_map<std::size_t, MaterialUBOData> materialUBODataMap;
+		static void AddToDrawQueue(std::variant<Ref<Model>, Ref<SkinnedModel>> model, Ref<Shader> shaderID, Ref<Material> materialHash, uint32_t entityID, glm::mat4 const& transform);
 	};
 }
 

@@ -8,7 +8,11 @@ layout(location = 5) in ivec4 boneIds;
 layout(location = 6) in vec4 weights;
 
 uniform mat4 u_ModelTransform;
-uniform mat4 u_ViewProjection;
+//uniform mat4 u_ViewProjection;
+layout(std140) uniform Camera
+{
+	mat4 u_ViewProjection;
+};
 
 out vec2 v_TexCoord;
 

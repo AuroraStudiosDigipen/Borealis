@@ -404,6 +404,7 @@ namespace Borealis
 	{
 		//add light to light engine and shadow pass
 		{
+			bool shadowCasted = false;
 			shader->Bind();
 			shader->Set("shadowPass", false);
 			shader->Set("u_HasShadow", false);
@@ -420,36 +421,36 @@ namespace Borealis
 				lightComponent.position = transform.GetGlobalTranslate();
 				lightComponent.direction = transform.GetGlobalRotation();
 				Renderer3D::AddLight(lightComponent);
-
-				SetShadowVariable(lightComponent, shader, camera);
-				shader->Bind();
-				shader->Set("u_HasShadow", true);
-				if (lightComponent.type == LightComponent::Type::Spot)
+				if(!shadowCasted && lightComponent.castShadow)
 				{
-					if (shadowMap)
+					shadowCasted = true;
+					SetShadowVariable(lightComponent, shader, camera);
+					shader->Bind();
+					shader->Set("u_HasShadow", true);
+					if (lightComponent.type == LightComponent::Type::Spot)
 					{
-						shadowMap->BindDepthBuffer(0);
-						shader->Set("u_ShadowMap", 0);
+						if (shadowMap)
+						{
+							shadowMap->BindDepthBuffer(0);
+							shader->Set("u_ShadowMap", 0);
+						}
+					}
+					else if (lightComponent.type == LightComponent::Type::Directional)
+					{
+						if (!editor && mCascadeShadowMapBuffer)
+						{
+							mCascadeShadowMapBuffer->BindDepthBuffer(1, true);
+							shader->Set("u_CascadeShadowMap", 1);
+						}
+						else if (editor && mCascadeShadowMapBufferEditor)
+						{
+							mCascadeShadowMapBufferEditor->BindDepthBuffer(1, true);
+							shader->Set("u_CascadeShadowMap", 1);
+						}
 					}
 				}
-				else if(lightComponent.type == LightComponent::Type::Directional)
-				{
-					if (!editor && mCascadeShadowMapBuffer)
-					{
-						mCascadeShadowMapBuffer->BindDepthBuffer(1, true);
-						shader->Set("u_CascadeShadowMap", 1);
-					}
-					else if (editor && mCascadeShadowMapBufferEditor)
-					{
-						mCascadeShadowMapBufferEditor->BindDepthBuffer(1, true);
-						shader->Set("u_CascadeShadowMap", 1);
-					}
-				}
 
-				
 				shader->Unbind();
-
-				break; //TODO, for now 1 shadow
 			}
 		}
 	}
@@ -588,7 +589,7 @@ namespace Borealis
 
 						if (skinnedMesh.SkinnnedModel->mAnimation)
 						{
-							auto transforms =  animatorComponent.animator.GetFinalBoneMatrices();
+							auto const& transforms =  animatorComponent.animator.GetFinalBoneMatrices();
 
 							sData->AnimationUBO->SetData(transforms.data(), 128 * sizeof(glm::mat4));
 						}

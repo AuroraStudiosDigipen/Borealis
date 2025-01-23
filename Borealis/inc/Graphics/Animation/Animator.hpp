@@ -19,7 +19,7 @@ namespace Borealis
 		void PlayAnimation(Ref<Animation> animation);
 		void BlendTwoAnimations(Ref<Animation> baseAnimation, Ref<Animation> layerAnimation, float blendFactor, float dt);
 
-		std::vector<glm::mat4> GetFinalBoneMatrices() { return mFinalBoneMatrices; }
+		std::vector<glm::mat4> const& GetFinalBoneMatrices() { return mFinalBoneMatrices; }
 		void SetLoop(bool loop) { mLoop = loop; }
 		void SetSpeed(float speed) { mSpeed = speed; }
 

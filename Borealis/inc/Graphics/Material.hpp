@@ -209,6 +209,8 @@ namespace Borealis
 
 		std::size_t hash = 0;
 
+		bool isModified = false;
+
 		Ref<Shader> GetShader() { return mShader; }
 
 		int GetIndex() { return mMaterialIndex; }

@@ -97,6 +97,7 @@ namespace Borealis
 		{
 			drawCall.shaderID->Bind();
 			drawCall.shaderID->Set("materialIndex", materialMap[drawCall.materialHash]->GetIndex());
+			drawCall.shaderID->Set("u_HasAnimation", false);
 
 			auto const& textureMap = materialMap[drawCall.materialHash]->GetTextureMaps();
 
@@ -135,8 +136,6 @@ namespace Borealis
 			{
 				if (drawCall.drawData.hasAnimation)
 					drawCall.shaderID->Set("u_HasAnimation", true);
-				else
-					drawCall.shaderID->Set("u_HasAnimation", false);
 
 				std::get<Ref<SkinnedModel>>(drawCall.model)->Draw(drawCall.transform, drawCall.shaderID, drawCall.entityID);
 			}
@@ -307,6 +306,47 @@ namespace Borealis
 			}
 
 			s3dData->mMaterialsUBO->SetData(bufferUBOData.data(), sizeof(MaterialUBOData) * 128);
+		}
+
+		for (auto [hash, materialRef] : materialMap)
+		{
+			if (materialRef->isModified)
+			{
+				MaterialUBOData& uboData = materialUBODataMap[hash];
+
+				uboData.albedoColor = materialRef->GetTextureMapColor()[Material::Albedo];
+				uboData.specularColor = materialRef->GetTextureMapColor()[Material::Specular];
+				uboData.emissionColor = materialRef->GetTextureMapColor()[Material::Emission];
+
+				uboData.tiling = materialRef->GetPropertiesVec2()[Material::Tiling];
+				uboData.offset = materialRef->GetPropertiesVec2()[Material::Offset];
+
+				uboData.smoothness = materialRef->GetPropertiesFloats()[Material::Smoothness];
+				uboData.shininess = materialRef->GetPropertiesFloats()[Material::Shininess];
+				uboData.metallic = materialRef->GetTextureMapFloats()[Material::Metallic];
+
+				auto const& textureMap = materialRef->GetTextureMaps();
+
+				if (textureMap.contains(Material::Albedo))
+				{
+					uboData.hasAlbedoMap = true;
+				}
+				if (textureMap.contains(Material::NormalMap))
+				{
+					uboData.hasNormalMap = true;
+				}
+				if (textureMap.contains(Material::Specular))
+				{
+					uboData.hasSpecularMap = true;
+				}
+				if (textureMap.contains(Material::Metallic))
+				{
+					uboData.hasMetallicMap = true;
+				}
+
+				s3dData->mMaterialsUBO->SetData(&materialUBODataMap[hash], sizeof(MaterialUBOData), sizeof(MaterialUBOData) * materialRef->GetIndex());
+				materialRef->isModified = false;
+			}
 		}
 	}
 

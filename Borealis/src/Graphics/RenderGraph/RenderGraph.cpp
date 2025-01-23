@@ -981,6 +981,11 @@ namespace Borealis
 						RenderCommand::EnableBackFaceCull();
 					}
 				}
+
+				RenderCommand::EnableFrontFaceCull();
+				Renderer3D::End();
+				RenderCommand::EnableBackFaceCull();
+
 				shadowMap->Unbind();
 			}
 

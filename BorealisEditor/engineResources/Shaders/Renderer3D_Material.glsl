@@ -144,26 +144,6 @@ struct Material { //move to uniform buffer object
 	bool hasHeightMap;
 };
 
-// layout(std140) uniform MaterialUBO
-// {
-//     vec4 albedoColor;
-//     vec4 specularColor;
-//     vec4 emissionColor;
-
-//     vec2 tiling;
-//     vec2 offset;
-
-//     float smoothness;
-//     float shininess;
-//     float metallic;
-//     float padding1;
-
-// 	bool hasAlbedoMap;
-//     bool hasSpecularMap;
-//     bool hasNormalMap;
-// 	bool hasMetallicMap;
-// };
-
 struct MaterialUBOData
 {
     vec4 albedoColor;
@@ -186,7 +166,6 @@ struct MaterialUBOData
 
 layout(std140) uniform MaterialUBO
 {
-    // Define an array of material data
     MaterialUBOData materials[128];
 };
 
@@ -245,9 +224,9 @@ vec2 GetTexCoord()
 vec4 GetAlbedoColor()
 {
 	vec4 albedoColor = materials[materialIndex].hasAlbedoMap ? texture(albedoMap, GetTexCoord()) : materials[materialIndex].albedoColor;
-	if (materials[materialIndex].hasAlbedoMap) {
-		albedoColor = mix(materials[materialIndex].albedoColor, albedoColor, 0.8);
-	}
+	// if (materials[materialIndex].hasAlbedoMap) {
+	// 	albedoColor = mix(materials[materialIndex].albedoColor, albedoColor, 0.8);
+	// }
 
 	return albedoColor;
 }
@@ -383,7 +362,7 @@ vec3 ComputePointLight(Light light, vec3 normal, vec3 viewDir)
     float attenuation = 1.0 / (1.0 + light.linear * distance + light.quadratic * distance * distance); 
 
 	// ambient
-	vec3 ambient = light.ambient * GetAlbedoColor().rgb;
+	vec3 ambient = light.ambient * GetAlbedoColor().rgb * 0.2;
 	vec3 color = ambient;
 	float metallic = GetMetallic();
 	vec3 emission = GetEmission();

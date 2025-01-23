@@ -234,7 +234,7 @@ namespace Borealis
 		Kinematic
 	};
 
-	struct RigidBodyComponent
+	struct RigidbodyComponent
 	{
 		MovementType movement = MovementType::Static;
 		float friction = 0.5f;
@@ -254,8 +254,8 @@ namespace Borealis
 		//bool useGravity = true;
 		//bool isKinematic = false;
 
-		RigidBodyComponent() = default;
-		RigidBodyComponent(const RigidBodyComponent&) = default;
+		RigidbodyComponent() = default;
+		RigidbodyComponent(const RigidbodyComponent&) = default;
 	};
 
 	struct ColliderComponent
@@ -265,7 +265,7 @@ namespace Borealis
 		bool providesContact = false;
 		glm::vec3 center = { 0,0,0 };
 		Ref<PhysicMaterial> Material;
-		RigidBodyComponent* rigidBody = nullptr;
+		RigidbodyComponent* rigidBody = nullptr;
 		unsigned int bodyID = 0;
 	};
 

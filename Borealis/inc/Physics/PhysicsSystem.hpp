@@ -60,7 +60,7 @@ namespace Borealis
    * \param bodyID The ID of the body.
    * \param transform The transform component of the body.
    */
-		static void PushTransform(ColliderComponent& collider, TransformComponent& transform, RigidBodyComponent* rigidbody);
+		static void PushTransform(ColliderComponent& collider, TransformComponent& transform, RigidbodyComponent* rigidbody);
 
 		/**
    * \brief Pulls the transform of the specified body from the physics system.
@@ -74,7 +74,7 @@ namespace Borealis
         * \param position The position of the body.
         * \param rigidbody The rigid body component of the body.
         */
-        static void addBody(TransformComponent& transform, RigidBodyComponent* rigidbody, ColliderComponent& collider, UUID entityID);
+        static void addBody(TransformComponent& transform, RigidbodyComponent* rigidbody, ColliderComponent& collider, UUID entityID);
 		
 		static void EndScene();
 

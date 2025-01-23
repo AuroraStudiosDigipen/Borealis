@@ -98,9 +98,9 @@ namespace Borealis
 			SerializeComponent(out, entity.GetComponent<AnimatorComponent>());
 		}
 
-		if (entity.HasComponent<RigidBodyComponent>())
+		if (entity.HasComponent<RigidbodyComponent>())
 		{
-			SerializeComponent(out, entity.GetComponent<RigidBodyComponent>());
+			SerializeComponent(out, entity.GetComponent<RigidbodyComponent>());
 		}
 
 		if (entity.HasComponent<LightComponent>())
@@ -407,7 +407,7 @@ namespace Borealis
 		DeserialiseComponent<CameraComponent>(entity, BorealisEntity);
 		DeserialiseComponent<MeshFilterComponent>(entity, BorealisEntity);
 		DeserialiseComponent<MeshRendererComponent>(entity, BorealisEntity);
-		DeserialiseComponent<RigidBodyComponent>(entity, BorealisEntity);
+		DeserialiseComponent<RigidbodyComponent>(entity, BorealisEntity);
 		DeserialiseComponent<LightComponent>(entity, BorealisEntity);
 		DeserialiseComponent<CharacterControllerComponent>(entity, BorealisEntity);
 		DeserialiseComponent<AudioSourceComponent>(entity, BorealisEntity);

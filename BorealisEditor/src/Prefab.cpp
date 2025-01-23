@@ -166,7 +166,7 @@ namespace Borealis {
             UpdateComponent<MeshRendererComponent>(child);
             UpdateComponent<BoxColliderComponent>(child);
             UpdateComponent<CapsuleColliderComponent>(child);
-            UpdateComponent<RigidBodyComponent>(child);
+            UpdateComponent<RigidbodyComponent>(child);
             UpdateComponent<LightComponent>(child);
             UpdateComponent<TextComponent>(child);
         }

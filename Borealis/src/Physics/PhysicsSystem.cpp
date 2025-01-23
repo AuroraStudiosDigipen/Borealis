@@ -436,7 +436,7 @@ namespace Borealis
 		sPhysicsData.mSystem->DrawBodies(sPhysicsData.draw_settings, sPhysicsData.debug_renderer);
 	}
 
-	void PhysicsSystem::PushTransform(ColliderComponent& collider, TransformComponent& transform, RigidBodyComponent* rigidbody)
+	void PhysicsSystem::PushTransform(ColliderComponent& collider, TransformComponent& transform, RigidbodyComponent* rigidbody)
 	{
 		auto entityTransform = transform.GetGlobalTransform();
 		auto modelCenter = collider.center;
@@ -690,6 +690,7 @@ namespace Borealis
 	glm::vec3 PhysicsSystem::GetPosition(unsigned int bodyID)
 	{
 		auto Data = sPhysicsData.body_interface->GetPosition((BodyID)bodyID);
+		std::cout << Data.GetX() << " , " << Data.GetY() << " , " << Data.GetZ() << std::endl;
 		return { Data.GetX(), Data.GetY(), Data.GetZ() };
 	}
 
@@ -706,6 +707,15 @@ namespace Borealis
 
 	void PhysicsSystem::SetRotation(unsigned int bodyID, glm::vec3 rotation)
 	{
+		// Convert bodyID to BodyID (assuming BodyID is convertible from unsigned int)
+		BodyID joltBodyID(bodyID);
+
+		// Convert glm::vec3 rotation (Euler angles in radians) to a Quat
+		Quat joltRotation = Quat::sEulerAngles(Vec3(rotation.x, rotation.y, rotation.z));
+
+		// Set the rotation with activation
+		EActivation activationMode = EActivation::Activate; // Activate the body (or use EActivation::DontActivate if preferred)
+		sPhysicsData.body_interface->SetRotation(joltBodyID, joltRotation, activationMode);
 	}
 
 	void PhysicsSystem::move(ColliderComponent& rigidbody, glm::vec3 motion)
@@ -1077,7 +1087,7 @@ namespace Borealis
 
 	}
 
-	void PhysicsSystem::addBody(TransformComponent& transform, RigidBodyComponent* rigidbody, ColliderComponent& collider, UUID entityID)
+	void PhysicsSystem::addBody(TransformComponent& transform, RigidbodyComponent* rigidbody, ColliderComponent& collider, UUID entityID)
 	{
 		ShapeRefC shape;
 		ShapeSettings::ShapeResult shape_result;

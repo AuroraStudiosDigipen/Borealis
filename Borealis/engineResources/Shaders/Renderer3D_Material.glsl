@@ -377,7 +377,7 @@ vec3 ComputePointLight(Light light, vec3 normal, vec3 viewDir)
 
         vec3 diffuse = light.diffuse * diff * attenuation * (1.0 - metallic);
         vec3 specular = light.specular * spec * GetSpecular() * attenuation * metallic;
-
+		ambient *= attenuation;
         color = ambient + diffuse + specular + emission;
     }
 

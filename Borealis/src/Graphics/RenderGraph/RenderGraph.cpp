@@ -1671,6 +1671,65 @@ namespace Borealis
 		renderTarget->Unbind();
 	}
 
+
+	ParticleSystemPass::ParticleSystemPass(std::string name) : EntityPass(name)
+	{
+
+	}
+
+	void ParticleSystemPass::Execute(float dt)
+	{
+		Ref<RenderTargetSource> renderTarget = nullptr;
+		Ref<RenderTargetSource> runTimeRenderTarget = nullptr;
+
+		for (auto sink : sinkList)
+		{
+			if (sink->source->sourceType == RenderSourceType::RenderTargetColor)
+			{
+				if (sink->sinkName == "renderTarget")
+				{
+					renderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
+				}
+			}
+		}
+
+		auto group = registryPtr->group<>(entt::get<TransformComponent, ParticleSystemComponent>);
+
+		renderTarget->Bind();
+		Renderer2D::Begin(glm::mat4{});
+
+		for (auto& entity : group)
+		{
+			Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
+			if (!brEntity.IsActive())
+			{
+				continue;
+			}
+
+			Ref<ParticleSystem> particleSystem = brEntity.GetComponent<ParticleSystemComponent>().particleSystem;
+
+			if (!particleSystem)
+			{
+				particleSystem = MakeRef<ParticleSystem>();
+				particleSystem->Init(brEntity.GetComponent<ParticleSystemComponent>());
+
+				brEntity.GetComponent<ParticleSystemComponent>().texture = Texture2D::GetDefaultTexture();
+			}
+			
+			std::vector<Particle> const& particles = particleSystem->GetParticles();
+			uint32_t particlesCount = particleSystem->GetParticlesCount();
+			for (int i{}; i < particlesCount; ++i)
+			{
+				glm::mat4 transfrom = glm::translate(glm::mat4(1.0f), particles[i].position) *
+					glm::toMat4(particles[i].startRotation) *
+					glm::scale(glm::mat4(1.0f), particles[i].startSize);
+				Renderer2D::DrawQuad(transfrom, brEntity.GetComponent<ParticleSystemComponent>().texture, 1.f, particles[i].startColor);
+			}
+		}
+		Renderer2D::End();
+		renderTarget->Unbind();
+	}
+
 	//========================================================================
 	//RENDER GRAPH Config
 	//========================================================================	
@@ -1803,6 +1862,7 @@ namespace Borealis
 			case RenderPassType::HighlightPass:
 			case RenderPassType::UIPass:
 			case RenderPassType::EditorUIPass:
+			case RenderPassType::ParticleSystemPass:
 				AddEntityPassConfig(passesConfig);
 				break;
 			case RenderPassType::ObjectPicking:
@@ -1896,6 +1956,9 @@ namespace Borealis
 			break;
 		case RenderPassType::EditorUIPass:
 			renderPass = MakeRef<EditorUIPass>(renderPassConfig.mPassName);
+			break;
+		case RenderPassType::ParticleSystemPass:
+			renderPass = MakeRef<ParticleSystemPass>(renderPassConfig.mPassName);
 			break;
 		}
 

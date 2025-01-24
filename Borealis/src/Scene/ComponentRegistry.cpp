@@ -238,6 +238,27 @@ namespace Borealis
             .constructor<>()
             .property("Allow Passthrough", &CanvasRendererComponent::allowPassthrough);
 
+
+        registration::class_<ParticleSystemComponent>("Particle System Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("Duration", &ParticleSystemComponent::duration)
+            .property("Looping", &ParticleSystemComponent::looping)
+            .property("Start Delay", &ParticleSystemComponent::startDelay)
+            .property("Start Life Time", &ParticleSystemComponent::startLifeTime)
+            .property("Start Speed", &ParticleSystemComponent::startSpeed)
+            .property("3D Start Size", &ParticleSystemComponent::_3DStartSizeBool)
+            .property("Start size", &ParticleSystemComponent::startSize)
+            .property("3D Start Rotation", &ParticleSystemComponent::_3DStartRotationBool)
+            .property("Start Rotation", &ParticleSystemComponent::startRotation)
+            .property("Start Color", &ParticleSystemComponent::startColor)
+            (metadata("Colour", true))
+            .property("Gravity Modifier", &ParticleSystemComponent::gravityModifer)
+            .property("Max Particles", &ParticleSystemComponent::maxParticles)
+            .property("Rate Over Time", &ParticleSystemComponent::rateOverTime)
+            .property("Angle", &ParticleSystemComponent::angle)
+            .property("Texture", &ParticleSystemComponent::texture);
+
         registration::class_<TextComponent>("Text Component")
             (metadata("Component", true))
             .constructor<>()

@@ -639,6 +639,30 @@ namespace Borealis
 				}
 			}
 		}
+
+		//particles
+		{
+			entt::basic_group group = mRegistry.group<>(entt::get<TransformComponent, ParticleSystemComponent>);
+			for (auto& entity : group)
+			{
+				auto entityBR = Entity{ entity, this };
+				if (!entityBR.IsActive())
+				{
+					continue;
+				}
+				auto [transform, particleSystemComponent] = group.get<TransformComponent, ParticleSystemComponent>(entity);
+
+				if (!particleSystemComponent.particleSystem)
+				{
+					particleSystemComponent.particleSystem = MakeRef<ParticleSystem>();
+					particleSystemComponent.particleSystem->Init(particleSystemComponent);
+
+					particleSystemComponent.texture = Texture2D::GetDefaultTexture();
+				}
+
+				particleSystemComponent.particleSystem->Update(particleSystemComponent, transform, dt);
+			}
+		}
 	}
 
 	//move down ltr
@@ -972,6 +996,7 @@ namespace Borealis
 		CopyComponent<OutLineComponent>(newEntity, entity);
 		CopyComponent<CanvasComponent>(newEntity, entity);
 		CopyComponent<CanvasRendererComponent>(newEntity, entity);
+		CopyComponent<ParticleSystemComponent>(newEntity, entity);
 		auto& tc = newEntity.GetComponent<TransformComponent>();
 		if (tc.ParentID)
 		{
@@ -1162,6 +1187,7 @@ namespace Borealis
 		CopyComponent<OutLineComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<CanvasComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<CanvasRendererComponent>(newRegistry, originalRegistry, UUIDtoENTT);
+		CopyComponent<ParticleSystemComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 
 		auto tcView = newRegistry.view<TransformComponent>();
 		for (auto entity : tcView)
@@ -1564,6 +1590,12 @@ namespace Borealis
 
 	template<>
 	void Scene::OnComponentAdded<CanvasRendererComponent>(Entity entity, CanvasRendererComponent& component)
+	{
+
+	}	
+
+	template<>
+	void Scene::OnComponentAdded<ParticleSystemComponent>(Entity entity, ParticleSystemComponent& component)
 	{
 
 	}

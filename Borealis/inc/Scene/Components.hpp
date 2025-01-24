@@ -28,6 +28,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/Material.hpp>
 #include <Graphics/Font.hpp>
 #include <Graphics/Framebuffer.hpp>
+#include <Graphics/ParticleSystem.hpp>
 #include <AI/BehaviourTree/BehaviourTree.hpp>
 #include <AI/BehaviourTree/BTreeFactory.hpp>
 #include <Core/UUID.hpp>
@@ -462,6 +463,34 @@ namespace Borealis
 
 		CanvasRendererComponent() = default;
 		CanvasRendererComponent(const CanvasRendererComponent&) = default;
+	};
+
+	struct ParticleSystemComponent
+	{
+		float		duration = 5.f;
+		bool		looping = true;
+		float		startDelay = 0.f;
+		float		startLifeTime = 5.f;
+		float		startSpeed = 5.f;
+		bool		_3DStartSizeBool = false;
+		glm::vec3	startSize = glm::vec3{ 1.f }; //if not 3d, use .x for size
+		bool		_3DStartRotationBool = false;
+		glm::vec3	startRotation = glm::vec3{ 0.f }; // if not 3d, use .x for rotation
+		glm::vec4	startColor = glm::vec4{ 1.f };
+		float		gravityModifer = 0.f;
+		float		simulationSpeed = 1.f;
+		uint32_t	maxParticles = 1000;
+		float		rateOverTime = 10.f;
+		float		angle = 25.f;
+		bool		isEdited = false;
+
+		Ref<Texture2D> texture = nullptr;
+		Ref<ParticleSystem> particleSystem = nullptr;
+		
+		//Add variables for over time
+
+		ParticleSystemComponent() = default;
+		ParticleSystemComponent(const ParticleSystemComponent&) = default;
 	};
 }
 

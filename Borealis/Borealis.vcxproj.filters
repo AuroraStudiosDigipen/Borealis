@@ -2002,6 +2002,9 @@
     <ClInclude Include="lib\xproperty\include\xproperty\xproperty_config.hpp">
       <Filter>lib\xproperty\include\xproperty</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Graphics\ParticleSystem.hpp">
+      <Filter>inc\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lib\imGuizmo\imGuizmo.cpp">
@@ -2252,6 +2255,9 @@
     </ClCompile>
     <ClCompile Include="src\Scripting\ScriptingUtils.cpp">
       <Filter>src\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\ParticleSystem.cpp">
+      <Filter>src\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

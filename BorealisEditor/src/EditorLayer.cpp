@@ -309,6 +309,11 @@ namespace Borealis {
 				highlightPass.AddSinkLinkage("camera", "EditorCamera")
 					.AddSinkLinkage("renderTarget", "ObjectPicking.renderTarget");
 				fconfig.AddPass(highlightPass);
+
+				RenderPassConfig particleSystemPass(RenderPassType::ParticleSystemPass, "ParticleSystem");
+				particleSystemPass.AddSinkLinkage("camera", "EditorCamera")
+					.AddSinkLinkage("renderTarget", "Highlight.renderTarget");
+				fconfig.AddPass(particleSystemPass);
 			}
 
 			//deferred rendering

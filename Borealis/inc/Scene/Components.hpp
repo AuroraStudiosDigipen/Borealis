@@ -301,7 +301,8 @@ namespace Borealis
 		bool enableInertia = true;
 		bool moveInAir = true;
 		bool sliding = true;
-
+		bool isJump = false;
+		float jumpSpeed = 0;
 
 		void* controller = nullptr;
 		glm::vec3 targetVelocity = { 0,0,0 };

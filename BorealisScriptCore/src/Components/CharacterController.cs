@@ -19,6 +19,10 @@ namespace Borealis
         {
             InternalCalls.CharacterController_Move(GetInstanceID(), ref motion);
         }
+        public void Jump(float speed)
+        {
+            InternalCalls.CharacterController_Jump(GetInstanceID(), ref speed);
+        }
 
         public bool isGrounded
         {

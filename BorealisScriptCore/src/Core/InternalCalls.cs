@@ -296,6 +296,10 @@ namespace Borealis
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void CharacterController_IsGrounded(ulong id, out bool grounded);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void CharacterController_Jump(ulong id, ref float speed);
+
         #endregion
 
         #region AudioSource

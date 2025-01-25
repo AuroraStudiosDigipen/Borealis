@@ -403,6 +403,7 @@ namespace Borealis
 			MonoArray** entityIDArray, MonoArray** distanceArray, MonoArray** normalArray, MonoArray** pointArray);
 
 	void CharacterController_Move(uint64_t id, glm::vec3* motion);
+	void CharacterController_Jump(uint64_t id, float jumpSpeed);
 
 	void CharacterController_IsGrounded(uint64_t id, bool* grounded);
 

@@ -453,6 +453,13 @@ namespace Borealis
 		glm::vec2 canvasSize{};
 		float scaleFactor{};
 		Ref<FrameBuffer> canvasFrameBuffer = nullptr;
+		enum class RenderMode : uint8_t
+		{
+			WorldSpace,
+			ScreenSpace
+		};
+		RenderMode renderMode = RenderMode::ScreenSpace;
+
 		CanvasComponent() = default;
 		CanvasComponent(const CanvasComponent&) = default;
 	};
@@ -464,6 +471,7 @@ namespace Borealis
 		CanvasRendererComponent() = default;
 		CanvasRendererComponent(const CanvasRendererComponent&) = default;
 	};
+
 }
 
 #endif

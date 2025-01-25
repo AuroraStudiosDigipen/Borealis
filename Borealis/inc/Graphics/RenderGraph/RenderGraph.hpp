@@ -193,7 +193,8 @@ namespace Borealis
 		UIPass,
 		EditorUIPass,
 		SkyboxPass,
-		RenderToTarget
+		RenderToTarget,
+		UIWorldPass
 	};
 
 	class RenderPass 
@@ -306,6 +307,14 @@ namespace Borealis
 	{
 	public:
 		UIPass(std::string name);
+
+		void Execute(float dt) override;
+	};
+
+	class UIWorldPass : public EntityPass
+	{
+	public:
+		UIWorldPass(std::string name);
 
 		void Execute(float dt) override;
 	};

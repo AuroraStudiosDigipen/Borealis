@@ -229,9 +229,16 @@ namespace Borealis
             .property("Filled", &OutLineComponent::filled)
             .property("Active", &OutLineComponent::active);
 
+        registration::enumeration<CanvasComponent::RenderMode>("Canvas RenderMode")
+            (
+                value("World Space", CanvasComponent::RenderMode::WorldSpace),
+                value("Screen Space", CanvasComponent::RenderMode::ScreenSpace)
+                );
+
         registration::class_<CanvasComponent>("Canvas Component")
             (metadata("Component", true))
-            .constructor<>();
+            .constructor<>()
+            .property("Render Mode", &CanvasComponent::renderMode);;
 
         registration::class_<CanvasRendererComponent>("Canvas Renderer Component")
             (metadata("Component", true))
@@ -266,7 +273,6 @@ namespace Borealis
             .property("ChildrenID", &TransformComponent::ChildrenID)
             (metadata("Hide", true))
             .method("GetTransform", &TransformComponent::GetTransform);
-            
     }
 
     enum dataTypes

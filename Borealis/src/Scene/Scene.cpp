@@ -1124,6 +1124,7 @@ namespace Borealis
 					{
 						MonoObject* DstData = dstIT->second->GetFieldValue<MonoObject*>(property.first);
 						MonoObject* Data = srcIT->second->GetFieldValue<MonoObject*>(property.first);
+						if (!Data) continue;
 						UUID setUUID = property.second.GetGameObjectID(Data);
 						BOREALIS_CORE_ASSERT(setUUID != 0, "UUID is 0");
 						InitGameObject(DstData, setUUID, property.second.mFieldClassName());

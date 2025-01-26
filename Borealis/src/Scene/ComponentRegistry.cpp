@@ -273,6 +273,10 @@ namespace Borealis
             .property("ChildrenID", &TransformComponent::ChildrenID)
             (metadata("Hide", true))
             .method("GetTransform", &TransformComponent::GetTransform);
+
+        registration::class_<ButtonComponent>("Button Component")
+            (metadata("Component", true))
+            .constructor<>();
     }
 
     enum dataTypes

@@ -472,6 +472,12 @@ namespace Borealis
 		CanvasRendererComponent(const CanvasRendererComponent&) = default;
 	};
 
+	struct ButtonComponent
+	{
+		ButtonComponent() = default;
+		ButtonComponent(const ButtonComponent&) = default;
+	};
+
 }
 
 #endif

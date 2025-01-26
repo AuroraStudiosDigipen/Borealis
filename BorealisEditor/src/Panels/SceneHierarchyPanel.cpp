@@ -2164,7 +2164,7 @@ namespace Borealis
 			isEdited = SearchBar<OutLineComponent	>(search_text, entity, "Outline", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<CanvasComponent	>(search_text, entity, "Canvas", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<CanvasRendererComponent	>(search_text, entity, "Canvas Renderer", search_buffer) ? true : isEdited;
-
+			isEdited = SearchBar<ButtonComponent	>(search_text, entity, "Button", search_buffer) ? true : isEdited;
 
 			// scripts
 			for (auto [name, klass] : ScriptingSystem::mScriptClasses)
@@ -2212,6 +2212,7 @@ namespace Borealis
 		isEdited = DrawComponentLayout<OutLineComponent>("Outline", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<CanvasComponent>("Canvas", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<CanvasRendererComponent>("Canvas Renderer", entity) ? true : isEdited;
+		isEdited = DrawComponentLayout<ButtonComponent>("Button", entity) ? true : isEdited;
 
 		/*DrawComponent<CameraComponent>("Camera", mSelectedEntity, [](auto& cameraComponent)
 			{

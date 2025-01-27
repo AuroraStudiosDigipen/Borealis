@@ -289,8 +289,13 @@ namespace Borealis {
 					.AddSinkLinkage("camera", "EditorCamera");
 				fconfig.AddPass(editorRender2D);
 
+				RenderPassConfig UIEditorWorldPass(RenderPassType::UIWorldPass, "editorUIWorldPass");
+				UIEditorWorldPass.AddSinkLinkage("renderTarget", "editorRender2D.renderTarget");
+				UIEditorWorldPass.AddSinkLinkage("camera", "EditorCamera");
+				fconfig.AddPass(UIEditorWorldPass);
+
 				RenderPassConfig editorUIPass(RenderPassType::EditorUIPass, "EditorUI");
-				editorUIPass.AddSinkLinkage("renderTarget", "editorRender2D.renderTarget")
+				editorUIPass.AddSinkLinkage("renderTarget", "editorUIWorldPass.renderTarget")
 					.AddSinkLinkage("camera", "EditorCamera")
 					.AddSinkLinkage("runTimeRenderTarget", "RunTimeBuffer");
 				fconfig.AddPass(editorUIPass);

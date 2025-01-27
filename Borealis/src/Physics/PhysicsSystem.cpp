@@ -466,8 +466,11 @@ namespace Borealis
 		JPH::Quat newRotation = JPH::Quat(rotation.x, rotation.y, rotation.z, rotation.w);
 
 		// Set position and rotation in the physics system
-		sPhysicsData.body_interface->SetPosition((BodyID)collider.bodyID, newPosition, EActivation::Activate);
-		sPhysicsData.body_interface->SetRotation((BodyID)collider.bodyID, newRotation, EActivation::Activate);
+		if (rigidbody->movement != MovementType::Kinematic)
+		{
+			sPhysicsData.body_interface->SetPosition((BodyID)collider.bodyID, newPosition, EActivation::Activate);
+			sPhysicsData.body_interface->SetRotation((BodyID)collider.bodyID, newRotation, EActivation::Activate);
+		}
 
 		//Set motion type if necceassary
 		if (rigidbody)
@@ -492,6 +495,11 @@ namespace Borealis
 	void PhysicsSystem::PullTransform(ColliderComponent& collider, TransformComponent& transform)
 	{
 		// Get position from the physics system (JPH::RVec3 to glm::vec3)
+		if (collider.rigidBody->movement != MovementType::Kinematic)
+		{
+			return;
+		}
+
 		JPH::RVec3 newPosition = sPhysicsData.body_interface->GetPosition((BodyID)collider.bodyID);
 		glm::vec3 newTranslate = glm::vec3(newPosition.GetX(), newPosition.GetY(), newPosition.GetZ());
 		// Get rotation from the physics system (JPH::Quat to glm::quat)
@@ -690,14 +698,30 @@ namespace Borealis
 	glm::vec3 PhysicsSystem::GetPosition(unsigned int bodyID)
 	{
 		auto Data = sPhysicsData.body_interface->GetPosition((BodyID)bodyID);
-		std::cout << Data.GetX() << " , " << Data.GetY() << " , " << Data.GetZ() << std::endl;
+		//std::cout << Data.GetX() << " , " << Data.GetY() << " , " << Data.GetZ() << std::endl;
 		return { Data.GetX(), Data.GetY(), Data.GetZ() };
 	}
 
 	void PhysicsSystem::SetPosition(unsigned int bodyID, glm::vec3 position)
 	{
-		sPhysicsData.body_interface->SetPosition((BodyID)bodyID, JPH::RVec3(position.x, position.y, position.z), EActivation::Activate);
+		// Set the position of the body
+		sPhysicsData.body_interface->SetPosition(
+			(BodyID)bodyID,
+			JPH::RVec3(position.x, position.y, position.z),
+			EActivation::Activate
+		);
+
+		// Check if the motion type is Kinematic and print an appropriate message
+		if (sPhysicsData.body_interface->GetMotionType((BodyID)bodyID) == EMotionType::Kinematic)
+		{
+			std::cout << "Body " << bodyID << " is Kinematic." << std::endl;
+		}
+		else
+		{
+			std::cout << "Body " << bodyID << " is not Kinematic." << std::endl;
+		}
 	}
+
 
 	glm::vec3 PhysicsSystem::GetRotation(unsigned int bodyID)
 	{

@@ -721,7 +721,7 @@ namespace Borealis
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		auto& rb = entity.GetComponent<RigidbodyComponent>();
-		//*velocity = PhysicsSystem::GetLinearVelocity(entity.GetComponent<RigidBodyComponent>().bodyID);
+		*velocity = PhysicsSystem::GetLinearVelocity(entity.GetComponent<BoxColliderComponent>().bodyID);
 	}
 	void RigidbodyComponent_SetLinearVelocity(UUID uuid, glm::vec3* velocity)
 	{
@@ -730,7 +730,7 @@ namespace Borealis
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		auto& rb = entity.GetComponent<RigidbodyComponent>();
-		//PhysicsSystem::SetLinearVelocity(entity.GetComponent<RigidBodyComponent>().bodyID, *velocity);
+		PhysicsSystem::SetLinearVelocity(entity.GetComponent<BoxColliderComponent>().bodyID, *velocity);
 	}
 	void RigidbodyComponent_GetAngularVelocity(UUID uuid, glm::vec3* velocity)
 	{
@@ -739,7 +739,7 @@ namespace Borealis
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		auto& rb = entity.GetComponent<RigidbodyComponent>();
-		//*velocity = PhysicsSystem::GetAngularVelocity(entity.GetComponent<RigidBodyComponent>().bodyID);
+		*velocity = PhysicsSystem::GetAngularVelocity(entity.GetComponent<BoxColliderComponent>().bodyID);
 	}
 	void RigidbodyComponent_SetAngularVelocity(UUID uuid, glm::vec3* velocity)
 	{
@@ -748,7 +748,7 @@ namespace Borealis
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		auto& rb = entity.GetComponent<RigidbodyComponent>();
-		//PhysicsSystem::SetAngularVelocity(entity.GetComponent<RigidBodyComponent>().bodyID, *velocity);
+		PhysicsSystem::SetAngularVelocity(entity.GetComponent<BoxColliderComponent>().bodyID, *velocity);
 	}
 	void RigidbodyComponent_GetPosition(UUID uuid, glm::vec3* position)
 	{
@@ -757,7 +757,7 @@ namespace Borealis
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		auto& rb = entity.GetComponent<RigidbodyComponent>();
-		*position = PhysicsSystem::GetPosition(entity.GetComponent<ColliderComponent>().bodyID);
+		*position = PhysicsSystem::GetPosition(entity.GetComponent<BoxColliderComponent>().bodyID);
 	}
 	void RigidbodyComponent_SetPosition(UUID uuid, glm::vec3* position)
 	{
@@ -765,8 +765,8 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		auto& rb = entity.GetComponent<RigidbodyComponent>();
-		PhysicsSystem::SetPosition(entity.GetComponent<ColliderComponent>().bodyID, *position);
+		//auto& rb = entity.GetComponent<RigidbodyComponent>();
+		PhysicsSystem::SetPosition(entity.GetComponent<BoxColliderComponent>().bodyID, *position);
 	}
 	void RigidbodyComponent_GetRotation(UUID uuid, glm::vec3* rotation)
 	{
@@ -774,8 +774,8 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		auto& rb = entity.GetComponent<RigidbodyComponent>();
-		*rotation = PhysicsSystem::GetRotation(entity.GetComponent<ColliderComponent>().bodyID);
+		//auto& rb = entity.GetComponent<RigidbodyComponent>();
+		*rotation = PhysicsSystem::GetRotation(entity.GetComponent<BoxColliderComponent>().bodyID);
 	}
 	void RigidbodyComponent_SetRotation(UUID uuid, glm::vec3* rotation)
 	{
@@ -784,7 +784,7 @@ namespace Borealis
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		auto& rb = entity.GetComponent<RigidbodyComponent>();
-		PhysicsSystem::SetRotation(entity.GetComponent<ColliderComponent>().bodyID, *rotation);
+		PhysicsSystem::SetRotation(entity.GetComponent<BoxColliderComponent>().bodyID, *rotation);
 	}
 	void RigidbodyComponent_SetIsKinematic(UUID uuid, bool* kinematic)
 	{

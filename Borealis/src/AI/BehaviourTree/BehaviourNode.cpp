@@ -126,6 +126,11 @@ namespace Borealis
 
         auto klass = GetScriptClassUtils("BehaviourNode");
         auto method = klass->GetMethod("Tick", 2);
+        if (!method)
+        {
+            std::cerr << "Method Tick(float, GameObject) not found in BehaviorNode!" << std::endl;
+            // Potential crash if we continue
+        }
         void* params[2];
         params[0] = &dt;
         params[1] = gameObject;

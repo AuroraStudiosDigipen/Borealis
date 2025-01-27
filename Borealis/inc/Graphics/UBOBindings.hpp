@@ -1,9 +1,9 @@
 /******************************************************************************
 /*!
-\file       MeshOptimizer.hpp
+\file       UBOBindings.hpp
 \author     Chan Guo Geng Gordon
 \par        email: g.chan/@digipen.edu
-\date       October 23, 2024
+\date       September 15, 2024
 \brief      Declares
 
 Copyright (C) 2024 DigiPen Institute of Technology.
@@ -12,15 +12,15 @@ prior written consent of DigiPen Institute of Technology is prohibited.
  */
  /******************************************************************************/
 
-#ifndef MeshOptimizer_HPP
-#define MeshOptimizer_HPP
+#ifndef UBOBindings_HPP
+#define UBOBindings_HPP
 
-#include "Importer/AssetStructs.hpp"
-
-namespace BorealisAssetCompiler
+namespace Borealis
 {
-	void OptimizeModel(Model& model);
-	void OptimizeModel(SkinnedModel& model);
+#define CAMERA_BIND 0
+#define MATERIAL_ARRAY_BIND 1
+#define LIGHTING_BIND 2
+#define ANIMATION_BIND 3
 }
 
 #endif

@@ -8,7 +8,12 @@ layout(location = 3) in int a_TexIndex;
 layout(location = 4) in float a_TilingFactor;
 layout(location = 5) in int a_EntityID;
 
-uniform mat4 u_ViewProjection;
+//uniform mat4 u_ViewProjection;
+layout(std140) uniform Camera
+{
+	mat4 u_ViewProjection;
+};
+
 
 out vec2 v_TexCoord;
 out vec4 v_Color;

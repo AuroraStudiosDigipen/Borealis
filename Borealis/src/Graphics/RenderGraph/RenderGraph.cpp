@@ -904,35 +904,38 @@ namespace Borealis
 				static glm::vec3 tempLightDir{};
 				static glm::vec3 tempPos{}, tempPosEditor{};
 
-				if (tempLightDir != lightComponent.direction) lightChange = true;
-
-				if (!editor)
+				if(false/*TURN ON FOR PERFORMANCE*/)
 				{
-					if (glm::distance(tempPos, cameraPosition) > 20.f) cameraChange = true;
-				}
-				else
-				{
-					if (glm::distance(tempPosEditor, cameraPosition) > 20.f) cameraChange = true;
-				}
+					if (tempLightDir != lightComponent.direction) lightChange = true;
 
-				if (lightChange || cameraChange)
-				{
-					tempLightDir = lightComponent.direction;
-
-					if (editor)
+					if (!editor)
 					{
-						tempPosEditor = cameraPosition;
+						if (glm::distance(tempPos, cameraPosition) > 20.f) cameraChange = true;
 					}
 					else
 					{
-						tempPos = cameraPosition;
-						editorChange = false;
+						if (glm::distance(tempPosEditor, cameraPosition) > 20.f) cameraChange = true;
 					}
-				}
-				else
-				{
-					if(editorChange)
-						return;
+
+					if (lightChange || cameraChange)
+					{
+						tempLightDir = lightComponent.direction;
+
+						if (editor)
+						{
+							tempPosEditor = cameraPosition;
+						}
+						else
+						{
+							tempPos = cameraPosition;
+							editorChange = false;
+						}
+					}
+					else
+					{
+						if (editorChange)
+							return;
+					}
 				}
 
 				if (lightComponent.type == LightComponent::Type::Directional)
@@ -992,7 +995,7 @@ namespace Borealis
 			Ref<FrameBuffer> CSMBuffer = nullptr;
 			if (editor)
 			{
-				editorChange = true;
+				//editorChange = true;
 				CSMBuffer = mCascadeShadowMapBufferEditor;
 			}
 			else
@@ -1718,12 +1721,16 @@ namespace Borealis
 			
 			std::vector<Particle> const& particles = particleSystem->GetParticles();
 			uint32_t particlesCount = particleSystem->GetParticlesCount();
-			for (int i{}; i < particlesCount; ++i)
+			for (Particle const& particle : particles)
 			{
-				glm::mat4 transfrom = glm::translate(glm::mat4(1.0f), particles[i].position) *
-					glm::toMat4(particles[i].startRotation) *
-					glm::scale(glm::mat4(1.0f), particles[i].startSize);
-				Renderer2D::DrawQuad(transfrom, brEntity.GetComponent<ParticleSystemComponent>().texture, 1.f, particles[i].startColor);
+				if (!particle.isActive)
+				{
+					continue;
+				}
+				glm::mat4 transfrom = glm::translate(glm::mat4(1.0f), particle.position) *
+					glm::toMat4(particle.startRotation) *
+					glm::scale(glm::mat4(1.0f), particle.startSize);
+				Renderer2D::DrawQuad(transfrom, brEntity.GetComponent<ParticleSystemComponent>().texture, 1.f, particle.startColor);
 			}
 		}
 		Renderer2D::End();

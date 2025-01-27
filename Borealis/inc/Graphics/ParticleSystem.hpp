@@ -50,7 +50,7 @@ namespace Borealis
 		static Ref<Texture2D> GetDefaultParticleTexture();
 
 	private:
-		void SpawnParticle(TransformComponent & transfrom, Particle& particle);
+		void SpawnParticle(TransformComponent & transfrom, Particle& particle, float startSpeed);
 
 		void SyncWithEditor(ParticleSystemComponent& particleSystemComponent);
 		void UpdateParticles(glm::vec3 size, glm::vec3 rotation, glm::vec4 color);

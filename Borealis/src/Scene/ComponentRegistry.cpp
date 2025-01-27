@@ -276,7 +276,14 @@ namespace Borealis
 
         registration::class_<ButtonComponent>("Button Component")
             (metadata("Component", true))
-            .constructor<>();
+            .constructor<>()
+    		.property("Is Active", &ButtonComponent::isActive)
+            .property("On Click Function Name", &ButtonComponent::onClickFunctionName)
+            .property("On Hover Function Name", &ButtonComponent::onHoverFunctionName)
+            .property("On Release Function Name", &ButtonComponent::onReleaseFunctionName)
+            .property("On Click Class", &ButtonComponent::onClickClass)
+            .property("On Hover Class", &ButtonComponent::onHoverClass)
+            .property("On Release Class", &ButtonComponent::onReleaseClass);
     }
 
     enum dataTypes

@@ -800,11 +800,33 @@ namespace Borealis {
 				{
 					mRuntimeHovered = ImGui::IsWindowHovered();
 					mRuntimeFocused = ImGui::IsWindowFocused();
+
 					ImVec2 runtimeSize = ImGui::GetContentRegionAvail();
 					mRuntimeSize = { runtimeSize.x, runtimeSize.y };
-					//uint64_t screenID = static_cast<uint64_t>(mRuntimeFrameBuffer->GetColorAttachmentRendererID());
-					uint64_t screenID = static_cast<uint64_t>(SceneManager::GetActiveScene()->GetRunTimeFB()->GetColorAttachmentRendererID());
+
+					uint64_t screenID = (uint64_t)SceneManager::GetActiveScene()->GetRunTimeFB()->GetColorAttachmentRendererID();
+					ImVec2 cursorScreenPos = ImGui::GetCursorScreenPos();
+
 					ImGui::Image((ImTextureID)screenID, ImVec2{ mRuntimeSize.x, mRuntimeSize.y }, ImVec2{ 0,1 }, ImVec2{ 1,0 });
+
+					if (ImGui::IsWindowHovered(ImGuiHoveredFlags_None))
+					{
+						ImVec2 mousePosAbs = ImGui::GetMousePos();
+
+						float halfW = mRuntimeSize.x * 0.5f;
+						float halfH = mRuntimeSize.y * 0.5f;
+						float centerX = cursorScreenPos.x + halfW;
+						float centerY = cursorScreenPos.y + halfH;
+
+						float localX = mousePosAbs.x - centerX;
+						float localY = mousePosAbs.y - centerY;
+
+						float normalizedX = localX / (mRuntimeSize.x);
+						float normalizedY = localY / (mRuntimeSize.y);
+
+						ButtonSystem::SetMousePos({ normalizedX, normalizedY });
+						ImGui::SetTooltip("Mouse Centered: (%.2f, %.2f)", normalizedX, normalizedY);
+					}
 				}
 			}
 			ImGui::End(); // Of Runtime

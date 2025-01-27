@@ -53,7 +53,6 @@ namespace Borealis
 		static void SetPropertyInternal(const std::string& propertyName, const void*& data, const LightComponent& object);
 		static void SetPropertyInternal(const std::string& propertyName, const void*& data, const TextComponent& object);
 		static void SetPropertyInternal(const std::string& propertyName, const void*& data, const OutLineComponent& object);
-		static void SetPropertyInternal(const std::string& propertyName, const void*& data, const ButtonComponent& object);
 
 		static void CopyPropertyInternal(const std::string& propertyName, const TransformComponent& src, const TransformComponent& dest);
 		static void CopyPropertyInternal(const std::string& propertyName, const SpriteRendererComponent& src, const SpriteRendererComponent& dest);
@@ -71,7 +70,6 @@ namespace Borealis
 		static void CopyPropertyInternal(const std::string& propertyName, const LightComponent& src, const LightComponent& dest);
 		static void CopyPropertyInternal(const std::string& propertyName, const TextComponent& src, const TextComponent& dest);
 		static void CopyPropertyInternal(const std::string& propertyName, const OutLineComponent& src, const OutLineComponent& dest);
-		static void CopyPropertyInternal(const std::string& propertyName, const ButtonComponent& src, const ButtonComponent& dest);
 	};
 }
 

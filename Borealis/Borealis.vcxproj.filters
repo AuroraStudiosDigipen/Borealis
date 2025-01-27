@@ -1999,6 +1999,9 @@
     <ClInclude Include="lib\xproperty\include\xproperty\xproperty_config.hpp">
       <Filter>lib\xproperty\include\xproperty</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Graphics\UI\Button.hpp">
+      <Filter>inc\Graphics\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lib\imGuizmo\imGuizmo.cpp">
@@ -2243,6 +2246,9 @@
     </ClCompile>
     <ClCompile Include="src\Scripting\ScriptingUtils.cpp">
       <Filter>src\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\UI\Button.cpp">
+      <Filter>src\Graphics\UI</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

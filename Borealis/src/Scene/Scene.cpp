@@ -570,6 +570,8 @@ namespace Borealis
 			}
 		}
 
+		ButtonSystem::Update();
+
 		Camera* mainCamera = nullptr;
 		glm::mat4 mainCameratransform(1.f);
 
@@ -1589,6 +1591,6 @@ namespace Borealis
 	template<>
 	void Scene::OnComponentAdded<ButtonComponent>(Entity entity, ButtonComponent& component)
 	{
-
+		
 	}
 }

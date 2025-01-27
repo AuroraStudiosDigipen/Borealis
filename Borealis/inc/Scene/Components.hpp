@@ -303,6 +303,7 @@ namespace Borealis
 		bool sliding = true;
 		bool isJump = false;
 		float jumpSpeed = 0;
+		float gravity = 50.f;
 
 		void* controller = nullptr;
 		glm::vec3 targetVelocity = { 0,0,0 };

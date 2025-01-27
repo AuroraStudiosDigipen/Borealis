@@ -852,7 +852,7 @@ namespace Borealis
 			new_velocity = current_vertical_velocity;
 
 		// Gravity
-		new_velocity += (character_up_rotation * sPhysicsData.mSystem->GetGravity()) * inDeltaTime;
+		new_velocity += (character_up_rotation * Vec3(0.f,-controllerComp.gravity,0.f)) * inDeltaTime;
 
 		if (player_controls_horizontal_velocity)
 		{

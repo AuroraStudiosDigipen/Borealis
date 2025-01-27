@@ -628,6 +628,32 @@ namespace Borealis
 
 	}
 
+
+	std::pair<glm::vec3, glm::vec3> PhysicsSystem::calculateBoundingVolume(const SkinnedModel& model)
+	{
+		glm::vec3 minExtent{}, maxExtent{};
+
+		for (const auto& mesh : model.mMeshes)
+		{
+			for (const auto& pos : mesh.GetVertices())
+			{
+				// Update min and max extents for each axis
+				minExtent.x = std::min(minExtent.x, pos.Position.x);
+				minExtent.y = std::min(minExtent.y, pos.Position.y);
+				minExtent.z = std::min(minExtent.z, pos.Position.z);
+
+				maxExtent.x = std::max(maxExtent.x, pos.Position.x);
+				maxExtent.y = std::max(maxExtent.y, pos.Position.y);
+				maxExtent.z = std::max(maxExtent.z, pos.Position.z);
+			}
+		}
+
+		glm::vec3 boundingVolumeCenter = (minExtent + maxExtent) * 0.5f;
+
+		return { boundingVolumeCenter, maxExtent - minExtent };
+
+	}
+
 	glm::vec3 PhysicsSystem::calculateBoxSize(glm::vec3 minExtent, glm::vec3 maxExtent)
 	{
 		// Calculate the size of the box
@@ -893,6 +919,7 @@ namespace Borealis
 			auto InnerID = reinterpret_cast<CharacterVirtual*>(character.controller)->GetInnerBodyID();
 			delete character.controller;
 			sPhysicsData.mSystem->GetBodyInterface().RemoveBody(InnerID);
+			sPhysicsData.mSystem->GetBodyInterface().DestroyBody(InnerID);
 		}
 
 

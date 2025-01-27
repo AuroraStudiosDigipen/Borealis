@@ -1473,6 +1473,14 @@ namespace Borealis
 				component.size = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).second;
 			}
 		}
+		else if (entity.HasComponent<SkinnedMeshRendererComponent>())
+		{
+			if (entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel)
+			{
+				component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel.get())).first;
+				component.size = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel.get())).second;
+			}
+		}
 		else
 		{
 			component.center = { 0,0,0 };
@@ -1489,6 +1497,16 @@ namespace Borealis
 			{
 				component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).first;
 				glm::vec3 data = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).second;
+				component.radius = PhysicsSystem::calculateCapsuleDimensions(data).first;
+				component.height = PhysicsSystem::calculateCapsuleDimensions(data).second;
+			}
+		}
+		else if (entity.HasComponent<SkinnedMeshRendererComponent>())
+		{
+			if (entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel)
+			{
+				component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel.get())).first;
+				glm::vec3 data = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel.get())).second;
 				component.radius = PhysicsSystem::calculateCapsuleDimensions(data).first;
 				component.height = PhysicsSystem::calculateCapsuleDimensions(data).second;
 			}
@@ -1510,6 +1528,15 @@ namespace Borealis
 			{
 				component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).first;
 				glm::vec3 data = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).second;
+				component.radius = PhysicsSystem::calculateSphereRadius(data);
+			}
+		}
+		else if (entity.HasComponent<SkinnedMeshRendererComponent>())
+		{
+			if (entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel)
+			{
+				component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel.get())).first;
+				glm::vec3 data = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel.get())).second;
 				component.radius = PhysicsSystem::calculateSphereRadius(data);
 			}
 		}

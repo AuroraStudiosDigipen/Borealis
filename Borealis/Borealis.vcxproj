@@ -231,6 +231,7 @@
     <ClInclude Include="inc\Graphics\SubTexture2D.hpp" />
     <ClInclude Include="inc\Graphics\Texture.hpp" />
     <ClInclude Include="inc\Graphics\UBOBindings.hpp" />
+    <ClInclude Include="inc\Graphics\UI\Button.hpp" />
     <ClInclude Include="inc\Graphics\UniformBufferObject.hpp" />
     <ClInclude Include="inc\Graphics\VertexArray.hpp" />
     <ClInclude Include="inc\ImGui\ImGuiFontLib.hpp" />
@@ -837,6 +838,7 @@
     <ClCompile Include="src\Graphics\SkinnedModel.cpp" />
     <ClCompile Include="src\Graphics\SubTexture2D.cpp" />
     <ClCompile Include="src\Graphics\Texture.cpp" />
+    <ClCompile Include="src\Graphics\UI\Button.cpp" />
     <ClCompile Include="src\Graphics\UniformBufferObject.cpp" />
     <ClCompile Include="src\Graphics\VertexArray.cpp" />
     <ClCompile Include="src\ImGui\ImGuiBuild.cpp" />

@@ -37,6 +37,9 @@
     <Filter Include="inc\Graphics\RenderGraph">
       <UniqueIdentifier>{00E8FDE0-EC0C-4D61-1558-32F101DC4B7F}</UniqueIdentifier>
     </Filter>
+    <Filter Include="inc\Graphics\UI">
+      <UniqueIdentifier>{0C5AAD40-78E5-1A05-81F6-9DF9ED007705}</UniqueIdentifier>
+    </Filter>
     <Filter Include="inc\ImGui">
       <UniqueIdentifier>{89503E75-F5BA-F2EB-3EF9-A391AAA2D040}</UniqueIdentifier>
     </Filter>
@@ -145,6 +148,9 @@
     <Filter Include="src\Graphics\RenderGraph">
       <UniqueIdentifier>{CE07F316-BA2C-4297-E377-2727CFFB40B5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Graphics\UI">
+      <UniqueIdentifier>{1A8A788E-8615-E652-8F26-6947FB304253}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\ImGui">
       <UniqueIdentifier>{170E22B3-8378-D629-CCB6-87CF3860B47E}</UniqueIdentifier>
     </Filter>
@@ -159,12 +165,6 @@
     </Filter>
     <Filter Include="src\Scripting">
       <UniqueIdentifier>{6FBC2D98-DB7C-A9CE-A4B7-F24B1037EEAA}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="inc\Graphics\UI">
-      <UniqueIdentifier>{db53fef9-74f8-4a4a-9f6c-a8ec5485e2ae}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Graphics\UI">
-      <UniqueIdentifier>{7337f519-a554-41b8-944c-ed9ff2c484d3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -393,6 +393,9 @@
     </ClInclude>
     <ClInclude Include="inc\Graphics\UBOBindings.hpp">
       <Filter>inc\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Graphics\UI\Button.hpp">
+      <Filter>inc\Graphics\UI</Filter>
     </ClInclude>
     <ClInclude Include="inc\Graphics\UniformBufferObject.hpp">
       <Filter>inc\Graphics</Filter>
@@ -2008,9 +2011,6 @@
     <ClInclude Include="lib\xproperty\include\xproperty\xproperty_config.hpp">
       <Filter>lib\xproperty\include\xproperty</Filter>
     </ClInclude>
-    <ClInclude Include="inc\Graphics\UI\Button.hpp">
-      <Filter>inc\Graphics\UI</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lib\imGuizmo\imGuizmo.cpp">
@@ -2199,6 +2199,9 @@
     <ClCompile Include="src\Graphics\Texture.cpp">
       <Filter>src\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\UI\Button.cpp">
+      <Filter>src\Graphics\UI</Filter>
+    </ClCompile>
     <ClCompile Include="src\Graphics\UniformBufferObject.cpp">
       <Filter>src\Graphics</Filter>
     </ClCompile>
@@ -2261,9 +2264,6 @@
     </ClCompile>
     <ClCompile Include="src\Scripting\ScriptingUtils.cpp">
       <Filter>src\Scripting</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\UI\Button.cpp">
-      <Filter>src\Graphics\UI</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

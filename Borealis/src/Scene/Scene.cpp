@@ -178,10 +178,17 @@ namespace Borealis
 					}
 				}
 			}
-			static float accumDt = 0;
-			accumDt += dt;
-			int timeStep = std::max(1, (int)(accumDt / 1.66667f));
-			accumDt -= timeStep * 1.66667f;
+			static float accumDt = 0.0f; // Accumulated delta time
+			const float fixedTimeStep = 1.f/60; // Fixed update interval (~60 FPS)
+
+			accumDt += dt; // Accumulate elapsed time
+
+			// Calculate how many steps to process
+			int timeStep = static_cast<int>(accumDt / fixedTimeStep);
+
+			if (timeStep > 0) {
+				accumDt -= timeStep * fixedTimeStep; // Reduce accumulated time
+			}
 
 			auto BTview = mRegistry.view<BehaviourTreeComponent>();
 			for (auto entity : BTview)
@@ -289,248 +296,258 @@ namespace Borealis
 				}
 
 				auto boxGroup = mRegistry.group<>(entt::get<TransformComponent, BoxColliderComponent, RigidBodyComponent>);
-				for (auto entity : boxGroup)
+				
+				for (int i = 0; i < timeStep; i++)
 				{
-					Entity brEntity{ entity, this };
-					if (!brEntity.IsActive())
+					for (auto entity : boxGroup)
 					{
-						continue;
-					}
-					auto [transform, box, rigidbody] = boxGroup.get<TransformComponent, BoxColliderComponent, RigidBodyComponent>(entity);
-					PhysicsSystem::PushTransform(box, transform, box.rigidBody);
-				}
-
-				auto sphereGroup = mRegistry.group<>(entt::get<TransformComponent, SphereColliderComponent, RigidBodyComponent>);
-				for (auto entity : sphereGroup)
-				{
-					Entity brEntity{ entity, this };
-					if (!brEntity.IsActive())
-					{
-						continue;
-					}
-					auto [transform, sphere, rigidbody] = sphereGroup.get<TransformComponent, SphereColliderComponent, RigidBodyComponent>(entity);
-					PhysicsSystem::PushTransform(sphere, transform, sphere.rigidBody);
-				}
-
-				auto capsuleGroup = mRegistry.group<>(entt::get<TransformComponent, CapsuleColliderComponent, RigidBodyComponent>);
-				for (auto entity : capsuleGroup)
-				{
-					Entity brEntity{ entity, this };
-					if (!brEntity.IsActive())
-					{
-						continue;
-					}
-					auto [transform, capsule, rigidbody] = capsuleGroup.get<TransformComponent, CapsuleColliderComponent, RigidBodyComponent>(entity);
-					PhysicsSystem::PushTransform(capsule, transform, capsule.rigidBody);
-				}
-
-				PhysicsSystem::Update(dt);				
-
-				// Set entity values to Jolt transform.
-				for (auto entity : boxGroup)
-				{
-					Entity brEntity{ entity, this };
-					if (!brEntity.IsActive())
-					{
-						continue;
-					}
-					auto [transform, box, rigidbody] = boxGroup.get<TransformComponent, BoxColliderComponent, RigidBodyComponent>(entity);
-					PhysicsSystem::PullTransform(box, transform);
-				}
-
-				for (auto entity : capsuleGroup)
-				{
-					Entity brEntity{ entity, this };
-					if (!brEntity.IsActive())
-					{
-						continue;
-					}
-					auto [transform, capsule, rigidbody] = capsuleGroup.get<TransformComponent, CapsuleColliderComponent, RigidBodyComponent>(entity);
-					PhysicsSystem::PullTransform(capsule, transform);
-				}
-				for (auto entity : sphereGroup)
-				{
-					Entity brEntity{ entity, this };
-					if (!brEntity.IsActive())
-					{
-						continue;
-					}
-					auto [transform, sphere, rigidbody] = sphereGroup.get<TransformComponent, SphereColliderComponent, RigidBodyComponent>(entity);
-					PhysicsSystem::PullTransform(sphere, transform);
-				}
-
-				while (!PhysicsSystem::GetCollisionEnterQueue().empty())
-				{
-					auto collisionPair = PhysicsSystem::GetCollisionEnterQueue().front();
-					PhysicsSystem::GetCollisionEnterQueue().pop();
-					Entity entity1 = GetEntityByUUID(collisionPair.first);
-					Entity entity2 = GetEntityByUUID(collisionPair.second);
-					if (entity1.HasComponent<ScriptComponent>())
-					{
-						auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
-						for (auto& [name, script] : scriptComponent1.mScripts)
+						Entity brEntity{ entity, this };
+						if (!brEntity.IsActive())
 						{
+							continue;
+						}
+						auto [transform, box, rigidbody] = boxGroup.get<TransformComponent, BoxColliderComponent, RigidBodyComponent>(entity);
+						PhysicsSystem::PushTransform(box, transform, box.rigidBody);
+					}
 
-							script->OnCollisionEnter(entity2.GetComponent<IDComponent>().ID);
+					auto sphereGroup = mRegistry.group<>(entt::get<TransformComponent, SphereColliderComponent, RigidBodyComponent>);
+					for (auto entity : sphereGroup)
+					{
+						Entity brEntity{ entity, this };
+						if (!brEntity.IsActive())
+						{
+							continue;
+						}
+						auto [transform, sphere, rigidbody] = sphereGroup.get<TransformComponent, SphereColliderComponent, RigidBodyComponent>(entity);
+						PhysicsSystem::PushTransform(sphere, transform, sphere.rigidBody);
+					}
 
+					auto capsuleGroup = mRegistry.group<>(entt::get<TransformComponent, CapsuleColliderComponent, RigidBodyComponent>);
+					for (auto entity : capsuleGroup)
+					{
+						Entity brEntity{ entity, this };
+						if (!brEntity.IsActive())
+						{
+							continue;
+						}
+						auto [transform, capsule, rigidbody] = capsuleGroup.get<TransformComponent, CapsuleColliderComponent, RigidBodyComponent>(entity);
+						PhysicsSystem::PushTransform(capsule, transform, capsule.rigidBody);
+					}
+
+
+					PhysicsSystem::Update(fixedTimeStep);
+
+					// Set entity values to Jolt transform.
+
+					for (auto entity : boxGroup)
+					{
+						Entity brEntity{ entity, this };
+						if (!brEntity.IsActive())
+						{
+							continue;
+						}
+						auto [transform, box, rigidbody] = boxGroup.get<TransformComponent, BoxColliderComponent, RigidBodyComponent>(entity);
+						PhysicsSystem::PullTransform(box, transform);
+					}
+
+					for (auto entity : capsuleGroup)
+					{
+						Entity brEntity{ entity, this };
+						if (!brEntity.IsActive())
+						{
+							continue;
+						}
+						auto [transform, capsule, rigidbody] = capsuleGroup.get<TransformComponent, CapsuleColliderComponent, RigidBodyComponent>(entity);
+						PhysicsSystem::PullTransform(capsule, transform);
+					}
+					for (auto entity : sphereGroup)
+					{
+						Entity brEntity{ entity, this };
+						if (!brEntity.IsActive())
+						{
+							continue;
+						}
+						auto [transform, sphere, rigidbody] = sphereGroup.get<TransformComponent, SphereColliderComponent, RigidBodyComponent>(entity);
+						PhysicsSystem::PullTransform(sphere, transform);
+					}
+
+					while (!PhysicsSystem::GetCollisionEnterQueue().empty())
+					{
+						auto collisionPair = PhysicsSystem::GetCollisionEnterQueue().front();
+						PhysicsSystem::GetCollisionEnterQueue().pop();
+						Entity entity1 = GetEntityByUUID(collisionPair.first);
+						Entity entity2 = GetEntityByUUID(collisionPair.second);
+						if (entity1.HasComponent<ScriptComponent>())
+						{
+							auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
+							for (auto& [name, script] : scriptComponent1.mScripts)
+							{
+
+								script->OnCollisionEnter(entity2.GetComponent<IDComponent>().ID);
+
+							}
+						}
+
+						if (entity2.HasComponent<ScriptComponent>())
+						{
+							auto& scriptComponent2 = entity2.GetComponent<ScriptComponent>();
+							for (auto& [name, script] : scriptComponent2.mScripts)
+							{
+
+								script->OnCollisionEnter(entity1.GetComponent<IDComponent>().ID);
+
+							}
 						}
 					}
 
-					if (entity2.HasComponent<ScriptComponent>())
+
+					while (!PhysicsSystem::GetCollisionPersistQueue().empty())
 					{
-						auto& scriptComponent2 = entity2.GetComponent<ScriptComponent>();
-						for (auto& [name, script] : scriptComponent2.mScripts)
+						auto collisionPair = PhysicsSystem::GetCollisionPersistQueue().front();
+						PhysicsSystem::GetCollisionPersistQueue().pop();
+						Entity entity1 = GetEntityByUUID(collisionPair.first);
+						Entity entity2 = GetEntityByUUID(collisionPair.second);
+
+						if (entity1.HasComponent<ScriptComponent>())
 						{
+							auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
+							for (auto& [name, script] : scriptComponent1.mScripts)
+							{
+								script->OnCollisionStay(entity2.GetComponent<IDComponent>().ID);
+							}
+						}
+						if (entity2.HasComponent<ScriptComponent>())
+						{
+							auto& scriptComponent2 = entity2.GetComponent<ScriptComponent>();
+							for (auto& [name, script] : scriptComponent2.mScripts)
+							{
 
-							script->OnCollisionEnter(entity1.GetComponent<IDComponent>().ID);
+								script->OnCollisionStay(entity1.GetComponent<IDComponent>().ID);
 
+							}
+						}
+					}
+
+					while (!PhysicsSystem::GetCollisionExitQueue().empty())
+					{
+						auto collisionPair = PhysicsSystem::GetCollisionExitQueue().front();
+						PhysicsSystem::GetCollisionExitQueue().pop();
+						Entity entity1 = GetEntityByUUID(collisionPair.first);
+						Entity entity2 = GetEntityByUUID(collisionPair.second);
+						if (entity1.HasComponent<ScriptComponent>())
+						{
+							auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
+							for (auto& [name, script] : scriptComponent1.mScripts)
+							{
+
+								script->OnCollisionExit(entity2.GetComponent<IDComponent>().ID);
+
+							}
+						}
+
+						if (entity2.HasComponent<ScriptComponent>())
+						{
+							auto& scriptComponent2 = entity2.GetComponent<ScriptComponent>();
+							for (auto& [name, script] : scriptComponent2.mScripts)
+							{
+
+								script->OnCollisionExit(entity1.GetComponent<IDComponent>().ID);
+
+							}
+						}
+					}
+
+
+					while (!PhysicsSystem::GetTriggerEnterQueue().empty())
+					{
+						auto collisionPair = PhysicsSystem::GetTriggerEnterQueue().front();
+						PhysicsSystem::GetTriggerEnterQueue().pop();
+						Entity entity1 = GetEntityByUUID(collisionPair.first);
+						Entity entity2 = GetEntityByUUID(collisionPair.second);
+						if (entity1.HasComponent<ScriptComponent>())
+						{
+							auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
+							for (auto& [name, script] : scriptComponent1.mScripts)
+							{
+
+								script->OnTriggerEnter(collisionPair.second);
+
+							}
+						}
+
+						if (entity2.HasComponent<ScriptComponent>())
+						{
+							auto& scriptComponent2 = entity2.GetComponent<ScriptComponent>();
+							for (auto& [name, script] : scriptComponent2.mScripts)
+							{
+
+								script->OnTriggerEnter(collisionPair.first);
+
+							}
+						}
+					}
+
+
+					while (!PhysicsSystem::GetTriggerPersistQueue().empty())
+					{
+						auto collisionPair = PhysicsSystem::GetTriggerPersistQueue().front();
+						PhysicsSystem::GetTriggerPersistQueue().pop();
+						Entity entity1 = GetEntityByUUID(collisionPair.first);
+						Entity entity2 = GetEntityByUUID(collisionPair.second);
+
+						if (entity1.HasComponent<ScriptComponent>())
+						{
+							auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
+							for (auto& [name, script] : scriptComponent1.mScripts)
+							{
+								script->OnTriggerStay(entity2.GetComponent<IDComponent>().ID);
+							}
+						}
+						if (entity2.HasComponent<ScriptComponent>())
+						{
+							auto& scriptComponent2 = entity2.GetComponent<ScriptComponent>();
+							for (auto& [name, script] : scriptComponent2.mScripts)
+							{
+
+								script->OnTriggerStay(entity1.GetComponent<IDComponent>().ID);
+
+							}
+						}
+					}
+
+					while (!PhysicsSystem::GetTriggerExitQueue().empty())
+					{
+						auto collisionPair = PhysicsSystem::GetTriggerExitQueue().front();
+						PhysicsSystem::GetTriggerExitQueue().pop();
+						Entity entity1 = GetEntityByUUID(collisionPair.first);
+						Entity entity2 = GetEntityByUUID(collisionPair.second);
+						if (entity1.HasComponent<ScriptComponent>())
+						{
+							auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
+							for (auto& [name, script] : scriptComponent1.mScripts)
+							{
+
+								script->OnTriggerExit(entity2.GetComponent<IDComponent>().ID);
+
+							}
+						}
+
+						if (entity2.HasComponent<ScriptComponent>())
+						{
+							auto& scriptComponent2 = entity2.GetComponent<ScriptComponent>();
+							for (auto& [name, script] : scriptComponent2.mScripts)
+							{
+
+								script->OnTriggerExit(entity1.GetComponent<IDComponent>().ID);
+
+							}
 						}
 					}
 				}
 
+				
 
-				while (!PhysicsSystem::GetCollisionPersistQueue().empty())
-				{
-					auto collisionPair = PhysicsSystem::GetCollisionPersistQueue().front();
-					PhysicsSystem::GetCollisionPersistQueue().pop();
-					Entity entity1 = GetEntityByUUID(collisionPair.first);
-					Entity entity2 = GetEntityByUUID(collisionPair.second);
-
-					if (entity1.HasComponent<ScriptComponent>())
-					{
-						auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
-						for (auto& [name, script] : scriptComponent1.mScripts)
-						{
-							script->OnCollisionStay(entity2.GetComponent<IDComponent>().ID);
-						}
-					}
-					if (entity2.HasComponent<ScriptComponent>())
-					{
-						auto& scriptComponent2 = entity2.GetComponent<ScriptComponent>();
-						for (auto& [name, script] : scriptComponent2.mScripts)
-						{
-
-							script->OnCollisionStay(entity1.GetComponent<IDComponent>().ID);
-
-						}
-					}
-				}
-
-				while (!PhysicsSystem::GetCollisionExitQueue().empty())
-				{
-					auto collisionPair = PhysicsSystem::GetCollisionExitQueue().front();
-					PhysicsSystem::GetCollisionExitQueue().pop();
-					Entity entity1 = GetEntityByUUID(collisionPair.first);
-					Entity entity2 = GetEntityByUUID(collisionPair.second);
-					if (entity1.HasComponent<ScriptComponent>())
-					{
-						auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
-						for (auto& [name, script] : scriptComponent1.mScripts)
-						{
-
-							script->OnCollisionExit(entity2.GetComponent<IDComponent>().ID);
-
-						}
-					}
-
-					if (entity2.HasComponent<ScriptComponent>())
-					{
-						auto& scriptComponent2 = entity2.GetComponent<ScriptComponent>();
-						for (auto& [name, script] : scriptComponent2.mScripts)
-						{
-
-							script->OnCollisionExit(entity1.GetComponent<IDComponent>().ID);
-
-						}
-					}
-				}
-
-
-				while (!PhysicsSystem::GetTriggerEnterQueue().empty())
-				{
-					auto collisionPair = PhysicsSystem::GetTriggerEnterQueue().front();
-					PhysicsSystem::GetTriggerEnterQueue().pop();
-					Entity entity1 = GetEntityByUUID(collisionPair.first);
-					Entity entity2 = GetEntityByUUID(collisionPair.second);
-					if (entity1.HasComponent<ScriptComponent>())
-					{
-						auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
-						for (auto& [name, script] : scriptComponent1.mScripts)
-						{
-
-							script->OnTriggerEnter(collisionPair.second);
-
-						}
-					}
-
-					if (entity2.HasComponent<ScriptComponent>())
-					{
-						auto& scriptComponent2 = entity2.GetComponent<ScriptComponent>();
-						for (auto& [name, script] : scriptComponent2.mScripts)
-						{
-
-							script->OnTriggerEnter(collisionPair.first);
-
-						}
-					}
-				}
-
-
-				while (!PhysicsSystem::GetTriggerPersistQueue().empty())
-				{
-					auto collisionPair = PhysicsSystem::GetTriggerPersistQueue().front();
-					PhysicsSystem::GetTriggerPersistQueue().pop();
-					Entity entity1 = GetEntityByUUID(collisionPair.first);
-					Entity entity2 = GetEntityByUUID(collisionPair.second);
-
-					if (entity1.HasComponent<ScriptComponent>())
-					{
-						auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
-						for (auto& [name, script] : scriptComponent1.mScripts)
-						{
-							script->OnTriggerStay(entity2.GetComponent<IDComponent>().ID);
-						}
-					}
-					if (entity2.HasComponent<ScriptComponent>())
-					{
-						auto& scriptComponent2 = entity2.GetComponent<ScriptComponent>();
-						for (auto& [name, script] : scriptComponent2.mScripts)
-						{
-
-							script->OnTriggerStay(entity1.GetComponent<IDComponent>().ID);
-
-						}
-					}
-				}
-
-				while (!PhysicsSystem::GetTriggerExitQueue().empty())
-				{
-					auto collisionPair = PhysicsSystem::GetTriggerExitQueue().front();
-					PhysicsSystem::GetTriggerExitQueue().pop();
-					Entity entity1 = GetEntityByUUID(collisionPair.first);
-					Entity entity2 = GetEntityByUUID(collisionPair.second);
-					if (entity1.HasComponent<ScriptComponent>())
-					{
-						auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
-						for (auto& [name, script] : scriptComponent1.mScripts)
-						{
-
-							script->OnTriggerExit(entity2.GetComponent<IDComponent>().ID);
-
-						}
-					}
-
-					if (entity2.HasComponent<ScriptComponent>())
-					{
-						auto& scriptComponent2 = entity2.GetComponent<ScriptComponent>();
-						for (auto& [name, script] : scriptComponent2.mScripts)
-						{
-
-							script->OnTriggerExit(entity1.GetComponent<IDComponent>().ID);
-
-						}
-					}
-				}
+			
 
 				for (auto entity : view)
 				{
@@ -1132,6 +1149,7 @@ namespace Borealis
 					{
 						MonoObject* DstData = dstIT->second->GetFieldValue<MonoObject*>(property.first);
 						MonoObject* Data = srcIT->second->GetFieldValue<MonoObject*>(property.first);
+						if (!Data) continue;
 						UUID setUUID = property.second.GetGameObjectID(Data);
 						BOREALIS_CORE_ASSERT(setUUID != 0, "UUID is 0");
 						InitGameObject(DstData, setUUID, property.second.mFieldClassName());

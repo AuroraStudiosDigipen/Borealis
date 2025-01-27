@@ -14,7 +14,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include "BorealisPCH.hpp"
 
-// STL includes
+// STL includes+
 #include <iostream>
 #include <cstdarg>
 #include <thread>
@@ -276,7 +276,7 @@ namespace Borealis
 		std::queue<CollisionPair> onTriggerPairPersistedQueue;
 	};
 
-	static PhysicsSystemData sData;
+	static PhysicsSystemData sPhysicsData;
 	static unordered_map<unsigned int, Borealis::UUID> bodyIDMapUUID;
 	static unordered_map<unsigned int, bool> bodySensorMap;
 
@@ -284,11 +284,11 @@ namespace Borealis
 	{
 		if (inBody1.IsSensor() || inBody2.IsSensor())
 		{
-			sData.onTriggerPairAddedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
+			sPhysicsData.onTriggerPairAddedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
 		}
 		else
 		{
-			sData.onCollisionPairAddedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
+			sPhysicsData.onCollisionPairAddedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
 		}
 	}
 
@@ -296,11 +296,11 @@ namespace Borealis
 	{
 		if (inBody1.IsSensor() || inBody2.IsSensor())
 		{
-			sData.onTriggerPairPersistedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
+			sPhysicsData.onTriggerPairPersistedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
 		}
 		else
 		{
-			sData.onCollisionPairPersistedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
+			sPhysicsData.onCollisionPairPersistedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
 		}
 	}
 
@@ -308,58 +308,58 @@ namespace Borealis
 	{
 		if (PhysicsSystem::BodyIDToIsSensor(inSubShapePair.GetBody1ID().GetIndexAndSequenceNumber()) || PhysicsSystem::BodyIDToIsSensor(inSubShapePair.GetBody2ID().GetIndexAndSequenceNumber()))
 		{
-			sData.onTriggerPairRemovedQueue.push({ PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody1ID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody2ID().GetIndexAndSequenceNumber()) });
+			sPhysicsData.onTriggerPairRemovedQueue.push({ PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody1ID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody2ID().GetIndexAndSequenceNumber()) });
 		}
 		else
 		{
-			sData.onCollisionPairRemovedQueue.push({ PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody1ID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody2ID().GetIndexAndSequenceNumber()) });
+			sPhysicsData.onCollisionPairRemovedQueue.push({ PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody1ID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody2ID().GetIndexAndSequenceNumber()) });
 		}
 		
 	}
 
-	std::queue<CollisionPair>& PhysicsSystem::GetCollisionEnterQueue() {return sData.onCollisionPairAddedQueue; }
-	std::queue<CollisionPair>& PhysicsSystem::GetCollisionPersistQueue() { return sData.onCollisionPairPersistedQueue; }
-	std::queue<CollisionPair>& PhysicsSystem::GetCollisionExitQueue() { return sData.onCollisionPairRemovedQueue; }
+	std::queue<CollisionPair>& PhysicsSystem::GetCollisionEnterQueue() {return sPhysicsData.onCollisionPairAddedQueue; }
+	std::queue<CollisionPair>& PhysicsSystem::GetCollisionPersistQueue() { return sPhysicsData.onCollisionPairPersistedQueue; }
+	std::queue<CollisionPair>& PhysicsSystem::GetCollisionExitQueue() { return sPhysicsData.onCollisionPairRemovedQueue; }
 
-	std::queue<CollisionPair>& PhysicsSystem::GetTriggerEnterQueue() { return sData.onTriggerPairAddedQueue; }
-	std::queue<CollisionPair>& PhysicsSystem::GetTriggerPersistQueue() { return sData.onTriggerPairPersistedQueue; }
-	std::queue<CollisionPair>& PhysicsSystem::GetTriggerExitQueue() { return sData.onTriggerPairRemovedQueue; }
+	std::queue<CollisionPair>& PhysicsSystem::GetTriggerEnterQueue() { return sPhysicsData.onTriggerPairAddedQueue; }
+	std::queue<CollisionPair>& PhysicsSystem::GetTriggerPersistQueue() { return sPhysicsData.onTriggerPairPersistedQueue; }
+	std::queue<CollisionPair>& PhysicsSystem::GetTriggerExitQueue() { return sPhysicsData.onTriggerPairRemovedQueue; }
 
 	void PhysicsSystem::EndScene()
 	{
-		while (!sData.onCollisionPairAddedQueue.empty())
+		while (!sPhysicsData.onCollisionPairAddedQueue.empty())
 		{
-			sData.onCollisionPairAddedQueue.pop();
+			sPhysicsData.onCollisionPairAddedQueue.pop();
 		}
-		while (!sData.onCollisionPairPersistedQueue.empty())
+		while (!sPhysicsData.onCollisionPairPersistedQueue.empty())
 		{
-			sData.onCollisionPairPersistedQueue.pop();
+			sPhysicsData.onCollisionPairPersistedQueue.pop();
 		}
-		while (!sData.onCollisionPairRemovedQueue.empty())
+		while (!sPhysicsData.onCollisionPairRemovedQueue.empty())
 		{
-			sData.onCollisionPairRemovedQueue.pop();
+			sPhysicsData.onCollisionPairRemovedQueue.pop();
 		}
-		while (!sData.onTriggerPairAddedQueue.empty())
+		while (!sPhysicsData.onTriggerPairAddedQueue.empty())
 		{
-			sData.onTriggerPairAddedQueue.pop();
+			sPhysicsData.onTriggerPairAddedQueue.pop();
 		}
-		while (!sData.onTriggerPairPersistedQueue.empty())
+		while (!sPhysicsData.onTriggerPairPersistedQueue.empty())
 		{
-			sData.onTriggerPairPersistedQueue.pop();
+			sPhysicsData.onTriggerPairPersistedQueue.pop();
 		}
-		while (!sData.onTriggerPairRemovedQueue.empty())
+		while (!sPhysicsData.onTriggerPairRemovedQueue.empty())
 		{
-			sData.onTriggerPairRemovedQueue.pop();
+			sPhysicsData.onTriggerPairRemovedQueue.pop();
 		}
 	}
 
 	void PhysicsSystem::Init()
 {
-	sData.broad_phase_layer_interface = new BPLayerInterfaceImpl();
-	sData.object_vs_broadphase_layer_filter = new ObjectVsBroadPhaseLayerFilterImpl();
-	sData.object_vs_object_layer_filter = new ObjectLayerPairFilterImpl();
-	sData.contact_listener = new MyContactListener();
-	sData.body_activation_listener = new MyBodyActivationListener();
+	sPhysicsData.broad_phase_layer_interface = new BPLayerInterfaceImpl();
+	sPhysicsData.object_vs_broadphase_layer_filter = new ObjectVsBroadPhaseLayerFilterImpl();
+	sPhysicsData.object_vs_object_layer_filter = new ObjectLayerPairFilterImpl();
+	sPhysicsData.contact_listener = new MyContactListener();
+	sPhysicsData.body_activation_listener = new MyBodyActivationListener();
 	// Register allocation hook. In this example we'll just let Jolt use malloc / free but you can override these if you want (see Memory.h).
 	// This needs to be done before any other Jolt function is called.
 	RegisterDefaultAllocator();
@@ -382,8 +382,8 @@ namespace Borealis
 	// B.t.w. 10 MB is way too much for this example but it is a typical value you can use.
 	// If you don't want to pre-allocate you can also use TempAllocatorMalloc to fall back to
 	// malloc / free.
-	sData.temp_allocator = new TempAllocatorImpl(10 * 1024 * 1024);
-	sData.job_system = new JobSystemThreadPool(2048, 8, thread::hardware_concurrency() - 1);
+	sPhysicsData.temp_allocator = new TempAllocatorImpl(10 * 1024 * 1024);
+	sPhysicsData.job_system = new JobSystemThreadPool(2048, 8, thread::hardware_concurrency() - 1);
 
 	// This is the max amount of rigid bodies that you can add to the physics system. If you try to add more you'll get an error.
 	// Note: This value is low because this is a simple test. For a real project use something in the order of 65536.
@@ -404,36 +404,36 @@ namespace Borealis
 	const uint cMaxContactConstraints = 1024;
 
 	// Now we can create the actual physics system.
-	sData.mSystem = new JPH::PhysicsSystem();
-	sData.mSystem->Init(cMaxBodies, cNumBodyMutexes, cMaxBodyPairs, cMaxContactConstraints, *sData.broad_phase_layer_interface, *sData.object_vs_broadphase_layer_filter, *sData.object_vs_object_layer_filter);
+	sPhysicsData.mSystem = new JPH::PhysicsSystem();
+	sPhysicsData.mSystem->Init(cMaxBodies, cNumBodyMutexes, cMaxBodyPairs, cMaxContactConstraints, *sPhysicsData.broad_phase_layer_interface, *sPhysicsData.object_vs_broadphase_layer_filter, *sPhysicsData.object_vs_object_layer_filter);
 	// A body activation listener gets notified when bodies activate and go to sleep
 	// Note that this is called from a job so whatever you do here needs to be thread safe.
 	// Registering one is entirely optional.
 	
-	sData.mSystem->SetBodyActivationListener(sData.body_activation_listener);
+	sPhysicsData.mSystem->SetBodyActivationListener(sPhysicsData.body_activation_listener);
 
 	// A contact listener gets notified when bodies (are about to) collide, and when they separate again.
 	// Note that this is called from a job so whatever you do here needs to be thread safe.
 	// Registering one is entirely optional.
-	sData.mSystem->SetContactListener(sData.contact_listener);
+	sPhysicsData.mSystem->SetContactListener(sPhysicsData.contact_listener);
 
 	// The main way to interact with the bodies in the physics system is through the body interface. There is a locking and a non-locking
 	// variant of this. We're going to use the locking version (even though we're not planning to access bodies from multiple threads)
-	sData.body_interface = &sData.mSystem->GetBodyInterface();
+	sPhysicsData.body_interface = &sPhysicsData.mSystem->GetBodyInterface();
 
 	// Create a debug renderer
-	sData.debug_renderer = new MyDebugRenderer();
-	sData.draw_settings.mDrawShapeWireframe = true;
+	sPhysicsData.debug_renderer = new MyDebugRenderer();
+	sPhysicsData.draw_settings.mDrawShapeWireframe = true;
 
 	// Optional step: Before starting the physics simulation you can optimize the broad phase. This improves collision detection performance (it's pointless here because we only have 2 bodies).
 	// You should definitely not call this every frame or when e.g. streaming in a new level section as it is an expensive operation.
 	// Instead insert all new objects in batches instead of 1 at a time to keep the broad phase efficient.
-	sData.mSystem->OptimizeBroadPhase();
+	sPhysicsData.mSystem->OptimizeBroadPhase();
 }
 
 	void PhysicsSystem::DrawDebug()
 	{
-		sData.mSystem->DrawBodies(sData.draw_settings, sData.debug_renderer);
+		sPhysicsData.mSystem->DrawBodies(sPhysicsData.draw_settings, sPhysicsData.debug_renderer);
 	}
 
 	void PhysicsSystem::PushTransform(ColliderComponent& collider, TransformComponent& transform, RigidBodyComponent* rigidbody)
@@ -445,7 +445,7 @@ namespace Borealis
 
 		//TODO Fix scaling
 		//// Assuming `body` is a pointer to an existing body
-		//ShapeRefC oldShape = sData.body_interface->GetShape((BodyID(rigidbody.bodyID)));
+		//ShapeRefC oldShape = sPhysicsData.body_interface->GetShape((BodyID(rigidbody.bodyID)));
 	
 		//// Specify the new scale factor as a Vec3
 		//Vec3 newScale(transform.Scale.x,transform.Scale.y,transform.Scale.z); // Example: scaling by 1.5 on all axes
@@ -454,7 +454,7 @@ namespace Borealis
 		//ScaledShape* scaledShape = new ScaledShape(oldShape, newScale);
 
 		//// Replace the body�s shape with the scaled shape
-		//sData.body_interface->SetShape((BodyID(rigidbody.bodyID)), scaledShape, true, EActivation::Activate);
+		//sPhysicsData.body_interface->SetShape((BodyID(rigidbody.bodyID)), scaledShape, true, EActivation::Activate);
 	
 		// Convert position (glm::vec3 to Jolt's RVec3)
 		JPH::RVec3 newPosition = JPH::RVec3(actualCenter.x, actualCenter.y, actualCenter.z);
@@ -466,24 +466,24 @@ namespace Borealis
 		JPH::Quat newRotation = JPH::Quat(rotation.x, rotation.y, rotation.z, rotation.w);
 
 		// Set position and rotation in the physics system
-		sData.body_interface->SetPosition((BodyID)collider.bodyID, newPosition, EActivation::Activate);
-		sData.body_interface->SetRotation((BodyID)collider.bodyID, newRotation, EActivation::Activate);
+		sPhysicsData.body_interface->SetPosition((BodyID)collider.bodyID, newPosition, EActivation::Activate);
+		sPhysicsData.body_interface->SetRotation((BodyID)collider.bodyID, newRotation, EActivation::Activate);
 
 		//Set motion type if necceassary
 		if (rigidbody)
 		{
 			if (rigidbody->movement == MovementType::Kinematic)
 			{
-				sData.body_interface->SetMotionType((BodyID)collider.bodyID, EMotionType::Kinematic, EActivation::Activate);
+				sPhysicsData.body_interface->SetMotionType((BodyID)collider.bodyID, EMotionType::Kinematic, EActivation::Activate);
 			}
 			else if (rigidbody->movement == MovementType::Static)
 			{
-				sData.body_interface->SetMotionType((BodyID)collider.bodyID, EMotionType::Static, EActivation::Activate);
+				sPhysicsData.body_interface->SetMotionType((BodyID)collider.bodyID, EMotionType::Static, EActivation::Activate);
 
 			}
 			else if (rigidbody->movement == MovementType::Dynamic)
 			{
-				sData.body_interface->SetMotionType((BodyID)collider.bodyID, EMotionType::Dynamic, EActivation::Activate);
+				sPhysicsData.body_interface->SetMotionType((BodyID)collider.bodyID, EMotionType::Dynamic, EActivation::Activate);
 
 			}
 		}
@@ -492,10 +492,10 @@ namespace Borealis
 	void PhysicsSystem::PullTransform(ColliderComponent& collider, TransformComponent& transform)
 	{
 		// Get position from the physics system (JPH::RVec3 to glm::vec3)
-		JPH::RVec3 newPosition = sData.body_interface->GetPosition((BodyID)collider.bodyID);
+		JPH::RVec3 newPosition = sPhysicsData.body_interface->GetPosition((BodyID)collider.bodyID);
 		glm::vec3 newTranslate = glm::vec3(newPosition.GetX(), newPosition.GetY(), newPosition.GetZ());
 		// Get rotation from the physics system (JPH::Quat to glm::quat)
-		JPH::Quat newRotation = sData.body_interface->GetRotation((BodyID)collider.bodyID);
+		JPH::Quat newRotation = sPhysicsData.body_interface->GetRotation((BodyID)collider.bodyID);
 		glm::quat rotation = glm::quat(newRotation.GetW(), newRotation.GetX(), newRotation.GetY(), newRotation.GetZ());
 		// Convert quaternion to Euler angles (quat to vec3) in degrees
 		glm::vec3 newRotate = glm::degrees(glm::eulerAngles(rotation));  // Euler angles in degrees
@@ -575,20 +575,20 @@ namespace Borealis
 
 	void PhysicsSystem::Update(float dt)
 	{
-		sData.mSystem->Update(dt, 1, sData.temp_allocator, sData.job_system);
+		sPhysicsData.mSystem->Update(dt, 1, sPhysicsData.temp_allocator, sPhysicsData.job_system);
 	}
 
 	void PhysicsSystem::Free()
 	{
-		delete sData.body_activation_listener;
-		delete sData.broad_phase_layer_interface;
-		delete sData.object_vs_broadphase_layer_filter;
-		delete sData.object_vs_object_layer_filter;
-		delete sData.contact_listener;
-		delete sData.temp_allocator;
-		delete sData.job_system;
-		delete sData.debug_renderer;
-		delete sData.mSystem;
+		delete sPhysicsData.body_activation_listener;
+		delete sPhysicsData.broad_phase_layer_interface;
+		delete sPhysicsData.object_vs_broadphase_layer_filter;
+		delete sPhysicsData.object_vs_object_layer_filter;
+		delete sPhysicsData.contact_listener;
+		delete sPhysicsData.temp_allocator;
+		delete sPhysicsData.job_system;
+		delete sPhysicsData.debug_renderer;
+		delete sPhysicsData.mSystem;
 
 		delete Factory::sInstance;
 	}
@@ -652,55 +652,55 @@ namespace Borealis
 
 	void PhysicsSystem::AddForce(unsigned int bodyID, glm::vec3 force)
 	{
-		sData.body_interface->AddForce((BodyID)bodyID, JPH::RVec3(force.x, force.y, force.z));
+		sPhysicsData.body_interface->AddForce((BodyID)bodyID, JPH::RVec3(force.x, force.y, force.z));
 	}
 
 	void PhysicsSystem::AddTorque(unsigned int bodyID, glm::vec3 torque)
 	{
-		sData.body_interface->AddTorque((BodyID)bodyID, JPH::RVec3(torque.x, torque.y, torque.z));
+		sPhysicsData.body_interface->AddTorque((BodyID)bodyID, JPH::RVec3(torque.x, torque.y, torque.z));
 	}
 
 	void PhysicsSystem::AddImpulse(unsigned int bodyID, glm::vec3 impulse)
 	{
-		sData.body_interface->AddImpulse((BodyID)bodyID, JPH::RVec3(impulse.x, impulse.y, impulse.z));
+		sPhysicsData.body_interface->AddImpulse((BodyID)bodyID, JPH::RVec3(impulse.x, impulse.y, impulse.z));
 	}
 
 	glm::vec3 PhysicsSystem::GetLinearVelocity(unsigned int bodyID)
 	{
-		auto data = sData.body_interface->GetLinearVelocity((BodyID)bodyID);
+		auto data = sPhysicsData.body_interface->GetLinearVelocity((BodyID)bodyID);
 		return { data.GetX(), data.GetY(), data.GetZ() };
 	}
 
 	glm::vec3 PhysicsSystem::GetAngularVelocity(unsigned int bodyID)
 	{
-		auto data = sData.body_interface->GetAngularVelocity((BodyID)bodyID);
+		auto data = sPhysicsData.body_interface->GetAngularVelocity((BodyID)bodyID);
 		return { data.GetX(), data.GetY(), data.GetZ() };
 	}
 
 	void PhysicsSystem::SetLinearVelocity(unsigned int bodyID, glm::vec3 velocity)
 	{
-		sData.body_interface->SetLinearVelocity((BodyID)bodyID, JPH::RVec3(velocity.x, velocity.y, velocity.z));
+		sPhysicsData.body_interface->SetLinearVelocity((BodyID)bodyID, JPH::RVec3(velocity.x, velocity.y, velocity.z));
 	}
 
 	void PhysicsSystem::SetAngularVelocity(unsigned int bodyID, glm::vec3 velocity)
 	{
-		sData.body_interface->SetAngularVelocity((BodyID)bodyID, JPH::RVec3(velocity.x, velocity.y, velocity.z));
+		sPhysicsData.body_interface->SetAngularVelocity((BodyID)bodyID, JPH::RVec3(velocity.x, velocity.y, velocity.z));
 	}
 
 	glm::vec3 PhysicsSystem::GetPosition(unsigned int bodyID)
 	{
-		auto Data = sData.body_interface->GetPosition((BodyID)bodyID);
+		auto Data = sPhysicsData.body_interface->GetPosition((BodyID)bodyID);
 		return { Data.GetX(), Data.GetY(), Data.GetZ() };
 	}
 
 	void PhysicsSystem::SetPosition(unsigned int bodyID, glm::vec3 position)
 	{
-		sData.body_interface->SetPosition((BodyID)bodyID, JPH::RVec3(position.x, position.y, position.z), EActivation::Activate);
+		sPhysicsData.body_interface->SetPosition((BodyID)bodyID, JPH::RVec3(position.x, position.y, position.z), EActivation::Activate);
 	}
 
 	glm::vec3 PhysicsSystem::GetRotation(unsigned int bodyID)
 	{
-		auto Data = sData.body_interface->GetRotation((BodyID)bodyID);
+		auto Data = sPhysicsData.body_interface->GetRotation((BodyID)bodyID);
 		return { Data.GetX(), Data.GetY(), Data.GetZ() };
 	}
 
@@ -714,7 +714,7 @@ namespace Borealis
 		JPH::RVec3 JoltMotion = JPH::RVec3(motion.x, motion.y, motion.z);
 
 		// Set the new position
-		sData.body_interface->SetLinearVelocity((BodyID)rigidbody.bodyID, JoltMotion);
+		sPhysicsData.body_interface->SetLinearVelocity((BodyID)rigidbody.bodyID, JoltMotion);
 	}
 
 	void PhysicsSystem::addCharacter(CharacterControllerComponent& character, TransformComponent& transform, ColliderComponent& collider, UUID entityID)
@@ -758,7 +758,7 @@ namespace Borealis
 		settings.mInnerBodyLayer = BrEntity.GetComponent<TagComponent>().mLayer.toUint16();
 		settings.SetEmbedded();
 
-		character.controller = new CharacterVirtual(&settings, RVec3(transform.Translate.x, transform.Translate.y,transform.Translate.z), Quat::sIdentity(), sData.mSystem);
+		character.controller = new CharacterVirtual(&settings, RVec3(transform.Translate.x, transform.Translate.y,transform.Translate.z), Quat::sIdentity(), sPhysicsData.mSystem);
 		bodyIDMapUUID[reinterpret_cast<CharacterVirtual*>(character.controller)->GetInnerBodyID().GetIndexAndSequenceNumber()] = entityID;
 		bodySensorMap[reinterpret_cast<CharacterVirtual*>(character.controller)->GetInnerBodyID().GetIndexAndSequenceNumber()] = false;
 	}
@@ -784,13 +784,13 @@ namespace Borealis
 
 		// Update the character position
 		mCharacter->ExtendedUpdate(dt,
-			-mCharacter->GetUp() * sData.mSystem->GetGravity().Length(),
+			-mCharacter->GetUp() * sPhysicsData.mSystem->GetGravity().Length(),
 			update_settings,
 			{},
 			{},
 			{ },
 			{ },
-			*sData.temp_allocator);
+			*sPhysicsData.temp_allocator);
 
 	}
 
@@ -804,7 +804,6 @@ namespace Borealis
 	{
 		CharacterVirtual* mCharacter = reinterpret_cast<CharacterVirtual*>(controllerComp.controller);
 
-		mCharacter->GetGroundState();
 		bool player_controls_horizontal_velocity = controllerComp.enableInertia || mCharacter->IsSupported();
 		if (player_controls_horizontal_velocity)
 		{
@@ -841,10 +840,19 @@ namespace Borealis
 		{
 			// Assume velocity of ground when on ground
 			new_velocity = ground_velocity;
+
+			// Jump
+			if (controllerComp.isJump && moving_towards_ground)
+			{
+				new_velocity += controllerComp.jumpSpeed * mCharacter->GetUp();
+				controllerComp.isJump = false;
+			}
 		}
 		else
 			new_velocity = current_vertical_velocity;
 
+		// Gravity
+		new_velocity += (character_up_rotation * sPhysicsData.mSystem->GetGravity()) * inDeltaTime;
 
 		if (player_controls_horizontal_velocity)
 		{
@@ -884,7 +892,7 @@ namespace Borealis
 		{
 			auto InnerID = reinterpret_cast<CharacterVirtual*>(character.controller)->GetInnerBodyID();
 			delete character.controller;
-			sData.mSystem->GetBodyInterface().RemoveBody(InnerID);
+			sPhysicsData.mSystem->GetBodyInterface().RemoveBody(InnerID);
 		}
 
 
@@ -922,7 +930,7 @@ namespace Borealis
 		direction = glm::normalize(direction);
 		direction *= maxDistance; //set distance of ray
 		RRayCast ray { Vec3(origin.x, origin.y, origin.z), Vec3(direction.x, direction.y, direction.z) };
-		auto& narrowPhaseQuery = sData.mSystem->GetNarrowPhaseQuery();
+		auto& narrowPhaseQuery = sPhysicsData.mSystem->GetNarrowPhaseQuery();
 		RayCastResult result;
 		//result.mFraction = maxDistance;
 		if (LayerMask.to_ulong() == 0)
@@ -938,7 +946,7 @@ namespace Borealis
 		direction = glm::normalize(direction);
 		direction *= maxDistance; //set distance of ray
 		RRayCast ray{ Vec3(origin.x, origin.y, origin.z), Vec3(direction.x, direction.y, direction.z) };
-		auto& narrowPhaseQuery = sData.mSystem->GetNarrowPhaseQuery();
+		auto& narrowPhaseQuery = sPhysicsData.mSystem->GetNarrowPhaseQuery();
 		RayCastResult result;
 		bool output;
 		if (LayerMask.to_ulong() == 0)
@@ -958,7 +966,7 @@ namespace Borealis
 		// Body::GetWorldSpaceSurfaceNormal(ioHit.mSubShapeID2, 
 		// inRay.GetPointOnRay(ioHit.mFraction)) on body with ID ioHit.mBodyID.
 
-		JPH::BodyLockRead lock(sData.mSystem->GetBodyLockInterface(), result.mBodyID);
+		JPH::BodyLockRead lock(sPhysicsData.mSystem->GetBodyLockInterface(), result.mBodyID);
 		if (lock.Succeeded())
 		{
 			const JPH::Body& body = lock.GetBody();
@@ -987,7 +995,7 @@ namespace Borealis
 		direction *= maxDistance;
 		RayCollector collector;
 		RRayCast ray{ Vec3(origin.x, origin.y, origin.z), Vec3(direction.x, direction.y, direction.z) };
-		auto& narrowPhaseQuery = sData.mSystem->GetNarrowPhaseQuery();
+		auto& narrowPhaseQuery = sPhysicsData.mSystem->GetNarrowPhaseQuery();
 		if (LayerMask.to_ulong() == 0)
 		{
 			narrowPhaseQuery.CastRay(ray, {}, collector);
@@ -1004,7 +1012,7 @@ namespace Borealis
 			hit.distance = maxDistance * hitResult.mFraction;
 			hit.ID = PhysicsSystem::BodyIDToUUID(hitResult.mBodyID.GetIndexAndSequenceNumber());
 			
-			JPH::BodyLockWrite lock(sData.mSystem->GetBodyLockInterface(), hitResult.mBodyID);
+			JPH::BodyLockWrite lock(sPhysicsData.mSystem->GetBodyLockInterface(), hitResult.mBodyID);
 			if (lock.Succeeded())
 			{
 				JPH::Body& body = lock.GetBody();
@@ -1065,7 +1073,7 @@ namespace Borealis
 			shape = shape_result.Get();
 		}
 		
-		sData.body_interface->SetShape((BodyID)collider.bodyID, shape, true, EActivation::Activate);
+		sPhysicsData.body_interface->SetShape((BodyID)collider.bodyID, shape, true, EActivation::Activate);
 
 	}
 
@@ -1156,14 +1164,14 @@ namespace Borealis
 		}
 
 		// Create the actual rigid body
-		Body* body = sData.body_interface->CreateBody(body_settings); // Handle nullptr in a real scenario
+		Body* body = sPhysicsData.body_interface->CreateBody(body_settings); // Handle nullptr in a real scenario
 		if (!body) {
 			// Handle error (e.g., failed to create body)
 			return;
 		}
 
 		// Add it to the world
-		sData.body_interface->AddBody(body->GetID(), EActivation::Activate);
+		sPhysicsData.body_interface->AddBody(body->GetID(), EActivation::Activate);
 
 		// Store the BodyID in the RigidBodyComponent
 		collider.bodyID = body->GetID().GetIndexAndSequenceNumber();
@@ -1184,8 +1192,12 @@ namespace Borealis
 
 	void PhysicsSystem::FreeRigidBody(ColliderComponent& collider)
 	{
-		sData.body_interface->RemoveBody(JPH::BodyID(collider.bodyID));
-		bodyIDMapUUID.erase(collider.bodyID);
-		bodySensorMap.erase(collider.bodyID);
+		if (collider.rigidBody)
+		{
+			sPhysicsData.body_interface->RemoveBody(JPH::BodyID(collider.bodyID));
+			sPhysicsData.body_interface->DestroyBody(JPH::BodyID(collider.bodyID));
+			bodyIDMapUUID.erase(collider.bodyID);
+			bodySensorMap.erase(collider.bodyID);
+		}
 	}
 }

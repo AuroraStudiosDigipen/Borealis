@@ -74,7 +74,7 @@ namespace Borealis
 	{
 		static const uint32_t MaxQuads = 10000;
 		static const uint32_t MaxCircles = 1000;
-		static const uint32_t MaxLines = 10000;
+		static const uint32_t MaxLines = 1000000;
 		static const uint32_t MaxFont = 10000;
 		static const uint32_t MaxCircleVertices = MaxCircles * 4;
 		static const uint32_t MaxLineVertices = MaxLines * 2;

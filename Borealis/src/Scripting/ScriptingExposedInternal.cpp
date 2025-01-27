@@ -140,6 +140,7 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(Physics_RaycastAll);
 
 		BOREALIS_ADD_INTERNAL_CALL(CharacterController_Move);
+		BOREALIS_ADD_INTERNAL_CALL(CharacterController_Jump);
 		BOREALIS_ADD_INTERNAL_CALL(CharacterController_IsGrounded);
 
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_GetClip);
@@ -163,6 +164,9 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_SetBlend);
 		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_GetBlend);
 		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_SwapBlendBuffer);
+		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_GetCurrentTime);
+		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_GetAnimationDuration);
+
 
 		BOREALIS_ADD_INTERNAL_CALL(SceneManager_SetActiveScene);
 		BOREALIS_ADD_INTERNAL_CALL(SceneManager_Quit);
@@ -1061,6 +1065,22 @@ namespace Borealis
 		entity.GetComponent<AnimatorComponent>().animation = entity.GetComponent<AnimatorComponent>().animator.mNextAnimation;
 		entity.GetComponent<AnimatorComponent>().animator.mNextAnimation = firstAnimation;
 	}
+	void AnimatorComponent_GetCurrentTime(UUID uuid, float* currentTime)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*currentTime = entity.GetComponent<AnimatorComponent>().animator.GetCurrentAnimationTime();
+	}
+	void AnimatorComponent_GetAnimationDuration(UUID uuid, float* duration)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*duration = entity.GetComponent<AnimatorComponent>().animator.GetAnimationDuration();
+	}
 	void SceneManager_SetActiveScene(MonoString* sceneName)
 	{
 		std::string sceneNme = mono_string_to_utf8(sceneName);
@@ -1248,6 +1268,15 @@ namespace Borealis
 		}
 	
 	}
+	void CharacterController_Jump(uint64_t id, float jumpSpeed)
+	{
+		Entity entity = SceneManager::GetActiveScene()->GetEntityByUUID(id);
+		if (entity.HasComponent<CharacterControllerComponent>())
+		{
+			entity.GetComponent<CharacterControllerComponent>().jumpSpeed = jumpSpeed;
+			entity.GetComponent<CharacterControllerComponent>().isJump = true;
+		}
+	}
 	void CharacterController_IsGrounded(uint64_t id, bool* grounded)
 	{
 		Entity entity = SceneManager::GetActiveScene()->GetEntityByUUID(id);
@@ -1320,7 +1349,8 @@ namespace Borealis
 		auto translate = transform.GetGlobalTranslate();
 		auto& audioSource = entity.GetComponent<AudioSourceComponent>();
 		if (audioSource.audio)
-			AudioEngine::PlayAudio(audioSource, translate, audioSource.Volume, audioSource.isMute, audioSource.isLoop);
+			/*AudioEngine::PlayAudio(audioSource, translate, audioSource.Volume, audioSource.isMute, audioSource.isLoop)*/
+			AudioEngine::Play(audioSource.audio, translate, audioSource.Volume, audioSource.isLoop, AudioGroup::BGM);
 	}
 	void AudioSource_IsPlaying(uint64_t ID, bool* playing)
 	{

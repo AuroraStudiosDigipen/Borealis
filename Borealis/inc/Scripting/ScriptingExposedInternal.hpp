@@ -346,6 +346,9 @@ namespace Borealis
 	void AnimatorComponent_SetNextAnimation(UUID uuid, UUID animation);
 	void AnimatorComponent_GetNextAnimation(UUID uuid, UUID* animation);
 	void AnimatorComponent_SwapBlendBuffer(UUID uuid);
+	void AnimatorComponent_GetCurrentTime(UUID uuid, float* currentTime);
+	void AnimatorComponent_GetAnimationDuration(UUID uuid, float* duration);
+
 
 	void SceneManager_SetActiveScene(MonoString* sceneName);
 	void SceneManager_Quit();
@@ -400,6 +403,7 @@ namespace Borealis
 			MonoArray** entityIDArray, MonoArray** distanceArray, MonoArray** normalArray, MonoArray** pointArray);
 
 	void CharacterController_Move(uint64_t id, glm::vec3* motion);
+	void CharacterController_Jump(uint64_t id, float jumpSpeed);
 
 	void CharacterController_IsGrounded(uint64_t id, bool* grounded);
 

@@ -90,6 +90,7 @@ namespace Borealis
 			prevTickCount = currentTickCount;
 
 			TimeManager::SetDeltaTime(static_cast<float>(deltaTime) / 1000.0f);
+			AudioEngine::Update();
 
 			if (!mIsMinimized)
 			{

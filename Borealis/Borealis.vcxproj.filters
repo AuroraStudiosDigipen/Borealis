@@ -160,6 +160,12 @@
     <Filter Include="src\Scripting">
       <UniqueIdentifier>{6FBC2D98-DB7C-A9CE-A4B7-F24B1037EEAA}</UniqueIdentifier>
     </Filter>
+    <Filter Include="inc\Graphics\UI">
+      <UniqueIdentifier>{db53fef9-74f8-4a4a-9f6c-a8ec5485e2ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Graphics\UI">
+      <UniqueIdentifier>{7337f519-a554-41b8-944c-ed9ff2c484d3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Borealis.hpp" />
@@ -2002,6 +2008,9 @@
     <ClInclude Include="lib\xproperty\include\xproperty\xproperty_config.hpp">
       <Filter>lib\xproperty\include\xproperty</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Graphics\UI\Button.hpp">
+      <Filter>inc\Graphics\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lib\imGuizmo\imGuizmo.cpp">
@@ -2252,6 +2261,9 @@
     </ClCompile>
     <ClCompile Include="src\Scripting\ScriptingUtils.cpp">
       <Filter>src\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\UI\Button.cpp">
+      <Filter>src\Graphics\UI</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

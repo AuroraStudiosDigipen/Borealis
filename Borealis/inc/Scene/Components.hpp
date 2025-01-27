@@ -35,6 +35,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Audio/Audio.hpp>
 #include <Audio/AudioGroup.hpp>
 
+#include "Graphics/UI/Button.hpp"
+
 
 namespace Borealis
 {
@@ -454,6 +456,13 @@ namespace Borealis
 		glm::vec2 canvasSize{};
 		float scaleFactor{};
 		Ref<FrameBuffer> canvasFrameBuffer = nullptr;
+		enum class RenderMode : uint8_t
+		{
+			WorldSpace,
+			ScreenSpace
+		};
+		RenderMode renderMode = RenderMode::ScreenSpace;
+
 		CanvasComponent() = default;
 		CanvasComponent(const CanvasComponent&) = default;
 	};
@@ -465,6 +474,37 @@ namespace Borealis
 		CanvasRendererComponent() = default;
 		CanvasRendererComponent(const CanvasRendererComponent&) = default;
 	};
+
+	struct ButtonComponent
+	{
+		// The names of the methods to call in C#:
+		std::string onClickFunctionName;
+		std::string onReleaseFunctionName;
+		std::string onHoverFunctionName;
+
+		// The C# class names containing the methods:
+		std::string onClickClass;
+		std::string onReleaseClass;
+		std::string onHoverClass;
+
+		// The entities that hold the relevant ScriptComponents:
+		UUID onClickEntity;
+		UUID onReleaseEntity;
+		UUID onHoverEntity;
+
+		bool hovered = false;
+		bool clicked = false;
+		bool released = false;
+		bool isActive = true;
+
+		void onClick();
+		void onRelease();
+		void onHover();
+
+		ButtonComponent() = default;
+		ButtonComponent(const ButtonComponent&) = default;
+	};
+
 }
 
 #endif

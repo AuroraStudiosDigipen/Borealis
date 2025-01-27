@@ -230,9 +230,16 @@ namespace Borealis
             .property("Filled", &OutLineComponent::filled)
             .property("Active", &OutLineComponent::active);
 
+        registration::enumeration<CanvasComponent::RenderMode>("Canvas RenderMode")
+            (
+                value("World Space", CanvasComponent::RenderMode::WorldSpace),
+                value("Screen Space", CanvasComponent::RenderMode::ScreenSpace)
+                );
+
         registration::class_<CanvasComponent>("Canvas Component")
             (metadata("Component", true))
-            .constructor<>();
+            .constructor<>()
+            .property("Render Mode", &CanvasComponent::renderMode);;
 
         registration::class_<CanvasRendererComponent>("Canvas Renderer Component")
             (metadata("Component", true))
@@ -267,7 +274,17 @@ namespace Borealis
             .property("ChildrenID", &TransformComponent::ChildrenID)
             (metadata("Hide", true))
             .method("GetTransform", &TransformComponent::GetTransform);
-            
+
+        registration::class_<ButtonComponent>("Button Component")
+            (metadata("Component", true))
+            .constructor<>()
+    		.property("Is Active", &ButtonComponent::isActive)
+            .property("On Click Function Name", &ButtonComponent::onClickFunctionName)
+            .property("On Hover Function Name", &ButtonComponent::onHoverFunctionName)
+            .property("On Release Function Name", &ButtonComponent::onReleaseFunctionName)
+            .property("On Click Class", &ButtonComponent::onClickClass)
+            .property("On Hover Class", &ButtonComponent::onHoverClass)
+            .property("On Release Class", &ButtonComponent::onReleaseClass);
     }
 
     enum dataTypes

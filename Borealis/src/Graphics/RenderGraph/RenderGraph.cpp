@@ -693,6 +693,89 @@ namespace Borealis
 		renderTarget->Unbind();
 	}
 
+	UIWorldPass::UIWorldPass(std::string name) : EntityPass((name))
+	{
+		shader = s_shader;
+	}
+
+	void RenderCanvasRecursive(Entity parent, const glm::mat4& canvasTransform)
+	{
+		if (!parent.HasComponent<TransformComponent>()) return;
+		glm::mat4 globalTansform = parent.GetComponent<TransformComponent>().GetGlobalTransform();//(glm::mat4)parent.GetComponent<TransformComponent>();
+		if (parent.HasComponent<CanvasRendererComponent>())
+		{
+			glm::mat4 transform = canvasTransform * globalTansform;
+			if (parent.HasComponent<SpriteRendererComponent>())
+			{
+				Renderer2D::DrawSprite(transform, parent.GetComponent<SpriteRendererComponent>(), (int)parent);
+			}
+
+			if (parent.HasComponent<TextComponent>())
+			{
+				TextComponent const& text = parent.GetComponent<TextComponent>();
+
+				Renderer2D::DrawString(text.text, text.font, transform, (int)parent, text.fontSize, text.colour);
+			}
+		}
+
+		for (UUID childID : parent.GetComponent<TransformComponent>().ChildrenID)
+		{
+			Entity child = SceneManager::GetActiveScene()->GetEntityByUUID(childID);
+			if (child.HasComponent<TagComponent>() && child.IsActive())
+				RenderCanvasRecursive(child, canvasTransform);
+		}
+	}
+
+	void UIWorldPass::Execute(float dt)
+	{
+		PROFILE_FUNCTION();
+		Ref<RenderTargetSource> renderTarget = nullptr;
+		glm::mat4 viewProjMatrix{};
+
+		for (auto sink : sinkList)
+		{
+			if (sink->source->sourceType == RenderSourceType::RenderTargetColor)
+			{
+				if (sink->sinkName == "renderTarget")
+				{
+					renderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
+				}
+			}
+
+			if (sink->source->sourceType == RenderSourceType::Camera)
+			{
+				viewProjMatrix = std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj();
+			}
+		}
+
+		//viewProjMatrix = glm::ortho(0.0f, (float)renderTarget->Width, (float)renderTarget->Height, 0.0f, -100.0f, 100.0f);
+
+		renderTarget->Bind();
+		Renderer2D::Begin(viewProjMatrix);
+
+		{
+			auto group = registryPtr->group<>(entt::get<TransformComponent, CanvasComponent>);
+
+			for (auto& entity : group)
+			{
+				Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
+				if (!brEntity.IsActive())
+				{
+					continue;
+				}
+				auto [transform, canvas] = group.get<TransformComponent, CanvasComponent>(entity);
+				if (canvas.renderMode != CanvasComponent::RenderMode::WorldSpace) continue;
+
+				glm::mat4 canvasTransform = transform.GetGlobalTransform();
+
+				RenderCanvasRecursive(brEntity, canvasTransform);
+			}
+		}
+
+		Renderer2D::End();
+		renderTarget->Unbind();
+	}
+
 	GeometryPass::GeometryPass(std::string name) : EntityPass(name)
 	{
 		shader = s_shader;
@@ -1472,34 +1555,6 @@ namespace Borealis
 		shader = quad_shader;
 	}
 
-	void RenderCanvasRecursive(Entity parent, const glm::mat4& canvasTransform)
-	{
-		if (!parent.HasComponent<TransformComponent>()) return;
-		glm::mat4 globalTansform = parent.GetComponent<TransformComponent>().GetGlobalTransform();//(glm::mat4)parent.GetComponent<TransformComponent>();
-		if (parent.HasComponent<CanvasRendererComponent>())
-		{
-			glm::mat4 transform = canvasTransform * globalTansform;
-			if (parent.HasComponent<SpriteRendererComponent>())
-			{
-				Renderer2D::DrawSprite(transform, parent.GetComponent<SpriteRendererComponent>(), (int)parent);
-			}
-
-			if (parent.HasComponent<TextComponent>())
-			{
-				TextComponent const& text = parent.GetComponent<TextComponent>();
-				
-				Renderer2D::DrawString(text.text, text.font, transform, (int)parent, text.fontSize, text.colour);
-			}
-		}
-
-		for (UUID childID : parent.GetComponent<TransformComponent>().ChildrenID)
-		{
-			Entity child = SceneManager::GetActiveScene()->GetEntityByUUID(childID);
-			if (child.HasComponent<TagComponent>() && child.IsActive())
-				RenderCanvasRecursive(child, canvasTransform);
-		}
-	}
-
 	void UIPass::Execute(float dt)
 	{
 		PROFILE_FUNCTION();
@@ -1539,6 +1594,7 @@ namespace Borealis
 					continue;
 				}
 				auto [transform, canvas] = group.get<TransformComponent, CanvasComponent>(entity);
+				if (canvas.renderMode == CanvasComponent::RenderMode::WorldSpace) continue;
 				glm::vec3 currTransfrom = glm::vec3(((glm::mat4)transform)[3]);
 
 				//This is to set the canvas transforms in run time
@@ -1569,7 +1625,7 @@ namespace Borealis
 				float scaleFactor = 1 / canvas.scaleFactor /* * 0.95f */;
 
 				glm::vec3 canvasPosition(renderTarget->Width * 0.5f, renderTarget->Height * 0.5f, 0.0f);
-				glm::vec3 canvasScale(canvas.canvasSize.x * scaleFactor, canvas.canvasSize.y * scaleFactor, 1.0f);
+				//glm::vec3 canvasScale(canvas.canvasSize.x * scaleFactor, canvas.canvasSize.y * scaleFactor, 1.0f);
 
 				glm::mat4 canvasTransform = glm::translate(glm::mat4(1.0f), canvasPosition) *
 					glm::scale(glm::mat4(1.0f), glm::vec3(scaleFactor, -scaleFactor, 1.f));
@@ -1585,7 +1641,7 @@ namespace Borealis
 			}
 		}
 
-		if(UIexist)
+		if (UIexist)
 		{
 			uiFBO->Bind();
 			RenderCommand::SetClearColor(glm::vec4{ 0.f });
@@ -1653,6 +1709,7 @@ namespace Borealis
 				}
 
 				auto [transform, canvas] = group.get<TransformComponent, CanvasComponent>(entity);
+				if (canvas.renderMode == CanvasComponent::RenderMode::WorldSpace) continue;
 				canvas.scaleFactor = 0.01f;
 				canvas.canvasSize.x = runTimeRenderTarget->Width * canvas.scaleFactor;
 				canvas.canvasSize.y = runTimeRenderTarget->Height * canvas.scaleFactor;
@@ -1803,6 +1860,7 @@ namespace Borealis
 			case RenderPassType::HighlightPass:
 			case RenderPassType::UIPass:
 			case RenderPassType::EditorUIPass:
+			case RenderPassType::UIWorldPass:
 				AddEntityPassConfig(passesConfig);
 				break;
 			case RenderPassType::ObjectPicking:
@@ -1893,6 +1951,9 @@ namespace Borealis
 			break;
 		case RenderPassType::UIPass:
 			renderPass = MakeRef<UIPass>(renderPassConfig.mPassName);
+			break;
+		case RenderPassType::UIWorldPass:
+			renderPass = MakeRef<UIWorldPass>(renderPassConfig.mPassName);
 			break;
 		case RenderPassType::EditorUIPass:
 			renderPass = MakeRef<EditorUIPass>(renderPassConfig.mPassName);

@@ -54,6 +54,7 @@ namespace Borealis
 		struct CameraData
 		{
 			glm::mat4 ViewProjection;
+			glm::vec4 CameraPos;
 		};
 		CameraData cameraData;
 		Ref<UniformBufferObject> CameraUBO;
@@ -472,6 +473,7 @@ namespace Borealis
 			if (sink->source->sourceType == RenderSourceType::Camera)
 			{
 				sData->cameraData.ViewProjection = std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj();
+				sData->cameraData.CameraPos = glm::vec4(std::dynamic_pointer_cast<CameraSource>(sink->source)->position,0.f);
 				sData->CameraUBO->SetData(&sData->cameraData, sizeof(RenderData::CameraData));
 				viewProjMatrix = std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj();
 				editor = std::dynamic_pointer_cast<CameraSource>(sink->source)->editor;
@@ -904,7 +906,7 @@ namespace Borealis
 				static glm::vec3 tempLightDir{};
 				static glm::vec3 tempPos{}, tempPosEditor{};
 
-				if(false/*TURN ON FOR PERFORMANCE*/)
+				if(true/*TURN ON FOR PERFORMANCE*/)
 				{
 					if (tempLightDir != lightComponent.direction) lightChange = true;
 
@@ -1730,7 +1732,7 @@ namespace Borealis
 				glm::mat4 transfrom = glm::translate(glm::mat4(1.0f), particle.position) *
 					glm::toMat4(particle.startRotation) *
 					glm::scale(glm::mat4(1.0f), particle.startSize);
-				Renderer2D::DrawQuad(transfrom, brEntity.GetComponent<ParticleSystemComponent>().texture, 1.f, particle.startColor);
+				Renderer2D::DrawQuad(transfrom, brEntity.GetComponent<ParticleSystemComponent>().texture, 1.f, particle.startColor, -1, true);
 			}
 		}
 		Renderer2D::End();

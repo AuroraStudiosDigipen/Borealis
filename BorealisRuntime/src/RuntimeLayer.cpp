@@ -69,8 +69,8 @@ namespace BorealisRuntime
 
 		//TEMP
 		{
-			Borealis::Font font(std::filesystem::path("engineResources/fonts/OpenSans_Condensed-Bold.bfi"));
-			font.SetTexture(std::filesystem::path("engineResources/fonts/OpenSans_Condensed-Bold.dds"));
+			Borealis::Font font(std::filesystem::path("engineResources/fonts/aseprite.bfi"));
+			font.SetTexture(std::filesystem::path("engineResources/fonts/aseprite.dds"));
 			Borealis::Font::SetDefaultFont(MakeRef<Borealis::Font>(font));
 		}
 	}

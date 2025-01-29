@@ -128,8 +128,8 @@ namespace Borealis {
 		
 		//TEMP
 		{
-			Font font(std::filesystem::path("engineResources/fonts/OpenSans_Condensed-Bold.bfi"));
-			font.SetTexture(std::filesystem::path("engineResources/fonts/OpenSans_Condensed-Bold.dds"));
+			Font font(std::filesystem::path("engineResources/fonts/Aseprite.bfi"));
+			font.SetTexture(std::filesystem::path("engineResources/fonts/Aseprite.dds"));
 			Font::SetDefaultFont(MakeRef<Font>(font));
 		}
 	}

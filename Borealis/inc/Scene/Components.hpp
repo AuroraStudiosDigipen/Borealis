@@ -476,17 +476,14 @@ namespace Borealis
 
 	struct ButtonComponent
 	{
-		// The names of the methods to call in C#:
 		std::string onClickFunctionName;
 		std::string onReleaseFunctionName;
 		std::string onHoverFunctionName;
 
-		// The C# class names containing the methods:
 		std::string onClickClass;
 		std::string onReleaseClass;
 		std::string onHoverClass;
 
-		// The entities that hold the relevant ScriptComponents:
 		UUID onClickEntity;
 		UUID onReleaseEntity;
 		UUID onHoverEntity;
@@ -494,7 +491,10 @@ namespace Borealis
 		bool hovered = false;
 		bool clicked = false;
 		bool released = false;
-		bool isActive = true;
+		bool interactable = true;
+
+		glm::vec3 center{};
+		glm::vec3 size{1.f, 1.f, 1.f};
 
 		void onClick();
 		void onRelease();

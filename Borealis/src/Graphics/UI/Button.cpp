@@ -3,6 +3,7 @@
 
 #include "Core/ApplicationManager.hpp"
 #include "Core/InputSystem.hpp"
+#include "Graphics/Renderer2D.hpp"
 #include "Scene/SceneManager.hpp"
 
 namespace Borealis
@@ -31,10 +32,10 @@ namespace Borealis
         {
             auto [button, transform] = group.get<ButtonComponent, TransformComponent>(entity);
 
-            if (!button.isActive) continue;
+            if (!button.interactable) continue;
 
-            glm::vec2 translate = { transform.Translate.x, transform.Translate.y };
-            glm::vec2 scale = { transform.Scale.x, transform.Scale.y };
+            glm::vec2 translate = { transform.Translate.x + button.center.x, transform.Translate.y + button.center.y };
+            glm::vec2 scale = { transform.Scale.x * button.size.x, transform.Scale.y * button.size.y };
 
             bool mouseInButton = IsMouseInButton(mousePos, translate, scale);
 

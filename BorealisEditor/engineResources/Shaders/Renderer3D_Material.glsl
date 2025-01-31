@@ -171,18 +171,38 @@ layout(std140) uniform MaterialUBO
 
 struct Light //move to uniform buffer object
 {
-	int type; // 0 = Spotlight, 1 = Directional , 2 = Point
 	vec3 position;
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 specular;
 	vec3 direction;
 	vec2 innerOuterAngle;
-
 	float linear;
 	float quadratic;
 
+	int type; // 0 = Spotlight, 1 = Directional , 2 = Point
 	bool castShadow;
+
+	vec2 padding;
+};
+
+layout(std140) uniform LightsUBO
+{
+	Light u_Lights[32];
+	int u_LightsCount;
+
+	// vec3 position;
+	// vec3 ambient;
+	// vec3 diffuse;
+	// vec3 specular;
+	// vec3 direction;
+	// vec2 innerOuterAngle;
+
+	// float linear;
+	// float quadratic;
+	// int type; // 0 = Spotlight, 1 = Directional , 2 = Point
+	// bool castShadow;
+	
 };
 
 in vec2 v_TexCoord;
@@ -198,8 +218,8 @@ uniform mat4 u_View;
 uniform vec3 u_ViewPos;
 //uniform Material u_Material;
 const int MAX_LIGHTS = 20;
-uniform Light u_Lights[20];
-uniform int u_LightsCount = 0;
+//uniform Light u_Lights[20];
+//uniform int u_LightsCount = 0;
 			
 
 uniform sampler2D u_ShadowMap;

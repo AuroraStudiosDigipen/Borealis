@@ -58,7 +58,7 @@ namespace Borealis
 
 		static void AddLight(LightComponent const& lightComponent);
 
-		static void SetLights(Ref<Shader> shader);
+		static void SetLights(Ref<UniformBufferObject> const& LightsUBO);
 
 		/*!***********************************************************************
 			\brief

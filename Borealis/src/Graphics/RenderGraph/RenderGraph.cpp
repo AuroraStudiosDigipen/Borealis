@@ -13,6 +13,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
  /******************************************************************************/
 
 #include <BorealisPCH.hpp>
+#include <Core/LoggerSystem.hpp>
 
 #include <Graphics/RenderGraph/RenderGraph.hpp>
 
@@ -60,6 +61,8 @@ namespace Borealis
 		Ref<UniformBufferObject> CameraUBO;
 
 		Ref<UniformBufferObject> AnimationUBO;
+
+		Ref<UniformBufferObject> LightsUBO;
 	};
 
 	static std::unique_ptr<RenderData> sData;
@@ -529,7 +532,7 @@ namespace Borealis
 					materialShader = meshRenderer.Material->GetShader();
 					Renderer3D::Begin(viewProjMatrix, materialShader);
 					SetShadowAndLight(shadowMap, materialShader, registryPtr, camera, editor);
-					Renderer3D::SetLights(materialShader);
+					Renderer3D::SetLights(sData->LightsUBO);
 				}
 
 				Renderer3D::DrawMesh(transform.GetGlobalTransform(), meshFilter, meshRenderer, materialShader, (int)entity);
@@ -835,7 +838,7 @@ namespace Borealis
 				lightComponent.direction = transform.GetGlobalRotation();
 				Renderer3D::AddLight(lightComponent);
 			}
-			Renderer3D::SetLights(shader);
+			Renderer3D::SetLights(sData->LightsUBO);
 		}
 
 		renderTarget->Bind();
@@ -906,8 +909,8 @@ namespace Borealis
 				static glm::vec3 tempLightDir{};
 				static glm::vec3 tempPos{}, tempPosEditor{};
 
-				if(true/*TURN ON FOR PERFORMANCE*/)
-				{
+				//if(false/*TURN ON FOR PERFORMANCE*/)
+				//{
 					if (tempLightDir != lightComponent.direction) lightChange = true;
 
 					if (!editor)
@@ -938,7 +941,7 @@ namespace Borealis
 						if (editorChange)
 							return;
 					}
-				}
+				//}
 
 				if (lightComponent.type == LightComponent::Type::Directional)
 				{
@@ -997,7 +1000,7 @@ namespace Borealis
 			Ref<FrameBuffer> CSMBuffer = nullptr;
 			if (editor)
 			{
-				//editorChange = true;
+				editorChange = true;
 				CSMBuffer = mCascadeShadowMapBufferEditor;
 			}
 			else
@@ -1786,6 +1789,8 @@ namespace Borealis
 			sData->CameraUBO = UniformBufferObject::Create(sizeof(RenderData::CameraData), CAMERA_BIND);
 
 			sData->AnimationUBO = UniformBufferObject::Create(sizeof(glm::mat4) * 128, ANIMATION_BIND);
+
+			sData->LightsUBO = UniformBufferObject::Create(sizeof(LightUBO) * 32 + sizeof(int), LIGHTING_BIND);
 		}
 	}
 

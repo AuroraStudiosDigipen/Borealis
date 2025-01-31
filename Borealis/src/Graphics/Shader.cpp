@@ -21,6 +21,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/OpenGL/UniformBufferObjectOpenGLImpl.hpp>
 #include <Graphics/UBOBindings.hpp>
 
+#
+
 namespace Borealis
 {
 	//default 3d material shader
@@ -32,9 +34,10 @@ namespace Borealis
 			s_material3dShader = Create("engineResources/Shaders/Renderer3D_Material.glsl");
 			UniformBufferObject::BindToShader(s_material3dShader->GetID(), "Camera", CAMERA_BIND);
 			UniformBufferObject::BindToShader(s_material3dShader->GetID(), "MaterialUBO", MATERIAL_ARRAY_BIND);
+			UniformBufferObject::BindToShader(s_material3dShader->GetID(), "LightsUBO", LIGHTING_BIND);
 			UniformBufferObject::BindToShader(s_material3dShader->GetID(), "AnimationUBO", ANIMATION_BIND);
 
-			BOREALIS_CORE_INFO("Material UBO size : {} bytes", UniformBufferObjectOpenGLImpl::GetBlockSize(s_material3dShader->GetID(), "MaterialUBO"));
+			BOREALIS_CORE_INFO("Light UBO size : {} bytes", UniformBufferObjectOpenGLImpl::GetBlockSize(s_material3dShader->GetID(), "LightsUBO"));
 		}
 		return s_material3dShader;
 	}

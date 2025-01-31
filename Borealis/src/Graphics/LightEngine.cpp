@@ -15,7 +15,6 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <BorealisPCH.hpp>
 
 #include <Graphics/LightEngine.hpp>
-#include <Graphics/Light.hpp>
 
 namespace Borealis
 {
@@ -29,18 +28,23 @@ namespace Borealis
 		mLights.push_back(&light);
 	}
 
-	void LightEngine::SetLights(Ref<Shader> shader)
+	void LightEngine::SetLights(Ref<UniformBufferObject> const& LightsUBO)
 	{
-		shader->Bind();
-		shader->Set("u_LightsCount", static_cast<int>(mLights.size()));
+		//shader->Bind();
+		//shader->Set("u_LightsCount", static_cast<int>(mLights.size()));
 		//shader->Unbind();
 
 
 		for (int i{}; i < mLights.size(); ++i)
 		{
-			Light::SetUniforms(*mLights[i], i, shader);
+			//Light::SetUniforms(*mLights[i], i, shader);
+			Light::SetUBO(*mLights[i], mLightsUBO[i]);
 		}
-		shader->Unbind();
+		//shader->Unbind();
+
+		LightsUBO->SetData(mLightsUBO.data(), mLightsUBO.size() * sizeof(LightUBO));
+		int lightsCount = static_cast<int>(mLights.size());
+		LightsUBO->SetData(&lightsCount, sizeof(int), mLightsUBO.size() * sizeof(LightUBO));
 	}
 }
 

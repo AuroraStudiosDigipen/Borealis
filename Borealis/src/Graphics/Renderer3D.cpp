@@ -48,6 +48,7 @@ namespace Borealis
 		UniformBufferObject::BindToShader(s3dData->mCommonShader->GetID(), "Camera", CAMERA_BIND);
 
 		UniformBufferObject::BindToShader(s3dData->mModelShader->GetID(), "MaterialUBO", MATERIAL_ARRAY_BIND);
+		UniformBufferObject::BindToShader(s3dData->mModelShader->GetID(), "LightsUBO", LIGHTING_BIND);
 		UniformBufferObject::BindToShader(s3dData->mModelShader->GetID(), "AnimationUBO", ANIMATION_BIND);
 	}
 
@@ -150,14 +151,14 @@ namespace Borealis
 		mLightEngine.AddLight(lightComponent);
 	}
 
-	void Renderer3D::SetLights(Ref<Shader> shader)
+	void Renderer3D::SetLights(Ref<UniformBufferObject> const& LightsUBO)
 	{
-		mLightEngine.SetLights(shader);
+		mLightEngine.SetLights(LightsUBO);
 	}
 
 	void Renderer3D::DrawMesh(const glm::mat4& transform, const MeshFilterComponent& meshFilter, const MeshRendererComponent& meshRenderer, int entityID)
 	{
-		SetLights(s3dData->mModelShader);
+		//SetLights(s3dData->mModelShader);
 		if (meshFilter.Model) 
 		{
 			if (meshRenderer.Material)

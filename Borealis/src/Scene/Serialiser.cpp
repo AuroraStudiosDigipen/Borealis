@@ -429,6 +429,7 @@ namespace Borealis
 		DeserialiseComponent<BehaviourTreeComponent>(entity, BorealisEntity);
 		DeserialiseComponent<ButtonComponent>(entity, BorealisEntity);
 		DeserialiseAbstractItems(entity, BorealisEntity);
+		TagList::AddEntity(BorealisEntity.GetComponent<TagComponent>().Tag, uuid);
 		//auto behaviourTreeComponent = entity["BehaviourTreeComponent"];
 		/*
 			extract the name of tree and root node, then iteritivly build the tree, then call the clone method by createfromname function
@@ -637,6 +638,7 @@ namespace Borealis
 
 	bool Serialiser::DeserialiseScene(const std::string& filepath)
 	{
+		TagList::Clear();
 		std::ifstream inStream(filepath);
 		std::stringstream ss;
 		ss << inStream.rdbuf();

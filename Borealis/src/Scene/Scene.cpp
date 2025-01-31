@@ -1155,7 +1155,7 @@ namespace Borealis
 		for (auto entity : idView)
 		{
 			UUID uuid = originalRegistry.get<IDComponent>(entity).ID;
-			const auto& name = originalRegistry.get<TagComponent>(entity).Tag;
+			const auto& name = originalRegistry.get<TagComponent>(entity).Name;
 			UUIDtoENTT[uuid] = newScene->CreateEntityWithUUID(name, uuid);
 			Entity newEntity = newScene->GetEntityByUUID(uuid);
 			newEntity.GetComponent<TagComponent>().active = originalRegistry.get<TagComponent>(entity).active;
@@ -1187,7 +1187,7 @@ namespace Borealis
 		auto tcView = newRegistry.view<TransformComponent>();
 		for (auto entity : tcView)
 		{
-			auto name = newRegistry.get<TagComponent>(entity).Tag;
+			auto name = newRegistry.get<TagComponent>(entity).Name;
 			auto& tc = tcView.get<TransformComponent>(entity);
 		}
 

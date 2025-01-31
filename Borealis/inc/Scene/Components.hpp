@@ -52,13 +52,16 @@ namespace Borealis
 	struct TagComponent
 	{
 		bool active = true;
+		std::string Name;
 		std::string Tag;
 		Bitset32 mLayer;
 
 		TagComponent() = default;
 		TagComponent(const TagComponent&) = default;
 		TagComponent(const std::string& tag)
-			: Tag(tag) {}
+			: Name(tag) {
+			Tag = "";
+		}
 	};
 
 	struct TransformComponent

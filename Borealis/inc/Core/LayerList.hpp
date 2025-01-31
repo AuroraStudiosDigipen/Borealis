@@ -42,6 +42,22 @@ namespace Borealis
 		static std::unordered_map<std::string, int> mLayerToIndex;
 		static std::unordered_map<int, std::unordered_set<UUID>> mLayerEntities;
 	};
+
+	class TagList
+	{
+	public:
+		static void AddEntity(std::string tag, UUID entity);
+		static void AddTag(std::string tag);
+		static void RemoveEntity(UUID entity, std::string inTag = "");
+		static void RenameTag(std::string oldTag, std::string newTag);
+		static void Clear();
+		static void Clear(std::string tag);
+		static std::unordered_set<UUID> getEntitiesAtTag(std::string tag);
+		static const std::unordered_set<std::string>& getKeys();
+	private:
+		static std::unordered_map<std::string, std::unordered_set<UUID>> mTagEntities;
+		static std::unordered_set<std::string> mKeys;
+	};
 }
 
 #endif

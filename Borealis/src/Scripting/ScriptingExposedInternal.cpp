@@ -55,6 +55,9 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(Entity_GetComponent);
 		BOREALIS_ADD_INTERNAL_CALL(Entity_GetName);
 		BOREALIS_ADD_INTERNAL_CALL(Entity_SetName);
+		BOREALIS_ADD_INTERNAL_CALL(Entity_GetTag);
+		BOREALIS_ADD_INTERNAL_CALL(Entity_SetTag);
+		BOREALIS_ADD_INTERNAL_CALL(Entity_GetEntitiesFromTag);
 		BOREALIS_ADD_INTERNAL_CALL(Entity_GetEntitiesFromLayer);
 
 
@@ -365,7 +368,7 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(entityID);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		std::string str = entity.GetComponent<TagComponent>().Tag;
+		std::string str = entity.GetComponent<TagComponent>().Name;
 		*name = mono_string_new(mono_domain_get(), str.c_str());
 	}
 	void Entity_SetName(uint64_t entityID, MonoString* name)
@@ -379,7 +382,34 @@ namespace Borealis
 		Scene* scene = SceneManager::GetActiveScene().get();
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(entityID);
+		entity.GetComponent<TagComponent>().Name = str;
+	}
+	void Entity_GetTag(uint64_t entityID, MonoString** tag)
+	{
+		if (entityID == 0)
+		{
+			return;
+		}
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(entityID);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		std::string str = entity.GetComponent<TagComponent>().Tag;
+		*tag = mono_string_new(mono_domain_get(), str.c_str());
+	}
+	void Entity_SetTag(uint64_t entityID, MonoString* tag)
+	{
+		if (entityID == 0)
+		{
+			return;
+		}
+		char* message = mono_string_to_utf8(tag);
+		std::string str = message;
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(entityID);
 		entity.GetComponent<TagComponent>().Tag = str;
+		TagList::AddEntity(str, entityID);
 	}
 	void Entity_FindEntity(MonoString* name, UUID* ID)
 	{
@@ -389,7 +419,7 @@ namespace Borealis
 		for (auto entity : entityList)
 		{
 			auto tag = entityList.get<TagComponent>(entity);
-			if (tag.Tag == entityName)
+			if (tag.Name == entityName)
 			{
 				*ID = SceneManager::GetActiveScene()->GetRegistry().get<IDComponent>(entity).ID;
 				return;
@@ -404,6 +434,21 @@ namespace Borealis
 		*objectArray = mono_array_new(mono_domain_get(), mono_get_object_class(), entities.size());
 		int counter = 0;
 		for (auto id : entities)
+		{
+			MonoObject* obj;
+			InitGameObject(obj, id, "GameObject");
+			mono_array_set(*objectArray, MonoObject*, counter++, obj);
+		}
+	}
+	void Entity_GetEntitiesFromTag(MonoString* tag, MonoArray** objectArray)
+	{
+		char* message = mono_string_to_utf8(tag);
+		std::string entityTag = message;
+		auto List = TagList::getEntitiesAtTag(entityTag);
+
+		*objectArray = mono_array_new(mono_domain_get(), mono_get_object_class(), List.size());
+		int counter = 0;
+		for (auto id : List)
 		{
 			MonoObject* obj;
 			InitGameObject(obj, id, "GameObject");

@@ -1302,10 +1302,10 @@ namespace Borealis {
 						mainCamera = Entity{ entity, SceneManager::GetActiveScene().get() };
 						hasRuntimeCamera = true;
 						mRuntimeCamera = mainCamera;
-						currentCameraTag = tag.Tag.c_str();
+						currentCameraTag = tag.Name.c_str();
 					}
 					cameraEntities.push_back(Entity{ entity, SceneManager::GetActiveScene().get() });
-					cameraTags.push_back(tag.Tag.c_str());
+					cameraTags.push_back(tag.Name.c_str());
 				});
 
 			if (!currentCameraTag && !group.empty())

@@ -122,7 +122,7 @@ namespace Borealis {
     Ref<Entity> Prefab::CreateChild(Ref<Scene> scene)
     {
         // Create a new entity in the scene
-        auto ref = scene->CreateEntity(GetComponent<TagComponent>().Tag);
+        auto ref = scene->CreateEntity(GetComponent<TagComponent>().Name);
         auto entity = MakeRef<Entity>(ref);
 
 		// Add the PrefabComponent to the entity

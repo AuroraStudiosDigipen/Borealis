@@ -23,28 +23,36 @@ namespace Borealis
 		mLights.clear();
 	}
 
-	void LightEngine::AddLight(LightComponent const& light)
+	void LightEngine::AddLight(LightComponent & light)
 	{
 		mLights.push_back(&light);
+		//mNeedToUpdate = true;
 	}
 
 	void LightEngine::SetLights(Ref<UniformBufferObject> const& LightsUBO)
 	{
-		//shader->Bind();
-		//shader->Set("u_LightsCount", static_cast<int>(mLights.size()));
-		//shader->Unbind();
+		bool modified = false;
 
-
-		for (int i{}; i < mLights.size(); ++i)
+		for (LightComponent * light : mLights)
 		{
-			//Light::SetUniforms(*mLights[i], i, shader);
-			Light::SetUBO(*mLights[i], mLightsUBO[i]);
+			if (light->isEdited)
+			{
+				modified = true;
+				light->isEdited = false;
+			}
 		}
-		//shader->Unbind();
 
-		LightsUBO->SetData(mLightsUBO.data(), mLightsUBO.size() * sizeof(LightUBO));
-		int lightsCount = static_cast<int>(mLights.size());
-		LightsUBO->SetData(&lightsCount, sizeof(int), mLightsUBO.size() * sizeof(LightUBO));
+		if(mNeedToUpdate || modified)
+		{
+			for (int i{}; i < mLights.size(); ++i)
+			{
+				Light::SetUBO(*mLights[i], mLightsUBO[i]);
+				BOREALIS_CORE_INFO("Light x {}", mLightsUBO[i].pos.x);
+			}
+			LightsUBO->SetData(mLightsUBO.data(), mLightsUBO.size() * sizeof(LightUBO));
+			int lightsCount = static_cast<int>(mLights.size());
+			LightsUBO->SetData(&lightsCount, sizeof(int), mLightsUBO.size() * sizeof(LightUBO));
+		}
 	}
 }
 

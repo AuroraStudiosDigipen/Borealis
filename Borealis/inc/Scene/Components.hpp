@@ -352,6 +352,7 @@ namespace Borealis
 		float spotAngle = 30; //for spot only
 
 		bool castShadow = false;
+		bool isEdited = true;
 	};
 
 	struct TextComponent

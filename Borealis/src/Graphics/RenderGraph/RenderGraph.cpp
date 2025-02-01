@@ -422,8 +422,22 @@ namespace Borealis
 				}
 
 				auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
-				lightComponent.position = transform.GetGlobalTranslate();
-				lightComponent.direction = transform.GetGlobalRotation();
+
+				glm::vec3 buffer = transform.GetGlobalTranslate();
+				if (buffer != lightComponent.position)
+				{
+					lightComponent.position = buffer;
+					lightComponent.isEdited = true;
+
+					std::cout << "graph Light x {}" << lightComponent.position.x << '\n';
+				}
+
+				buffer = transform.GetGlobalRotation();
+				if (buffer != lightComponent.direction)
+				{
+					lightComponent.direction = buffer;
+					lightComponent.isEdited = true;
+				}
 				Renderer3D::AddLight(lightComponent);
 				if(!shadowCasted && lightComponent.castShadow)
 				{
@@ -453,7 +467,7 @@ namespace Borealis
 						}
 					}
 				}
-
+				Renderer3D::SetLights(sData->LightsUBO);
 				shader->Unbind();
 			}
 		}
@@ -834,8 +848,19 @@ namespace Borealis
 					continue;
 				}
 				auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
-				lightComponent.position = transform.GetGlobalTranslate();
-				lightComponent.direction = transform.GetGlobalRotation();
+				glm::vec3 buffer = transform.GetGlobalTranslate();
+				if (buffer != lightComponent.position)
+				{
+					lightComponent.position = buffer;
+					lightComponent.isEdited = true;
+				}
+
+				buffer = transform.GetGlobalRotation();
+				if (buffer != lightComponent.direction)
+				{
+					lightComponent.direction = buffer;
+					lightComponent.isEdited = true;
+				}
 				Renderer3D::AddLight(lightComponent);
 			}
 			Renderer3D::SetLights(sData->LightsUBO);
@@ -902,8 +927,21 @@ namespace Borealis
 				{
 					continue;
 				}
-				lightComponent.position = transform.GetGlobalTranslate();
-				lightComponent.direction = transform.GetGlobalRotation();
+				glm::vec3 buffer = transform.GetGlobalTranslate();
+				if (buffer != lightComponent.position)
+				{
+					lightComponent.position = buffer;
+					lightComponent.isEdited = true;
+
+					std::cout << "graph Light x {}" << lightComponent.position.x << '\n';
+				}
+
+				buffer = transform.GetGlobalRotation();
+				if (buffer != lightComponent.direction)
+				{
+					lightComponent.direction = buffer;
+					lightComponent.isEdited = true;
+				}
 
 				bool lightChange = false, cameraChange = false;
 				static glm::vec3 tempLightDir{};

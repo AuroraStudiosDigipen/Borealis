@@ -146,7 +146,7 @@ namespace Borealis
 		mLightEngine.Begin();//clear vector
 	}
 
-	void Renderer3D::AddLight(LightComponent const& lightComponent)
+	void Renderer3D::AddLight(LightComponent & lightComponent)
 	{
 		mLightEngine.AddLight(lightComponent);
 	}

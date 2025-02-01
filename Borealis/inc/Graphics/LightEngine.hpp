@@ -39,7 +39,7 @@ namespace Borealis
 			\brief
 				Add light component to list
 		*************************************************************************/
-		void AddLight(LightComponent const& light);
+		void AddLight(LightComponent & light);
 
 		/*!***********************************************************************
 			\brief
@@ -48,9 +48,9 @@ namespace Borealis
 		void SetLights(Ref<UniformBufferObject> const& LightsUBO);
 
 	private:
-		std::vector<LightComponent const*> mLights;
+		std::vector<LightComponent *> mLights;
 		std::array<LightUBO, 32> mLightsUBO;
-		
+		bool mNeedToUpdate = false;
 	};
 }
 

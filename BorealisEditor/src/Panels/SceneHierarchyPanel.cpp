@@ -2046,7 +2046,7 @@ namespace Borealis
 			strcpy_s(buffer, sizeof(buffer), tag.c_str());
 			ImGui::Checkbox("##Active", &entity.GetComponent<TagComponent>().active);
 			ImGui::SameLine();
-			ImGui::SetNextItemWidth(ImGui::GetFontSize() * 15);
+			ImGui::SetNextItemWidth(ImGui::GetFontSize() * 8);
 			if (ImGui::InputText("##Name", buffer, sizeof(buffer)))
 			{
 				tag = std::string(buffer);
@@ -2126,7 +2126,7 @@ namespace Borealis
 		}
 		std::string entityTag = entity.GetComponent<TagComponent>().Tag;
 		std::string printTag = entityTag.empty() ? "Tag..." : "Tag: " + entityTag;
-
+		ImGui::SetNextItemWidth(ImGui::GetFontSize() * 8);
 		if (ImGui::BeginCombo("##TagList", printTag.c_str(), ImGuiComboFlags_HeightLarge))
 		{
 			for (auto key : TagList::getKeys())

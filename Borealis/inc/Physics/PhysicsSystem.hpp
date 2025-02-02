@@ -32,7 +32,7 @@ namespace Borealis
 		glm::vec3 point;
 	};
 
-	using CollisionPair = std::pair<UUID, UUID>;
+	using CollisionPair = std::pair<uint64_t, uint64_t>;
 
 
 	class Entity;

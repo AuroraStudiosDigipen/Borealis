@@ -49,7 +49,7 @@ void ShadowPass()
 
 void Render3DPass()
 {
-	v_TexCoord = vec2(a_TexCoord.x, 1.0 - a_TexCoord.y); //flip the texture //switch to compressonator
+	v_TexCoord = vec2(a_TexCoord.x, a_TexCoord.y); //flip the texture //switch to compressonator
 
 	v_FragPos = vec3(u_ModelTransform * vec4(a_Position, 1.0));
 	

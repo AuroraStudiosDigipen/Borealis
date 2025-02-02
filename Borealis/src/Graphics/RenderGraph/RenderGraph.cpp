@@ -932,8 +932,6 @@ namespace Borealis
 				{
 					lightComponent.position = buffer;
 					lightComponent.isEdited = true;
-
-					std::cout << "graph Light x {}" << lightComponent.position.x << '\n';
 				}
 
 				buffer = transform.GetGlobalRotation();

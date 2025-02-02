@@ -18,9 +18,21 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include "Audio/AudioEngine.hpp"
 #include <Scene/Components.hpp>
 #include <Audio/AudioGroup.hpp>
+#include <vector>
 
 namespace Borealis
 {
+    struct FadeEffect {
+        int channelId;
+        float targetVolume;
+        float currentTime;
+        float duration;
+        bool fadeIn;
+
+        FadeEffect(int chId, float targetVol, float dur, bool in)
+            : channelId(chId), targetVolume(targetVol), currentTime(0.0f), duration(dur), fadeIn(in) {}
+    };
+
     struct Implementation {
         Implementation();
         ~Implementation();
@@ -35,6 +47,7 @@ namespace Borealis
 
         ChannelMap mChannels;
         ChannelGroupMap mChannelGroups;
+        std::vector<FadeEffect> mFades;
         //typedef std::map<FMOD::Sound*, int> AudioGroupMap;
         //AudioGroupMap mAudioGroupMap;
 
@@ -101,6 +114,7 @@ namespace Borealis
     void Implementation::Update()
     {
         std::vector<ChannelMap::iterator> pStoppedChannels;
+
         for (auto it = mChannels.begin(), itEnd = mChannels.end(); it != itEnd; ++it)
         {
             bool bIsPlaying = false;
@@ -116,6 +130,39 @@ namespace Borealis
         {
             mChannels.erase(it);
         }
+
+        float deltaTime = 0.016f; // Assume ~60 FPS
+
+        for (auto it = mFades.begin(); it != mFades.end();)
+        {
+            it->currentTime += deltaTime;
+            float progress = glm::clamp(it->currentTime / it->duration, 0.0f, 1.0f);
+            float newVolume = it->fadeIn ? (progress * it->targetVolume) : ((1.0f - progress) * it->targetVolume);
+
+            auto chIt = mChannels.find(it->channelId);
+            if (chIt != mChannels.end())
+            {
+                ErrorCheck(chIt->second->setVolume(newVolume));
+            }
+
+            if (progress >= 1.0f)
+            {
+                if (!it->fadeIn)
+                {
+                    // Stop sound after fade-out
+                    chIt->second->stop();
+                    mChannels.erase(it->channelId);
+                }
+
+                it = mFades.erase(it);
+                continue;
+            }
+            else
+            {
+                ++it;  // ? Only increment if we didn’t erase
+            }
+        }
+
         ErrorCheck(mpSystem->update());
     }
 
@@ -465,4 +512,49 @@ namespace Borealis
             }
         }
     }
+
+    void AudioEngine::ApplyFadeIn(int channelId, float fadeInTime, float targetVolumeDB)
+    {
+        auto it = sgpImplementation->mChannels.find(channelId);
+        if (it == sgpImplementation->mChannels.end())
+        {
+            std::cerr << "Error: Invalid channel ID " << channelId << std::endl;
+            return;
+        }
+
+        FMOD::Channel* channel = it->second;
+
+        // Start at 0 volume
+        ErrorCheck(channel->setVolume(0.0f));
+
+        // Convert dB to linear scale
+        float targetVolume = dbToVolume(targetVolumeDB);
+
+        // Add fade-in effect
+        sgpImplementation->mFades.emplace_back(channelId, targetVolume, fadeInTime, true);
+    }
+
+    void AudioEngine::ApplyFadeOut(int channelId, float fadeOutTime)
+    {
+        auto it = sgpImplementation->mChannels.find(channelId);
+        if (it == sgpImplementation->mChannels.end())
+        {
+            std::cerr << "Error: Invalid channel ID " << channelId << std::endl;
+            return;
+        }
+
+        FMOD::Channel* channel = it->second;
+        bool isPlaying = false;
+        channel->isPlaying(&isPlaying);
+
+        if (isPlaying)
+        {
+            float currentVolume = 1.0f;
+            channel->getVolume(&currentVolume);
+
+            // Add fade-out effect without stopping immediately
+            sgpImplementation->mFades.emplace_back(channelId, currentVolume, fadeOutTime, false);
+        }
+    }
+
 }

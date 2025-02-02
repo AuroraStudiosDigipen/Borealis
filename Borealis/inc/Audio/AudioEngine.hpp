@@ -223,6 +223,10 @@ namespace Borealis
 
         static void PlayOneShot(Ref<Audio> audio, const glm::vec3& position, float volumeDB, const std::string& groupName);
 
+        static void ApplyFadeIn(int channelId, float fadeInTime, float targetVolumeDB);
+
+        static void ApplyFadeOut(int channelId, float fadeOutTime);
+
     private:
         static std::map<int, float> mGroupVolumes; /*!< Map of group IDs and their volume levels */
         static std::map<int, std::vector<int>> mGroupChannels; /*!< Map of group IDs and the channels assigned to them */

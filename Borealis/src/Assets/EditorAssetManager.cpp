@@ -316,6 +316,11 @@ namespace Borealis
 		mAssetRegistrySrcLoc.clear();
 	}
 
+	void EditorAssetManager::Init(ProjectInfo const& info)
+	{
+		mCachePath = info.CachePath;
+	}
+
 	void EditorAssetManager::Update()
 	{
 		if (mAssetReloadRequests.empty()) return;
@@ -351,7 +356,7 @@ namespace Borealis
 
 		if (mAssetLoaders.contains(metaData.Type))
 		{
-			asset = mAssetLoaders[metaData.Type](metaData);
+			asset = mAssetLoaders[metaData.Type](mCachePath, metaData);
 		}
 
 		if (asset == nullptr)
@@ -362,94 +367,5 @@ namespace Borealis
 		asset->mAssetHandle = assetHandle;
 		return asset;
 	}
-
-	//void EditorAssetManager::SerializeRegistry()
-	//{
-	//	MetaFileSerializer::SerialzeRegistry(mAssetRegistryPath, mAssetRegistry);
-	//}
-
-	//void EditorAssetManager::DeserializeRegistry(std::string const& registryFileString)
-	//{
-	//	MetaFileSerializer::DeserializeRegistry(registryFileString, mAssetRegistry);
-	//}
-
-	//void EditorAssetManager::RegisterAsset(std::filesystem::path path)
-	//{
-	//	if (!VerifyMetaFile(path))
-	//	{
-	//		AssetMetaData meta = MetaFileSerializer::CreateAssetMetaFile(path);
-	//		mAssetRegistry.insert({ meta.Handle, meta });
-	//	}
-	//}
-
-	//void EditorAssetManager::RegisterAllAssets(std::filesystem::path path)
-	//{
-	//	if (!std::filesystem::exists(path))
-	//	{
-	//		BOREALIS_CORE_ASSERT("No such directory");
-	//	}
-
-	//	for (const auto& entry : std::filesystem::directory_iterator(path))
-	//	{
-	//		if (std::filesystem::is_directory(entry))
-	//		{
-	//			//check for existing meta file
-	//			//if exist, check last modified date
-	//			//if anything is wrong, create meta file
-	//			if(!VerifyMetaFile(entry))
-	//			{
-	//				AssetMetaData meta = MetaFileSerializer::CreateAssetMetaFile(entry);
-	//				mAssetRegistry.insert({ meta.Handle, meta });
-	//			}
-
-	//			RegisterAllAssets(entry.path());
-	//		}
-	//		else if (std::filesystem::is_regular_file(entry))
-	//		{
-	//			if (entry.path().extension().string() == ".meta")
-	//			{
-	//				continue;
-	//			}
-
-	//			RegisterAsset(entry.path());
-	//		}
-	//	}
-	//}
-
-	//bool EditorAssetManager::VerifyMetaFile(std::filesystem::path path)
-	//{
-	//	std::filesystem::path metaFilePath;
-	//	if (std::filesystem::is_directory(path))
-	//	{
-	//		metaFilePath = path.string() + ".meta";
-	//	}
-	//	else
-	//	{
-	//		metaFilePath = path.replace_extension(".meta");
-	//	}
-
-	//	if (!std::filesystem::exists(metaFilePath))
-	//	{
-	//		return false;
-	//	}
-	//	else
-	//	{
-	//		AssetMetaData metaData = MetaFileSerializer::GetAssetMetaDataFile(metaFilePath);
-
-	//		if (mAssetRegistry.contains(metaData.Handle))
-	//		{
-	//			if (mAssetRegistry.at(metaData.Handle).importDate == metaData.importDate)
-	//			{
-	//				return true;
-	//			}
-	//			else
-	//			{
-	//				BOREALIS_CORE_ASSERT("IMPORT DATE DIFF");
-	//			}
-	//		}
-	//	}
-
-	//	return false;
-	//}
 }
 

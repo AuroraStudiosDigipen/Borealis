@@ -11,14 +11,23 @@ layout(location = 6) in vec4 weights;
 
 //default variables
 uniform mat4 u_ModelTransform;
-uniform mat4 u_ViewProjection; //move to uniform buffer object
+//uniform mat4 u_ViewProjection;
+layout(std140) uniform Camera
+{
+	mat4 u_ViewProjection;
+};
 uniform int u_EntityID;
 
 //Animation variables
 uniform bool u_HasAnimation;
 const int MAX_BONES = 128;
 const int MAX_BONE_INFLUENCE = 4;
-uniform mat4 u_FinalBonesMatrices[MAX_BONES]; //move to uniform buffer objects
+//uniform mat4 u_FinalBonesMatrices[MAX_BONES]; //move to uniform buffer objects
+
+layout(std140) uniform AnimationUBO
+{
+	mat4 u_FinalBonesMatrices[MAX_BONES];
+};
 
 //shadow pass variables
 uniform bool shadowPass;
@@ -135,6 +144,31 @@ struct Material { //move to uniform buffer object
 	bool hasHeightMap;
 };
 
+struct MaterialUBOData
+{
+    vec4 albedoColor;
+    vec4 specularColor;
+    vec4 emissionColor;
+
+    vec2 tiling;
+    vec2 offset;
+
+    float smoothness;
+    float shininess;
+    float metallic;
+    float padding1;
+
+    bool hasAlbedoMap;
+    bool hasSpecularMap;
+    bool hasNormalMap;
+    bool hasMetallicMap;
+};
+
+layout(std140) uniform MaterialUBO
+{
+    MaterialUBOData materials[128];
+};
+
 struct Light //move to uniform buffer object
 {
 	int type; // 0 = Spotlight, 1 = Directional , 2 = Point
@@ -159,10 +193,10 @@ in vec3 v_Tangent;
 in vec3 v_Bitangent;
 in vec4 v_LightPos;
 
-uniform mat4 u_ViewProjection;
+//uniform mat4 u_ViewProjection;
 uniform mat4 u_View;
 uniform vec3 u_ViewPos;
-uniform Material u_Material;
+//uniform Material u_Material;
 const int MAX_LIGHTS = 20;
 uniform Light u_Lights[20];
 uniform int u_LightsCount = 0;
@@ -176,34 +210,40 @@ uniform mat4 u_LightSpaceMatrices[4];
 uniform float u_CascadePlaneDistances[4];
 uniform int cascadeCount;
 
+uniform int materialIndex;
+uniform sampler2D albedoMap;
+uniform sampler2D specularMap;
+uniform sampler2D metallicMap;
+uniform sampler2D normalMap;
+
 vec2 GetTexCoord() 
 {
-	return v_TexCoord * u_Material.tiling + u_Material.offset;
+	return v_TexCoord * materials[materialIndex].tiling + materials[materialIndex].offset;
 }
 
 vec4 GetAlbedoColor()
 {
-	vec4 albedoColor = u_Material.hasAlbedoMap ? texture(u_Material.albedoMap, GetTexCoord()) : u_Material.albedoColor;
-	if (u_Material.hasAlbedoMap) {
-		albedoColor = mix(u_Material.albedoColor, albedoColor, 0.8);
-	}
+	vec4 albedoColor = materials[materialIndex].hasAlbedoMap ? texture(albedoMap, GetTexCoord()) : materials[materialIndex].albedoColor;
+	// if (materials[materialIndex].hasAlbedoMap) {
+	// 	albedoColor = mix(materials[materialIndex].albedoColor, albedoColor, 0.8);
+	// }
 
 	return albedoColor;
 }
 
 vec3 GetSpecular()
 {
-	return u_Material.hasSpecularMap ? texture(u_Material.specularMap, GetTexCoord()).rgb : u_Material.specularColor.rgb;
+	return materials[materialIndex].hasSpecularMap ? texture(specularMap, GetTexCoord()).rgb : materials[materialIndex].specularColor.rgb;
 }
 
 float GetMetallic() 
 {
-	return u_Material.hasMetallicMap ? texture(u_Material.metallicMap, GetTexCoord()).r : u_Material.metallic;
+	return materials[materialIndex].hasMetallicMap ? texture(metallicMap, GetTexCoord()).r : materials[materialIndex].metallic;
 }
 
 vec3 GetEmission()
 {
-	return u_Material.hasEmissionMap ? texture(u_Material.emissionMap, GetTexCoord()).rgb : u_Material.emissionColor.rgb;
+	return vec3(0.f);//materials[materialIndex].hasEmissionMap ? texture(materials[materialIndex].emissionMap, GetTexCoord()).rgb : materials[materialIndex].emissionColor.rgb;
 }
 
 float GetShadowFactor(vec3 lightDir, vec3 normal)
@@ -294,7 +334,7 @@ vec3 ComputeDirectionalLight(Light light, vec3 normal, vec3 viewDir)
 	{
         vec3 halfwayDir = normalize(lightDir + viewDir);
 
-        float spec = pow(max(dot(normal, halfwayDir), 0.0), u_Material.shininess * u_Material.smoothness);
+        float spec = pow(max(dot(normal, halfwayDir), 0.0), materials[materialIndex].shininess * materials[materialIndex].smoothness);
 
         vec3 diffuse = light.diffuse * diff * (1.0 - metallic);
         vec3 specular = light.specular * spec * GetSpecular() * metallic; 
@@ -322,7 +362,7 @@ vec3 ComputePointLight(Light light, vec3 normal, vec3 viewDir)
     float attenuation = 1.0 / (1.0 + light.linear * distance + light.quadratic * distance * distance); 
 
 	// ambient
-	vec3 ambient = light.ambient * GetAlbedoColor().rgb;
+	vec3 ambient = light.ambient * GetAlbedoColor().rgb * 0.2;
 	vec3 color = ambient;
 	float metallic = GetMetallic();
 	vec3 emission = GetEmission();
@@ -333,11 +373,11 @@ vec3 ComputePointLight(Light light, vec3 normal, vec3 viewDir)
 	{
         vec3 halfwayDir = normalize(lightDir + viewDir);
 
-        float spec = pow(max(dot(normal, halfwayDir), 0.0), u_Material.shininess * u_Material.smoothness);
+        float spec = pow(max(dot(normal, halfwayDir), 0.0), materials[materialIndex].shininess * materials[materialIndex].smoothness);
 
         vec3 diffuse = light.diffuse * diff * attenuation * (1.0 - metallic);
         vec3 specular = light.specular * spec * GetSpecular() * attenuation * metallic;
-
+		ambient *= attenuation;
         color = ambient + diffuse + specular + emission;
     }
 
@@ -364,7 +404,7 @@ vec3 ComputeSpotLight(Light light, vec3 normal, vec3 viewDir)
     if (diff > 0.0)
     {
         // Specular calculation
-        float spec = pow(max(dot(normal, halfwayDir), 0.0), u_Material.shininess * u_Material.smoothness);
+        float spec = pow(max(dot(normal, halfwayDir), 0.0), materials[materialIndex].shininess * materials[materialIndex].smoothness);
 
         // Spotlight intensity based on angle
         float theta = dot(lightDir, normalize(-light.direction)); 
@@ -402,10 +442,10 @@ void Render3DPass()
 	//mat3 TBN = mat3(vec3(1.f), vec3(1.f), v_Normal);
 	mat3 TBN = mat3(v_Tangent, v_Bitangent, v_Normal);
 	vec3 normal;
-    if (u_Material.hasNormalMap) 
+    if (materials[materialIndex].hasNormalMap) 
     {
         // Sample normal map in tangent space
-        vec3 tangentNormal = texture(u_Material.normalMap, GetTexCoord()).rgb;
+        vec3 tangentNormal = texture(normalMap, GetTexCoord()).rgb;
         tangentNormal = tangentNormal * 2.0 - 1.0;  // Convert from [0, 1] to [-1, 1]
         // Transform to world space
         normal = normalize(TBN * tangentNormal);

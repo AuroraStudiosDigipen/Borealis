@@ -211,7 +211,8 @@ namespace Borealis
             .property("Max Strength", &CharacterControllerComponent::strength)
             .property("Inertia", &CharacterControllerComponent::enableInertia)
             .property("Sliding", &CharacterControllerComponent::sliding)
-            .property("Move In Air", &CharacterControllerComponent::moveInAir);
+            .property("Move In Air", &CharacterControllerComponent::moveInAir)
+            .property("Gravity", &CharacterControllerComponent::gravity);
 
         registration::class_<SpriteRendererComponent>("Sprite Renderer Component")
             .constructor<>()
@@ -229,9 +230,16 @@ namespace Borealis
             .property("Filled", &OutLineComponent::filled)
             .property("Active", &OutLineComponent::active);
 
+        registration::enumeration<CanvasComponent::RenderMode>("Canvas RenderMode")
+            (
+                value("World Space", CanvasComponent::RenderMode::WorldSpace),
+                value("Screen Space", CanvasComponent::RenderMode::ScreenSpace)
+                );
+
         registration::class_<CanvasComponent>("Canvas Component")
             (metadata("Component", true))
-            .constructor<>();
+            .constructor<>()
+            .property("Render Mode", &CanvasComponent::renderMode);;
 
         registration::class_<CanvasRendererComponent>("Canvas Renderer Component")
             (metadata("Component", true))
@@ -251,8 +259,10 @@ namespace Borealis
             (metadata("Component", true))
             .constructor<>()
             .property("IsActive", &TagComponent::active)
+            .property("Name", &TagComponent::Name)
+            .property("Layer", &TagComponent::mLayer)
             .property("Tag", &TagComponent::Tag)
-            .property("Layer", &TagComponent::mLayer);
+            (metadata("Tag", true));
 
         registration::class_<TransformComponent>("Transform Component")
             (metadata("Component", true))
@@ -266,7 +276,19 @@ namespace Borealis
             .property("ChildrenID", &TransformComponent::ChildrenID)
             (metadata("Hide", true))
             .method("GetTransform", &TransformComponent::GetTransform);
-            
+
+        registration::class_<ButtonComponent>("Button Component")
+            (metadata("Component", true))
+            .constructor<>()
+    		.property("Interactable", &ButtonComponent::interactable)
+            .property("Center", &ButtonComponent::center)
+            .property("Size", &ButtonComponent::size)
+            .property("On Click Function Name", &ButtonComponent::onClickFunctionName)
+            .property("On Hover Function Name", &ButtonComponent::onHoverFunctionName)
+            .property("On Release Function Name", &ButtonComponent::onReleaseFunctionName)
+            .property("On Click Class", &ButtonComponent::onClickClass)
+            .property("On Hover Class", &ButtonComponent::onHoverClass)
+            .property("On Release Class", &ButtonComponent::onReleaseClass);
     }
 
     enum dataTypes

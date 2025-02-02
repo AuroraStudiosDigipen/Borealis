@@ -39,7 +39,7 @@ namespace Borealis
 			\brief
 				Renders the model
 		*************************************************************************/
-		void Draw(const glm::mat4& transform, Ref<Shader> shader, int entityID);
+		void Draw(const glm::mat4& transform, Ref<Shader> shader, int entityID, bool posOnly = false);
 
 		/*!***********************************************************************
 			\brief
@@ -55,7 +55,7 @@ namespace Borealis
 		void GenerateRitterBoundingSphere();
 		void GenerateAABB();
 
-		static Ref<Asset> Load(AssetMetaData const& assetMetaData);
+		static Ref<Asset> Load(std::filesystem::path const& cachePath, AssetMetaData const& assetMetaData);
 
 		BoundingSphere mBoundingSphere{};
 		AABB mAABB;

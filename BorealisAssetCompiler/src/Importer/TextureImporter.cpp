@@ -337,7 +337,8 @@ namespace BorealisAssetCompiler
         //    header.dwReserved1[0] = 0;
         //}
 
-        std::string cacheString = cachePath.replace_extension(".dds").string();
+        //std::string cacheString = cachePath.replace_extension(".dds").string();
+        std::string cacheString = cachePath.string();
 
 
         SaveDDSFile(cacheString.c_str(), width, height, compressedData, header);

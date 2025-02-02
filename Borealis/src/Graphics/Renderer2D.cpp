@@ -18,6 +18,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/VertexArray.hpp>
 #include <Graphics/Shader.hpp>
 #include <Graphics/RenderCommand.hpp>
+#include <Graphics/UniformBufferObject.hpp>
+#include <Graphics/UBOBindings.hpp>
 
 namespace Borealis
 {
@@ -265,6 +267,12 @@ namespace Borealis
 		sData->VertexPos[1] = { 0.5f, -0.5f, 0.0f, 1.0f };
 		sData->VertexPos[2] = { 0.5f, 0.5f, 0.0f, 1.0f };
 		sData->VertexPos[3] = { -0.5f, 0.5f, 0.0f, 1.0f };
+
+		UniformBufferObject::BindToShader(sData->mQuadShader->GetID(), "Camera", CAMERA_BIND);
+		UniformBufferObject::BindToShader(sData->mCircleShader->GetID(), "Camera", CAMERA_BIND);
+		UniformBufferObject::BindToShader(sData->mLineShader->GetID(), "Camera", CAMERA_BIND);
+		UniformBufferObject::BindToShader(sData->mFontShader->GetID(), "Camera", CAMERA_BIND);
+
 	}
 	void Renderer2D::Free()
 	{
@@ -302,31 +310,22 @@ namespace Borealis
 
 	void Renderer2D::Begin(glm::mat4 viewProj)
 	{
-		sData->mQuadShader->Bind();
-		sData->mQuadShader->Set("u_ViewProjection", viewProj);
-
 		sData->QuadIndexCount = 0;
 		sData->QuadBufferPtr = sData->QuadBufferBase;
-
-		sData->mCircleShader->Bind();
-		sData->mCircleShader->Set("u_ViewProjection", viewProj);
 
 		sData->CircleIndexCount = 0;
 		sData->CircleBufferPtr = sData->CircleBufferBase;
 
-		sData->mLineShader->Bind();
-		sData->mLineShader->Set("u_ViewProjection", viewProj);
-
 		sData->LineVertexCount = 0;
 		sData->LineBufferPtr = sData->LineBufferBase;
-
-		sData->mFontShader->Bind();
-		sData->mFontShader->Set("u_ViewProjection", viewProj);
 
 		sData->FontIndexCount = 0;
 		sData->FontBufferPtr = sData->FontBufferBase;
 
 		sData->TextureSlotIndex = 1;
+
+		//sData->cameraData.ViewProjection = viewProj;
+		//sData->CameraUBO->SetData(&sData->cameraData, sizeof(Renderer2DData::CameraData));
 	}
 
 	void Renderer2D::End()

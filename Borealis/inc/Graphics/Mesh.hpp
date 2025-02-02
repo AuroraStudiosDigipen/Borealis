@@ -98,7 +98,7 @@ namespace Borealis
 			\brief
 				Draw mesh
 		*************************************************************************/
-		void Draw(const glm::mat4& transform, Ref<Shader> shader, int entityID);
+		void Draw(const glm::mat4& transform, Ref<Shader> shader, int entityID, bool posOnly);
 
 		void GenerateRitterBoundingSphere();
 
@@ -134,8 +134,17 @@ namespace Borealis
 		std::vector<unsigned int> const& GetIndices() const;
 		std::vector<unsigned int>& GetIndices();
 
-		std::vector<Vertex> const& GetVertices() const;
-		std::vector<Vertex>& GetVertices();
+		//std::vector<Vertex> const& GetVertices() const;
+		//std::vector<Vertex>& GetVertices();
+
+		std::vector<glm::vec3> const& GetPosition() const;
+		std::vector<glm::vec3>& GetPosition();
+
+		std::vector<glm::vec3> const& GetNormal() const;
+		std::vector<glm::vec3>& GetNormal();
+
+		std::vector<glm::vec2> const& GetTexCoord() const;
+		std::vector<glm::vec2>& GetTexCoord();
 
 		uint32_t GetVerticesCount() const;
 		void SetVerticesCount(uint32_t count);
@@ -145,13 +154,19 @@ namespace Borealis
 
 	private:
 		std::vector<unsigned int> mIndices;
-		std::vector<Vertex> mVertices;
+		//std::vector<Vertex> mVertices;
+		std::vector<glm::vec3> mPositions;
+		std::vector<glm::vec3> mNormals;
+		std::vector<glm::vec2> mTexCoords;
+		std::vector<glm::vec3> mTangent;
+		std::vector<glm::vec3> mBitangent;
 
 		uint32_t mVerticesCount; // Number of vertices
 		uint32_t mIndicesCount; // Number of indices
 
 
-		unsigned int VAO, VBO, EBO;
+		unsigned int VAO, EBO; 
+		unsigned int VBOs[5];
 
 		BoundingSphere mBoundingSphere;
 		AABB mAABB;

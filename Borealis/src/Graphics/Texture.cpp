@@ -75,9 +75,9 @@ namespace Borealis
 		return mDefault;
 	}
 
-	Ref<Asset> Texture2D::Load(AssetMetaData const& assetMetaData)
+	Ref<Asset> Texture2D::Load(std::filesystem::path const& cachePath, AssetMetaData const& assetMetaData)
 	{
-		return Create(assetMetaData.CachePath.string());
+		return Create((cachePath / std::to_string(assetMetaData.Handle)).string());
 	}
 
 	Ref<TextureCubeMap> TextureCubeMap::Create(std::filesystem::path const& path)

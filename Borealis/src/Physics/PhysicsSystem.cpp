@@ -617,16 +617,42 @@ namespace Borealis
 
 		for (const auto& mesh : model.mMeshes)
 		{
-			for (const auto& vertex : mesh.GetVertices())
+			for (const auto& pos : mesh.GetPosition())
 			{
 				// Update min and max extents for each axis
-				minExtent.x = std::min(minExtent.x, vertex.Position.x);
-				minExtent.y = std::min(minExtent.y, vertex.Position.y);
-				minExtent.z = std::min(minExtent.z, vertex.Position.z);
+				minExtent.x = std::min(minExtent.x, pos.x);
+				minExtent.y = std::min(minExtent.y, pos.y);
+				minExtent.z = std::min(minExtent.z, pos.z);
 														   
-				maxExtent.x = std::max(maxExtent.x, vertex.Position.x);
-				maxExtent.y = std::max(maxExtent.y, vertex.Position.y);
-				maxExtent.z = std::max(maxExtent.z, vertex.Position.z);
+				maxExtent.x = std::max(maxExtent.x, pos.x);
+				maxExtent.y = std::max(maxExtent.y, pos.y);
+				maxExtent.z = std::max(maxExtent.z, pos.z);
+			}
+		}
+
+		glm::vec3 boundingVolumeCenter = (minExtent + maxExtent) * 0.5f;
+
+		return { boundingVolumeCenter, maxExtent - minExtent };
+
+	}
+
+
+	std::pair<glm::vec3, glm::vec3> PhysicsSystem::calculateBoundingVolume(const SkinnedModel& model)
+	{
+		glm::vec3 minExtent{}, maxExtent{};
+
+		for (const auto& mesh : model.mMeshes)
+		{
+			for (const auto& pos : mesh.GetVertices())
+			{
+				// Update min and max extents for each axis
+				minExtent.x = std::min(minExtent.x, pos.Position.x);
+				minExtent.y = std::min(minExtent.y, pos.Position.y);
+				minExtent.z = std::min(minExtent.z, pos.Position.z);
+
+				maxExtent.x = std::max(maxExtent.x, pos.Position.x);
+				maxExtent.y = std::max(maxExtent.y, pos.Position.y);
+				maxExtent.z = std::max(maxExtent.z, pos.Position.z);
 			}
 		}
 
@@ -886,7 +912,7 @@ namespace Borealis
 			new_velocity = current_vertical_velocity;
 
 		// Gravity
-		new_velocity += (character_up_rotation * sPhysicsData.mSystem->GetGravity()) * inDeltaTime;
+		new_velocity += (character_up_rotation * Vec3(0.f,-controllerComp.gravity,0.f)) * inDeltaTime;
 
 		if (player_controls_horizontal_velocity)
 		{
@@ -927,6 +953,7 @@ namespace Borealis
 			auto InnerID = reinterpret_cast<CharacterVirtual*>(character.controller)->GetInnerBodyID();
 			delete character.controller;
 			sPhysicsData.mSystem->GetBodyInterface().RemoveBody(InnerID);
+			sPhysicsData.mSystem->GetBodyInterface().DestroyBody(InnerID);
 		}
 
 

@@ -32,6 +32,7 @@ namespace BorealisAssetCompiler
 
 	private:
 		static void LoadFBXModel(Model & model, const std::string& path);
+		static void ConvertMeshToSOA(Mesh const& mesh, MeshSOA & meshSOA);
 		static void SaveModel(Model const& model, std::filesystem::path& cachePath);
 	};
 }

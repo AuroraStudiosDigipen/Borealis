@@ -25,6 +25,7 @@ namespace Borealis
 		std::string ProjectName; // Name of the project
 		std::filesystem::path ProjectPath; // Path to the project
 		std::filesystem::path AssetsPath; // Path to the assets folder
+		std::filesystem::path CachePath; // Path to the assets folder
 		std::filesystem::path AssetsRegistryPath; // Path to the asset registry file
 
 		std::string AssetsDirectoryName = "\\Assets"; // Name of the assets folder

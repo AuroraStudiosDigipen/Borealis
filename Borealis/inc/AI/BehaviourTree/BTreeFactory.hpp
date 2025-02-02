@@ -76,7 +76,7 @@ namespace Borealis
         std::unordered_set<std::string> mControlFlowNames;
         std::unordered_set<std::string> mDecoratorNames;
         std::unordered_set<std::string> mLeafNames;
-        static Ref<Asset> Load(AssetMetaData const& assetMetaData);
+        static Ref<Asset> Load(std::filesystem::path const& cachePath, AssetMetaData const& assetMetaData);
 
     private:
         /*!***********************************************************************

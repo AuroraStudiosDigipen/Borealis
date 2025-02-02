@@ -570,6 +570,8 @@ namespace Borealis
 			}
 		}
 
+		ButtonSystem::Update();
+
 		Camera* mainCamera = nullptr;
 		glm::mat4 mainCameratransform(1.f);
 
@@ -989,6 +991,7 @@ namespace Borealis
 		CopyComponent<OutLineComponent>(newEntity, entity);
 		CopyComponent<CanvasComponent>(newEntity, entity);
 		CopyComponent<CanvasRendererComponent>(newEntity, entity);
+		CopyComponent<ButtonComponent>(newEntity, entity);
 		auto& tc = newEntity.GetComponent<TransformComponent>();
 		if (tc.ParentID)
 		{
@@ -1124,6 +1127,7 @@ namespace Borealis
 					{
 						MonoObject* DstData = dstIT->second->GetFieldValue<MonoObject*>(property.first);
 						MonoObject* Data = srcIT->second->GetFieldValue<MonoObject*>(property.first);
+						if (!Data) continue;
 						UUID setUUID = property.second.GetGameObjectID(Data);
 						BOREALIS_CORE_ASSERT(setUUID != 0, "UUID is 0");
 						InitGameObject(DstData, setUUID, property.second.mFieldClassName());
@@ -1151,7 +1155,7 @@ namespace Borealis
 		for (auto entity : idView)
 		{
 			UUID uuid = originalRegistry.get<IDComponent>(entity).ID;
-			const auto& name = originalRegistry.get<TagComponent>(entity).Tag;
+			const auto& name = originalRegistry.get<TagComponent>(entity).Name;
 			UUIDtoENTT[uuid] = newScene->CreateEntityWithUUID(name, uuid);
 			Entity newEntity = newScene->GetEntityByUUID(uuid);
 			newEntity.GetComponent<TagComponent>().active = originalRegistry.get<TagComponent>(entity).active;
@@ -1179,11 +1183,11 @@ namespace Borealis
 		CopyComponent<OutLineComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<CanvasComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<CanvasRendererComponent>(newRegistry, originalRegistry, UUIDtoENTT);
-
+		CopyComponent<ButtonComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		auto tcView = newRegistry.view<TransformComponent>();
 		for (auto entity : tcView)
 		{
-			auto name = newRegistry.get<TagComponent>(entity).Tag;
+			auto name = newRegistry.get<TagComponent>(entity).Name;
 			auto& tc = tcView.get<TransformComponent>(entity);
 		}
 
@@ -1469,6 +1473,14 @@ namespace Borealis
 				component.size = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).second;
 			}
 		}
+		else if (entity.HasComponent<SkinnedMeshRendererComponent>())
+		{
+			if (entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel)
+			{
+				component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel.get())).first;
+				component.size = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel.get())).second;
+			}
+		}
 		else
 		{
 			component.center = { 0,0,0 };
@@ -1485,6 +1497,16 @@ namespace Borealis
 			{
 				component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).first;
 				glm::vec3 data = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).second;
+				component.radius = PhysicsSystem::calculateCapsuleDimensions(data).first;
+				component.height = PhysicsSystem::calculateCapsuleDimensions(data).second;
+			}
+		}
+		else if (entity.HasComponent<SkinnedMeshRendererComponent>())
+		{
+			if (entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel)
+			{
+				component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel.get())).first;
+				glm::vec3 data = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel.get())).second;
 				component.radius = PhysicsSystem::calculateCapsuleDimensions(data).first;
 				component.height = PhysicsSystem::calculateCapsuleDimensions(data).second;
 			}
@@ -1506,6 +1528,15 @@ namespace Borealis
 			{
 				component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).first;
 				glm::vec3 data = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).second;
+				component.radius = PhysicsSystem::calculateSphereRadius(data);
+			}
+		}
+		else if (entity.HasComponent<SkinnedMeshRendererComponent>())
+		{
+			if (entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel)
+			{
+				component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel.get())).first;
+				glm::vec3 data = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel.get())).second;
 				component.radius = PhysicsSystem::calculateSphereRadius(data);
 			}
 		}
@@ -1583,5 +1614,11 @@ namespace Borealis
 	void Scene::OnComponentAdded<CanvasRendererComponent>(Entity entity, CanvasRendererComponent& component)
 	{
 
+	}
+
+	template<>
+	void Scene::OnComponentAdded<ButtonComponent>(Entity entity, ButtonComponent& component)
+	{
+		
 	}
 }

@@ -111,11 +111,13 @@ namespace Borealis
 
 	void Entity_GetName(uint64_t entityID, MonoString** name);
 	void Entity_SetName(uint64_t entityID, MonoString* name);
+	void Entity_GetTag(uint64_t entityID, MonoString** tag);
+	void Entity_SetTag(uint64_t entityID, MonoString* tag);
 
 	void Entity_FindEntity(MonoString* name, UUID* ID);
 
 	void Entity_GetEntitiesFromLayer(int32_t layerNum, MonoArray** objectArray);
-
+	void Entity_GetEntitiesFromTag(MonoString* layerNum, MonoArray** objectArray);
 	float Time_GetDeltaTime();
 
 	/*!***********************************************************************

@@ -129,6 +129,18 @@ namespace Borealis
         TracyMessageC(message, messageLength, 0x00FF0000);
     }
 
+    void TracyProfiler::toggleProfiler()
+    {
+        TracyProfiler::g_EnableProfiler = !TracyProfiler::g_EnableProfiler;
+        if (TracyProfiler::g_EnableProfiler) {
+            std::cout << "Profiler Enabled" << std::endl;
+        }
+        else {
+            std::cout << "Profiler Disabled" << std::endl;
+        }
+    }
+
+
     Timer::~Timer()
     {
         double time_run = std::chrono::duration<double, std::milli>((std::chrono::high_resolution_clock::now() - mTime)).count();

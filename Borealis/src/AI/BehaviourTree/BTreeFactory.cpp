@@ -141,9 +141,9 @@ namespace Borealis
         rootNode = nodeMap[treeData->RootNodeID];
     }
 
-    Ref<Asset> BTreeFactory::Load(AssetMetaData const& assetMetaData)
+    Ref<Asset> BTreeFactory::Load(std::filesystem::path const& cachePath, AssetMetaData const& assetMetaData)
     {
-        return Instance().LoadBehaviourTree(assetMetaData.SourcePath.string());
+        return Instance().LoadBehaviourTree((cachePath / std::to_string(assetMetaData.Handle)).string());
     }
 
 }

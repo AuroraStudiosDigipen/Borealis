@@ -191,10 +191,10 @@ namespace Borealis
 
 		outFile.close();
 	}
-	Ref<Asset> Animation::Load(AssetMetaData const& assetMetaData)
+	Ref<Asset> Animation::Load(std::filesystem::path const& cachePath,AssetMetaData const& assetMetaData)
 	{
 		Animation anim;
-		anim.LoadAnimation(assetMetaData.SourcePath);
+		anim.LoadAnimation(cachePath/std::to_string(assetMetaData.Handle));
 		return MakeRef<Animation>(anim);
 	}
 }

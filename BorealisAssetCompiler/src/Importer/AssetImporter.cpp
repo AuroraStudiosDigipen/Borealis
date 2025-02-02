@@ -21,36 +21,33 @@ namespace BorealisAssetCompiler
 {
 	AssetMetaData AssetImporter::ImportAsset(AssetMetaData metaData)
 	{
-		std::string cacheString = metaData.SourcePath.string();
+		std::filesystem::path cacheString = metaData.SourcePath;
 
 		std::string toReplace = "Assets";
 		std::string replacement = "Cache";
 
-		bool cachePathExist = false;
-		size_t pos = cacheString.find(toReplace);
-		if (pos != std::string::npos)
+		while (cacheString.filename() != toReplace)
 		{
-			cacheString.replace(pos, toReplace.length(), replacement);
-			cachePathExist = true;
+			cacheString = cacheString.parent_path();
 		}
 
-		std::filesystem::path cachePath = cacheString;
+		cacheString.replace_filename(replacement);
+
+		std::filesystem::path cachePath = cacheString.append(std::to_string(metaData.Handle));
 
 		std::cout << "In compiler, cache path : " << cachePath.string() << '\n';
 
-		//if(cachePathExist)
-		//{
-			std::filesystem::path directoryPath = cachePath.parent_path();
+		std::filesystem::path directoryPath = cachePath.parent_path();
 
-			// Create the directories if they don't exist
-			if (!std::filesystem::exists(directoryPath))
+		// Create the directories if they don't exist
+		//redundant now
+		if (!std::filesystem::exists(directoryPath))
+		{
+			if (!std::filesystem::create_directories(directoryPath))
 			{
-				if (!std::filesystem::create_directories(directoryPath))
-				{
-					//Error check
-				}
+				//Error check
 			}
-		//}
+		}
 
 		switch (metaData.Type)
 		{
@@ -68,6 +65,7 @@ namespace BorealisAssetCompiler
 			break;
 		}
 
+		//no need cache path anymore
 		metaData.CachePath = cachePath;
 		return metaData;
 	}

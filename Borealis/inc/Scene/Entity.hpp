@@ -149,7 +149,7 @@ namespace Borealis
 		*************************************************************************/
 		std::string GetName()
 		{
-			return GetComponent<TagComponent>().Tag;
+			return GetComponent<TagComponent>().Name;
 		}
 
 		/*!***********************************************************************

@@ -70,7 +70,6 @@ namespace Borealis
 		static void CopyPropertyInternal(const std::string& propertyName, const LightComponent& src, const LightComponent& dest);
 		static void CopyPropertyInternal(const std::string& propertyName, const TextComponent& src, const TextComponent& dest);
 		static void CopyPropertyInternal(const std::string& propertyName, const OutLineComponent& src, const OutLineComponent& dest);
-
 	};
 }
 

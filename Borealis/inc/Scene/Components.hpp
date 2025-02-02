@@ -36,6 +36,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Audio/Audio.hpp>
 #include <Audio/AudioGroup.hpp>
 
+#include "Graphics/UI/Button.hpp"
+
 
 namespace Borealis
 {
@@ -51,13 +53,16 @@ namespace Borealis
 	struct TagComponent
 	{
 		bool active = true;
+		std::string Name;
 		std::string Tag;
 		Bitset32 mLayer;
 
 		TagComponent() = default;
 		TagComponent(const TagComponent&) = default;
 		TagComponent(const std::string& tag)
-			: Tag(tag) {}
+			: Name(tag) {
+			Tag = "";
+		}
 	};
 
 	struct TransformComponent
@@ -304,6 +309,7 @@ namespace Borealis
 		bool sliding = true;
 		bool isJump = false;
 		float jumpSpeed = 0;
+		float gravity = 50.f;
 
 		void* controller = nullptr;
 		glm::vec3 targetVelocity = { 0,0,0 };
@@ -455,6 +461,13 @@ namespace Borealis
 		glm::vec2 canvasSize{};
 		float scaleFactor{};
 		Ref<FrameBuffer> canvasFrameBuffer = nullptr;
+		enum class RenderMode : uint8_t
+		{
+			WorldSpace,
+			ScreenSpace
+		};
+		RenderMode renderMode = RenderMode::ScreenSpace;
+
 		CanvasComponent() = default;
 		CanvasComponent(const CanvasComponent&) = default;
 	};
@@ -493,6 +506,36 @@ namespace Borealis
 
 		ParticleSystemComponent() = default;
 		ParticleSystemComponent(const ParticleSystemComponent&) = default;
+	};
+
+	struct ButtonComponent
+	{
+		std::string onClickFunctionName;
+		std::string onReleaseFunctionName;
+		std::string onHoverFunctionName;
+
+		std::string onClickClass;
+		std::string onReleaseClass;
+		std::string onHoverClass;
+
+		UUID onClickEntity;
+		UUID onReleaseEntity;
+		UUID onHoverEntity;
+
+		bool hovered = false;
+		bool clicked = false;
+		bool released = false;
+		bool interactable = true;
+
+		glm::vec3 center{};
+		glm::vec3 size{1.f, 1.f, 1.f};
+
+		void onClick();
+		void onRelease();
+		void onHover();
+
+		ButtonComponent() = default;
+		ButtonComponent(const ButtonComponent&) = default;
 	};
 }
 

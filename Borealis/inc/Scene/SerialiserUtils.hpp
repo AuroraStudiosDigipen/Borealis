@@ -25,6 +25,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scripting/ScriptingSystem.hpp>
 #include <imgui.h>
 #include <Core/BitSet32.hpp>
+#include <Core/LayerList.hpp>
 
 namespace YAML
 {

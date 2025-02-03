@@ -395,7 +395,7 @@ vec3 ComputePointLight(Light light, vec3 normal, vec3 viewDir)
     float distance = length(light.position - v_FragPos);
     float attenuation = 1.0 / (1.0 + light.linear * distance + light.quadratic * distance * distance); 
 
-    vec3 radiance = light.ambient * 10.f * attenuation;
+    vec3 radiance = light.ambient * attenuation;
 
     float D = DistributionGGX(normal, halfwayDir, GetRoughness());
     float G = GeometrySmith(normal, viewDir, lightDir, GetRoughness());
@@ -516,7 +516,7 @@ void Render3DPass()
 
 	vec3 ambient = vec3(0.1f) * GetAlbedoColor().rgb;
 
-	vec3 finalColor = ambient + color.rgb;
+	vec3 finalColor = color.rgb;
 
 	finalColor = finalColor / (finalColor + vec3(1.0));
     finalColor = pow(finalColor, vec3(1.0/2.2)); 

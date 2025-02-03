@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <Scene/Entity.hpp>
 #include <Core/Core.hpp>
+#include <Scene/SceneManager.hpp>
 
 namespace Borealis
 {
@@ -21,6 +22,9 @@ namespace Borealis
 		// Delete copy constructor and assignment operator
 		HierarchyLayerManager(const HierarchyLayerManager&) = delete;
 		HierarchyLayerManager& operator=(const HierarchyLayerManager&) = delete;
+		
+		//Loading of Map
+		void LoadEntitiesIntoLayerManager(const Ref<Scene>& scene);
 
 		// Methods to manage layers
 		void AddEntity(const UUID& uuid, int layer);
@@ -30,7 +34,7 @@ namespace Borealis
 		std::vector<UUID> GetEntitiesInLayerOrder() const;
 
 	private:
-		// Private constructor
+		// Private a
 		HierarchyLayerManager() = default;
 
 		// Layer tracking structures
@@ -39,5 +43,7 @@ namespace Borealis
 
 		// Helper methods
 		void SortLayers();
+		void UpdateEntityHierarchyLayers();
+
 	};
 }

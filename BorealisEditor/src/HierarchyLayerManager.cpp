@@ -1,119 +1,132 @@
 #include "HierarchyLayerManager.hpp"
-#include <Scene/SceneManager.hpp>
-#include <iostream>
+#include "Scene/Entity.hpp"  // Ensure this provides access to entity components
+#include "Scene/SceneManager.hpp"
 
 namespace Borealis
 {
-    // Remove an entity from layer tracking
-    void HierarchyLayerManager::RemoveEntity(Entity entity)
-    {
-        auto it = mEntityLayerMap.find(entity);
-        if (it != mEntityLayerMap.end())
-        {
-            int layer = it->second;
-            mEntityLayerMap.erase(it);
-            mLayerToEntityMap.erase(layer);
-            mLayeredEntities.erase(std::remove(mLayeredEntities.begin(), mLayeredEntities.end(), entity), mLayeredEntities.end());
-        }
-    }
 
-    // Move entity up in layer order (swap with the one above if it exists)
-    void HierarchyLayerManager::MoveEntityUp(Entity entity)
+    void HierarchyLayerManager::LoadEntitiesIntoLayerManager(const Ref<Scene>& scene)
     {
-        auto it = mEntityLayerMap.find(entity);
-        if (it != mEntityLayerMap.end())
-        {
-            int currentLayer = it->second;
-            int newLayer = currentLayer + 1;
+        if (!scene) return; // Safety check
+		std::cout << "Loading entities into layer manager" << std::endl;
 
-            if (mLayerToEntityMap.find(newLayer) != mLayerToEntityMap.end())
+        // Clear existing data
+        mEntityLayerMap.clear();
+        mLayeredEntities.clear();
+
+        std::vector<UUID> zeroLayerEntities; // Store entities with layer 0
+        int maxLayer = 0; // Track the highest assigned layer
+
+        // First pass: Process entities with layer > 0
+        auto view = scene->GetRegistry().view<IDComponent, TagComponent>();
+        for (auto entityHandle : view)
+        {
+            Entity entity = Entity(entityHandle, scene.get());
+            if (entity.HasComponent<IDComponent>() && entity.HasComponent<TagComponent>())
             {
-                Entity swapEntity = mLayerToEntityMap[newLayer];
-                mEntityLayerMap[swapEntity] = currentLayer;
-                mLayerToEntityMap[currentLayer] = swapEntity;
-            }
+                auto& idComp = entity.GetComponent<IDComponent>();
+                auto& tagComp = entity.GetComponent<TagComponent>();
 
-            mEntityLayerMap[entity] = newLayer;
-            mLayerToEntityMap[newLayer] = entity;
+                if (tagComp.mHierarchyLayer > 0)
+                {
+                    mEntityLayerMap[idComp.ID] = tagComp.mHierarchyLayer;
+                    mLayeredEntities.push_back(idComp.ID);
+                    maxLayer = std::max(maxLayer, tagComp.mHierarchyLayer); // Update max layer
+                }
+                else
+                {
+                    zeroLayerEntities.push_back(idComp.ID); // Store separately
+                }
+            }
+        }
+
+        // Sort non-zero layers first
+        SortLayers();
+
+        // Second pass: Assign new layers to entities that had layer 0
+        for (const auto& uuid : zeroLayerEntities)
+        {
+            maxLayer++; // Increment the next available layer
+            mEntityLayerMap[uuid] = maxLayer;
+            mLayeredEntities.push_back(uuid);
+
+            // Update the entity's actual component so the new layer persists
+            Entity entity = SceneManager::GetActiveScene()->GetEntityByUUID(uuid);
+            if (entity.HasComponent<TagComponent>())
+            {
+                entity.GetComponent<TagComponent>().mHierarchyLayer = maxLayer;
+            }
+        }
+
+        // Sort again to maintain correct order
+        SortLayers();
+    }
+
+    void HierarchyLayerManager::SortLayers()
+    {
+        std::sort(mLayeredEntities.begin(), mLayeredEntities.end(),
+            [this](const UUID& a, const UUID& b)
+            {
+                return mEntityLayerMap.at(a) < mEntityLayerMap.at(b);
+            });
+
+        // Update entity hierarchy layers
+        UpdateEntityHierarchyLayers();
+    }
+
+    void HierarchyLayerManager::UpdateEntityHierarchyLayers()
+    {
+        auto activeScene = SceneManager::GetActiveScene();
+        if (!activeScene) return;  // Safety check
+
+        for (const auto& uuid : mLayeredEntities)
+        {
+            Entity entity = activeScene->GetEntityByUUID(uuid);
+            if (entity && entity.HasComponent<TagComponent>())
+            {
+                entity.GetComponent<TagComponent>().mHierarchyLayer = mEntityLayerMap[uuid];
+            }
         }
     }
 
-    // Move entity down in layer order (swap with the one below if it exists)
-    void HierarchyLayerManager::MoveEntityDown(Entity entity)
+    void HierarchyLayerManager::AddEntity(const UUID& uuid, int layer)
     {
-        auto it = mEntityLayerMap.find(entity);
+        mEntityLayerMap[uuid] = layer;
+        mLayeredEntities.push_back(uuid);
+        SortLayers();
+    }
+
+    void HierarchyLayerManager::RemoveEntity(const UUID& uuid)
+    {
+        mEntityLayerMap.erase(uuid);
+        auto it = std::find(mLayeredEntities.begin(), mLayeredEntities.end(), uuid);
+        if (it != mLayeredEntities.end())
+            mLayeredEntities.erase(it);
+    }
+
+    void HierarchyLayerManager::MoveEntityUp(const UUID& uuid)
+    {
+        auto it = mEntityLayerMap.find(uuid);
         if (it != mEntityLayerMap.end())
         {
-            int currentLayer = it->second;
-            int newLayer = currentLayer - 1;
-
-            if (mLayerToEntityMap.find(newLayer) != mLayerToEntityMap.end())
-            {
-                Entity swapEntity = mLayerToEntityMap[newLayer];
-                mEntityLayerMap[swapEntity] = currentLayer;
-                mLayerToEntityMap[currentLayer] = swapEntity;
-            }
-
-            mEntityLayerMap[entity] = newLayer;
-            mLayerToEntityMap[newLayer] = entity;
+            it->second = std::max(it->second - 1, 0);
+            SortLayers();
         }
     }
 
-    // Get entities in the order they should be drawn
-    std::vector<Entity> HierarchyLayerManager::GetEntitiesInLayerOrder() const
+    void HierarchyLayerManager::MoveEntityDown(const UUID& uuid)
+    {
+        auto it = mEntityLayerMap.find(uuid);
+        if (it != mEntityLayerMap.end())
+        {
+            it->second += 1;
+            SortLayers();
+        }
+    }
+
+    std::vector<UUID> HierarchyLayerManager::GetEntitiesInLayerOrder() const
     {
         return mLayeredEntities;
     }
 
-    // Load all entities into the layer manager from the scene
-    void HierarchyLayerManager::LoadEntitiesIntoLayerManager(const Ref<Scene>& scene)
-    {
-        mLayeredEntities.clear();
-        mEntityLayerMap.clear();
-        mLayerToEntityMap.clear();
-
-        for (auto& item : scene->GetRegistry().view<entt::entity>())
-        {
-            Entity entity{ item, scene.get() };
-
-            // Assume each entity has a component that defines its layer (e.g., TagComponent)
-            if (entity.HasComponent<TagComponent>())
-            {
-                auto& tagComponent = entity.GetComponent<TagComponent>();
-
-                int layer = tagComponent.mLayer.to_ulong(); // Convert bitset to int
-                if (layer == 0)
-                {
-                    layer = GetNextAvailableLayer();
-                }
-
-                mEntityLayerMap[entity] = layer;
-                mLayerToEntityMap[layer] = entity;
-                mLayeredEntities.push_back(entity);
-            }
-        }
-
-        SortEntitiesByLayer();
-    }
-
-    // Get the next available layer ID
-    int HierarchyLayerManager::GetNextAvailableLayer()
-    {
-        int layer = 1;
-        while (mLayerToEntityMap.find(layer) != mLayerToEntityMap.end())
-        {
-            layer++;
-        }
-        return layer;
-    }
-
-    // Sort entities based on layer values
-    void HierarchyLayerManager::SortEntitiesByLayer()
-    {
-        std::sort(mLayeredEntities.begin(), mLayeredEntities.end(),
-            [this](Entity a, Entity b)
-            {
-                return mEntityLayerMap[a] < mEntityLayerMap[b];
-            });
-    }
 }

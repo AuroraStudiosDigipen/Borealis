@@ -13,12 +13,14 @@ namespace Borealis
     [NativeComponent]
     public class Collider : Component
     {
+        public string tag;
         public Collider() { }
         public Collider(ulong id)
         {
             InstanceID = id;
             gameObject = new GameObject(id);
             name = gameObject.name;
+            tag = gameObject.tag;
         }
 
 

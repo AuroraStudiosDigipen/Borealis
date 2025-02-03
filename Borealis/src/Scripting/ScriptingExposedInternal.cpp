@@ -173,7 +173,7 @@ namespace Borealis
 
 		BOREALIS_ADD_INTERNAL_CALL(SceneManager_SetActiveScene);
 		BOREALIS_ADD_INTERNAL_CALL(SceneManager_Quit);
-
+		BOREALIS_ADD_INTERNAL_CALL(SceneManager_SetMainCamera);
 	}
 	uint64_t GenerateUUID()
 	{
@@ -1125,6 +1125,25 @@ namespace Borealis
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		*duration = entity.GetComponent<AnimatorComponent>().animator.GetAnimationDuration();
+	}
+	void SceneManager_SetMainCamera(uint64_t entityID)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(entityID);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		if (entity.HasComponent<CameraComponent>())
+		{
+			auto view = SceneManager::GetActiveScene()->GetRegistry().view<CameraComponent>();
+			for (auto entity : view)
+			{
+				auto& camera = view.get<CameraComponent>(entity);
+				camera.Primary = false;
+			}
+			entity.GetComponent<CameraComponent>().Primary = true;
+		}
+
+
 	}
 	void SceneManager_SetActiveScene(MonoString* sceneName)
 	{

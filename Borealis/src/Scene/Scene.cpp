@@ -1158,6 +1158,7 @@ namespace Borealis
 			const auto& name = originalRegistry.get<TagComponent>(entity).Name;
 			UUIDtoENTT[uuid] = newScene->CreateEntityWithUUID(name, uuid);
 			Entity newEntity = newScene->GetEntityByUUID(uuid);
+			newEntity.GetComponent<TagComponent>().Tag = originalRegistry.get<TagComponent>(entity).Tag;
 			newEntity.GetComponent<TagComponent>().active = originalRegistry.get<TagComponent>(entity).active;
 			newEntity.GetComponent<TagComponent>().mLayer = originalRegistry.get<TagComponent>(entity).mLayer;
 		}

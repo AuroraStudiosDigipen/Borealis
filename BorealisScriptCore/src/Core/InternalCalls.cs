@@ -377,6 +377,8 @@ namespace Borealis
         internal extern static void SceneManager_SetActiveScene(string name);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void SceneManager_Quit();
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void SceneManager_SetCamera(ulong ID);
         #endregion
     }
 }

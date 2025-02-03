@@ -903,7 +903,6 @@ namespace Borealis {
 						{
 							SCPanel.SetSelectedEntity({}); //Clear selectedEntity
 							SCPanel.PushSelectedEntity(mHoveredEntity);
-							SCPanel.PrintAllSelectedEntities();
 							SCPanel.EnableMultiSelect();
 						}
 						else

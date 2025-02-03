@@ -32,6 +32,7 @@ namespace Borealis
 		void MoveEntityUp(const UUID& uuid);
 		void MoveEntityDown(const UUID& uuid);
 		std::vector<UUID> GetEntitiesInLayerOrder() const;
+		std::unordered_map<UUID, int> GetEntityLayerMap() const;
 
 	private:
 		// Private a

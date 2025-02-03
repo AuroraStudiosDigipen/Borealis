@@ -1135,6 +1135,56 @@ namespace Borealis
 	{
 		ImGui::Begin("Scene Hierarchy");
 
+		// Create the search bar
+		static char searchBuffer[128] = "";
+		ImGui::InputText("Search", searchBuffer, IM_ARRAYSIZE(searchBuffer));
+		std::string searchQuery = searchBuffer;
+
+		// Move Up Button
+		if (ImGui::Button("Move Up"))
+		{
+			if (mSelectedEntity) // Ensure an entity is selected
+			{
+				HierarchyLayerManager::GetInstance().MoveEntityUp(mSelectedEntity.GetUUID());
+			}
+		}
+
+		ImGui::SameLine();
+
+		// Move Down Button
+		if (ImGui::Button("Move Down"))
+		{
+			if (mSelectedEntity) // Ensure an entity is selected
+			{
+				HierarchyLayerManager::GetInstance().MoveEntityDown(mSelectedEntity.GetUUID());
+			}
+		}
+
+		// Display the layer number of the selected entity
+		if (mSelectedEntity)
+		{
+			const auto& layerMap = HierarchyLayerManager::GetInstance().GetEntityLayerMap();
+			auto it = layerMap.find(mSelectedEntity.GetUUID());
+
+			if (it != layerMap.end())
+			{
+				int layerNo = it->second;
+
+				// Display the layer number
+				ImGui::Text("Layer No: %d", layerNo);
+			}
+			else
+			{
+				// If the entity is selected but not in the map
+				ImGui::Text("Layer No: None");
+			}
+		}
+		else
+		{
+			// No entity selected
+			ImGui::Text("Layer No: None");
+		}
+
 		if (Project::GetProjectPath() != "")
 		{
 			ImGuiIO& io = ImGui::GetIO();
@@ -1143,18 +1193,40 @@ namespace Borealis
 			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.1f, 0.1f, 0.1f, 0.4f));
 			for (auto& [name, path] : SceneManager::GetSceneLibrary())
 			{
-
 				if (SceneManager::GetActiveScene()->GetName() == name)
 				{
 					ImGui::PopStyleColor();
 					ImGui::MenuItem(name.c_str());
 					ImGui::PopFont();
-					for (auto& item : mContext->mRegistry.view<entt::entity>())
-					{
+					// Track entity changes
+					static std::unordered_set<UUID> lastEntitySet;
+					std::unordered_set<UUID> currentEntitySet;
 
-						Entity entity{ item, mContext.get() };
-						auto transform = entity.GetComponent<TransformComponent>();
-						if (transform.ParentID == 0)
+					auto& sceneRegistry = SceneManager::GetActiveScene()->GetRegistry();
+					for (auto& item : sceneRegistry.view<IDComponent>())
+					{
+						Entity entity{ item, SceneManager::GetActiveScene().get() };
+						UUID entityID = entity.GetComponent<IDComponent>().ID;
+						currentEntitySet.insert(entityID);
+					}
+
+					// Compare lastEntitySet and currentEntitySet
+					if (currentEntitySet != lastEntitySet)
+					{
+						HierarchyLayerManager::GetInstance().LoadEntitiesIntoLayerManager(SceneManager::GetActiveScene());
+						lastEntitySet = currentEntitySet;  // Update lastEntitySet
+					}
+
+					// Draw entities in correct layer order
+					const auto& orderedEntities = HierarchyLayerManager::GetInstance().GetEntitiesInLayerOrder();
+					for (const auto& uuid : orderedEntities)
+					{
+						Entity entity = SceneManager::GetActiveScene()->GetEntityByUUID(uuid);
+
+						// Retrieve the node name or tag
+						std::string nodeName = entity.GetComponent<TagComponent>().Tag;
+
+						if (entity.IsValid() && entity.HasComponent<TransformComponent>() && entity.GetComponent<TransformComponent>().ParentID == 0 && (searchQuery.empty() || FuzzyMatch(searchQuery, nodeName)))
 						{
 							DrawEntityNode(entity);
 						}

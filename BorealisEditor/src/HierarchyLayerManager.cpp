@@ -1,3 +1,17 @@
+/******************************************************************************/
+/*!
+\file		HierarchyLayerManager.cpp
+\author 	Yeo Jun Jie
+\par    	email: yeo.junjie\@digipen.edu
+\date   	Jan 20, 2025
+\brief		Defines the HierarchicalLayerManager class with its class methods and helper functions
+
+Copyright (C) 2023 DigiPen Institute of Technology.
+Reproduction or disclosure of this file or its contents without the
+prior written consent of DigiPen Institute of Technology is prohibited.
+ */
+ /******************************************************************************/
+
 #include "HierarchyLayerManager.hpp"
 #include "Scene/Entity.hpp"  // Ensure this provides access to entity components
 #include "Scene/SceneManager.hpp"
@@ -8,7 +22,7 @@ namespace Borealis
     void HierarchyLayerManager::LoadEntitiesIntoLayerManager(const Ref<Scene>& scene)
     {
         if (!scene) return; // Safety check
-		std::cout << "Loading entities into layer manager" << std::endl;
+		//std::cout << "Loading entities into layer manager" << std::endl;
 
         // Clear existing data
         mEntityLayerMap.clear();
@@ -109,7 +123,27 @@ namespace Borealis
         auto it = mEntityLayerMap.find(uuid);
         if (it != mEntityLayerMap.end())
         {
-            it->second = std::max(it->second - 1, 0);
+            int currentLayer = it->second;
+			if (currentLayer == 1) return; // Highest layer, cannot move up
+
+            // Find entity that currently occupies the target layer
+            UUID entityAbove = UUID(); // Default null/empty
+            for (auto& [id, layer] : mEntityLayerMap)
+            {
+                if (layer == currentLayer - 1)
+                {
+                    entityAbove = id;
+                    break;
+                }
+            }
+
+            if (entityAbove)
+            {
+                // Swap layer values
+                mEntityLayerMap[uuid] = currentLayer - 1;
+                mEntityLayerMap[entityAbove] = currentLayer;
+            }
+
             SortLayers();
         }
     }
@@ -117,11 +151,29 @@ namespace Borealis
     void HierarchyLayerManager::MoveEntityDown(const UUID& uuid)
     {
         auto it = mEntityLayerMap.find(uuid);
-        if (it != mEntityLayerMap.end())
+        if (it == mEntityLayerMap.end()) return; // Entity not found
+
+        int currentLayer = it->second;
+
+        // Find entity in the layer below
+        UUID entityBelow = UUID();
+        for (auto& [id, layer] : mEntityLayerMap)
         {
-            it->second += 1;
-            SortLayers();
+            if (layer == currentLayer + 1)
+            {
+                entityBelow = id;
+                break;
+            }
         }
+
+        // If no entity is found below, stay in place
+        if (!entityBelow) return;
+
+        // Swap layers
+        mEntityLayerMap[uuid] = currentLayer + 1;
+        mEntityLayerMap[entityBelow] = currentLayer;
+
+        SortLayers();
     }
 
     std::vector<UUID> HierarchyLayerManager::GetEntitiesInLayerOrder() const
@@ -129,4 +181,8 @@ namespace Borealis
         return mLayeredEntities;
     }
 
+    std::unordered_map<UUID, int> HierarchyLayerManager::GetEntityLayerMap() const
+    {
+		return mEntityLayerMap;
+    }
 }

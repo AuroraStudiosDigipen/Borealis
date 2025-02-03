@@ -19,6 +19,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <cstdarg>
 #include <thread>
 #include <chrono>
+#include <mutex>
 
 #include <Physics/PhysicsSystem.hpp>
 #include <Core/Utils.hpp>
@@ -59,6 +60,10 @@ JPH_SUPPRESS_WARNINGS
 using namespace std;
 using namespace JPH;
 using namespace JPH::literals;
+
+static std::mutex persistMutex;
+static std::mutex enterMutex;
+static std::mutex exitMutex;
 
 // Callback for traces, connect this to your own trace function if you have one
 static void TraceImpl(const char* inFMT, ...)
@@ -282,6 +287,7 @@ namespace Borealis
 
 	void MyContactListener::OnContactAdded(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings)
 	{
+		std::lock_guard<std::mutex>lock(enterMutex);
 		if (inBody1.IsSensor() || inBody2.IsSensor())
 		{
 			sPhysicsData.onTriggerPairAddedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
@@ -294,6 +300,8 @@ namespace Borealis
 
 	void MyContactListener::OnContactPersisted(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings)
 	{
+		std::lock_guard<std::mutex>lock(persistMutex);
+
 		if (inBody1.IsSensor() || inBody2.IsSensor())
 		{
 			sPhysicsData.onTriggerPairPersistedQueue.push({ PhysicsSystem::BodyIDToUUID(inBody1.GetID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inBody2.GetID().GetIndexAndSequenceNumber()) });
@@ -306,6 +314,8 @@ namespace Borealis
 
 	void MyContactListener::OnContactRemoved(const SubShapeIDPair& inSubShapePair)
 	{
+		std::lock_guard<std::mutex>lock(exitMutex);
+
 		if (PhysicsSystem::BodyIDToIsSensor(inSubShapePair.GetBody1ID().GetIndexAndSequenceNumber()) || PhysicsSystem::BodyIDToIsSensor(inSubShapePair.GetBody2ID().GetIndexAndSequenceNumber()))
 		{
 			sPhysicsData.onTriggerPairRemovedQueue.push({ PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody1ID().GetIndexAndSequenceNumber()), PhysicsSystem::BodyIDToUUID(inSubShapePair.GetBody2ID().GetIndexAndSequenceNumber()) });

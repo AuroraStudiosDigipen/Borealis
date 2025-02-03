@@ -245,10 +245,12 @@ namespace Borealis
     void AudioEngine::StopAllChannels()
     {
         // Stop all tracked channels
-        for (auto& channelPair : sgpImplementation->mChannels)
+        for (auto it = sgpImplementation->mChannels.begin(); it != sgpImplementation->mChannels.end(); ++it)
         {
-            StopChannel(channelPair.first);
-        }
+			FMOD::Channel* pChannel = it->second;
+			pChannel->stop();
+		}
+
         sgpImplementation->mChannels.clear(); // Clear the map as all channels are stopped
 
         // Stop all channels globally via the master group

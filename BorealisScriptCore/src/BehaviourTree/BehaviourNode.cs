@@ -232,6 +232,21 @@ namespace Borealis
             SetStatus(NodeStatus.EXITING);
             SetResult(NodeResult.FAILURE);
         }
+        protected void OnRunning()
+        {
+            // If the node is not already running, switch it to RUNNING.
+            if (mStatus != NodeStatus.RUNNING)
+            {
+                SetStatus(NodeStatus.RUNNING);
+            }
+
+            // If the node's result is not already IN_PROGRESS, set it now.
+            if (mResult != NodeResult.IN_PROGRESS)
+            {
+                mResult = NodeResult.IN_PROGRESS;
+            }
+        }
+
 
         //protected BehaviourNode mParent;  // Parent node reference
         public BehaviourNode mParent { get; private set; }

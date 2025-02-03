@@ -180,10 +180,10 @@ namespace Borealis
 				value("Z", CapsuleColliderComponent::Direction::Z)
 				);
 
-        registration::class_<RigidBodyComponent>("Rigid Body Component")
+        registration::class_<RigidbodyComponent>("Rigid Body Component")
             (metadata("Component", true))
             .constructor<>()
-			.property("Movement", &RigidBodyComponent::movement)
+			.property("Movement", &RigidbodyComponent::movement)
 
 			//.property("Dynamic", &RigidBodyComponent::dynamicBody)
 
@@ -199,9 +199,9 @@ namespace Borealis
             //.property("Half Height", &RigidBodyComponent::halfHeight)
             //(metadata("Dependency", "Shape"), metadata("Visible for", "Capsule"))
             
-            .property("Friction", &RigidBodyComponent::friction)
+            .property("Friction", &RigidbodyComponent::friction)
             
-            .property("Bounciness", &RigidBodyComponent::bounciness);
+            .property("Bounciness", &RigidbodyComponent::bounciness);
 
         registration::class_<CharacterControllerComponent>("Character Controller Component")
             (metadata("Component", true))
@@ -468,7 +468,7 @@ void Borealis::ComponentRegistry::SetPropertyInternal(const std::string& propert
     RegisterSetPropertyFunction(BoxColliderComponent);
     RegisterSetPropertyFunction(CapsuleColliderComponent);
     RegisterSetPropertyFunction(SphereColliderComponent);
-    RegisterSetPropertyFunction(RigidBodyComponent);
+    RegisterSetPropertyFunction(RigidbodyComponent);
     RegisterSetPropertyFunction(LightComponent);
     RegisterSetPropertyFunction(TextComponent);
 
@@ -484,7 +484,7 @@ void Borealis::ComponentRegistry::SetPropertyInternal(const std::string& propert
     RegisterCopyPropertyFunction(BoxColliderComponent);
     RegisterCopyPropertyFunction(CapsuleColliderComponent);
     RegisterCopyPropertyFunction(SphereColliderComponent);
-    RegisterCopyPropertyFunction(RigidBodyComponent);
+    RegisterCopyPropertyFunction(RigidbodyComponent);
     RegisterCopyPropertyFunction(LightComponent);
     RegisterCopyPropertyFunction(TextComponent);
 }

@@ -24,7 +24,7 @@ namespace Borealis
         {
 
             BehaviourNode currentNode = mChildren[currentIndex];
-            Debug.Log("Sequencer " + currentNode.GetName());
+            //Debug.Log("Sequencer " + currentNode.GetName());
             currentNode.Tick(dt, gameobject);
 
             if (currentNode.HasFailed())

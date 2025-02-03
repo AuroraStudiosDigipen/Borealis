@@ -57,7 +57,7 @@ namespace Borealis
 
 	Scene::~Scene()
 	{
-		auto view = mRegistry.view<RigidBodyComponent>();
+		auto view = mRegistry.view<RigidbodyComponent>();
 	}
 
 	void Scene::Render2DPass()
@@ -308,7 +308,7 @@ namespace Borealis
 					PhysicsSystem::PullCharacterTransform(character, transform.Translate, transform.Rotation);
 				}
 
-				auto boxGroup = mRegistry.group<>(entt::get<TransformComponent, BoxColliderComponent, RigidBodyComponent>);
+				auto boxGroup = mRegistry.group<>(entt::get<TransformComponent, BoxColliderComponent, RigidbodyComponent>);
 				
 				for (int i = 0; i < timeStep; i++)
 				{
@@ -319,11 +319,11 @@ namespace Borealis
 						{
 							continue;
 						}
-						auto [transform, box, rigidbody] = boxGroup.get<TransformComponent, BoxColliderComponent, RigidBodyComponent>(entity);
+						auto [transform, box, rigidbody] = boxGroup.get<TransformComponent, BoxColliderComponent, RigidbodyComponent>(entity);
 						PhysicsSystem::PushTransform(box, transform, box.rigidBody);
 					}
 
-					auto sphereGroup = mRegistry.group<>(entt::get<TransformComponent, SphereColliderComponent, RigidBodyComponent>);
+					auto sphereGroup = mRegistry.group<>(entt::get<TransformComponent, SphereColliderComponent, RigidbodyComponent>);
 					for (auto entity : sphereGroup)
 					{
 						Entity brEntity{ entity, this };
@@ -331,11 +331,11 @@ namespace Borealis
 						{
 							continue;
 						}
-						auto [transform, sphere, rigidbody] = sphereGroup.get<TransformComponent, SphereColliderComponent, RigidBodyComponent>(entity);
+						auto [transform, sphere, rigidbody] = sphereGroup.get<TransformComponent, SphereColliderComponent, RigidbodyComponent>(entity);
 						PhysicsSystem::PushTransform(sphere, transform, sphere.rigidBody);
 					}
 
-					auto capsuleGroup = mRegistry.group<>(entt::get<TransformComponent, CapsuleColliderComponent, RigidBodyComponent>);
+					auto capsuleGroup = mRegistry.group<>(entt::get<TransformComponent, CapsuleColliderComponent, RigidbodyComponent>);
 					for (auto entity : capsuleGroup)
 					{
 						Entity brEntity{ entity, this };
@@ -343,7 +343,7 @@ namespace Borealis
 						{
 							continue;
 						}
-						auto [transform, capsule, rigidbody] = capsuleGroup.get<TransformComponent, CapsuleColliderComponent, RigidBodyComponent>(entity);
+						auto [transform, capsule, rigidbody] = capsuleGroup.get<TransformComponent, CapsuleColliderComponent, RigidbodyComponent>(entity);
 						PhysicsSystem::PushTransform(capsule, transform, capsule.rigidBody);
 					}
 
@@ -359,7 +359,7 @@ namespace Borealis
 						{
 							continue;
 						}
-						auto [transform, box, rigidbody] = boxGroup.get<TransformComponent, BoxColliderComponent, RigidBodyComponent>(entity);
+						auto [transform, box, rigidbody] = boxGroup.get<TransformComponent, BoxColliderComponent, RigidbodyComponent>(entity);
 						PhysicsSystem::PullTransform(box, transform);
 					}
 
@@ -370,7 +370,7 @@ namespace Borealis
 						{
 							continue;
 						}
-						auto [transform, capsule, rigidbody] = capsuleGroup.get<TransformComponent, CapsuleColliderComponent, RigidBodyComponent>(entity);
+						auto [transform, capsule, rigidbody] = capsuleGroup.get<TransformComponent, CapsuleColliderComponent, RigidbodyComponent>(entity);
 						PhysicsSystem::PullTransform(capsule, transform);
 					}
 					for (auto entity : sphereGroup)
@@ -380,7 +380,7 @@ namespace Borealis
 						{
 							continue;
 						}
-						auto [transform, sphere, rigidbody] = sphereGroup.get<TransformComponent, SphereColliderComponent, RigidBodyComponent>(entity);
+						auto [transform, sphere, rigidbody] = sphereGroup.get<TransformComponent, SphereColliderComponent, RigidbodyComponent>(entity);
 						PhysicsSystem::PullTransform(sphere, transform);
 					}
 
@@ -957,10 +957,10 @@ namespace Borealis
 	}
 
 	template<>
-	static void CopyComponent<RigidBodyComponent>(Entity dst, Entity src)
+	static void CopyComponent<RigidbodyComponent>(Entity dst, Entity src)
 	{
-		if (src.HasComponent<RigidBodyComponent>())
-			dst.AddOrReplaceComponent<RigidBodyComponent>(src.GetComponent<RigidBodyComponent>());
+		if (src.HasComponent<RigidbodyComponent>())
+			dst.AddOrReplaceComponent<RigidbodyComponent>(src.GetComponent<RigidbodyComponent>());
 	}
 
 	template <>
@@ -1016,7 +1016,7 @@ namespace Borealis
 		CopyComponent<AnimatorComponent>(newEntity,entity);
 		CopyComponent<BoxColliderComponent>(newEntity,entity);
 		CopyComponent<CapsuleColliderComponent>(newEntity,entity);
-		CopyComponent<RigidBodyComponent>(newEntity, entity);
+		CopyComponent<RigidbodyComponent>(newEntity, entity);
 		CopyComponent<CharacterControllerComponent>(newEntity, entity);
 		CopyComponent<LightComponent>(newEntity, entity);
 		CopyComponent<CircleRendererComponent>(newEntity, entity);
@@ -1210,7 +1210,7 @@ namespace Borealis
 		CopyComponent<AnimatorComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<BoxColliderComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<CapsuleColliderComponent>(newRegistry, originalRegistry, UUIDtoENTT);
-		CopyComponent<RigidBodyComponent>(newRegistry, originalRegistry, UUIDtoENTT);
+		CopyComponent<RigidbodyComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<LightComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<CharacterControllerComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<CircleRendererComponent>(newRegistry, originalRegistry, UUIDtoENTT);
@@ -1248,10 +1248,10 @@ namespace Borealis
 			}
 			auto [transform, box] = boxGroup.get<TransformComponent, BoxColliderComponent>(entity);
 			auto entityID = mRegistry.get<IDComponent>(entity).ID;
-			if (mRegistry.storage<RigidBodyComponent>().contains(entity))
+			if (mRegistry.storage<RigidbodyComponent>().contains(entity))
 			{
-				PhysicsSystem::addBody(transform, &mRegistry.get<RigidBodyComponent>(entity), box, entityID);
-				box.rigidBody = &mRegistry.get<RigidBodyComponent>(entity);
+				PhysicsSystem::addBody(transform, &mRegistry.get<RigidbodyComponent>(entity), box, entityID);
+				box.rigidBody = &mRegistry.get<RigidbodyComponent>(entity);
 			}
 			else if (!mRegistry.storage<CharacterControllerComponent>().contains(entity))
 			{
@@ -1269,10 +1269,10 @@ namespace Borealis
 			}
 			auto [transform, sphere] = sphereGroup.get<TransformComponent, SphereColliderComponent>(entity);
 			auto entityID = mRegistry.get<IDComponent>(entity).ID;
-			if (mRegistry.storage<RigidBodyComponent>().contains(entity))
+			if (mRegistry.storage<RigidbodyComponent>().contains(entity))
 			{
-				PhysicsSystem::addBody(transform, &mRegistry.get<RigidBodyComponent>(entity), sphere, entityID);
-				sphere.rigidBody = &mRegistry.get<RigidBodyComponent>(entity);
+				PhysicsSystem::addBody(transform, &mRegistry.get<RigidbodyComponent>(entity), sphere, entityID);
+				sphere.rigidBody = &mRegistry.get<RigidbodyComponent>(entity);
 			}
 			else
 			{
@@ -1290,10 +1290,10 @@ namespace Borealis
 			}
 			auto [transform, capsule] = capsuleGroup.get<TransformComponent, CapsuleColliderComponent>(entity);
 			auto entityID = mRegistry.get<IDComponent>(entity).ID;
-			if (mRegistry.storage<RigidBodyComponent>().contains(entity))
+			if (mRegistry.storage<RigidbodyComponent>().contains(entity))
 			{
-				PhysicsSystem::addBody(transform, &mRegistry.get<RigidBodyComponent>(entity), capsule, entityID);
-				capsule.rigidBody = &mRegistry.get<RigidBodyComponent>(entity);
+				PhysicsSystem::addBody(transform, &mRegistry.get<RigidbodyComponent>(entity), capsule, entityID);
+				capsule.rigidBody = &mRegistry.get<RigidbodyComponent>(entity);
 			}
 			else
 			{
@@ -1595,7 +1595,7 @@ namespace Borealis
 	}
 
 	template<>
-	void Scene::OnComponentAdded<RigidBodyComponent>(Entity entity, RigidBodyComponent& component)
+	void Scene::OnComponentAdded<RigidbodyComponent>(Entity entity, RigidbodyComponent& component)
 	{
 	}
 	template<>

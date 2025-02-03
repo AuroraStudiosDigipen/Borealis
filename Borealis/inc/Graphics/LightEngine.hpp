@@ -18,7 +18,11 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <vector>
 
 #include <Graphics/Shader.hpp>
+#include <Graphics/UniformBufferObject.hpp>
+#include <Graphics/Light.hpp>
 #include <Scene/Components.hpp>
+
+#define MAX_LIGHTS 32
 
 namespace Borealis
 {
@@ -35,16 +39,18 @@ namespace Borealis
 			\brief
 				Add light component to list
 		*************************************************************************/
-		void AddLight(LightComponent const& light);
+		void AddLight(LightComponent & light);
 
 		/*!***********************************************************************
 			\brief
 				Set the uniforms for the lights
 		*************************************************************************/
-		void SetLights(Ref<Shader> shader);
+		void SetLights(Ref<UniformBufferObject> const& LightsUBO);
 
 	private:
-		std::vector<LightComponent const*> mLights;
+		std::vector<LightComponent *> mLights;
+		std::array<LightUBO, 32> mLightsUBO;
+		bool mNeedToUpdate = false;
 	};
 }
 

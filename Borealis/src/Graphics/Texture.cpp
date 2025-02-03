@@ -70,7 +70,7 @@ namespace Borealis
 	{
 		if (!mDefault)
 		{
-			mDefault = Create("Resources/textures/missing_texture.DDS");
+			mDefault = Create("engineResources/textures/particles.DDS");
 		}
 		return mDefault;
 	}

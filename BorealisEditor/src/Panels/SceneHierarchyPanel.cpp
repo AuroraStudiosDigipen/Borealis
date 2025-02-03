@@ -1063,6 +1063,124 @@ namespace Borealis
 		return isEdited;
 	}
 
+	template<> //temp until idk
+	static bool DrawComponentLayout<ParticleSystemComponent>(const std::string& name, Entity entity, bool allowDelete)
+	{
+		bool isEdited = false;
+		if (entity.HasComponent<ParticleSystemComponent>())
+		{
+			ImGui::Spacing();
+			auto& component = entity.GetComponent<ParticleSystemComponent>();
+
+			bool deleteComponent = false;
+			bool open;
+
+			if (allowDelete)
+			{
+				auto ContentRegionAvailable = ImGui::GetContentRegionAvail();
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4,4 });
+				float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
+				ImGui::Separator();
+				open = ImGui::CollapsingHeader(name.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+				ImGui::PopStyleVar();
+				ImGui::SameLine(ContentRegionAvailable.x - lineHeight * 0.5f); // Align to right (Button)
+				if (ImGui::Button(("+##" + name).c_str(), ImVec2{ lineHeight,lineHeight }))
+				{
+					ImGui::OpenPopup(("ComponentSettingsPopup##" + name).c_str());
+				}
+
+
+				if (ImGui::BeginPopup(("ComponentSettingsPopup##" + name).c_str()))
+				{
+					if (ImGui::MenuItem("Remove Component"))
+					{
+						deleteComponent = true;
+						isEdited = true;
+					}
+
+					ImGui::EndPopup();
+				}
+			}
+			else
+			{
+				open = ImGui::CollapsingHeader(name.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+			}
+
+			if (open)
+			{
+				ImGui::Spacing();
+				isEdited = DrawComponent(component, entity) ? true : isEdited;
+			}
+
+			if (deleteComponent)
+			{
+				entity.RemoveComponent<ParticleSystemComponent>();
+			}
+
+			component.isEdited = isEdited;
+		}
+		return isEdited;
+	}
+
+	template<> //temp until idk
+	static bool DrawComponentLayout<LightComponent>(const std::string& name, Entity entity, bool allowDelete)
+	{
+		bool isEdited = false;
+		if (entity.HasComponent<LightComponent>())
+		{
+			ImGui::Spacing();
+			auto& component = entity.GetComponent<LightComponent>();
+
+			bool deleteComponent = false;
+			bool open;
+
+			if (allowDelete)
+			{
+				auto ContentRegionAvailable = ImGui::GetContentRegionAvail();
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4,4 });
+				float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
+				ImGui::Separator();
+				open = ImGui::CollapsingHeader(name.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+				ImGui::PopStyleVar();
+				ImGui::SameLine(ContentRegionAvailable.x - lineHeight * 0.5f); // Align to right (Button)
+				if (ImGui::Button(("+##" + name).c_str(), ImVec2{ lineHeight,lineHeight }))
+				{
+					ImGui::OpenPopup(("ComponentSettingsPopup##" + name).c_str());
+				}
+
+
+				if (ImGui::BeginPopup(("ComponentSettingsPopup##" + name).c_str()))
+				{
+					if (ImGui::MenuItem("Remove Component"))
+					{
+						deleteComponent = true;
+						isEdited = true;
+					}
+
+					ImGui::EndPopup();
+				}
+			}
+			else
+			{
+				open = ImGui::CollapsingHeader(name.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
+			}
+
+			if (open)
+			{
+				ImGui::Spacing();
+				isEdited = DrawComponent(component, entity) ? true : isEdited;
+			}
+
+			if (deleteComponent)
+			{
+				entity.RemoveComponent<LightComponent>();
+			}
+
+			component.isEdited = isEdited;
+		}
+		return isEdited;
+	}
+
 	void ShowTextureConfig(AssetMetaData & metaData)
 	{
 		TextureConfig config = GetConfig<TextureConfig>(metaData.Config);
@@ -2210,6 +2328,7 @@ namespace Borealis
 			isEdited = SearchBar<OutLineComponent	>(search_text, entity, "Outline", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<CanvasComponent	>(search_text, entity, "Canvas", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<CanvasRendererComponent	>(search_text, entity, "Canvas Renderer", search_buffer) ? true : isEdited;
+			isEdited = SearchBar<ParticleSystemComponent	>(search_text, entity, "Particle System", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<ButtonComponent	>(search_text, entity, "Button", search_buffer) ? true : isEdited;
 
 			// scripts
@@ -2258,6 +2377,7 @@ namespace Borealis
 		isEdited = DrawComponentLayout<OutLineComponent>("Outline", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<CanvasComponent>("Canvas", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<CanvasRendererComponent>("Canvas Renderer", entity) ? true : isEdited;
+		isEdited = DrawComponentLayout<ParticleSystemComponent>("Particle System", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<ButtonComponent>("Button", entity) ? true : isEdited;
 
 		/*DrawComponent<CameraComponent>("Camera", mSelectedEntity, [](auto& cameraComponent)

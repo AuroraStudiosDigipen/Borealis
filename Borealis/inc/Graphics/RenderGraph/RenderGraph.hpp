@@ -192,6 +192,7 @@ namespace Borealis
 		EditorHighlightPass,
 		UIPass,
 		EditorUIPass,
+		ParticleSystemPass,
 		SkyboxPass,
 		RenderToTarget,
 		UIWorldPass
@@ -327,6 +328,13 @@ namespace Borealis
 		void Execute(float dt) override;
 	};
 
+	class ParticleSystemPass : public EntityPass
+	{
+	public:
+		ParticleSystemPass(std::string name);
+
+		void Execute(float dt) override;
+	};
 
 	struct RenderPassConfig
 	{

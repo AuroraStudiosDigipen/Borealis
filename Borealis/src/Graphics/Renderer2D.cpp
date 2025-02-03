@@ -33,6 +33,7 @@ namespace Borealis
 
 		//Editor only
 		int EntityID;
+		int BillBoarding = 0;
 	};
 
 	struct SimpleQuadData
@@ -145,7 +146,8 @@ namespace Borealis
 			{ ShaderDataType::Float2, "a_TexCoord"},
 			{ ShaderDataType::Float, "a_TexIndex"},
 			{ ShaderDataType::Float, "a_TilingFactor"},
-			{ ShaderDataType::Int, "a_EntityID"}
+			{ ShaderDataType::Int, "a_EntityID"},
+			{ ShaderDataType::Int, "a_BillBoarding"}
 			});
 		sData->mQuadVAO->AddVertexBuffer(sData->mQuadVBO);
 
@@ -323,9 +325,6 @@ namespace Borealis
 		sData->FontBufferPtr = sData->FontBufferBase;
 
 		sData->TextureSlotIndex = 1;
-
-		//sData->cameraData.ViewProjection = viewProj;
-		//sData->CameraUBO->SetData(&sData->cameraData, sizeof(Renderer2DData::CameraData));
 	}
 
 	void Renderer2D::End()
@@ -576,6 +575,7 @@ namespace Borealis
 			sData->QuadBufferPtr->TexCoord = texCoords[i];
 			sData->QuadBufferPtr->TexIndex = texIndex;
 			sData->QuadBufferPtr->TilingFactor = 1.0f;
+			sData->QuadBufferPtr->BillBoarding = (false) ? 1 : 0;
 			sData->QuadBufferPtr++;
 		}
 		sData->QuadIndexCount += 6;
@@ -630,6 +630,7 @@ namespace Borealis
 			sData->QuadBufferPtr->TexCoord = texCoords[i];
 			sData->QuadBufferPtr->TexIndex = textureUnit;
 			sData->QuadBufferPtr->TilingFactor = tilingFactor;
+			sData->QuadBufferPtr->BillBoarding = (false) ? 1 : 0;
 			sData->QuadBufferPtr++;
 		}
 
@@ -685,6 +686,7 @@ namespace Borealis
 			sData->QuadBufferPtr->TexCoord = subtexture->GetTexCoords()[i];
 			sData->QuadBufferPtr->TexIndex = textureUnit;
 			sData->QuadBufferPtr->TilingFactor = tilingFactor;
+			sData->QuadBufferPtr->BillBoarding = (false) ? 1 : 0;
 			sData->QuadBufferPtr++;
 		}
 
@@ -808,6 +810,7 @@ namespace Borealis
 			sData->QuadBufferPtr->TexIndex = texIndex;
 			sData->QuadBufferPtr->TilingFactor = 1.0f;
 			sData->QuadBufferPtr->EntityID = entityID;
+			sData->QuadBufferPtr->BillBoarding = (false) ? 1 : 0;
 			sData->QuadBufferPtr++;
 		}
 
@@ -843,7 +846,7 @@ namespace Borealis
 		DrawQuad(transform, texture, tilingFactor);
 	}
 
-	void Renderer2D::DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const float& tilingFactor, const glm::vec4& tint, int entityID)
+	void Renderer2D::DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const float& tilingFactor, const glm::vec4& tint, int entityID, bool billBoard)
 	{
 		PROFILE_FUNCTION();
 
@@ -873,7 +876,14 @@ namespace Borealis
 		}
 
 		
-		constexpr glm::vec2 texCoords[] = { {0.0f,0.0f},{1.0f,0.0f},{1.0f,1.0f},{0.0f,1.0f} };
+		//constexpr glm::vec2 texCoords[] = { {0.0f,0.0f},{1.0f,0.0f},{1.0f,1.0f},{0.0f,1.0f} };
+
+		constexpr glm::vec2 texCoords[] = {
+			{0.0f, 1.0f},
+			{1.0f, 1.0f},
+			{1.0f, 0.0f},
+			{0.0f, 0.0f} 
+		};
 
 		for (int i = 0; i < 4; i++)
 		{
@@ -883,6 +893,7 @@ namespace Borealis
 			sData->QuadBufferPtr->TexIndex = textureUnit;
 			sData->QuadBufferPtr->TilingFactor = tilingFactor;
 			sData->QuadBufferPtr->EntityID = entityID;
+			sData->QuadBufferPtr->BillBoarding = (billBoard) ? 1 : 0;
 			sData->QuadBufferPtr++;
 		}
 
@@ -947,6 +958,7 @@ namespace Borealis
 			sData->QuadBufferPtr->TexCoord = subtexture->GetTexCoords()[i];
 			sData->QuadBufferPtr->TexIndex = textureUnit;
 			sData->QuadBufferPtr->TilingFactor = tilingFactor;
+			sData->QuadBufferPtr->BillBoarding = (false) ? 1 : 0;
 			sData->QuadBufferPtr++;
 		}
 

@@ -162,6 +162,11 @@ namespace Borealis
 		if (entity.HasComponent<CanvasRendererComponent>())
 		{
 			SerializeComponent(out, entity.GetComponent<CanvasRendererComponent>());
+		}		
+		
+		if (entity.HasComponent<ParticleSystemComponent>())
+		{
+			SerializeComponent(out, entity.GetComponent<ParticleSystemComponent>());
 		}
 
 		if (entity.HasComponent<ButtonComponent>())
@@ -423,6 +428,7 @@ namespace Borealis
 		DeserialiseComponent<OutLineComponent>(entity, BorealisEntity);
 		DeserialiseComponent<CanvasComponent>(entity, BorealisEntity);
 		DeserialiseComponent<CanvasRendererComponent>(entity, BorealisEntity);
+		DeserialiseComponent<ParticleSystemComponent>(entity, BorealisEntity);
 		DeserialiseComponent<BoxColliderComponent>(entity, BorealisEntity);
 		DeserialiseComponent<SphereColliderComponent>(entity, BorealisEntity);
 		DeserialiseComponent<CapsuleColliderComponent>(entity, BorealisEntity);

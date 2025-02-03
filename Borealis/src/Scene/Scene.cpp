@@ -117,8 +117,21 @@ namespace Borealis
 					continue;
 				}
 				auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
-				lightComponent.position = transform.GetGlobalTranslate();
-				lightComponent.direction = transform.GetGlobalRotation();	
+				glm::vec3 buffer = transform.GetGlobalTranslate();
+				if (buffer != lightComponent.position)
+				{
+					lightComponent.position = buffer;
+					lightComponent.isEdited = true;
+
+					std::cout << "graph Light x {}" << lightComponent.position.x << '\n';
+				}
+
+				buffer = transform.GetGlobalRotation();
+				if (buffer != lightComponent.direction)
+				{
+					lightComponent.direction = buffer;
+					lightComponent.isEdited = true;
+				}
 				Renderer3D::AddLight(lightComponent);
 			}
 		}
@@ -658,6 +671,30 @@ namespace Borealis
 				}
 			}
 		}
+
+		//particles
+		{
+			entt::basic_group group = mRegistry.group<>(entt::get<TransformComponent, ParticleSystemComponent>);
+			for (auto& entity : group)
+			{
+				auto entityBR = Entity{ entity, this };
+				if (!entityBR.IsActive())
+				{
+					continue;
+				}
+				auto [transform, particleSystemComponent] = group.get<TransformComponent, ParticleSystemComponent>(entity);
+
+				if (!particleSystemComponent.particleSystem)
+				{
+					particleSystemComponent.particleSystem = MakeRef<ParticleSystem>();
+					particleSystemComponent.particleSystem->Init(particleSystemComponent);
+
+					particleSystemComponent.texture = Texture2D::GetDefaultTexture();
+				}
+
+				particleSystemComponent.particleSystem->Update(particleSystemComponent, transform, dt);
+			}
+		}
 	}
 
 	//move down ltr
@@ -768,11 +805,11 @@ namespace Borealis
 		if (!mViewportFrameBuffer || !mRuntimeFrameBuffer || !mGFrameBuffer)
 		{
 			FrameBufferProperties props{ 1280, 720, false };
-			props.Attachments = { FramebufferTextureFormat::RGBA8,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
+			props.Attachments = { FramebufferTextureFormat::RGBA16F,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
 			mViewportFrameBuffer = FrameBuffer::Create(props);
 
 			FrameBufferProperties propsRuntime{ 1280, 720, false };
-			propsRuntime.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RedInteger,FramebufferTextureFormat::Depth };
+			propsRuntime.Attachments = { FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RedInteger,FramebufferTextureFormat::Depth };
 			mRuntimeFrameBuffer = FrameBuffer::Create(propsRuntime);
 
 			FrameBufferProperties propsGBuffer{ 1280, 720, false };
@@ -991,6 +1028,7 @@ namespace Borealis
 		CopyComponent<OutLineComponent>(newEntity, entity);
 		CopyComponent<CanvasComponent>(newEntity, entity);
 		CopyComponent<CanvasRendererComponent>(newEntity, entity);
+		CopyComponent<ParticleSystemComponent>(newEntity, entity);
 		CopyComponent<ButtonComponent>(newEntity, entity);
 		auto& tc = newEntity.GetComponent<TransformComponent>();
 		if (tc.ParentID)
@@ -1184,6 +1222,7 @@ namespace Borealis
 		CopyComponent<OutLineComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<CanvasComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<CanvasRendererComponent>(newRegistry, originalRegistry, UUIDtoENTT);
+		CopyComponent<ParticleSystemComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<ButtonComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		auto tcView = newRegistry.view<TransformComponent>();
 		for (auto entity : tcView)
@@ -1620,6 +1659,12 @@ namespace Borealis
 
 	template<>
 	void Scene::OnComponentAdded<CanvasRendererComponent>(Entity entity, CanvasRendererComponent& component)
+	{
+
+	}	
+
+	template<>
+	void Scene::OnComponentAdded<ParticleSystemComponent>(Entity entity, ParticleSystemComponent& component)
 	{
 
 	}

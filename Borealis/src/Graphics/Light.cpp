@@ -37,7 +37,7 @@ namespace Borealis
 		std::string str = lightPrefix + ".position";
 		shader->Set(str.c_str(), lightComponent.position);
 		str = lightPrefix + ".ambient";
-		shader->Set(str.c_str(), glm::vec3(lightComponent.color) * 0.8f * lightComponent.Intensity);
+		shader->Set(str.c_str(), glm::vec3(lightComponent.color) * 1.f * lightComponent.Intensity);
 		str = lightPrefix + ".diffuse";
 		shader->Set(str.c_str(), glm::vec3(lightComponent.color) * 0.5f * lightComponent.Intensity);
 		str = lightPrefix + ".specular";

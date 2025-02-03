@@ -1034,11 +1034,11 @@ namespace Borealis
 
 					if (!editor)
 					{
-						if (glm::distance(tempPos, cameraPosition) > 20.f) cameraChange = true;
+						if (glm::distance(tempPos, cameraPosition) > 0.1f) cameraChange = true;
 					}
 					else
 					{
-						if (glm::distance(tempPosEditor, cameraPosition) > 20.f) cameraChange = true;
+						if (glm::distance(tempPosEditor, cameraPosition) > 0.1f) cameraChange = true;
 					}
 
 					if (lightChange || cameraChange)

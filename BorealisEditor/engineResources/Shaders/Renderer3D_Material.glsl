@@ -356,7 +356,7 @@ vec3 ComputeDirectionalLight(Light light, vec3 normal, vec3 viewDir)
     vec3 F0 = vec3(0.04f);
     F0 = mix(F0, GetAlbedoColor().rgb, metallic);
 
-    vec3 F = fresnelSchlick(max(dot(lightDir, halfwayDir), 0.0), F0);
+    vec3 F = fresnelSchlick(max(dot(viewDir, halfwayDir), 0.0), F0);
 
     float NdotL = max(dot(normal, lightDir), 0.0);
 
@@ -370,6 +370,7 @@ vec3 ComputeDirectionalLight(Light light, vec3 normal, vec3 viewDir)
     float shadowFactor = GetCascadeShadowFactor(lightDir, normal);
 
     vec3 color = vec3(0.f);
+    
     if(u_HasShadow)
     {
         color += shadowFactor * ((kD * GetAlbedoColor().xyz / PI + specular) * radiance * NdotL);
@@ -565,7 +566,7 @@ void Render3DPass()
         }
     }
 
-	vec3 ambient = vec3(0.8f) * GetAlbedoColor().rgb;
+	vec3 ambient = vec3(0.1f) * GetAlbedoColor().rgb;
 
 	vec3 finalColor = ambient + color.rgb;
 

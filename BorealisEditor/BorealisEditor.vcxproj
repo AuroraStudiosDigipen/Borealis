@@ -183,6 +183,7 @@ IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
     <ClInclude Include="inc\EditorComponentRegistry.hpp" />
     <ClInclude Include="inc\EditorLayer.hpp" />
     <ClInclude Include="inc\EditorSerialiser.hpp" />
+    <ClInclude Include="inc\HierarchyLayerManager.hpp" />
     <ClInclude Include="inc\MaterialEditor.hpp" />
     <ClInclude Include="inc\Panels\AudioMixerPanel.hpp" />
     <ClInclude Include="inc\Panels\BTNodeEditorPanel.hpp" />
@@ -208,6 +209,7 @@ IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
     <ClCompile Include="src\EditorComponentRegistry.cpp" />
     <ClCompile Include="src\EditorLayer.cpp" />
     <ClCompile Include="src\EditorSerialiser.cpp" />
+    <ClCompile Include="src\HierarchyLayerManager.cpp" />
     <ClCompile Include="src\MaterialEditor.cpp" />
     <ClCompile Include="src\Panels\AudioMixerPanel.cpp" />
     <ClCompile Include="src\Panels\BTNodeEditorPanel.cpp" />

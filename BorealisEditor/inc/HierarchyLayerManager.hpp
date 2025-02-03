@@ -1,0 +1,43 @@
+#pragma once
+
+#include <unordered_map>
+#include <vector>
+#include <algorithm>
+#include <Scene/Entity.hpp>
+#include <Core/Core.hpp>
+
+namespace Borealis
+{
+	class HierarchyLayerManager
+	{
+	public:
+		// Singleton access method
+		static HierarchyLayerManager& GetInstance()
+		{
+			static HierarchyLayerManager instance;
+			return instance;
+		}
+
+		// Delete copy constructor and assignment operator
+		HierarchyLayerManager(const HierarchyLayerManager&) = delete;
+		HierarchyLayerManager& operator=(const HierarchyLayerManager&) = delete;
+
+		// Methods to manage layers
+		void AddEntity(const UUID& uuid, int layer);
+		void RemoveEntity(const UUID& uuid);
+		void MoveEntityUp(const UUID& uuid);
+		void MoveEntityDown(const UUID& uuid);
+		std::vector<UUID> GetEntitiesInLayerOrder() const;
+
+	private:
+		// Private constructor
+		HierarchyLayerManager() = default;
+
+		// Layer tracking structures
+		std::unordered_map<UUID, int> mEntityLayerMap; // Maps UUIDs to their layers
+		std::vector<UUID> mLayeredEntities;           // Stores UUIDs in the order they should be drawn
+
+		// Helper methods
+		void SortLayers();
+	};
+}

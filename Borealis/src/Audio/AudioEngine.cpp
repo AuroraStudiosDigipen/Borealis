@@ -1,4 +1,4 @@
-/******************************************************************************/
+﻿/******************************************************************************/
 /*!
 \file		AudioEngine.cpp
 \author 	Valerie Koh
@@ -25,13 +25,16 @@ namespace Borealis
     struct FadeEffect {
         int channelId;
         float targetVolume;
+        float startVolume;
         float currentTime;
         float duration;
         bool fadeIn;
 
-        FadeEffect(int chId, float targetVol, float dur, bool in)
-            : channelId(chId), targetVolume(targetVol), currentTime(0.0f), duration(dur), fadeIn(in) {}
+        FadeEffect(int chId, float startVol, float targetVol, float dur, bool in)
+            : channelId(chId), startVolume(startVol), targetVolume(targetVol),
+            currentTime(0.0f), duration(dur), fadeIn(in) {}
     };
+
 
     struct Implementation {
         Implementation();
@@ -133,11 +136,30 @@ namespace Borealis
 
         float deltaTime = 0.016f; // Assume ~60 FPS
 
-        for (auto it = mFades.begin(); it != mFades.end();)
+        auto it = mFades.begin();
+        while (it != mFades.end())
         {
             it->currentTime += deltaTime;
             float progress = glm::clamp(it->currentTime / it->duration, 0.0f, 1.0f);
-            float newVolume = it->fadeIn ? (progress * it->targetVolume) : ((1.0f - progress) * it->targetVolume);
+
+            float newVolume;
+            if (it->fadeIn)
+            {
+                // Linear interpolation for fade-in (as before)
+                newVolume = glm::mix(it->startVolume, it->targetVolume, progress);
+            }
+            else
+            {
+                // Convert volumes to dB for logarithmic fade-out
+                constexpr float MIN_VOLUME = 0.0001f; // -80 dB (near silence)
+                float startVol = glm::max(it->startVolume, MIN_VOLUME);
+                float targetVol = glm::max(it->targetVolume, MIN_VOLUME);
+
+                float startDB = 20.0f * log10f(startVol);
+                float targetDB = 20.0f * log10f(targetVol);
+                float currentDB = glm::mix(startDB, targetDB, progress);
+                newVolume = powf(10.0f, currentDB / 20.0f);
+            }
 
             auto chIt = mChannels.find(it->channelId);
             if (chIt != mChannels.end())
@@ -145,23 +167,26 @@ namespace Borealis
                 ErrorCheck(chIt->second->setVolume(newVolume));
             }
 
+            // Stop when fade-out completes (progress >=1)
             if (progress >= 1.0f)
             {
                 if (!it->fadeIn)
                 {
-                    // Stop sound after fade-out
-                    chIt->second->stop();
-                    mChannels.erase(it->channelId);
+                    if (chIt != mChannels.end())
+                    {
+                        chIt->second->stop();
+                        mChannels.erase(chIt);
+                    }
                 }
-
                 it = mFades.erase(it);
-                continue;
             }
             else
             {
-                ++it;  // ? Only increment if we didn�t erase
+                ++it;
             }
         }
+    
+
 
         ErrorCheck(mpSystem->update());
     }
@@ -524,14 +549,15 @@ namespace Borealis
 
         FMOD::Channel* channel = it->second;
 
-        // Start at 0 volume
-        ErrorCheck(channel->setVolume(0.0f));
+        // ✅ Convert dB to linear volume
+        float startVolume = 0.0f;  // Typically starts from silence
+        float targetVolume = dbToVolume(targetVolumeDB);  // Convert dB to linear
 
-        // Convert dB to linear scale
-        float targetVolume = dbToVolume(targetVolumeDB);
+        // Ensure FMOD starts with proper volume
+        ErrorCheck(channel->setVolume(startVolume));
 
-        // Add fade-in effect
-        sgpImplementation->mFades.emplace_back(channelId, targetVolume, fadeInTime, true);
+        // ✅ Use linear values in fade effect
+        sgpImplementation->mFades.emplace_back(channelId, startVolume, targetVolume, fadeInTime, true);
     }
 
     void AudioEngine::ApplyFadeOut(int channelId, float fadeOutTime)
@@ -551,10 +577,11 @@ namespace Borealis
         {
             float currentVolume = 1.0f;
             channel->getVolume(&currentVolume);
-
-            // Add fade-out effect without stopping immediately
-            sgpImplementation->mFades.emplace_back(channelId, currentVolume, fadeOutTime, false);
+            // Use a lower target volume (0.0001f = -80 dB)
+            sgpImplementation->mFades.emplace_back(channelId, currentVolume, 0.0001f, fadeOutTime, false);
         }
     }
+
+
 
 }

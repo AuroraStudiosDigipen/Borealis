@@ -18,6 +18,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/VertexArray.hpp>
 #include <Graphics/Shader.hpp>
 #include <Graphics/RenderCommand.hpp>
+#include <Graphics/UniformBufferObject.hpp>
+#include <Graphics/UBOBindings.hpp>
 
 namespace Borealis
 {
@@ -31,6 +33,7 @@ namespace Borealis
 
 		//Editor only
 		int EntityID;
+		int BillBoarding = 0;
 	};
 
 	struct SimpleQuadData
@@ -72,7 +75,7 @@ namespace Borealis
 	{
 		static const uint32_t MaxQuads = 10000;
 		static const uint32_t MaxCircles = 1000;
-		static const uint32_t MaxLines = 10000;
+		static const uint32_t MaxLines = 1000000;
 		static const uint32_t MaxFont = 10000;
 		static const uint32_t MaxCircleVertices = MaxCircles * 4;
 		static const uint32_t MaxLineVertices = MaxLines * 2;
@@ -143,7 +146,8 @@ namespace Borealis
 			{ ShaderDataType::Float2, "a_TexCoord"},
 			{ ShaderDataType::Float, "a_TexIndex"},
 			{ ShaderDataType::Float, "a_TilingFactor"},
-			{ ShaderDataType::Int, "a_EntityID"}
+			{ ShaderDataType::Int, "a_EntityID"},
+			{ ShaderDataType::Int, "a_BillBoarding"}
 			});
 		sData->mQuadVAO->AddVertexBuffer(sData->mQuadVBO);
 
@@ -265,6 +269,12 @@ namespace Borealis
 		sData->VertexPos[1] = { 0.5f, -0.5f, 0.0f, 1.0f };
 		sData->VertexPos[2] = { 0.5f, 0.5f, 0.0f, 1.0f };
 		sData->VertexPos[3] = { -0.5f, 0.5f, 0.0f, 1.0f };
+
+		UniformBufferObject::BindToShader(sData->mQuadShader->GetID(), "Camera", CAMERA_BIND);
+		UniformBufferObject::BindToShader(sData->mCircleShader->GetID(), "Camera", CAMERA_BIND);
+		UniformBufferObject::BindToShader(sData->mLineShader->GetID(), "Camera", CAMERA_BIND);
+		UniformBufferObject::BindToShader(sData->mFontShader->GetID(), "Camera", CAMERA_BIND);
+
 	}
 	void Renderer2D::Free()
 	{
@@ -302,26 +312,14 @@ namespace Borealis
 
 	void Renderer2D::Begin(glm::mat4 viewProj)
 	{
-		sData->mQuadShader->Bind();
-		sData->mQuadShader->Set("u_ViewProjection", viewProj);
-
 		sData->QuadIndexCount = 0;
 		sData->QuadBufferPtr = sData->QuadBufferBase;
-
-		sData->mCircleShader->Bind();
-		sData->mCircleShader->Set("u_ViewProjection", viewProj);
 
 		sData->CircleIndexCount = 0;
 		sData->CircleBufferPtr = sData->CircleBufferBase;
 
-		sData->mLineShader->Bind();
-		sData->mLineShader->Set("u_ViewProjection", viewProj);
-
 		sData->LineVertexCount = 0;
 		sData->LineBufferPtr = sData->LineBufferBase;
-
-		sData->mFontShader->Bind();
-		sData->mFontShader->Set("u_ViewProjection", viewProj);
 
 		sData->FontIndexCount = 0;
 		sData->FontBufferPtr = sData->FontBufferBase;
@@ -577,6 +575,7 @@ namespace Borealis
 			sData->QuadBufferPtr->TexCoord = texCoords[i];
 			sData->QuadBufferPtr->TexIndex = texIndex;
 			sData->QuadBufferPtr->TilingFactor = 1.0f;
+			sData->QuadBufferPtr->BillBoarding = (false) ? 1 : 0;
 			sData->QuadBufferPtr++;
 		}
 		sData->QuadIndexCount += 6;
@@ -631,6 +630,7 @@ namespace Borealis
 			sData->QuadBufferPtr->TexCoord = texCoords[i];
 			sData->QuadBufferPtr->TexIndex = textureUnit;
 			sData->QuadBufferPtr->TilingFactor = tilingFactor;
+			sData->QuadBufferPtr->BillBoarding = (false) ? 1 : 0;
 			sData->QuadBufferPtr++;
 		}
 
@@ -686,6 +686,7 @@ namespace Borealis
 			sData->QuadBufferPtr->TexCoord = subtexture->GetTexCoords()[i];
 			sData->QuadBufferPtr->TexIndex = textureUnit;
 			sData->QuadBufferPtr->TilingFactor = tilingFactor;
+			sData->QuadBufferPtr->BillBoarding = (false) ? 1 : 0;
 			sData->QuadBufferPtr++;
 		}
 
@@ -809,6 +810,7 @@ namespace Borealis
 			sData->QuadBufferPtr->TexIndex = texIndex;
 			sData->QuadBufferPtr->TilingFactor = 1.0f;
 			sData->QuadBufferPtr->EntityID = entityID;
+			sData->QuadBufferPtr->BillBoarding = (false) ? 1 : 0;
 			sData->QuadBufferPtr++;
 		}
 
@@ -844,7 +846,7 @@ namespace Borealis
 		DrawQuad(transform, texture, tilingFactor);
 	}
 
-	void Renderer2D::DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const float& tilingFactor, const glm::vec4& tint, int entityID)
+	void Renderer2D::DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const float& tilingFactor, const glm::vec4& tint, int entityID, bool billBoard)
 	{
 		PROFILE_FUNCTION();
 
@@ -876,6 +878,13 @@ namespace Borealis
 		
 		constexpr glm::vec2 texCoords[] = { {0.0f,0.0f},{1.0f,0.0f},{1.0f,1.0f},{0.0f,1.0f} };
 
+		//constexpr glm::vec2 texCoords[] = {
+		//	{0.0f, 1.0f},
+		//	{1.0f, 1.0f},
+		//	{1.0f, 0.0f},
+		//	{0.0f, 0.0f} 
+		//};
+
 		for (int i = 0; i < 4; i++)
 		{
 			sData->QuadBufferPtr->Position = transform * sData->VertexPos[i];
@@ -884,6 +893,7 @@ namespace Borealis
 			sData->QuadBufferPtr->TexIndex = textureUnit;
 			sData->QuadBufferPtr->TilingFactor = tilingFactor;
 			sData->QuadBufferPtr->EntityID = entityID;
+			sData->QuadBufferPtr->BillBoarding = (billBoard) ? 1 : 0;
 			sData->QuadBufferPtr++;
 		}
 
@@ -948,6 +958,7 @@ namespace Borealis
 			sData->QuadBufferPtr->TexCoord = subtexture->GetTexCoords()[i];
 			sData->QuadBufferPtr->TexIndex = textureUnit;
 			sData->QuadBufferPtr->TilingFactor = tilingFactor;
+			sData->QuadBufferPtr->BillBoarding = (false) ? 1 : 0;
 			sData->QuadBufferPtr++;
 		}
 

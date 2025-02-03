@@ -43,13 +43,15 @@ namespace BorealisAssetCompiler
 
 			SkinnedMeshImporter::LoadFBXModel(skinnedModel, sourcePath.string());
 
+			OptimizeModel(skinnedModel);
+
 			Animation anim;
 			std::filesystem::path savePath = sourcePath;
 			savePath.replace_extension(".anim");
 			AnimationImporter::LoadAnimations(anim, sourcePath.string());
 			AnimationImporter::SaveAnimation(anim, savePath);
 
-			cachePath.replace_extension(".skmesh");
+			//cachePath.replace_extension(".skmesh");
 			SkinnedMeshImporter::SaveSkinnedModel(skinnedModel, cachePath);
 		}
 		else
@@ -61,7 +63,7 @@ namespace BorealisAssetCompiler
 
 			OptimizeModel(model);
 
-			cachePath.replace_extension(".mesh");
+			//cachePath.replace_extension(".mesh");
 			SaveModel(model, cachePath);
 		}
 		assetConfig = config;
@@ -144,22 +146,79 @@ namespace BorealisAssetCompiler
 		ProcessNode(scene->mRootNode, scene, model);
 	}
 
+	void MeshImporter::ConvertMeshToSOA(Mesh const& mesh, MeshSOA& meshSOA)
+	{
+		uint32_t verticesCount = mesh.mVerticesCount;
+		meshSOA.Indices.resize(mesh.mIndicesCount);
+		meshSOA.Position.resize(verticesCount);
+		meshSOA.Normal.resize(verticesCount);
+		meshSOA.TexCoords.resize(verticesCount);
+		
+		meshSOA.Indices = mesh.mIndices;
+
+		for (uint32_t i = 0; i < verticesCount; ++i) 
+		{
+			meshSOA.Position[i]		= mesh.mVertices[i].Position;
+			meshSOA.Normal[i]		= mesh.mVertices[i].Normal;
+			meshSOA.TexCoords[i]	= mesh.mVertices[i].TexCoords;
+		}
+	}
+
 	void MeshImporter::SaveModel(Model const& model, std::filesystem::path& cachePath)
 	{
+		//Calculate tangent and bitangent
+		
+		//std::ofstream outFile(cachePath, std::ios::binary);
+
+		//uint32_t meshCount = static_cast<uint32_t>(model.mMeshes.size());
+		//outFile.write(reinterpret_cast<const char*>(&meshCount), sizeof(meshCount));
+
+		//for (const Mesh& mesh : model.mMeshes) 
+		//{
+		//	MeshSOA meshSOA;
+		//	ConvertMeshToSOA(mesh, meshSOA);
+
+		//	uint32_t verticesCount = mesh.mVerticesCount;
+		//	uint32_t indicesCount = mesh.mIndicesCount;
+		//	outFile.write(reinterpret_cast<const char*>(&verticesCount), sizeof(verticesCount));
+		//	outFile.write(reinterpret_cast<const char*>(&indicesCount), sizeof(indicesCount));
+
+		//	outFile.write(reinterpret_cast<const char*>(mesh.mVertices.data()), verticesCount * sizeof(Vertex));
+
+		//	outFile.write(reinterpret_cast<const char*>(mesh.mIndices.data()), indicesCount * sizeof(uint32_t));
+		//}
+
+		//outFile.close();
+
+		//==============================
+
 		std::ofstream outFile(cachePath, std::ios::binary);
 
 		uint32_t meshCount = static_cast<uint32_t>(model.mMeshes.size());
 		outFile.write(reinterpret_cast<const char*>(&meshCount), sizeof(meshCount));
 
-		for (const Mesh& mesh : model.mMeshes) {
-			uint32_t verticesCount = mesh.mVerticesCount;
-			uint32_t indicesCount = mesh.mIndicesCount;
-			outFile.write(reinterpret_cast<const char*>(&verticesCount), sizeof(verticesCount));
-			outFile.write(reinterpret_cast<const char*>(&indicesCount), sizeof(indicesCount));
+		for (const Mesh& mesh : model.mMeshes) 
+		{
+			MeshSOA meshSOA;
+			ConvertMeshToSOA(mesh, meshSOA);
 
-			outFile.write(reinterpret_cast<const char*>(mesh.mVertices.data()), verticesCount * sizeof(Vertex));
+			uint32_t vertexCount = static_cast<uint32_t>(meshSOA.Position.size());
+			uint32_t indexCount = static_cast<uint32_t>(meshSOA.Indices.size());
 
-			outFile.write(reinterpret_cast<const char*>(mesh.mIndices.data()), indicesCount * sizeof(uint32_t));
+			outFile.write(reinterpret_cast<const char*>(&vertexCount), sizeof(vertexCount));
+			outFile.write(reinterpret_cast<const char*>(&indexCount), sizeof(indexCount));
+
+			// Write positions
+			outFile.write(reinterpret_cast<const char*>(meshSOA.Position.data()), vertexCount * sizeof(glm::vec3));
+
+			// Write normals
+			outFile.write(reinterpret_cast<const char*>(meshSOA.Normal.data()), vertexCount * sizeof(glm::vec3));
+
+			// Write texcoords
+			outFile.write(reinterpret_cast<const char*>(meshSOA.TexCoords.data()), vertexCount * sizeof(glm::vec2));
+
+			// Write indices
+			outFile.write(reinterpret_cast<const char*>(meshSOA.Indices.data()), indexCount * sizeof(uint32_t));
 		}
 
 		outFile.close();

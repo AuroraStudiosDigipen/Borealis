@@ -112,6 +112,7 @@
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -214,8 +215,10 @@
     <ClInclude Include="inc\Graphics\OpenGL\RendererAPIOpenGLImpl.hpp" />
     <ClInclude Include="inc\Graphics\OpenGL\ShaderOpenGLImpl.hpp" />
     <ClInclude Include="inc\Graphics\OpenGL\TextureOpenGLImpl.hpp" />
+    <ClInclude Include="inc\Graphics\OpenGL\UniformBufferObjectOpenGLImpl.hpp" />
     <ClInclude Include="inc\Graphics\OpenGL\VertexArrayOpenGLImpl.hpp" />
     <ClInclude Include="inc\Graphics\OrthographicCamera.hpp" />
+    <ClInclude Include="inc\Graphics\ParticleSystem.hpp" />
     <ClInclude Include="inc\Graphics\PixelBuffer.hpp" />
     <ClInclude Include="inc\Graphics\RenderCommand.hpp" />
     <ClInclude Include="inc\Graphics\RenderGraph\RenderGraph.hpp" />
@@ -229,6 +232,9 @@
     <ClInclude Include="inc\Graphics\SkinnedModel.hpp" />
     <ClInclude Include="inc\Graphics\SubTexture2D.hpp" />
     <ClInclude Include="inc\Graphics\Texture.hpp" />
+    <ClInclude Include="inc\Graphics\UBOBindings.hpp" />
+    <ClInclude Include="inc\Graphics\UI\Button.hpp" />
+    <ClInclude Include="inc\Graphics\UniformBufferObject.hpp" />
     <ClInclude Include="inc\Graphics\VertexArray.hpp" />
     <ClInclude Include="inc\ImGui\ImGuiFontLib.hpp" />
     <ClInclude Include="inc\ImGui\ImGuiLayer.hpp" />
@@ -818,8 +824,10 @@
     <ClCompile Include="src\Graphics\OpenGL\RendererAPIOpenGLImpl.cpp" />
     <ClCompile Include="src\Graphics\OpenGL\ShaderOpenGLImpl.cpp" />
     <ClCompile Include="src\Graphics\OpenGL\TextureOpenGLImpl.cpp" />
+    <ClCompile Include="src\Graphics\OpenGL\UniformBufferObjectOpenGLImpl.cpp" />
     <ClCompile Include="src\Graphics\OpenGL\VertexArrayOpenGLImpl.cpp" />
     <ClCompile Include="src\Graphics\OrthographicCamera.cpp" />
+    <ClCompile Include="src\Graphics\ParticleSystem.cpp" />
     <ClCompile Include="src\Graphics\PixelBuffer.cpp" />
     <ClCompile Include="src\Graphics\RenderCommand.cpp" />
     <ClCompile Include="src\Graphics\RenderGraph\RenderGraph.cpp" />
@@ -833,6 +841,8 @@
     <ClCompile Include="src\Graphics\SkinnedModel.cpp" />
     <ClCompile Include="src\Graphics\SubTexture2D.cpp" />
     <ClCompile Include="src\Graphics\Texture.cpp" />
+    <ClCompile Include="src\Graphics\UI\Button.cpp" />
+    <ClCompile Include="src\Graphics\UniformBufferObject.cpp" />
     <ClCompile Include="src\Graphics\VertexArray.cpp" />
     <ClCompile Include="src\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\ImGui\ImGuiFontLib.cpp" />

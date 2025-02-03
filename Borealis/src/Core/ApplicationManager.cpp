@@ -83,6 +83,11 @@ namespace Borealis
 		PROFILE_FUNCTION();
 		while (mIsRunning)
 		{
+			if (InputSystem::IsKeyPressed(GLFW_KEY_1) && InputSystem::IsKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
+
+				TracyProfiler::toggleProfiler();
+			}
+
 			PROFILE_SCOPE("ApplicationManager Run Loop");
 
 			ULONGLONG currentTickCount = GetTickCount64();
@@ -90,6 +95,7 @@ namespace Borealis
 			prevTickCount = currentTickCount;
 
 			TimeManager::SetDeltaTime(static_cast<float>(deltaTime) / 1000.0f);
+			AudioEngine::Update();
 
 			if (!mIsMinimized)
 			{

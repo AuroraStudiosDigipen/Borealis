@@ -22,10 +22,6 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 int main(int argc, char** argv)
 {
-    //BorealisAssetCompiler::TextureImporter::CreateCubeMap();
-
-    //return 1;
-
     if (argc != 2) 
     {
         std::cerr << "Usage: " << argv[0] << " <filepath>" << std::endl;
@@ -33,7 +29,8 @@ int main(int argc, char** argv)
     }
 
     std::filesystem::path filePath = argv[1];
-    //std::filesystem::path filePath = "C:\\Users\\Owner\\Documents\\Digipen\\GAM300\\CubemapTest\\Assets\\SkyBoxPng4k.png";
+
+    //std::filesystem::path filePath = "C:\\Users\\Owner\\Documents\\Digipen\\GAM300\\Atest\\Assets\\Logo.png";
 
     filePath = filePath.string() + ".meta";
 

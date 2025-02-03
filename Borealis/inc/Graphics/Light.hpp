@@ -21,11 +21,28 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace Borealis
 {
+	struct LightUBO
+	{
+		glm::vec4 pos;
+		glm::vec4 ambient;
+		glm::vec4 diffuse;
+		glm::vec4 specular;
+		glm::vec4 direction;
+		glm::vec2 innerOuterDirection;
+		float linear;
+		float quadratic;
+		int type;
+		int castShadow;
+
+		glm::vec2 padding;
+	};
+
 	class Light
 	{
 	public:
 		Light(const TransformComponent& transformComponent, const LightComponent& lightComponent);
 		static void SetUniforms(LightComponent const& lightComponent, int index, Ref<Shader> shader);
+		static void SetUBO(LightComponent const& lightComponent,LightUBO& lightUBO);
 
 	private:
 		LightComponent mLight;

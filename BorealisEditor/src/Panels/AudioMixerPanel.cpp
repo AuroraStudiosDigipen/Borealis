@@ -20,7 +20,7 @@ namespace Borealis
     AudioMixerPanel::AudioMixerPanel()
     {
         // Initialize some default audio groups
-        AddAudioGroup("Music");
+        AddAudioGroup("BGM");
         AddAudioGroup("SFX");
     }
 

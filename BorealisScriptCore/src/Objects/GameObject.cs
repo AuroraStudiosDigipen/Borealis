@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace Borealis
 {
@@ -21,6 +22,20 @@ namespace Borealis
             set
             {
                 InternalCalls.Entity_SetName(InstanceID, value);
+            }
+        }
+
+        public string tag
+        {
+            get
+            {
+                InternalCalls.Entity_GetTag(InstanceID, out string name);
+                Debug.Log(name);
+                return name;
+            }
+            set
+            {
+                InternalCalls.Entity_SetTag(InstanceID, value);
             }
         }
         public Transform transform
@@ -150,5 +165,10 @@ namespace Borealis
             return entities;
         }
 
+        public static GameObject[] FindGameObjectsWithTag(string tag)
+        {
+            InternalCalls.Entity_GetEntitiesFromTag(tag, out GameObject[] entities);
+            return entities;
+        }
     }
 }

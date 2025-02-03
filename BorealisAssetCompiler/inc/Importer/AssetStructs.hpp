@@ -42,6 +42,14 @@ namespace BorealisAssetCompiler
 		uint32_t mIndicesCount;
 	};
 
+	struct MeshSOA
+	{
+		std::vector<unsigned int> Indices;
+		std::vector<glm::vec3>	  Position;
+		std::vector<glm::vec3>	  Normal;
+		std::vector<glm::vec2>	  TexCoords;
+	};
+
 	struct Model
 	{
 	public:

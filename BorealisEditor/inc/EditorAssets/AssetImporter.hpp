@@ -29,6 +29,7 @@ namespace Borealis
 		ALL_FINE,
 		META_FILE_NOT_FOUND,
 		SOURCE_FILE_MODIFIED,
+		CACHE_FILE_NOT_FOUND,
 		UNKNOWN
 	};
 
@@ -88,15 +89,40 @@ namespace Borealis
 
 		/*!***********************************************************************
 			\brief
+				check for meta file
+		*************************************************************************/
+
+		bool CheckForMetaFile(std::filesystem::path const& filepath, AssetRegistry& assetRegistry, AssetMetaData& metaData);
+
+		/*!***********************************************************************
+			\brief
 				verify meta file
 		*************************************************************************/
-		MetaErrorType VerifyMetaFile(std::filesystem::path path, AssetRegistry& assetRegistry);
+		MetaErrorType VerifyMetaFile(AssetMetaData& metaData);
+
+
+		/*!***********************************************************************
+			\brief
+				Handle various meta file errors/mismatch
+		*************************************************************************/
+
+		void HandleError(MetaErrorType errorType, AssetMetaData& metaData);
+
+		void CopyToCacheFolder(AssetMetaData& metaData);
+
+		/*!***********************************************************************
+			\brief
+				Create Cache file
+		*************************************************************************/
+
+		void CreateCache(AssetMetaData& metaData);
 
 		void StartFileWatch();
 
 
 	private:
 		std::filesystem::path mAssetPath;
+		std::filesystem::path mCachePath;
 		std::filesystem::path mAssetRegistryPath;
 		inline static std::unordered_map<std::size_t, AssetHandle> mPathRegistry;
 		inline static std::list<AssetMetaData> mQueue;

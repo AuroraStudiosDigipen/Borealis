@@ -51,7 +51,7 @@ namespace Borealis
 		static void DrawQuad(const glm::vec3& position, const glm::vec2& size, const Ref<SubTexture2D>& texture, const float& tilingFactor = 1.f, const glm::vec4 & = glm::vec4(1.0f));
 
 		static void DrawQuad(const glm::mat4& transform, const glm::vec4& colour, int entityID = -1);
-		static void DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const float& tilingFactor = 1.f, const glm::vec4& tint = {1,1,1,1}, int entityID = -1);
+		static void DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const float& tilingFactor = 1.f, const glm::vec4& tint = {1,1,1,1}, int entityID = -1, bool billBoard = false);
 
 		static void DrawHighlightedQuad(const glm::mat4& transform, Ref<Shader> shader);
 

@@ -32,7 +32,7 @@ namespace Borealis
 		glm::vec3 point;
 	};
 
-	using CollisionPair = std::pair<UUID, UUID>;
+	using CollisionPair = std::pair<uint64_t, uint64_t>;
 
 
 	class Entity;
@@ -60,7 +60,7 @@ namespace Borealis
    * \param bodyID The ID of the body.
    * \param transform The transform component of the body.
    */
-		static void PushTransform(ColliderComponent& collider, TransformComponent& transform, RigidBodyComponent* rigidbody);
+		static void PushTransform(ColliderComponent& collider, TransformComponent& transform, RigidbodyComponent* rigidbody);
 
 		/**
    * \brief Pulls the transform of the specified body from the physics system.
@@ -74,13 +74,15 @@ namespace Borealis
         * \param position The position of the body.
         * \param rigidbody The rigid body component of the body.
         */
-        static void addBody(TransformComponent& transform, RigidBodyComponent* rigidbody, ColliderComponent& collider, UUID entityID);
+        static void addBody(TransformComponent& transform, RigidbodyComponent* rigidbody, ColliderComponent& collider, UUID entityID);
 		
 		static void EndScene();
 
 		static void FreeRigidBody(ColliderComponent& collider);
 
 		static std::pair<glm::vec3, glm::vec3> calculateBoundingVolume(const Model& model);
+		static std::pair<glm::vec3, glm::vec3> calculateBoundingVolume(const SkinnedModel& model);
+
 
 		static glm::vec3 calculateBoxSize(glm::vec3 minExtent, glm::vec3 maxExtent);
 

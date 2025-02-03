@@ -45,8 +45,9 @@ namespace Borealis
         ImGui::PopItemWidth();
     }
 
-    void DrawVec2Control(std::string const& label, glm::vec2& values, float min = 0.0f, float max = 1.0f)
+    bool DrawVec2Control(std::string const& label, glm::vec2& values, float min = 0.0f, float max = 1.0f)
     {
+        bool isModified = false;
         std::string labelStrX = "##Vec2X" + label;
         std::string labelStrY = "##Vec2Y" + label;
 
@@ -55,20 +56,24 @@ namespace Borealis
 
         ImGui::Text("X");
         ImGui::SameLine();
-        ImGui::DragFloat(labelStrX.c_str(), &values.x, 0.1f, min, max, "%.2f");
+        if (ImGui::DragFloat(labelStrX.c_str(), &values.x, 0.1f, min, max, "%.2f"))
+            isModified = true;
 
         ImGui::SameLine();
         ImGui::Text("Y");
         ImGui::SameLine();
-        ImGui::DragFloat(labelStrY.c_str(), &values.y, 0.1f, min, max, "%.2f");
+        if (ImGui::DragFloat(labelStrY.c_str(), &values.y, 0.1f, min, max, "%.2f"))
+            isModified = true;
 
         ImGui::PopItemWidth();
+
+        return isModified;
     }
 
-    void DrawFloatSlider(std::string const& label, float* value, float min = 0.0f, float max = 1.0f)
+    bool DrawFloatSlider(std::string const& label, float* value, float min = 0.0f, float max = 1.0f)
     {
         std::string labelStr = "##" + label;
-        ImGui::SliderFloat(labelStr.c_str(), value, min, max, "%.2f");  // Draw the normal slider
+        return ImGui::SliderFloat(labelStr.c_str(), value, min, max, "%.2f");  // Draw the normal slider
     }
 
 	void MaterialEditor::RenderEditor()
@@ -105,6 +110,8 @@ namespace Borealis
             material->SetName(std::string(materialName));
         }*/
 
+        bool isModified = false;
+
         for (int i = Material::Albedo; i <= Material::Emission; ++i)
         {
             std::string label = Material::TextureMapToString(static_cast<Material::TextureMaps>(i));
@@ -121,13 +128,9 @@ namespace Borealis
                 {
                     if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropImageItem"))
                     {
-                        //const char* data = (const char*)payload->Data;
-                        //std::string imageName = "assets/";
-                        //imageName += data;
-                        //material->SetTextureMap(Material::Albedo, Texture2D::Create(imageName));
-
                         AssetHandle data = *(const uint64_t*)payload->Data;
                         material->SetTextureMap(Material::Albedo, AssetManager::GetAsset<Texture2D>(data));
+                        isModified = true;
                     }
                     ImGui::EndDragDropTarget();
                 }
@@ -137,6 +140,7 @@ namespace Borealis
                 if (ImGui::ColorEdit4("##Albedo", glm::value_ptr(albedoColor)))
                 {
                     material->SetTextureMapColor(Material::Albedo, albedoColor);
+                    isModified = true;
                 }
 
                 break;
@@ -148,13 +152,9 @@ namespace Borealis
                 {
                     if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropImageItem"))
                     {
-                        //const char* data = (const char*)payload->Data;
-                        //std::string imageName = "assets/";
-                        //imageName += data;
-                        //material->SetTextureMap(Material::Specular, Texture2D::Create(imageName));
-
                         AssetHandle data = *(const uint64_t*)payload->Data;
                         material->SetTextureMap(Material::Specular, AssetManager::GetAsset<Texture2D>(data));
+                        isModified = true;
                     }
                     ImGui::EndDragDropTarget();
                 }
@@ -163,7 +163,8 @@ namespace Borealis
                 glm::vec4 specularColor = material->GetTextureMapColor()[Material::Specular];
                 if (ImGui::ColorEdit4("##Specular", glm::value_ptr(specularColor)))
                 {
-                    material->SetTextureMapColor(Material::Specular, specularColor);
+                    material->SetTextureMapColor(Material::Specular, specularColor); 
+                    isModified = true;
                 }
 
                 break;
@@ -175,21 +176,20 @@ namespace Borealis
                 {
                     if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropImageItem"))
                     {
-                        //const char* data = (const char*)payload->Data;
-                        //std::string imageName = "assets/";
-                        //imageName += data;
-                        //material->SetTextureMap(Material::Metallic, Texture2D::Create(imageName));
-
                         AssetHandle data = *(const uint64_t*)payload->Data;
                         material->SetTextureMap(Material::Metallic, AssetManager::GetAsset<Texture2D>(data));
+                        isModified = true;
                     }
                     ImGui::EndDragDropTarget();
                 }
 
                 ImGui::SameLine();
                 static float metallicValue = material->GetTextureMapFloats()[Material::Metallic];
-                DrawFloatSlider("Metallic", &metallicValue);
-                material->SetTextureMapFloat(Material::Metallic, metallicValue);
+                if (DrawFloatSlider("Metallic", &metallicValue))
+                {
+                    material->SetTextureMapFloat(Material::Metallic, metallicValue);
+                    isModified = true;
+                }
 
                 break;
             }
@@ -200,13 +200,9 @@ namespace Borealis
                 {
                     if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropImageItem"))
                     {
-                        //const char* data = (const char*)payload->Data;
-                        //std::string imageName = "assets/";
-                        //imageName += data;
-                        //material->SetTextureMap(Material::NormalMap, Texture2D::Create(imageName));
-
                         AssetHandle data = *(const uint64_t*)payload->Data;
                         material->SetTextureMap(Material::NormalMap, AssetManager::GetAsset<Texture2D>(data));
+                        isModified = true;
                     }
                     ImGui::EndDragDropTarget();
                 }
@@ -219,13 +215,9 @@ namespace Borealis
                 {
                     if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropImageItem"))
                     {
-                        //const char* data = (const char*)payload->Data;
-                        //std::string imageName = "assets/";
-                        //imageName += data;
-                        //material->SetTextureMap(Material::HeightMap, Texture2D::Create(imageName));
-
                         AssetHandle data = *(const uint64_t*)payload->Data;
                         material->SetTextureMap(Material::HeightMap, AssetManager::GetAsset<Texture2D>(data));
+                        isModified = true;
                     }
                     ImGui::EndDragDropTarget();
                 }
@@ -238,13 +230,9 @@ namespace Borealis
                 {
                     if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropImageItem"))
                     {
-                        //const char* data = (const char*)payload->Data;
-                        //std::string imageName = "assets/";
-                        //imageName += data;
-                        //material->SetTextureMap(Material::Occlusion, Texture2D::Create(imageName));
-
                         AssetHandle data = *(const uint64_t*)payload->Data;
                         material->SetTextureMap(Material::Occlusion, AssetManager::GetAsset<Texture2D>(data));
+                        isModified = true;
                     }
                     ImGui::EndDragDropTarget();
                 }
@@ -257,13 +245,9 @@ namespace Borealis
                 {
                     if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropImageItem"))
                     {
-                        //const char* data = (const char*)payload->Data;
-                        //std::string imageName = "assets/";
-                        //imageName += data;
-                        //material->SetTextureMap(Material::DetailMask, Texture2D::Create(imageName));
-
                         AssetHandle data = *(const uint64_t*)payload->Data;
                         material->SetTextureMap(Material::DetailMask, AssetManager::GetAsset<Texture2D>(data));
+                        isModified = true;
                     }
                     ImGui::EndDragDropTarget();
                 }
@@ -276,13 +260,9 @@ namespace Borealis
                 {
                     if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropImageItem"))
                     {
-                        //const char* data = (const char*)payload->Data;
-                        //std::string imageName = "assets/";
-                        //imageName += data;
-                        //material->SetTextureMap(Material::Emission, Texture2D::Create(imageName));
-
                         AssetHandle data = *(const uint64_t*)payload->Data;
                         material->SetTextureMap(Material::Emission, AssetManager::GetAsset<Texture2D>(data));
+                        isModified = true;
                     }
                     ImGui::EndDragDropTarget();
                 }
@@ -292,6 +272,7 @@ namespace Borealis
                 if (ImGui::ColorEdit4("##Emission", glm::value_ptr(emissionColor)))
                 {
                     material->SetTextureMapColor(Material::Emission, emissionColor);
+                    isModified = true;
                 }
 
                 break;
@@ -315,29 +296,41 @@ namespace Borealis
             case Material::Tiling:
             {
                 glm::vec2 tilingValue = material->GetPropertiesVec2()[Material::Tiling];
-                DrawVec2Control("Tiling", tilingValue);
-                material->SetPropertyVec2(Material::Tiling, tilingValue);
+                if(DrawVec2Control("Tiling", tilingValue))
+                {
+                    material->SetPropertyVec2(Material::Tiling, tilingValue);
+                    isModified = true;
+                }
                 break;
             }
             case Material::Offset:
             {
                 glm::vec2 offsetValue = material->GetPropertiesVec2()[Material::Offset];
-                DrawVec2Control("Offset", offsetValue);
-                material->SetPropertyVec2(Material::Offset, offsetValue);
+                if(DrawVec2Control("Offset", offsetValue))
+                {
+                    material->SetPropertyVec2(Material::Offset, offsetValue);
+                    isModified = true;
+                }
                 break;
             }
             case Material::Smoothness:
             {
                 float smoothnessValue = material->GetPropertiesFloats()[Material::Smoothness];
-                DrawFloatSlider("Smoothness", &smoothnessValue);
-                material->SetPropertyFloat(Material::Smoothness, smoothnessValue);
+                if(DrawFloatSlider("Smoothness", &smoothnessValue))
+                {
+                    material->SetPropertyFloat(Material::Smoothness, smoothnessValue);
+                    isModified = true;
+                }
                 break;
             }
             case Material::Shininess:
             {
                 float shininessValue = material->GetPropertiesFloats()[Material::Shininess];
-                DrawFloatSlider("Shininess", &shininessValue, 0.f, 128.f);
-                material->SetPropertyFloat(Material::Shininess, shininessValue);
+                if(DrawFloatSlider("Shininess", &shininessValue, 0.f, 128.f))
+                {
+                    material->SetPropertyFloat(Material::Shininess, shininessValue);
+                    isModified = true;
+                }
                 break;
             }
             default:
@@ -347,8 +340,11 @@ namespace Borealis
             ImGui::Spacing();
         }
 
+        material->isModified = isModified;
+
         ImGui::Separator();
     }
+
     void MaterialEditor::SetMaterial(AssetHandle materialHandle)
     {
         if (materialHandle != mMaterialHandle)

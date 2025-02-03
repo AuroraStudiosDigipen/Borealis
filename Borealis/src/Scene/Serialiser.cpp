@@ -98,9 +98,9 @@ namespace Borealis
 			SerializeComponent(out, entity.GetComponent<AnimatorComponent>());
 		}
 
-		if (entity.HasComponent<RigidBodyComponent>())
+		if (entity.HasComponent<RigidbodyComponent>())
 		{
-			SerializeComponent(out, entity.GetComponent<RigidBodyComponent>());
+			SerializeComponent(out, entity.GetComponent<RigidbodyComponent>());
 		}
 
 		if (entity.HasComponent<LightComponent>())
@@ -162,6 +162,16 @@ namespace Borealis
 		if (entity.HasComponent<CanvasRendererComponent>())
 		{
 			SerializeComponent(out, entity.GetComponent<CanvasRendererComponent>());
+		}		
+		
+		if (entity.HasComponent<ParticleSystemComponent>())
+		{
+			SerializeComponent(out, entity.GetComponent<ParticleSystemComponent>());
+		}
+
+		if (entity.HasComponent<ButtonComponent>())
+		{
+			SerializeComponent(out, entity.GetComponent<ButtonComponent>());
 		}
 
 		if (entity.HasComponent<ScriptComponent>())
@@ -407,7 +417,7 @@ namespace Borealis
 		DeserialiseComponent<CameraComponent>(entity, BorealisEntity);
 		DeserialiseComponent<MeshFilterComponent>(entity, BorealisEntity);
 		DeserialiseComponent<MeshRendererComponent>(entity, BorealisEntity);
-		DeserialiseComponent<RigidBodyComponent>(entity, BorealisEntity);
+		DeserialiseComponent<RigidbodyComponent>(entity, BorealisEntity);
 		DeserialiseComponent<LightComponent>(entity, BorealisEntity);
 		DeserialiseComponent<CharacterControllerComponent>(entity, BorealisEntity);
 		DeserialiseComponent<AudioSourceComponent>(entity, BorealisEntity);
@@ -418,11 +428,14 @@ namespace Borealis
 		DeserialiseComponent<OutLineComponent>(entity, BorealisEntity);
 		DeserialiseComponent<CanvasComponent>(entity, BorealisEntity);
 		DeserialiseComponent<CanvasRendererComponent>(entity, BorealisEntity);
+		DeserialiseComponent<ParticleSystemComponent>(entity, BorealisEntity);
 		DeserialiseComponent<BoxColliderComponent>(entity, BorealisEntity);
 		DeserialiseComponent<SphereColliderComponent>(entity, BorealisEntity);
 		DeserialiseComponent<CapsuleColliderComponent>(entity, BorealisEntity);
 		DeserialiseComponent<BehaviourTreeComponent>(entity, BorealisEntity);
+		DeserialiseComponent<ButtonComponent>(entity, BorealisEntity);
 		DeserialiseAbstractItems(entity, BorealisEntity);
+		TagList::AddEntity(BorealisEntity.GetComponent<TagComponent>().Tag, uuid);
 		//auto behaviourTreeComponent = entity["BehaviourTreeComponent"];
 		/*
 			extract the name of tree and root node, then iteritivly build the tree, then call the clone method by createfromname function
@@ -631,6 +644,7 @@ namespace Borealis
 
 	bool Serialiser::DeserialiseScene(const std::string& filepath)
 	{
+		TagList::Clear();
 		std::ifstream inStream(filepath);
 		std::stringstream ss;
 		ss << inStream.rdbuf();

@@ -107,6 +107,7 @@ namespace Borealis
 
     Material::Material(std::filesystem::path path)
     {
+        hash = std::hash<std::string>{}(path.string());
         //temp until add to material meta config
         mShader = Shader::GetDefault3DMaterialShader();
 
@@ -390,9 +391,9 @@ namespace Borealis
         return UnknownProperty;
     }
 
-    Ref<Asset> Material::Load(AssetMetaData const& assetMetaData)
+    Ref<Asset> Material::Load(std::filesystem::path const& cachePath, AssetMetaData const& assetMetaData)
     {
-        Material material(assetMetaData.SourcePath);
+        Material material(cachePath/std::to_string(assetMetaData.Handle));
         return MakeRef<Material>(material);
     }
 }

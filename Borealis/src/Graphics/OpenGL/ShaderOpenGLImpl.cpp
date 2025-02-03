@@ -32,6 +32,33 @@ namespace Borealis
 		size_t lastDot = filepath.rfind('.');
 		lastDot = lastDot == std::string::npos ? filepath.size() - lastSlash : lastDot - lastSlash;
 		mName = filepath.substr(lastSlash, lastDot);
+
+		//GLint numExtensions;
+		//glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions);
+
+		//// Print all the extensions
+		//BOREALIS_CORE_INFO("Available OpenGL Extensions:");;
+		//for (GLint i = 0; i < numExtensions; ++i)
+		//{
+		//	const char* extension = reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, i));
+		//	BOREALIS_CORE_INFO("{}", extension);
+		//}
+
+		//int maxUBOBindings;
+		//glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &maxUBOBindings);
+		//BOREALIS_CORE_INFO("Max UBO bindings: {}", maxUBOBindings);
+
+		//int maxUBOSize;
+		//glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &maxUBOSize);
+		//BOREALIS_CORE_INFO("Max UBO size: {} bytes", maxUBOSize);
+
+		//int maxArrayLayers;
+		//glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &maxArrayLayers);
+		//BOREALIS_CORE_INFO("Max texture array layers: {}" ,maxArrayLayers);
+
+		//int maxTextureUnits;
+		//glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &maxTextureUnits);
+		//BOREALIS_CORE_INFO("Max combined texture units: {}" ,maxTextureUnits);
 	}
 	OpenGLShader::OpenGLShader(const std::string& name, const std::string& vertexSource, const std::string& fragmentSource) : mName(name)
 	{
@@ -46,6 +73,10 @@ namespace Borealis
 	{
 		PROFILE_FUNCTION();
 		glDeleteProgram(mRendererID);
+	}
+	uint32_t OpenGLShader::GetID()
+	{
+		return mRendererID;
 	}
 	void OpenGLShader::Bind() const
 	{

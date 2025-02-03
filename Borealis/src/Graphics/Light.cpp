@@ -37,7 +37,7 @@ namespace Borealis
 		std::string str = lightPrefix + ".position";
 		shader->Set(str.c_str(), lightComponent.position);
 		str = lightPrefix + ".ambient";
-		shader->Set(str.c_str(), glm::vec3(lightComponent.color) * 0.8f * lightComponent.Intensity);
+		shader->Set(str.c_str(), glm::vec3(lightComponent.color) * 1.f * lightComponent.Intensity);
 		str = lightPrefix + ".diffuse";
 		shader->Set(str.c_str(), glm::vec3(lightComponent.color) * 0.5f * lightComponent.Intensity);
 		str = lightPrefix + ".specular";
@@ -56,5 +56,23 @@ namespace Borealis
 		shader->Set(str.c_str(), lightComponent.castShadow);
 
 		shader->Unbind();
+	}
+
+	void Light::SetUBO(LightComponent const& lightComponent, LightUBO& lightUBO)
+	{
+		float innerAngle = glm::radians(lightComponent.spotAngle * 0.8f); 
+		float outerAngle = glm::radians(lightComponent.spotAngle);
+		glm::vec2 innerOuterSpot = glm::vec2{ cos(innerAngle), cos(outerAngle) };
+
+		lightUBO.pos = glm::vec4(lightComponent.position, 0.f);
+		lightUBO.ambient = glm::vec4(glm::vec3(lightComponent.color) * 0.8f * lightComponent.Intensity, 0.f);
+		lightUBO.diffuse = glm::vec4(glm::vec3(lightComponent.color) * 0.5f * lightComponent.Intensity, 0.f);
+		lightUBO.specular = glm::vec4(glm::vec3(lightComponent.color) * 0.5f * lightComponent.Intensity, 0.f);
+		lightUBO.direction = glm::vec4(glm::radians(lightComponent.direction), 0.f);
+		lightUBO.innerOuterDirection = innerOuterSpot;
+		lightUBO.linear = 1.0f / lightComponent.range;
+		lightUBO.quadratic = 1.0f / (lightComponent.range * lightComponent.range);
+		lightUBO.type = static_cast<int>(lightComponent.type);
+		lightUBO.castShadow = lightComponent.castShadow;
 	}
 }

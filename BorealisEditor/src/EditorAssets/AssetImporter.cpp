@@ -62,9 +62,13 @@ namespace Borealis
 		}
 
 		mAssetPath = projectInfo.AssetsPath;
+		mCachePath = mAssetPath;
+		mCachePath.replace_filename("Cache");
 		mAssetRegistryPath = projectInfo.AssetsRegistryPath;
 
-		AssetManager::RegisterAllAsset();
+		Project::GetEditorAssetsManager()->Init(projectInfo);
+
+		AssetManager::RegisterAllAssetType();
 
 		std::ifstream registryFile(projectInfo.AssetsRegistryPath);
 		std::stringstream registryStream;
@@ -75,37 +79,38 @@ namespace Borealis
 		AssetRegistry& assetRegistry = Project::GetEditorAssetsManager()->GetAssetRegistry();
 		AssetRegistrySrcLoc& RegistrySrcLoc = Project::GetEditorAssetsManager()->GetAssetRegistrySrcLoc();
 		//Deserialize metadata within registry into map
+
+		std::string originalPath = projectInfo.AssetsPath.string();
+		originalPath.replace(originalPath.find("Assets"), std::string("Assets").length(), "Cache");
+		std::filesystem::create_directories(originalPath); //create cache folder if not exist
+
 		DeserializeRegistry(registryStream.str(), assetRegistry, RegistrySrcLoc); //checked
+
+		StartFileWatch();
 
 		//Compare the metadata within registry with actual metadata for error checks
 		std::set<AssetHandle> assetChecker;
 		RegisterAllAssets(projectInfo.AssetsPath, assetRegistry, assetChecker);
 
-		std::string originalPath = projectInfo.AssetsPath.string();
-		originalPath.replace(originalPath.find("Assets"), std::string("Assets").length(), "Cache");
-		std::filesystem::create_directories(originalPath); //create cache folder if not exist
-		//ScriptingSystem::CompileCSharpQueue(originalPath + "/CSharp_Assembly.dll");
-		//ScriptingSystem::LoadScriptAssemblies(originalPath + "/CSharp_Assembly.dll");
 		ScriptingSystem::Reload({});
 
-		std::set<AssetHandle> registryAssetHandles;
-		for (auto& [handle, meta] : assetRegistry)
-		{
-			registryAssetHandles.insert(handle);
-		}
+		//Removed for now, implement again in future
+		//std::set<AssetHandle> registryAssetHandles;
+		//for (auto& [handle, meta] : assetRegistry)
+		//{
+		//	registryAssetHandles.insert(handle);
+		//}
 
-		std::set<AssetHandle> result;
-		auto list = std::set_difference(registryAssetHandles.begin(), registryAssetHandles.end(), assetChecker.begin(), assetChecker.end(),
-						std::inserter(result, result.begin()));
+		//std::set<AssetHandle> result;
+		//auto list = std::set_difference(registryAssetHandles.begin(), registryAssetHandles.end(), assetChecker.begin(), assetChecker.end(),
+		//				std::inserter(result, result.begin()));
 
-		for (auto& handle : result)
-		{
-			assetRegistry.erase(handle);
-		}
+		//for (auto& handle : result)
+		//{
+		//	assetRegistry.erase(handle);
+		//}
 
 		SerializeRegistry();
-
-		StartFileWatch();
 	}
 	
 	AssetHandle AssetImporter::GetAssetHandle(std::filesystem::path const& path)
@@ -161,56 +166,27 @@ namespace Borealis
 
 	AssetHandle AssetImporter::RegisterAsset(std::filesystem::path path, AssetRegistry& assetRegistry)
 	{
-		//if failed to pass all error check, recompile if needed
-		MetaErrorType errorType = VerifyMetaFile(path, assetRegistry);
-		if (errorType != MetaErrorType::ALL_FINE)
+		AssetMetaData metaData;
+		bool metaExist = CheckForMetaFile(path, assetRegistry, metaData);
+		if(metaExist)
 		{
-			std::filesystem::path dupPath = path.string() + ".meta";
-			AssetMetaData meta;
-			if (errorType == MetaErrorType::META_FILE_NOT_FOUND)
+			MetaErrorType errorType = VerifyMetaFile(metaData);
+			if (errorType != MetaErrorType::ALL_FINE)
 			{
-				// If src does exist in Registry, use the same Asset Handle as before
-				AssetRegistrySrcLoc& srcLocRegistry = Project::GetEditorAssetsManager()->GetAssetRegistrySrcLoc();
-				if (srcLocRegistry.contains(path.string()))
-				{
-					meta = MetaFileSerializer::CreateAssetMetaFile(path, srcLocRegistry[path.string()]);
-				}
-				else
-				{
-					meta = MetaFileSerializer::CreateAssetMetaFile(path);
-				}
+				HandleError(errorType, metaData);
 			}
-			else if (errorType == MetaErrorType::SOURCE_FILE_MODIFIED)
-			{
-				meta = MetaFileSerializer::GetAssetMetaDataFile(dupPath);
-				AssetHandle handle = meta.Handle;
-				meta = MetaFileSerializer::CreateAssetMetaFile(path, handle);
-			}
-			else
-			{
-				meta = MetaFileSerializer::GetAssetMetaDataFile(dupPath);
-			}
-
-			bool imported = false;
-			std::filesystem::path metaPath = {};
-
-			switch (meta.Type)
-			{
-			case AssetType::Mesh:
-			case AssetType::Texture2D:
-			case AssetType::Font:
-				imported = ImportAsset(meta);
-				metaPath = path;
-				meta = MetaFileSerializer::GetAssetMetaDataFile(metaPath.string() + ".meta");
-				break;
-			default:
-				break;
-			}
-
-			assetRegistry[meta.Handle] = meta;
-			VerifyMetaFile(path, assetRegistry);
 		}
-		return GetAssetHandle(path);
+		else
+		{
+			if(!std::filesystem::is_directory(metaData.SourcePath))
+				CreateCache(metaData);
+			assetRegistry.at(metaData.Handle) = MetaFileSerializer::GetAssetMetaDataFile(metaData.SourcePath.string() + ".meta");
+		}
+
+		std::size_t hash = std::hash<std::string>{}(path.string());
+		mPathRegistry.insert({ hash, metaData.Handle });
+
+		return metaData.Handle;
 	}
 
 	void AssetImporter::RegisterAllAssets(std::filesystem::path path, AssetRegistry& assetRegistry, std::set<AssetHandle>& assetChecker)
@@ -243,64 +219,108 @@ namespace Borealis
 		}
 	}
 
-	MetaErrorType AssetImporter::VerifyMetaFile(std::filesystem::path path, AssetRegistry& assetRegistry)
+	bool AssetImporter::CheckForMetaFile(std::filesystem::path const& filepath, AssetRegistry& assetRegistry, AssetMetaData& metaData)
 	{
 		std::filesystem::path metaFilePath;
 
-		std::size_t hash = std::hash<std::string>{}(path.string());
-
-		if (!(path.extension() == ".meta"))
+		if (!(filepath.extension() == ".meta"))
 		{
-			metaFilePath = path.string() + ".meta";
+			metaFilePath = filepath.string() + ".meta";
 		}
-		else
+		else // prob nvr hit
 		{
-			metaFilePath = path;
+			metaFilePath = filepath;
 		}
 
 		if (!std::filesystem::exists(metaFilePath))
 		{
-			return MetaErrorType::META_FILE_NOT_FOUND;
+			//create new meta file
+			//register into asset registry
+			metaData = MetaFileSerializer::CreateAssetMetaFile(filepath);
+			assetRegistry.insert({ metaData.Handle, metaData });
+			return false;
+		}
+		//get from asset registry
+		metaData = MetaFileSerializer::GetAssetMetaDataFile(metaFilePath);
+		return true;
+	}
+
+	MetaErrorType AssetImporter::VerifyMetaFile(AssetMetaData& metaData)
+	{
+		std::filesystem::path metaFilePath;
+
+		if (META_VERSION != metaData.Version)
+		{
+			//Version difference, update to latest version
+			metaData = MetaFileSerializer::CreateAssetMetaFile(metaData.SourcePath, metaData.Handle);
+		}
+
+		//difference between source file and meta data
+		if (MetaFileSerializer::HashFile(metaData.SourcePath) != metaData.SourceFileHash)
+		{
+			return MetaErrorType::SOURCE_FILE_MODIFIED;
+		}
+		// once reformatted, copy all assets into cache folder
+		// add the copy function into meta file creation
+		// 
+		std::filesystem::path cacheFilePath = mCachePath;
+		cacheFilePath.append(std::to_string(metaData.Handle));
+		
+		if (!std::filesystem::exists(cacheFilePath) && !std::filesystem::is_directory(metaData.SourcePath))
+		{
+			return MetaErrorType::CACHE_FILE_NOT_FOUND;
 		}
 		else
 		{
-			AssetMetaData metaData = MetaFileSerializer::GetAssetMetaDataFile(metaFilePath);
-			
-			//TODO Temp for now to ensure that the current proj gets updated, remove in future
-			{
-				metaData = MetaFileSerializer::CreateAssetMetaFile(metaData.SourcePath, metaData.Handle);
-			}
-
-			if (assetRegistry.contains(metaData.Handle))
-			{
-				if (META_VERSION != metaData.Version)
-				{
-					//Version difference, update to latest version
-					metaData = MetaFileSerializer::CreateAssetMetaFile(metaData.SourcePath, metaData.Handle);
-				}
-
-
-
-				//difference between source file and meta data
-				if (MetaFileSerializer::HashFile(metaData.SourcePath) != metaData.SourceFileHash)
-				{
-					return MetaErrorType::SOURCE_FILE_MODIFIED;
-				}
-				//difference between current meta data and meta data within asset registry
-				else if (assetRegistry.at(metaData.Handle).SourceFileHash != metaData.SourceFileHash)
-				{
-					return MetaErrorType::SOURCE_FILE_MODIFIED;
-				}
-				else
-				{
-					mPathRegistry.insert({ hash, metaData.Handle });
-					return MetaErrorType::ALL_FINE;
-				}
-			}
+			//mPathRegistry.insert({ hash, metaData.Handle });
+			return MetaErrorType::ALL_FINE;
 		}
 
 		return MetaErrorType::UNKNOWN;
 	}
+
+	void AssetImporter::HandleError(MetaErrorType errorType, AssetMetaData & metaData)
+	{
+		if (errorType == MetaErrorType::SOURCE_FILE_MODIFIED || errorType == MetaErrorType::CACHE_FILE_NOT_FOUND)
+		{
+			CreateCache(metaData);
+		}
+
+		//Update meta file
+	}
+
+	void AssetImporter::CopyToCacheFolder(AssetMetaData& metaData)
+	{
+		//Copy file and move to cache folder
+		metaData.SourcePath;
+		//rename to metaData.handle;
+		//create at cache path, move to parent folder until the parent of Asset folder and copy into cache folder
+		std::filesystem::path cachePath = mCachePath;
+		cachePath /= std::to_string(metaData.Handle);
+
+		std::filesystem::copy(metaData.SourcePath, cachePath, std::filesystem::copy_options::overwrite_existing);
+	}
+
+	void AssetImporter::CreateCache(AssetMetaData& metaData)
+	{
+		//get source path
+		//create cache with assethandle being the name
+		BOREALIS_CORE_INFO("Create cache");
+
+		switch (metaData.Type)
+		{
+		case AssetType::Mesh:
+		case AssetType::Texture2D:
+		case AssetType::Font:
+			ImportAsset(metaData);
+			//get updated meta file
+			break;
+		default:
+			CopyToCacheFolder(metaData);
+			break;
+		}
+	}
+
 	void AssetImporter::StartFileWatch()
 	{
 		filewatch::FileWatch<std::wstring> watchBuffer(
@@ -313,6 +333,7 @@ namespace Borealis
 				switch (change_type)
 				{
 				case filewatch::Event::added:
+					if (path.extension() == ".meta") return;
 					assetRegistry = &Project::GetEditorAssetsManager()->GetAssetRegistry();
 					RegisterAsset(mAssetPath / path, *assetRegistry);
 					break;

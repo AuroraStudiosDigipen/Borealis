@@ -1367,9 +1367,6 @@ namespace Borealis
 						// Serialize the updated prefab
 						Serialiser serialiser(SceneManager::GetActiveScene());
 						serialiser.SerialisePrefab(dirString.c_str(), prefabEntity);
-
-						// Optionally, log the save operation
-						std::cout << "Prefab saved at: " << dirString << std::endl;
 					}
 
 					break;
@@ -1501,6 +1498,7 @@ namespace Borealis
 
 		if(entityDeleted)
 		{
+			HierarchyLayerManager::GetInstance().RemoveEntity(mSelectedEntity.GetUUID());
 			mContext->DestroyEntity(mSelectedEntity);
 			mSelectedEntity = {};
 		}

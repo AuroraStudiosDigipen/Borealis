@@ -1054,6 +1054,7 @@ namespace Borealis {
 		{
 			if (SCPanel.GetSelectedEntity())
 			{
+				HierarchyLayerManager::GetInstance().RemoveEntity(SCPanel.GetSelectedEntity().GetUUID());
 				SceneManager::GetActiveScene()->DestroyEntity(SCPanel.GetSelectedEntity());
 				SCPanel.SetSelectedEntity({});
 			}

@@ -112,10 +112,20 @@ namespace Borealis
 
     void HierarchyLayerManager::RemoveEntity(const UUID& uuid)
     {
-        mEntityLayerMap.erase(uuid);
         auto it = std::find(mLayeredEntities.begin(), mLayeredEntities.end(), uuid);
         if (it != mLayeredEntities.end())
-            mLayeredEntities.erase(it);
+        {
+            // Move entity down until it is the last one
+            while (it != mLayeredEntities.end() - 1)
+            {
+                MoveEntityDown(uuid); // Use existing MoveEntityDown function
+                it = std::find(mLayeredEntities.begin(), mLayeredEntities.end(), uuid); // Re-locate entity
+            }
+
+            // Remove the entity from the layer map and list
+            mEntityLayerMap.erase(uuid);
+            mLayeredEntities.pop_back();
+        }
     }
 
     void HierarchyLayerManager::MoveEntityUp(const UUID& uuid)

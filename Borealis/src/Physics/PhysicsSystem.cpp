@@ -361,6 +361,8 @@ namespace Borealis
 		{
 			sPhysicsData.onTriggerPairRemovedQueue.pop();
 		}
+		bodyIDMapUUID.clear();
+		bodySensorMap.clear();
 	}
 
 	void PhysicsSystem::Init()

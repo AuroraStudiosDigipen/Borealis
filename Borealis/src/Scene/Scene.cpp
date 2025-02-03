@@ -1391,6 +1391,13 @@ namespace Borealis
 			}
 		}
 		PhysicsSystem::EndScene();
+		PhysicsSystem::GetCollisionEnterQueue() = std::queue<CollisionPair>();
+		PhysicsSystem::GetCollisionPersistQueue() = std::queue<CollisionPair>();
+		PhysicsSystem::GetCollisionExitQueue() = std::queue<CollisionPair>();
+		PhysicsSystem::GetTriggerEnterQueue() = std::queue<CollisionPair>();
+		PhysicsSystem::GetTriggerPersistQueue() = std::queue<CollisionPair>();
+		PhysicsSystem::GetTriggerExitQueue() = std::queue<CollisionPair>();
+
 		LayerList::resetEntities();
 		AudioEngine::StopAllChannels();
 	}

@@ -342,13 +342,13 @@ vec3 ComputeDirectionalLight(Light light, vec3 normal, vec3 viewDir)
 {
     vec3 lightDir = vec3(0.f);
 
-    lightDir = normalize(-light.direction);
+    lightDir = normalize(-light.direction) + 1e-5;
 
     float metallic = GetMetallic();
 
     vec3 halfwayDir = normalize(lightDir + viewDir);
 
-    vec3 radiance = light.ambient;
+    vec3 radiance = light.ambient * 10.f;
 
     float D = DistributionGGX(normal, halfwayDir, GetRoughness());
     float G = GeometrySmith(normal, viewDir, lightDir, GetRoughness());
@@ -373,7 +373,7 @@ vec3 ComputeDirectionalLight(Light light, vec3 normal, vec3 viewDir)
     
     if(u_HasShadow)
     {
-        color += shadowFactor * ((kD * GetAlbedoColor().xyz / PI + specular) * radiance * NdotL);
+        color += shadowFactor * ((GetAlbedoColor().xyz / PI + specular) * radiance * NdotL);
     }
     else
     {
@@ -395,7 +395,7 @@ vec3 ComputePointLight(Light light, vec3 normal, vec3 viewDir)
     float distance = length(light.position - v_FragPos);
     float attenuation = 1.0 / (1.0 + light.linear * distance + light.quadratic * distance * distance); 
 
-    vec3 radiance = light.ambient * attenuation;
+    vec3 radiance = light.ambient * 10.f * attenuation;
 
     float D = DistributionGGX(normal, halfwayDir, GetRoughness());
     float G = GeometrySmith(normal, viewDir, lightDir, GetRoughness());
@@ -403,16 +403,16 @@ vec3 ComputePointLight(Light light, vec3 normal, vec3 viewDir)
     vec3 F0 = vec3(0.04f);
     F0 = mix(F0, GetAlbedoColor().rgb, metallic);
 
-    vec3 F = fresnelSchlick(max(dot(viewDir, halfwayDir), 0.0), F0);
+    vec3 F = fresnelSchlick(max(dot(lightDir, halfwayDir), 0.0), F0);
 
     vec3 specular = (D * G * F) / (4.0 * max(dot(normal, viewDir), 0.0) * max(dot(normal, lightDir), 0.0) + 1e-5);
 
     vec3 kS = F;
-    vec3 kD = vec3(1.0) - kS;
+    vec3 kD = max(vec3(0.0), vec3(1.0) - kS) * (1.0 - metallic);
     kD *= 1.0 - metallic;
     float NdotL = max(dot(normal, lightDir), 0.0); 
     
-    Lo = (kD * GetAlbedoColor().xyz / PI + specular) * radiance * NdotL;
+    Lo = ( GetAlbedoColor().xyz / PI + specular) * radiance * NdotL;
 
     return Lo;
 }
@@ -477,58 +477,6 @@ vec3 ComputeSpotLight(Light light, vec3 normal, vec3 viewDir)
     }
 
     return color;
-
-    // vec3 lightDir = normalize(light.position - v_FragPos);
-    // float distance = length(light.position - v_FragPos);
-
-    // float attenuation = 1.0 / (1.0 + light.linear * distance + light.quadratic * distance * distance);
-
-    // // Compute spotlight intensity based on angle
-    // float theta = dot(lightDir, normalize(-light.direction));
-    // float epsilon = light.innerOuterAngle.x - light.innerOuterAngle.y;
-    // float intensity = clamp((theta - light.innerOuterAngle.y) / epsilon, 0.0, 1.0);
-
-    // vec3 ambient = light.ambient * GetAlbedoColor().rgb * 0.2 * intensity;
-    // vec3 color = ambient;
-
-    // float metallic = GetMetallic();
-    // vec3 emission = GetEmission();
-
-    // vec3 halfwayDir = normalize(lightDir + viewDir);
-    // float diff = max(dot(normal, lightDir), 0.0);
-
-    // if (diff > 0.0 && intensity > 0.0)
-    // {
-    //     float NdotH = max(dot(normal, halfwayDir), 0.0);
-    //     float VdotH = max(dot(viewDir, halfwayDir), 0.0);
-
-    //     float D = DistributionGGX(normal, halfwayDir, GetRoughness());
-    //     float G = GeometrySmith(normal, viewDir, lightDir, GetRoughness());
-
-    //     vec3 F0 = vec3(0.04f);
-    //     F0 = mix(F0, GetAlbedoColor().xyz, metallic);
-
-    //     vec3 F = fresnelSchlick(VdotH, F0);
-    //     vec3 specular = D * G * F / (4.0 * max(dot(normal, viewDir), 0.0) * max(dot(normal, lightDir), 0.0) + 0.001);
-
-    //     vec3 diffuse = light.diffuse * diff * (1.0 - metallic);
-
-    //     diffuse *= intensity * attenuation;
-    //     specular *= intensity * attenuation;
-
-    //     // Apply shadow factor
-    //     float shadowFactor = GetShadowFactor(lightDir, normal);
-    //     if (u_HasShadow)
-    //     {
-    //         color += shadowFactor * (diffuse + specular + emission);
-    //     }
-    //     else
-    //     {
-    //         color += (diffuse + specular + emission);
-    //     }
-    // }
-
-    // return color;
 }
 
 void Render3DPass()

@@ -49,8 +49,7 @@ void ShadowPass()
 
 void Render3DPass()
 {
-	v_TexCoord = vec2(a_TexCoord.x, a_TexCoord.y);
-
+    v_TexCoord = vec2(a_TexCoord.x, 1 - a_TexCoord.y);
 	v_FragPos = vec3(u_ModelTransform * vec4(a_Position, 1.0));
 	
 	mat3 normalMatrix = transpose(inverse(mat3(u_ModelTransform))); //calculate T and N in compiler

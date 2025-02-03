@@ -876,14 +876,14 @@ namespace Borealis
 		}
 
 		
-		//constexpr glm::vec2 texCoords[] = { {0.0f,0.0f},{1.0f,0.0f},{1.0f,1.0f},{0.0f,1.0f} };
+		constexpr glm::vec2 texCoords[] = { {0.0f,0.0f},{1.0f,0.0f},{1.0f,1.0f},{0.0f,1.0f} };
 
-		constexpr glm::vec2 texCoords[] = {
-			{0.0f, 1.0f},
-			{1.0f, 1.0f},
-			{1.0f, 0.0f},
-			{0.0f, 0.0f} 
-		};
+		//constexpr glm::vec2 texCoords[] = {
+		//	{0.0f, 1.0f},
+		//	{1.0f, 1.0f},
+		//	{1.0f, 0.0f},
+		//	{0.0f, 0.0f} 
+		//};
 
 		for (int i = 0; i < 4; i++)
 		{

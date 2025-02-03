@@ -1066,7 +1066,6 @@ namespace Borealis
 
 	void PhysicsSystem::UpdateScale(ColliderComponent& collider, TransformComponent& transform)
 	{
-
 		ShapeRefC shape;
 		ShapeSettings::ShapeResult shape_result;
 

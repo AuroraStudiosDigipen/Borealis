@@ -93,9 +93,15 @@ void main()
 		// Calculate camera-to-point direction
 		vec3 cameraToPoint = normalize(pos - u_CameraPos.xyz);
 
-		// Calculate up and right vectors for the billboard
-		vec3 up = vec3(0.0, 1.0, 0.0);          // Up vector (assumed world-space Y-axis)
-		vec3 right = cross(up, cameraToPoint);  // Right vector perpendicular to up and camera-to-point
+		vec3 worldUp = vec3(0.0, 1.0, 0.0);
+		if (abs(dot(cameraToPoint, worldUp)) > 0.999)
+		{
+			worldUp = vec3(0.0, 0.0, 1.0); // Use alternative up (e.g., forward)
+		}
+
+		// Calculate orthogonal right and up vectors
+		vec3 right = normalize(cross(worldUp, cameraToPoint));
+		vec3 up = normalize(cross(cameraToPoint, right));
 
 		// Scale the billboard quad
 		float size = 1.0; // Adjust billboard size as needed

@@ -308,16 +308,16 @@ namespace Borealis {
 					.AddSinkLinkage("MouseSource", "MouseSource");
 				fconfig.AddPass(ObjectPicking);
 
-				//RenderPassConfig editorHighlightPass(RenderPassType::EditorHighlightPass, "EditorHighlight");
-				//editorHighlightPass.AddSinkLinkage("camera", "EditorCamera")
-				//	.AddSinkLinkage("renderTarget", "ObjectPicking.renderTarget")
-				//	.AddSinkLinkage("SelectedEntities", "SelectedEntities")
-				//	.AddSinkLinkage("EntityIDSource", "ObjectPicking.EntityIDSource");
-				//fconfig.AddPass(editorHighlightPass);
+				RenderPassConfig editorHighlightPass(RenderPassType::EditorHighlightPass, "EditorHighlight");
+				editorHighlightPass.AddSinkLinkage("camera", "EditorCamera")
+					.AddSinkLinkage("renderTarget", "ObjectPicking.renderTarget")
+					.AddSinkLinkage("SelectedEntities", "SelectedEntities")
+					.AddSinkLinkage("EntityIDSource", "ObjectPicking.EntityIDSource");
+				fconfig.AddPass(editorHighlightPass);
 
 				RenderPassConfig highlightPass(RenderPassType::HighlightPass, "Highlight");
 				highlightPass.AddSinkLinkage("camera", "EditorCamera")
-					.AddSinkLinkage("renderTarget", "ObjectPicking.renderTarget");
+					.AddSinkLinkage("renderTarget", "EditorHighlight.renderTarget");
 				fconfig.AddPass(highlightPass);
 
 				RenderPassConfig particleSystemPass(RenderPassType::ParticleSystemPass, "ParticleSystem");

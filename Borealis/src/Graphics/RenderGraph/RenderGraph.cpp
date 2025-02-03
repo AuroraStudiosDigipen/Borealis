@@ -1094,6 +1094,8 @@ namespace Borealis
 
 						if (!meshFilter.Model || !meshRenderer.Material || !meshRenderer.active) continue;
 
+						if (!meshRenderer.castShadow) continue;
+
 						BoundingSphere modelBoundingSphere = meshFilter.Model->mBoundingSphere;
 						modelBoundingSphere.Transform(transform.GetGlobalTransform());
 
@@ -1142,6 +1144,8 @@ namespace Borealis
 					}
 					auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
 					if (!meshFilter.Model || !meshRenderer.Material || !meshRenderer.active) continue;
+
+					if (!meshRenderer.castShadow) continue;
 
 					BoundingSphere modelBoundingSphere = meshFilter.Model->mBoundingSphere;
 					modelBoundingSphere.Transform(transform.GetGlobalTransform());
@@ -1299,7 +1303,6 @@ namespace Borealis
 				}
 
 				shader->Bind();
-				shader->Set("u_ViewProjection", viewProjMatrix);
 				if (entityID == hoveredEntity)
 				{
 					shader->Set("u_Filled", false);

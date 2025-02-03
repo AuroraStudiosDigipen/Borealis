@@ -805,11 +805,11 @@ namespace Borealis
 		if (!mViewportFrameBuffer || !mRuntimeFrameBuffer || !mGFrameBuffer)
 		{
 			FrameBufferProperties props{ 1280, 720, false };
-			props.Attachments = { FramebufferTextureFormat::RGBA8,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
+			props.Attachments = { FramebufferTextureFormat::RGBA16F,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
 			mViewportFrameBuffer = FrameBuffer::Create(props);
 
 			FrameBufferProperties propsRuntime{ 1280, 720, false };
-			propsRuntime.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RedInteger,FramebufferTextureFormat::Depth };
+			propsRuntime.Attachments = { FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RedInteger,FramebufferTextureFormat::Depth };
 			mRuntimeFrameBuffer = FrameBuffer::Create(propsRuntime);
 
 			FrameBufferProperties propsGBuffer{ 1280, 720, false };

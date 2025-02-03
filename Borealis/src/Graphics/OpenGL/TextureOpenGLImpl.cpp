@@ -35,12 +35,22 @@ namespace Borealis
 		gli::gl::format const Format = GL.translate(Texture.format(), Texture.swizzles());
 
 		mInternalFormat = Format.Internal;
+
+		switch (Format.Internal)
+		{
+		case GL_RGB:  mInternalFormat = GL_SRGB8; break;
+		case GL_RGBA: mInternalFormat = GL_SRGB8_ALPHA8; break;
+		case 33779:	  mInternalFormat = GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT; break;
+		default: break;
+		}
+
 		mDataFormat = Format.External;
 		switch (Format.Internal) 
 		{
 			case GL_RED: mChannels = 1; break;
 			case GL_RG: mChannels = 2; break;
 			case GL_RGB: mChannels = 3; break;
+			case 33779:
 			case GL_RGBA: mChannels = 4; break;
 			default: mChannels = 0;
 		}
@@ -60,7 +70,7 @@ namespace Borealis
 		glTexParameteri(Target, GL_TEXTURE_MAX_LEVEL, static_cast<GLint>(Texture.levels() - 1));
 		glTexParameteriv(Target, GL_TEXTURE_SWIZZLE_RGBA, &Format.Swizzles[0]);
 
-		glTexParameteri(Target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(Target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glTexParameteri(Target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(Target, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(Target, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -72,7 +82,7 @@ namespace Borealis
 			glCompressedTexImage2D(
 				GL_TEXTURE_2D,
 				static_cast<GLint>(Level),
-				Format.Internal,
+				mInternalFormat,
 				Extent.x, Extent.y,
 				0,
 				static_cast<GLsizei>(Texture.size(Level)),

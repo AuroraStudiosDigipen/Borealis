@@ -217,10 +217,7 @@
     <ClInclude Include="inc\Graphics\OpenGL\UniformBufferObjectOpenGLImpl.hpp" />
     <ClInclude Include="inc\Graphics\OpenGL\VertexArrayOpenGLImpl.hpp" />
     <ClInclude Include="inc\Graphics\OrthographicCamera.hpp" />
-    <ClInclude Include="inc\Graphics\ParticleSystem.hpp">
-      <SubType>
-      </SubType>
-    </ClInclude>
+    <ClInclude Include="inc\Graphics\ParticleSystem.hpp" />
     <ClInclude Include="inc\Graphics\PixelBuffer.hpp" />
     <ClInclude Include="inc\Graphics\RenderCommand.hpp" />
     <ClInclude Include="inc\Graphics\RenderGraph\RenderGraph.hpp" />
@@ -829,10 +826,7 @@
     <ClCompile Include="src\Graphics\OpenGL\UniformBufferObjectOpenGLImpl.cpp" />
     <ClCompile Include="src\Graphics\OpenGL\VertexArrayOpenGLImpl.cpp" />
     <ClCompile Include="src\Graphics\OrthographicCamera.cpp" />
-    <ClCompile Include="src\Graphics\ParticleSystem.cpp">
-      <SubType>
-      </SubType>
-    </ClCompile>
+    <ClCompile Include="src\Graphics\ParticleSystem.cpp" />
     <ClCompile Include="src\Graphics\PixelBuffer.cpp" />
     <ClCompile Include="src\Graphics\RenderCommand.cpp" />
     <ClCompile Include="src\Graphics\RenderGraph\RenderGraph.cpp" />

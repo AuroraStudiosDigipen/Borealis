@@ -466,9 +466,9 @@ namespace Borealis
 		JPH::Quat newRotation = JPH::Quat(rotation.x, rotation.y, rotation.z, rotation.w);
 
 		// Set position and rotation in the physics system
+		sPhysicsData.body_interface->SetPosition((BodyID)collider.bodyID, newPosition, EActivation::Activate);
 		if (rigidbody->movement != MovementType::Kinematic)
 		{
-			sPhysicsData.body_interface->SetPosition((BodyID)collider.bodyID, newPosition, EActivation::Activate);
 			sPhysicsData.body_interface->SetRotation((BodyID)collider.bodyID, newRotation, EActivation::Activate);
 		}
 
@@ -495,10 +495,6 @@ namespace Borealis
 	void PhysicsSystem::PullTransform(ColliderComponent& collider, TransformComponent& transform)
 	{
 		// Get position from the physics system (JPH::RVec3 to glm::vec3)
-		if (collider.rigidBody->movement != MovementType::Kinematic)
-		{
-			return;
-		}
 
 		JPH::RVec3 newPosition = sPhysicsData.body_interface->GetPosition((BodyID)collider.bodyID);
 		glm::vec3 newTranslate = glm::vec3(newPosition.GetX(), newPosition.GetY(), newPosition.GetZ());
@@ -736,16 +732,6 @@ namespace Borealis
 			JPH::RVec3(position.x, position.y, position.z),
 			EActivation::Activate
 		);
-
-		// Check if the motion type is Kinematic and print an appropriate message
-		if (sPhysicsData.body_interface->GetMotionType((BodyID)bodyID) == EMotionType::Kinematic)
-		{
-			std::cout << "Body " << bodyID << " is Kinematic." << std::endl;
-		}
-		else
-		{
-			std::cout << "Body " << bodyID << " is not Kinematic." << std::endl;
-		}
 	}
 
 
@@ -1198,7 +1184,7 @@ namespace Borealis
 		// Convert glm::quat to Jolt's Quat (JPH::Quat)
 		JPH::Quat newRotation = JPH::Quat(quatRot.x, quatRot.y, quatRot.z, quatRot.w);
 
-		BodyCreationSettings body_settings(shape, RVec3(actualCenter.x, actualCenter.y, actualCenter.z), newRotation, EMotionType::Static, Layers::NON_MOVING);
+		BodyCreationSettings body_settings(shape, RVec3(actualCenter.x, actualCenter.y, actualCenter.z), newRotation, EMotionType::Static, Layers::MOVING);
 
 		if (rigidbody)
 		{

@@ -1627,6 +1627,8 @@ namespace Borealis
 		Ref<FrameBuffer> uiFBO = nullptr;
 
 		viewProjMatrix = glm::ortho(0.0f, (float)renderTarget->Width, (float)renderTarget->Height, 0.0f, -100.0f, 100.0f);
+		sData->cameraData.ViewProjection = viewProjMatrix;
+		sData->CameraUBO->SetData(&sData->cameraData, sizeof(sData->cameraData));
 		Renderer2D::Begin(viewProjMatrix);
 
 		bool UIexist = false;
@@ -1658,7 +1660,7 @@ namespace Borealis
 				if (!canvas.canvasFrameBuffer)
 				{
 					FrameBufferProperties props{ 1280, 720, false };
-					props.Attachments = { FramebufferTextureFormat::RGBA8,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
+					props.Attachments = { FramebufferTextureFormat::RGBA16F,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
 					canvas.canvasFrameBuffer = FrameBuffer::Create(props);
 				}
 
@@ -1672,7 +1674,7 @@ namespace Borealis
 				float scaleFactor = 1 / canvas.scaleFactor /* * 0.95f */;
 
 				glm::vec3 canvasPosition(renderTarget->Width * 0.5f, renderTarget->Height * 0.5f, 0.0f);
-				//glm::vec3 canvasScale(canvas.canvasSize.x * scaleFactor, canvas.canvasSize.y * scaleFactor, 1.0f);
+				glm::vec3 canvasScale(canvas.canvasSize.x * scaleFactor, canvas.canvasSize.y * scaleFactor, 1.0f);
 
 				glm::mat4 canvasTransform = glm::translate(glm::mat4(1.0f), canvasPosition) *
 					glm::scale(glm::mat4(1.0f), glm::vec3(scaleFactor, -scaleFactor, 1.f));

@@ -1342,7 +1342,7 @@ namespace Borealis
 						Entity entity = SceneManager::GetActiveScene()->GetEntityByUUID(uuid);
 
 						// Retrieve the node name or tag
-						std::string nodeName = entity.GetComponent<TagComponent>().Tag;
+						std::string nodeName = entity.GetComponent<TagComponent>().Name;
 
 						if (entity.IsValid() && entity.HasComponent<TransformComponent>() && entity.GetComponent<TransformComponent>().ParentID == 0 && (searchQuery.empty() || FuzzyMatch(searchQuery, nodeName)))
 						{

@@ -593,8 +593,9 @@ namespace Borealis
 		delete sPhysicsData.job_system;
 		delete sPhysicsData.debug_renderer;
 		delete sPhysicsData.mSystem;
-
+		UnregisterTypes();
 		delete Factory::sInstance;
+		Factory::sInstance = nullptr;
 	}
 
 	UUID PhysicsSystem::BodyIDToUUID(unsigned int bodyID)
@@ -1029,70 +1030,6 @@ namespace Borealis
 		hitInfo->point = origin + direction * hitInfo->distance;
 
 		return output;
-	}
-
-	std::unordered_set<uint32_t> GetOverlappingBodies(uint32_t sensorBodyID)
-	{
-		std::unordered_set<uint32_t> overlappingBodies;
-		
-		// Retrieve the sensor body
-		JPH::BodyID bodyID(sensorBodyID);
-		JPH::BodyLockRead lock(sPhysicsData.mSystem->GetBodyLockInterface(), bodyID);
-		if (!lock.Succeeded()) return overlappingBodies;
-
-		const JPH::Body& sensorBody = lock.GetBody();
-		JPH::AABox worldBounds = sensorBody.GetWorldSpaceBounds();
-		
-		// Query overlapping objects
-		Array<BodyID> bodies;
-		sPhysicsData.mSystem->GetBroadPhaseQuery().CollideAABox(worldBounds, bodies);
-		
-		// Store results
-		for (auto& body : bodies)
-		{
-			overlappingBodies.insert(body.GetIndexAndSequenceNumber());
-		}
-
-		return overlappingBodies;
-	}
-
-	uint32_t PhysicsSystem::FindClosestIntersectingObject(uint32_t playerSensorID, uint32_t cameraSensorID, glm::vec3 playerPosition)
-	{
-		auto playerObjects = GetOverlappingBodies(playerSensorID);
-		auto cameraObjects = GetOverlappingBodies(cameraSensorID);
-
-		std::vector<uint32_t> commonObjects;
-		for (auto id : playerObjects)
-		{
-			if (cameraObjects.find(id) != cameraObjects.end())
-			{
-				commonObjects.push_back(id);
-			}
-		}
-
-		if (commonObjects.empty()) return 0; // No common objects
-
-		// Find the closest object
-		uint32_t closestBodyID = 0;
-		float minDistance = FLT_MAX;
-		
-		for (auto id : commonObjects)
-		{
-			JPH::BodyLockRead lock(sPhysicsData.mSystem->GetBodyLockInterface(), JPH::BodyID(id));
-			if (!lock.Succeeded()) continue;
-
-			const JPH::Body& body = lock.GetBody();
-			glm::vec3 objPos(body.GetPosition().GetX(), body.GetPosition().GetY(), body.GetPosition().GetZ());
-
-			float distance = glm::length(objPos - playerPosition);
-			if (distance < minDistance)
-			{
-				minDistance = distance;
-				closestBodyID = id;
-			}
-		}
-
-		return closestBodyID; // Return the closest body
 	}
 
 	class RayCollector : public CastRayCollector

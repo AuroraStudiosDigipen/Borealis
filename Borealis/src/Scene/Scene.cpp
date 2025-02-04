@@ -1241,6 +1241,7 @@ namespace Borealis
 	void Scene::RuntimeStart()
 	{
 		hasRuntimeStarted = true;
+		PhysicsSystem::Init();
 
 		auto boxGroup = mRegistry.group<>(entt::get<TransformComponent, BoxColliderComponent>);
 		for (auto entity : boxGroup)
@@ -1463,6 +1464,7 @@ namespace Borealis
 		PhysicsSystem::GetTriggerEnterQueue() = std::queue<CollisionPair>();
 		PhysicsSystem::GetTriggerPersistQueue() = std::queue<CollisionPair>();
 		PhysicsSystem::GetTriggerExitQueue() = std::queue<CollisionPair>();
+		PhysicsSystem::Free();
 
 		LayerList::resetEntities();
 		AudioEngine::StopAllChannels();

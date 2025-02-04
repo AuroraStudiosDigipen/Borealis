@@ -22,8 +22,12 @@ namespace Borealis
 	public:
 		static void SetDeltaTime(float deltaTime);
 		static float GetDeltaTime();
+		static void SetTimeScale(float timeScale);
+		static float GetTimeScale();
+		static float GetUnscaledDeltaTime();
 	private:
 		static float m_DeltaTime;
+		static float m_TimeScale;
 	};
 }
 

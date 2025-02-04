@@ -23,6 +23,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/Renderer2D.hpp>
 #include <Graphics/Renderer3D.hpp>
 #include <Core/LoggerSystem.hpp>
+#include <Core/TimeManager.hpp>
 #include "Audio/AudioEngine.hpp"
 #include <Scene/SceneCamera.hpp>
 #include "Graphics/Light.hpp"
@@ -154,6 +155,7 @@ namespace Borealis
 
 	void Scene::UpdateRuntime(float dt)
 	{
+		dt *= TimeManager::GetTimeScale();
 		if (hasRuntimeStarted)
 		{
 			{

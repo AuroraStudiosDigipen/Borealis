@@ -62,6 +62,9 @@ namespace Borealis
 
 
 		BOREALIS_ADD_INTERNAL_CALL(Time_GetDeltaTime);
+		BOREALIS_ADD_INTERNAL_CALL(Time_GetUnscaledDeltaTime);
+		BOREALIS_ADD_INTERNAL_CALL(Time_SetTimeScale);
+		BOREALIS_ADD_INTERNAL_CALL(Time_GetTimeScale);
 
 		BOREALIS_ADD_INTERNAL_CALL(Input_GetMousePosition);
 		BOREALIS_ADD_INTERNAL_CALL(Input_GetMouseScrollDelta);
@@ -227,6 +230,21 @@ namespace Borealis
 	float Time_GetDeltaTime()
 	{
 		return TimeManager::GetDeltaTime();
+	}
+
+	float Time_GetUnscaledDeltaTime()
+	{
+		return TimeManager::GetUnscaledDeltaTime();
+	}
+
+	void Time_SetTimeScale(float scale)
+	{
+		TimeManager::SetTimeScale(scale);
+	}
+
+	float Time_GetTimeScale()
+	{
+		return TimeManager::GetTimeScale();
 	}
 
 	void Entity_RemoveComponent(uint64_t entityID, MonoReflectionType* reflectionType)

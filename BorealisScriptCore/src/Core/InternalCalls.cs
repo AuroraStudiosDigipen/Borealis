@@ -46,6 +46,12 @@ namespace Borealis
         #region Time
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static float Time_GetDeltaTime();
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static float Time_GetUnscaledDeltaTime();
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void Time_SetTimeScale(float scale);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static float Time_GetTimeScale();
         #endregion
 
         #region Input

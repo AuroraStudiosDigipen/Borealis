@@ -123,59 +123,31 @@ namespace Borealis
 
 	void ParticleSystem::SpawnParticle(TransformComponent & transform, Particle& particle, float startSpeed)
 	{
-		//particle.isActive = true;
-		//particle.position = transform.GetGlobalTranslate();
-
-		//// Get the forward direction of the transform
-		//glm::vec3 forward = transform.GetGlobalRotation(); // Assuming you have a method to get the forward vector
-
-		//// Convert the angle to radians
-		//float angleInRadians = glm::radians(mAngle);
-
-		//// Generate a random direction within the cone defined by the angle
-		//glm::vec3 randomDirection = glm::sphericalRand(25.0f); // Random direction on the unit sphere
-		//glm::vec3 coneDirection = glm::mix(forward, randomDirection, angleInRadians);
-
-		//// Normalize the cone direction to ensure it's a unit vector
-		//coneDirection = glm::normalize(coneDirection);
-
-		//// Set the initial velocity of the particle
-		//particle.startVelocity = startSpeed * coneDirection;
-
-		//particle.startColor = mStartColor;
-		//particle.startSize = mStartSize;
-		//particle.startRotation = glm::quat(mStartRotation);
-
-		//particle.life = 0.f;
-
 		particle.isActive = true;
 		particle.position = transform.GetGlobalTranslate();
 
 		// Get the Euler angles (pitch, yaw, roll) from the transform
-		glm::vec3 eulerAngles = transform.GetGlobalRotation(); // Assuming this returns Euler angles
+		glm::vec3 rotation = transform.GetGlobalRotation(); // Assuming this returns Euler angles
+		glm::quat orientation = glm::quat(rotation);
 
-		// Convert Euler angles to a rotation matrix
-		glm::mat4 rotationMatrix = glm::eulerAngleXYZ(glm::radians(eulerAngles.x), glm::radians(eulerAngles.y), glm::radians(eulerAngles.z));
+		glm::vec3 forward = orientation * glm::vec3(0.0f, 0.0f, 1.0f);
 
-		// Get the forward direction from the rotation matrix (unit vector along the Z-axis)
-		glm::vec3 forwardDirection = glm::normalize(glm::vec3(rotationMatrix * glm::vec4(0.0f, 0.0f, 1.0f, 0.0f)));
+		float coneAngle = glm::radians(mAngle);
 
-		// Convert the angle to radians
-		float angleInRadians = glm::radians(mAngle);
+		float u = static_cast<float>(rand()) / RAND_MAX;
+		float v = static_cast<float>(rand()) / RAND_MAX;
 
-		// Randomize the direction within the cone
-		float randomAngleX = RandomRange(-angleInRadians, angleInRadians);
-		float randomAngleY = RandomRange(-angleInRadians, angleInRadians);
+		float theta = v * 2.0f * glm::pi<float>();  // Random around circle
+		float phi = glm::acos(1.0f - u * (1.0f - glm::cos(coneAngle)));  // Within cone
 
-		// Apply the random deviation to the forward direction (randomize within the cone)
-		glm::vec3 randomDirection = glm::vec3(
-			glm::sin(randomAngleX),  // X component within the cone
-			glm::sin(randomAngleY),  // Y component within the cone
-			glm::cos(randomAngleX)   // Z component for the cone's depth
-		);
+		glm::vec3 dir;
+		dir.x = glm::sin(phi) * glm::cos(theta);
+		dir.y = glm::sin(phi) * glm::sin(theta);
+		dir.z = glm::cos(phi);
 
-		// Combine the base direction with the random deviation
-		glm::vec3 finalDirection = glm::normalize(forwardDirection + randomDirection);
+		// Align direction with emitter's orientation
+		glm::vec3 finalDirection = orientation * dir;
+		finalDirection = glm::normalize(finalDirection);
 
 		// Set the particle's velocity, scaled by the startSpeed
 		particle.startVelocity = startSpeed * finalDirection;

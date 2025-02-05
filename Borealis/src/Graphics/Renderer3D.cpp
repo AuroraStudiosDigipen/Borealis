@@ -136,7 +136,10 @@ namespace Borealis
 			else
 			{
 				if (drawCall.drawData.hasAnimation)
+				{
 					drawCall.shaderID->Set("u_HasAnimation", true);
+					drawCall.shaderID->Set("u_AnimationIndex", drawCall.drawData.animationIndex);
+				}
 
 				std::get<Ref<SkinnedModel>>(drawCall.model)->Draw(drawCall.transform, drawCall.shaderID, drawCall.entityID);
 			}
@@ -187,7 +190,7 @@ namespace Borealis
 		}
 	}
 
-	void Renderer3D::DrawSkinnedMesh(const glm::mat4& transform, const SkinnedMeshRendererComponent& skinnedMeshRenderer, Ref<Shader> shader, int entityID)
+	void Renderer3D::DrawSkinnedMesh(const glm::mat4& transform, const SkinnedMeshRendererComponent& skinnedMeshRenderer, Ref<Shader> shader, int entityID, int animationIndex)
 	{
 		if (skinnedMeshRenderer.SkinnnedModel)
 		{
@@ -199,7 +202,10 @@ namespace Borealis
 			//skinnedMeshRenderer.SkinnnedModel->Draw(transform, shader, entityID);
 			DrawData drawData;
 			if (skinnedMeshRenderer.SkinnnedModel->mAnimation)
+			{
 				drawData.hasAnimation = true;
+				drawData.animationIndex = animationIndex;
+			}
 			AddToDrawQueue(skinnedMeshRenderer.SkinnnedModel, shader, skinnedMeshRenderer.Material, entityID, transform, drawData);
 		}
 	}

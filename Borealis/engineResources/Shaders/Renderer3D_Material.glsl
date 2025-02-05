@@ -20,13 +20,19 @@ uniform int u_EntityID;
 
 //Animation variables
 uniform bool u_HasAnimation;
+uniform int  u_AnimationIndex;
 const int MAX_BONES = 128;
 const int MAX_BONE_INFLUENCE = 4;
-//uniform mat4 u_FinalBonesMatrices[MAX_BONES]; //move to uniform buffer objects
+const int MAX_ANIMATIONS = 5;
+
+struct Animation
+{
+    mat4 FinalBonesMatrices[MAX_BONES];
+};
 
 layout(std140) uniform AnimationUBO
 {
-	mat4 u_FinalBonesMatrices[MAX_BONES];
+    Animation animations[MAX_ANIMATIONS];
 };
 
 //shadow pass variables
@@ -74,14 +80,9 @@ void Render3DPass()
                 TotalPosition = vec4(a_Position,1.0f);
                 break;
             }
-            vec4 localPosition = u_FinalBonesMatrices[boneIds[i]] * vec4(a_Position,1.0f);
+            vec4 localPosition = animations[u_AnimationIndex].FinalBonesMatrices[boneIds[i]] * vec4(a_Position,1.0f);
             TotalPosition += localPosition * weights[i];
-			
-			//weightedNormal += weights[i] * mat3(u_FinalBonesMatrices[boneIds[i]]) * a_Normal;
-
-			//Need to apply weightedTangent and BitTangent as well
         }
-		//N = normalize(weightedNormal);
 
 		gl_Position = u_ViewProjection * u_ModelTransform * TotalPosition;	
 		v_LightPos = u_LightViewProjection * u_ModelTransform * TotalPosition;

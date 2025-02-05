@@ -77,7 +77,7 @@ namespace Borealis
 
 		static void DrawHighlightedMesh(const glm::mat4& transform, const MeshFilterComponent& meshFilter, Ref<Shader> shader);
 
-		static void DrawSkinnedMesh(const glm::mat4& transform, const SkinnedMeshRendererComponent & skinnedMeshRenderer, Ref<Shader> shader, int entityID = -1);
+		static void DrawSkinnedMesh(const glm::mat4& transform, const SkinnedMeshRendererComponent & skinnedMeshRenderer, Ref<Shader> shader, int entityID = -1, int animationIndex = -1);
 
 		static void DrawQuad();
 
@@ -101,6 +101,7 @@ namespace Borealis
 		struct DrawData
 		{
 			bool hasAnimation{};
+			int animationIndex{};
 		};
 
 		struct DrawCall

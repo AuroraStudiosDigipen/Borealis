@@ -550,20 +550,6 @@ namespace Borealis
 				}
 
 				Renderer3D::DrawMesh(transform.GetGlobalTransform(), meshFilter, meshRenderer, materialShader, (int)entity);
-
-				//renderTarget->Bind();
-				//if (Renderer3D::GetGlobalWireFrameMode())
-				//{
-				//	AABB modelAABB = meshFilter.Model->mAABB;
-				//	modelAABB.Transform(transform.GetGlobalTransform());
-				//	if (brEntity.HasComponent<BoxColliderComponent>())
-				//	{
-				//		auto& rigidbody = brEntity.GetComponent<BoxColliderComponent>();
-				//		glm::vec3 half = { rigidbody.size.x / 2, rigidbody.size.y / 2, rigidbody.size.z / 2 };
-				//		Renderer3D::DrawCube(rigidbody.center, -half, half, { 0.f,1.f,0.f,1.f }, true);
-				//	}
-				//}
-				//renderTarget->Unbind();
 			}
 			materialShader = nullptr;
 		}
@@ -573,6 +559,7 @@ namespace Borealis
 			//Add uniforms to drawInfo, pass it to drawqueue
 			//Add lights and animations to UBO
 			auto group = registryPtr->group<>(entt::get<TransformComponent, SkinnedMeshRendererComponent>);
+			int animationCount = 0;
 			for (auto& entity : group)
 			{
 				Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
@@ -610,7 +597,8 @@ namespace Borealis
 						{
 							auto const& transforms =  animatorComponent.animator.GetFinalBoneMatrices();
 
-							sData->AnimationUBO->SetData(transforms.data(), 128 * sizeof(glm::mat4));
+							sData->AnimationUBO->SetData(transforms.data(), 128 * sizeof(glm::mat4), 128 * sizeof(glm::mat4) * animationCount);
+							animationCount++;
 						}
 					}
 				}
@@ -628,7 +616,15 @@ namespace Borealis
 				//Renderer3D::SetLights(shader);
 
 				//Renderer3D::SetLights(materialShader);
-				Renderer3D::DrawSkinnedMesh(transform.GetGlobalTransform(), skinnedMesh, materialShader, (int)entity);
+				Renderer3D::DrawSkinnedMesh(transform.GetGlobalTransform(), skinnedMesh, materialShader, (int)entity, animationCount-1);
+
+				if (animationCount >= 5)
+				{
+					renderTarget->Bind();
+					Renderer3D::End();
+					renderTarget->Unbind();
+					animationCount = 0;
+				}
 			}
 		}
 
@@ -1515,7 +1511,7 @@ namespace Borealis
 				if (!outline.active) continue;
 
 				shader->Bind();
-				shader->Set("u_ViewProjection", viewProjMatrix);
+				//shader->Set("u_ViewProjection", viewProjMatrix);
 				shader->Set("u_Filled", outline.filled);
 				shader->Set("u_HighlightPass", false);
 				shader->Set("u_Color", outline.color);
@@ -1886,7 +1882,7 @@ namespace Borealis
 			sData = std::make_unique<RenderData>();
 			sData->CameraUBO = UniformBufferObject::Create(sizeof(RenderData::CameraData), CAMERA_BIND);
 
-			sData->AnimationUBO = UniformBufferObject::Create(sizeof(glm::mat4) * 128, ANIMATION_BIND);
+			sData->AnimationUBO = UniformBufferObject::Create(sizeof(glm::mat4) * 128 * 5, ANIMATION_BIND);
 
 			sData->LightsUBO = UniformBufferObject::Create(sizeof(LightUBO) * 32 + sizeof(int), LIGHTING_BIND);
 		}

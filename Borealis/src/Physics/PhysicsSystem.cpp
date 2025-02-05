@@ -40,6 +40,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
+#include <Jolt/Physics/Collision/Shape/TaperedCapsuleShape.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Body/BodyActivationListener.h>
 #include <Jolt/Physics/Collision/Shape/RotatedTranslatedShape.h>
@@ -454,19 +455,6 @@ namespace Borealis
 		auto modelCenter = collider.center;
 		auto actualCenterVec4 = entityTransform * glm::vec4(modelCenter, 1.0f);
 		auto actualCenter = glm::vec3(actualCenterVec4.x, actualCenterVec4.y, actualCenterVec4.z);
-
-		//TODO Fix scaling
-		//// Assuming `body` is a pointer to an existing body
-		//ShapeRefC oldShape = sPhysicsData.body_interface->GetShape((BodyID(rigidbody.bodyID)));
-	
-		//// Specify the new scale factor as a Vec3
-		//Vec3 newScale(transform.Scale.x,transform.Scale.y,transform.Scale.z); // Example: scaling by 1.5 on all axes
-
-		//// Create a scaled shape
-		//ScaledShape* scaledShape = new ScaledShape(oldShape, newScale);
-
-		//// Replace the body�s shape with the scaled shape
-		//sPhysicsData.body_interface->SetShape((BodyID(rigidbody.bodyID)), scaledShape, true, EActivation::Activate);
 	
 		// Convert position (glm::vec3 to Jolt's RVec3)
 		JPH::RVec3 newPosition = JPH::RVec3(actualCenter.x, actualCenter.y, actualCenter.z);
@@ -784,6 +772,9 @@ namespace Borealis
 		BoxColliderComponent* boxPtr = dynamic_cast<BoxColliderComponent*>(&collider);
 		SphereColliderComponent* spherePtr = dynamic_cast<SphereColliderComponent*>(&collider);
 		CapsuleColliderComponent* capsulePtr = dynamic_cast<CapsuleColliderComponent*>(&collider);
+		TaperedCapsuleColliderComponent* tCapsulePtr = dynamic_cast<TaperedCapsuleColliderComponent*>(&collider);
+
+
 		if (boxPtr)
 		{
 			glm::vec3 size = { boxPtr->size.x * 0.5f * transform.Scale.x, boxPtr->size.y * 0.5f * transform.Scale.y, boxPtr->size.z * 0.5f * transform.Scale.z };
@@ -804,6 +795,13 @@ namespace Borealis
 			CapsuleShapeSettings capsule_shape_settings(capsulePtr->radius * (transform.Scale.x + transform.Scale.z) * 0.5f, capsulePtr->height * transform.Scale.y); //For capsule scaling when Y is up, X and Z is the width and Y is the height.
 			capsule_shape_settings.SetEmbedded();
 			shape_result = capsule_shape_settings.Create();
+			shape = shape_result.Get();
+		}
+		else if (tCapsulePtr)
+		{
+			TaperedCapsuleShapeSettings tCapsule_shape_settings(tCapsulePtr->height * transform.Scale.y, tCapsulePtr->topRadius * (transform.Scale.x + transform.Scale.z) * 0.5f, tCapsulePtr->botRadius * (transform.Scale.x + transform.Scale.z) * 0.5f);
+			tCapsule_shape_settings.SetEmbedded();
+			shape_result = tCapsule_shape_settings.Create();
 			shape = shape_result.Get();
 		}
 
@@ -1094,6 +1092,8 @@ namespace Borealis
 		BoxColliderComponent* boxPtr = dynamic_cast<BoxColliderComponent*>(&collider);
 		SphereColliderComponent* spherePtr = dynamic_cast<SphereColliderComponent*>(&collider);
 		CapsuleColliderComponent* capsulePtr = dynamic_cast<CapsuleColliderComponent*>(&collider);
+		TaperedCapsuleColliderComponent* tCapsulePtr = dynamic_cast<TaperedCapsuleColliderComponent*>(&collider);
+
 		if (boxPtr)
 		{
 			glm::vec3 size = { boxPtr->size.x * 0.5f * transform.Scale.x, boxPtr->size.y * 0.5f * transform.Scale.y, boxPtr->size.z * 0.5f * transform.Scale.z };
@@ -1125,9 +1125,16 @@ namespace Borealis
 		}
 		else if (capsulePtr)
 		{
-			CapsuleShapeSettings capsule_shape_settings(capsulePtr->radius * (transform.Scale.x + transform.Scale.z) * 0.5f, capsulePtr->height * transform.Scale.y);
+			CapsuleShapeSettings capsule_shape_settings(capsulePtr->height * transform.Scale.y, capsulePtr->radius * (transform.Scale.x + transform.Scale.z) * 0.5f);
 			capsule_shape_settings.SetEmbedded();
 			shape_result = capsule_shape_settings.Create();
+			shape = shape_result.Get();
+		}
+		else if (tCapsulePtr)
+		{
+			TaperedCapsuleShapeSettings tCapsule_shape_settings(tCapsulePtr->height * transform.Scale.y, tCapsulePtr->topRadius * (transform.Scale.x + transform.Scale.z)*0.5f,tCapsulePtr->botRadius * (transform.Scale.x + transform.Scale.z)*0.5f);
+			tCapsule_shape_settings.SetEmbedded();
+			shape_result = tCapsule_shape_settings.Create();
 			shape = shape_result.Get();
 		}
 		
@@ -1143,6 +1150,8 @@ namespace Borealis
 		BoxColliderComponent* boxPtr = dynamic_cast<BoxColliderComponent*>(&collider);
 		SphereColliderComponent* spherePtr = dynamic_cast<SphereColliderComponent*>(&collider);
 		CapsuleColliderComponent* capsulePtr = dynamic_cast<CapsuleColliderComponent*>(&collider);
+		TaperedCapsuleColliderComponent* tCapsulePtr = dynamic_cast<TaperedCapsuleColliderComponent*>(&collider);
+
 		if (boxPtr)
 		{
 			glm::vec3 size = { boxPtr->size.x * 0.5f * transform.Scale.x, boxPtr->size.y * 0.5f * transform.Scale.y, boxPtr->size.z * 0.5f * transform.Scale.z };
@@ -1174,9 +1183,16 @@ namespace Borealis
 		}
 		else if (capsulePtr)
 		{
-			CapsuleShapeSettings capsule_shape_settings(capsulePtr->radius * (transform.Scale.x+transform.Scale.z) * 0.5f, capsulePtr->height * transform.Scale.y);
+			CapsuleShapeSettings capsule_shape_settings(capsulePtr->height * transform.Scale.y, capsulePtr->radius * (transform.Scale.x+transform.Scale.z) * 0.5f);
 			capsule_shape_settings.SetEmbedded();
 			shape_result = capsule_shape_settings.Create();
+			shape = shape_result.Get();
+		}
+		else if (tCapsulePtr)
+		{
+			TaperedCapsuleShapeSettings tCapsule_shape_settings(tCapsulePtr->height * transform.Scale.y, tCapsulePtr->topRadius * (transform.Scale.x + transform.Scale.z) * 0.5f, tCapsulePtr->botRadius * (transform.Scale.x + transform.Scale.z) * 0.5f);
+			tCapsule_shape_settings.SetEmbedded();
+			shape_result = tCapsule_shape_settings.Create();
 			shape = shape_result.Get();
 		}
 

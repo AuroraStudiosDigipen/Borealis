@@ -276,6 +276,13 @@ namespace Borealis
 		unsigned int bodyID = 0;
 	};
 
+	struct TaperedCapsuleColliderComponent : public ColliderComponent
+	{
+		float botRadius = 1.f;
+		float topRadius = 0.5f;
+		float height = 2.f;
+	};
+
 	struct BoxColliderComponent : public ColliderComponent
 	{
 		glm::vec3 size = { 1,1,1 };

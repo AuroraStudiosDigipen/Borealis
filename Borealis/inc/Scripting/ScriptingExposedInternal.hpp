@@ -119,6 +119,10 @@ namespace Borealis
 	void Entity_GetEntitiesFromLayer(int32_t layerNum, MonoArray** objectArray);
 	void Entity_GetEntitiesFromTag(MonoString* layerNum, MonoArray** objectArray);
 	float Time_GetDeltaTime();
+	float Time_GetUnscaledDeltaTime();
+	void Time_SetTimeScale(float scale);
+	float Time_GetTimeScale();
+
 
 	/*!***********************************************************************
 		\brief

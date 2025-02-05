@@ -42,7 +42,7 @@ namespace Borealis
 			}
 		}
 
-		if(mNeedToUpdate || modified)
+		if(mNeedToUpdate || modified || mLights.empty())
 		{
 			for (int i{}; i < mLights.size(); ++i)
 			{

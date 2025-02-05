@@ -593,8 +593,9 @@ namespace Borealis
 		delete sPhysicsData.job_system;
 		delete sPhysicsData.debug_renderer;
 		delete sPhysicsData.mSystem;
-
+		UnregisterTypes();
 		delete Factory::sInstance;
+		Factory::sInstance = nullptr;
 	}
 
 	UUID PhysicsSystem::BodyIDToUUID(unsigned int bodyID)
@@ -1018,10 +1019,6 @@ namespace Borealis
 		hitInfo->colliderID = *(reinterpret_cast<uint32_t*>(&result.mBodyID));
 		hitInfo->distance = maxDistance * result.mFraction;
 		hitInfo->ID = PhysicsSystem::BodyIDToUUID(result.mBodyID.GetIndexAndSequenceNumber());
-
-		// If you want the surface normal of the hit use 
-		// Body::GetWorldSpaceSurfaceNormal(ioHit.mSubShapeID2, 
-		// inRay.GetPointOnRay(ioHit.mFraction)) on body with ID ioHit.mBodyID.
 
 		JPH::BodyLockRead lock(sPhysicsData.mSystem->GetBodyLockInterface(), result.mBodyID);
 		if (lock.Succeeded())

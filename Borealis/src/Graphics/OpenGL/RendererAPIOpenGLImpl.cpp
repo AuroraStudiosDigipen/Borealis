@@ -88,6 +88,19 @@ namespace Borealis
 		glDisable(GL_BLEND);
 	}
 
+	void OpenGLRendererAPI::ConfigureBlendForTransparency(TransparencyStage stage)
+	{
+		if (stage == TransparencyStage::ACCUMULATION)
+		{
+			glBlendFunci(0, GL_ONE, GL_ONE);
+			glBlendFunci(1, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
+		}
+		else
+		{
+			glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
+		}
+	}
+
 	void OpenGLRendererAPI::EnableDepthTest()
 	{
 		glEnable(GL_DEPTH_TEST);
@@ -111,6 +124,14 @@ namespace Borealis
 	void OpenGLRendererAPI::DisableDepthTest()
 	{
 		glDisable(GL_DEPTH_TEST);
+	}
+
+	void OpenGLRendererAPI::SetDepthMask(bool depthMask)
+	{
+		if (depthMask)
+			glDepthMask(GL_TRUE);
+		else
+			glDepthMask(GL_FALSE);
 	}
 
 	void OpenGLRendererAPI::EnableBackFaceCull()

@@ -146,7 +146,67 @@ namespace Borealis
 		}
 
 		drawQueue.clear();
-		mLightEngine.Begin();//clear vector
+	}
+
+	void Renderer3D::RenderTransparentObjects(Ref<Shader> const& transparencyShader)
+	{
+		std::sort(drawQueueTransparent.begin(), drawQueueTransparent.end(), DrawCallComparator);
+
+		UpdateMaterialUBO();
+
+		for (DrawCall const& drawCall : drawQueueTransparent)
+		{
+			transparencyShader->Bind();
+			transparencyShader->Set("materialIndex", materialMap[drawCall.materialHash]->GetIndex());
+			transparencyShader->Set("u_HasAnimation", false);
+
+			auto const& textureMap = materialMap[drawCall.materialHash]->GetTextureMaps();
+
+			int textureUnit = 2;
+
+			if (textureMap.contains(Material::Albedo))
+			{
+				transparencyShader->Set("albedoMap", textureUnit);
+				textureMap.at(Material::Albedo)->Bind(textureUnit);
+				textureUnit++;
+			}
+			if (textureMap.contains(Material::NormalMap))
+			{
+				transparencyShader->Set("normalMap", textureUnit);
+				textureMap.at(Material::NormalMap)->Bind(textureUnit);
+				textureUnit++;
+			}
+			if (textureMap.contains(Material::Specular))
+			{
+				transparencyShader->Set("specularMap", textureUnit);
+				textureMap.at(Material::Specular)->Bind(textureUnit);
+				textureUnit++;
+			}
+			if (textureMap.contains(Material::Metallic))
+			{
+				transparencyShader->Set("metallicMap", textureUnit);
+				textureMap.at(Material::Metallic)->Bind(textureUnit);
+				textureUnit++;
+			}
+
+			if (std::holds_alternative<Ref<Model>>(drawCall.model))
+			{
+				std::get<Ref<Model>>(drawCall.model)->Draw(drawCall.transform, transparencyShader, drawCall.entityID);
+			}
+			else
+			{
+				if (drawCall.drawData.hasAnimation)
+				{
+					transparencyShader->Set("u_HasAnimation", true);
+					transparencyShader->Set("u_AnimationIndex", drawCall.drawData.animationIndex);
+				}
+
+				std::get<Ref<SkinnedModel>>(drawCall.model)->Draw(drawCall.transform, transparencyShader, drawCall.entityID);
+			}
+		}
+
+		drawQueueTransparent.clear();
+		//mLightEngine.Begin();//clear vector
 	}
 
 	void Renderer3D::AddLight(LightComponent & lightComponent)
@@ -365,8 +425,18 @@ namespace Borealis
 			mNewMaterialAdded = true;
 		}
 		if(drawData.has_value())
-			drawQueue.push_back({ model, shaderID, materialHash->hash, entityID, transform, drawData.value()});
+		{
+			if(materialHash->isTransparent)
+				drawQueueTransparent.push_back({ model, shaderID, materialHash->hash, entityID, transform, drawData.value() });
+			else
+				drawQueue.push_back({ model, shaderID, materialHash->hash, entityID, transform, drawData.value() });
+		}
 		else
-			drawQueue.push_back({ model, shaderID, materialHash->hash, entityID, transform });
+		{
+			if (materialHash->isTransparent)
+				drawQueueTransparent.push_back({ model, shaderID, materialHash->hash, entityID, transform });
+			else
+				drawQueue.push_back({ model, shaderID, materialHash->hash, entityID, transform });
+		}
 	}
 }

@@ -56,6 +56,8 @@ namespace Borealis
 
 		static void End();
 
+		static void RenderTransparentObjects(Ref<Shader> const& transparencyShader);
+
 		static void AddLight(LightComponent & lightComponent);
 
 		static void SetLights(Ref<UniformBufferObject> const& LightsUBO);
@@ -120,6 +122,7 @@ namespace Borealis
 		static LightEngine mLightEngine;
 
 		inline static std::vector<DrawCall> drawQueue;
+		inline static std::vector<DrawCall> drawQueueTransparent;
 		inline static std::unordered_map<std::size_t, Ref<Material>> materialMap;
 		inline static std::unordered_map<std::size_t, MaterialUBOData> materialUBODataMap;
 		static void AddToDrawQueue(std::variant<Ref<Model>, Ref<SkinnedModel>> model, Ref<Shader> shaderID, Ref<Material> materialHash, uint32_t entityID, glm::mat4 const& transform, std::optional<DrawData> drawData = std::nullopt);

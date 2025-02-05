@@ -24,6 +24,12 @@ namespace Borealis
 		DepthLEqual
 	};
 
+	enum class TransparencyStage
+	{
+		ACCUMULATION,
+		REVEALAGE
+	};
+
 	class RendererAPI
 	{
 	public:
@@ -122,9 +128,13 @@ namespace Borealis
 
 		virtual void EnableBlend() = 0;
 		virtual void DisableBlend() = 0;
+
+		virtual void ConfigureBlendForTransparency(TransparencyStage stage) = 0;
 		virtual void EnableDepthTest() = 0;
 		virtual void ConfigureDepthFunc(DepthFunc func) = 0;
 		virtual void DisableDepthTest() = 0;
+
+		virtual void SetDepthMask(bool depthMask) = 0;
 
 		virtual void EnableBackFaceCull() = 0;
 		virtual void EnableFrontFaceCull() = 0;

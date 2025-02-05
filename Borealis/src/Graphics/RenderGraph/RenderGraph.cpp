@@ -41,6 +41,8 @@ namespace Borealis
 {
 	Ref<Shader> s_shader = nullptr;
 	Ref<Shader> material_shader = nullptr;
+	Ref<Shader> material_shader_transparency = nullptr;
+	Ref<Shader> revealage_shader = nullptr;
 	Ref<Shader> cascade_shadow_shader = nullptr;
 	Ref<Shader> common_shader = nullptr;
 	Ref<Shader> quad_shader = nullptr;
@@ -482,6 +484,8 @@ namespace Borealis
 		Ref<CameraSource> camera = nullptr;
 		Ref<RenderTargetSource> renderTarget = nullptr;
 		Ref<RenderTargetSource> shadowMap = nullptr;
+		Ref<RenderTargetSource> opaqueTarget = nullptr;
+		Ref<RenderTargetSource> accumulaionTarget = nullptr;
 		Ref<PixelBufferSource> pixelBuffer = nullptr;
 		glm::vec3 camPos{};
 
@@ -507,6 +511,18 @@ namespace Borealis
 					renderTarget->buffer->ClearAttachment(1, -1);
 				}
 
+				if (sink->sinkName == "accumulaionTarget")
+				{
+					accumulaionTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
+					accumulaionTarget->buffer->ClearAttachment(1, -1);
+				}				
+				
+				if (sink->sinkName == "opaqueTarget")
+				{
+					opaqueTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
+					opaqueTarget->buffer->ClearAttachment(1, -1);
+				}
+
 				if (sink->sinkName == "shadowMap")
 				{
 					shadowMap = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
@@ -528,7 +544,6 @@ namespace Borealis
 				}
 
 				auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
-
 
 				if (!meshFilter.Model || !meshRenderer.Material || !meshRenderer.active) continue;
 
@@ -628,9 +643,45 @@ namespace Borealis
 			}
 		}
 
-		renderTarget->Bind();
+		opaqueTarget->Bind();
+		RenderCommand::Clear();
 		Renderer3D::End();
-		renderTarget->Unbind();
+		opaqueTarget->Unbind();
+
+		//Transparency
+
+		accumulaionTarget->Bind();
+		RenderCommand::SetClearColor(0.f, 0.f, 0.f, 0.f);
+		RenderCommand::Clear();
+
+		accumulaionTarget->buffer->ClearAttachment(2, 1);
+		RenderCommand::EnableBlend();
+		RenderCommand::EnableDepthTest();
+		RenderCommand::SetDepthMask(false);
+		RenderCommand::ConfigureBlendForTransparency(TransparencyStage::ACCUMULATION);
+		Renderer3D::RenderTransparentObjects(material_shader_transparency);
+		accumulaionTarget->Unbind();
+
+		renderTarget->Bind();
+		RenderCommand::DisableDepthTest();
+		RenderCommand::DisableBlend();
+		//RenderCommand::ConfigureBlendForTransparency(TransparencyStage::REVEALAGE);
+		revealage_shader->Bind();
+		accumulaionTarget->buffer->BindTexture(0, 0);
+		revealage_shader->Set("accumColorTex", 0);
+		accumulaionTarget->buffer->BindTexture(2, 1);
+		revealage_shader->Set("accumAlphaTex", 1);
+		opaqueTarget->buffer->BindTexture(0, 2);
+		revealage_shader->Set("opaqueTex", 2);
+
+		//accumulaionTarget->buffer->BindTexture(0, 0);
+		//quad_shader->Set("u_Texture0", 0);
+
+		Renderer3D::DrawQuad();
+
+		RenderCommand::EnableDepthTest();
+		RenderCommand::DisableBlend();
+		RenderCommand::SetDepthMask(true);
 	}
 
 	void Render2D::Execute(float dt)
@@ -955,7 +1006,7 @@ namespace Borealis
 
 	ShadowPass::ShadowPass(std::string name) : EntityPass(name)
 	{
-		shader = material_shader;
+		shader = material_shader;//switch out
 	}
 
 	void ShadowPass::Execute(float dt)
@@ -1850,6 +1901,18 @@ namespace Borealis
 
 		if (!material_shader)
 			material_shader = Shader::GetDefault3DMaterialShader();
+
+		if (!material_shader_transparency)
+		{
+			material_shader_transparency = Shader::Create("engineResources/Shaders/Renderer3D_TransparentMaterial.glsl");
+			UniformBufferObject::BindToShader(material_shader_transparency->GetID(), "Camera", CAMERA_BIND);
+			UniformBufferObject::BindToShader(material_shader_transparency->GetID(), "MaterialUBO", MATERIAL_ARRAY_BIND);
+			UniformBufferObject::BindToShader(material_shader_transparency->GetID(), "LightsUBO", LIGHTING_BIND);
+			UniformBufferObject::BindToShader(material_shader_transparency->GetID(), "AnimationUBO", ANIMATION_BIND);
+		}
+
+		if(!revealage_shader)
+			revealage_shader = Shader::Create("engineResources/Shaders/Renderer3D_Revealage.glsl");
 
 		if (!cascade_shadow_shader)
 			cascade_shadow_shader = Shader::Create("engineResources/Shaders/Renderer3D_CascadeShadow.glsl");

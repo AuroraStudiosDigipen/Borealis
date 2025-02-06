@@ -274,46 +274,47 @@ namespace Borealis
 					thread.join();
 				}*/
 
-				auto characterGroup = mRegistry.group<>(entt::get<TransformComponent, CharacterControllerComponent>);
-				for (auto entity : characterGroup)
-				{
-					Entity brEntity{ entity, this };
-					if (!brEntity.IsActive())
-					{
-						continue;
-					}
-					auto [transform, character] = characterGroup.get<TransformComponent, CharacterControllerComponent>(entity);
-					PhysicsSystem::PushCharacterTransform(character, transform.Translate, transform.Rotation);
-					PhysicsSystem::HandleInput(dt, character);
-				}
-
-
-				for (auto entity : characterGroup)
-				{
-					Entity brEntity{ entity, this };
-					if (!brEntity.IsActive())
-					{
-						continue;
-					}
-					auto [transform, character] = characterGroup.get<TransformComponent, CharacterControllerComponent>(entity);
-					PhysicsSystem::PrePhysicsUpdate(dt, character.controller);
-				}
-
-				for (auto entity : characterGroup)
-				{
-					Entity brEntity{ entity, this };
-					if (!brEntity.IsActive())
-					{
-						continue;
-					}
-					auto [transform, character] = characterGroup.get<TransformComponent, CharacterControllerComponent>(entity);
-					PhysicsSystem::PullCharacterTransform(character, transform.Translate, transform.Rotation);
-				}
 
 				auto boxGroup = mRegistry.group<>(entt::get<TransformComponent, BoxColliderComponent, RigidbodyComponent>);
 				
 				for (int i = 0; i < timeStep; i++)
 				{
+					auto characterGroup = mRegistry.group<>(entt::get<TransformComponent, CharacterControllerComponent>);
+					for (auto entity : characterGroup)
+					{
+						Entity brEntity{ entity, this };
+						if (!brEntity.IsActive())
+						{
+							continue;
+						}
+						auto [transform, character] = characterGroup.get<TransformComponent, CharacterControllerComponent>(entity);
+						PhysicsSystem::PushCharacterTransform(character, transform.Translate, transform.Rotation);
+						PhysicsSystem::HandleInput(fixedTimeStep, character);
+					}
+
+
+					for (auto entity : characterGroup)
+					{
+						Entity brEntity{ entity, this };
+						if (!brEntity.IsActive())
+						{
+							continue;
+						}
+						auto [transform, character] = characterGroup.get<TransformComponent, CharacterControllerComponent>(entity);
+						PhysicsSystem::PrePhysicsUpdate(fixedTimeStep, character.controller);
+					}
+
+					for (auto entity : characterGroup)
+					{
+						Entity brEntity{ entity, this };
+						if (!brEntity.IsActive())
+						{
+							continue;
+						}
+						auto [transform, character] = characterGroup.get<TransformComponent, CharacterControllerComponent>(entity);
+						PhysicsSystem::PullCharacterTransform(character, transform.Translate, transform.Rotation);
+					}
+
 					for (auto entity : boxGroup)
 					{
 						Entity brEntity{ entity, this };

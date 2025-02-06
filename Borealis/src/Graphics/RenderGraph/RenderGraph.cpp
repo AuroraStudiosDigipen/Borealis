@@ -653,13 +653,17 @@ namespace Borealis
 		RenderCommand::SetDepthMask(true);
 		RenderCommand::DisableBlend();
 		//RenderCommand::SetClearColor(glm::vec4(1.f,1.f,1.f,1.f));
-		opaqueTarget->Bind();
+		renderTarget->Bind();
 		RenderCommand::Clear();
 		Renderer3D::End();
-		opaqueTarget->Unbind();
+		renderTarget->Unbind();
 
 		//Transparency
 
+		uint32_t depthTexture = renderTarget->buffer->DetachDepthBuffer();
+		accumulaionTarget->buffer->AttachDepthBuffer(depthTexture);
+
+		RenderCommand::EnableDepthTest();
 		RenderCommand::SetDepthMask(false);
 		RenderCommand::EnableBlend();
 		RenderCommand::ConfigureBlendForTransparency(TransparencyStage::ACCUMULATION);
@@ -669,12 +673,15 @@ namespace Borealis
 		Renderer3D::RenderTransparentObjects(material_shader_transparency);
 		accumulaionTarget->Unbind();
 
+		//depthTexture = accumulaionTarget->buffer->DetachDepthBuffer();
+		//renderTarget->buffer->AttachDepthBuffer(depthTexture);
+
 		//Composite
 
 		RenderCommand::ConfigureDepthFunc(DepthFunc::DepthAlways);
 		RenderCommand::EnableBlend();
 		RenderCommand::ConfigureBlendForTransparency(TransparencyStage::REVEALAGE);
-		opaqueTarget->Bind();
+		renderTarget->Bind();
 		revealage_shader->Bind();
 		accumulaionTarget->buffer->BindTexture(0, 0);
 		revealage_shader->Set("accumColorTex", 0);
@@ -683,22 +690,20 @@ namespace Borealis
 		Renderer3D::DrawQuad();
 
 
-		RenderCommand::DisableDepthTest();
-		RenderCommand::SetDepthMask(true);
-		RenderCommand::DisableBlend();
+		//RenderCommand::DisableDepthTest();
+		//RenderCommand::SetDepthMask(true);
+		//RenderCommand::DisableBlend();
 
-		renderTarget->Bind();
-		RenderCommand::Clear();
-		quad_shader->Bind();
-		opaqueTarget->buffer->BindTexture(0, 0);
-		quad_shader->Set("u_Texture0", 0);
-		Renderer3D::DrawQuad();
-		//opaqueTarget->buffer->BindTexture(0, 2);
-		//revealage_shader->Set("opaqueTex", 2);
-
-
-
-
+		RenderCommand::ConfigureBlendForTransparency(TransparencyStage::NONE);
+		//renderTarget->Bind();
+		////RenderCommand::Clear();
+		//quad_shader->Bind();
+		//opaqueTarget->buffer->BindTexture(0, 0);
+		//quad_shader->Set("u_Texture0", 0);
+		//Renderer3D::DrawQuad();
+		//quad_shader->Unbind();
+		//renderTarget->Unbind();
+		RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLess);
 		RenderCommand::EnableDepthTest();
 		RenderCommand::DisableBlend();
 	}

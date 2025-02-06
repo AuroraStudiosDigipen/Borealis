@@ -205,7 +205,15 @@ vec2 GetTexCoord()
 
 vec4 GetAlbedoColor()
 {
-	vec4 albedoColor = materials[materialIndex].hasAlbedoMap ? texture(albedoMap, GetTexCoord()) : materials[materialIndex].albedoColor;
+	vec4 albedoColor = vec4(0.f);
+    if(materials[materialIndex].hasAlbedoMap) 
+    {
+        albedoColor = vec4(texture(albedoMap, GetTexCoord()).rgb, materials[materialIndex].albedoColor.a);
+    }
+    else
+    {
+        albedoColor = materials[materialIndex].albedoColor;
+    } 
 	return albedoColor;
 }
 
@@ -522,11 +530,9 @@ void Render3DPass()
 
 	vec3 finalColor = color.rgb;
     finalColor = finalColor / (finalColor + vec3(1.0));
-    //finalColor = pow(finalColor, vec3(1.0/2.2)); 
 
     if(u_Transparent)
     {
-        //float weight = clamp(pow(1.0 - gl_FragCoord.z, 3.0) * 8.0, 0.01, 1.0);
         float weight = clamp(pow(min(1.0, GetAlbedoColor().a * 10.0) + 0.01, 3.0) * 1e8 * pow(1.0 - gl_FragCoord.z * 0.9, 3.0), 1e-2, 3e3);
         fragColor = vec4(finalColor.rgb * GetAlbedoColor().a * weight, GetAlbedoColor().a * weight);
         outRevealage = GetAlbedoColor().a;

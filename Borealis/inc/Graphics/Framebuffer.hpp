@@ -145,6 +145,10 @@ namespace Borealis
 		*************************************************************************/
 		virtual uint32_t GetColorAttachmentRendererID(uint32_t index = 0) const = 0;
 
+		virtual uint32_t DetachDepthBuffer() = 0;
+
+		virtual void AttachDepthBuffer(uint32_t index) = 0;
+
 		/*!***********************************************************************
 			\brief
 				Get the Frame Buffer Properties

@@ -28,7 +28,8 @@ namespace Borealis
 	enum class TransparencyStage
 	{
 		ACCUMULATION,
-		REVEALAGE
+		REVEALAGE,
+		NONE
 	};
 
 	class RendererAPI

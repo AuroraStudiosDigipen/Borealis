@@ -106,6 +106,28 @@ namespace Borealis
 		glClearBufferfv(GL_COLOR, attachmentIndex, &value[0]);
 	}
 
+	uint32_t OpenGLFrameBuffer::DetachDepthBuffer()
+	{
+		//glBindFramebuffer(GL_FRAMEBUFFER, mRendererID);
+		//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0, 0);
+
+		//if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		//	BOREALIS_CORE_ASSERT("Framebuffer incomplete");
+		//}
+
+		return mDepthAttachment;
+	}
+
+	void OpenGLFrameBuffer::AttachDepthBuffer(uint32_t index)
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, mRendererID);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, index, 0);
+
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+			BOREALIS_CORE_ASSERT("Framebuffer incomplete");
+		}
+	}
+
 	void OpenGLFrameBuffer::Recreate()
 	{
 		if (mRendererID)

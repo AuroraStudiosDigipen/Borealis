@@ -105,6 +105,11 @@ namespace Borealis
 		*************************************************************************/
 		uint32_t GetColorAttachmentRendererID(uint32_t index = 0) const { return mColorAttachments[index]; }
 
+
+		uint32_t DetachDepthBuffer() override;
+
+		void AttachDepthBuffer(uint32_t index) override;
+
 		/*!***********************************************************************
 			\brief
 				Recreates the Attachments of the FrameBuffer

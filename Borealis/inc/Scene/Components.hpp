@@ -517,17 +517,17 @@ namespace Borealis
 
 	struct ButtonComponent
 	{
-		std::string onClickFunctionName;
-		std::string onReleaseFunctionName;
-		std::string onHoverFunctionName;
+		std::string onClickFunctionName{};
+		std::string onReleaseFunctionName{};
+		std::string onHoverFunctionName{};
 
-		std::string onClickClass;
-		std::string onReleaseClass;
-		std::string onHoverClass;
+		std::string onClickClass{};
+		std::string onReleaseClass{};
+		std::string onHoverClass{};
 
-		UUID onClickEntity;
-		UUID onReleaseEntity;
-		UUID onHoverEntity;
+		UUID onClickEntity = 0;
+		UUID onReleaseEntity = 0;
+		UUID onHoverEntity = 0;
 
 		bool hovered = false;
 		bool clicked = false;

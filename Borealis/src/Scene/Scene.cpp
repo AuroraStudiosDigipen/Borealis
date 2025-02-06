@@ -193,6 +193,8 @@ namespace Borealis
 					}
 				}
 			}
+			ButtonSystem::Update();
+
 			static float accumDt = 0.0f; // Accumulated delta time
 			const float fixedTimeStep = 1.f/60; // Fixed update interval (~60 FPS)
 
@@ -586,7 +588,6 @@ namespace Borealis
 			}
 		}
 
-		ButtonSystem::Update();
 
 		Camera* mainCamera = nullptr;
 		glm::mat4 mainCameratransform(1.f);

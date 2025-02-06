@@ -21,7 +21,8 @@ namespace Borealis
 	enum class DepthFunc
 	{
 		DepthLess,
-		DepthLEqual
+		DepthLEqual,
+		DepthAlways
 	};
 
 	enum class TransparencyStage

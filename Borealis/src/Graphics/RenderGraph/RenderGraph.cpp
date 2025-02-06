@@ -651,10 +651,9 @@ namespace Borealis
 		//Transparency
 
 		accumulaionTarget->Bind();
-		RenderCommand::SetClearColor(0.f, 0.f, 0.f, 0.f);
-		RenderCommand::Clear();
 
-		accumulaionTarget->buffer->ClearAttachment(2, 1);
+		accumulaionTarget->buffer->ClearAttachment(0, {0.f,0.f,0.f,0.f});
+		accumulaionTarget->buffer->ClearAttachment(2, 0);
 		RenderCommand::EnableBlend();
 		RenderCommand::EnableDepthTest();
 		RenderCommand::SetDepthMask(false);

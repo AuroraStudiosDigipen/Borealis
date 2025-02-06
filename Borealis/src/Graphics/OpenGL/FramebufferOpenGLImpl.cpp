@@ -99,6 +99,13 @@ namespace Borealis
 		glBindFramebuffer(GL_FRAMEBUFFER, mRendererID);
 		glClearBufferiv(GL_COLOR, attachmentIndex, &value);
 	}
+
+	void OpenGLFrameBuffer::ClearAttachment(uint32_t attachmentIndex, glm::vec4 value)
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, mRendererID);
+		glClearBufferfv(GL_COLOR, attachmentIndex, &value[0]);
+	}
+
 	void OpenGLFrameBuffer::Recreate()
 	{
 		if (mRendererID)

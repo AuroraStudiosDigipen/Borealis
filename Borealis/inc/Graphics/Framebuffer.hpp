@@ -133,6 +133,8 @@ namespace Borealis
 		*************************************************************************/
 		virtual void ClearAttachment(uint32_t attachmentIndex, int value) = 0;
 
+		virtual void ClearAttachment(uint32_t attachmentIndex, glm::vec4 value) = 0;
+
 		/*!***********************************************************************
 			\brief
 				Get the color attachment renderer ID

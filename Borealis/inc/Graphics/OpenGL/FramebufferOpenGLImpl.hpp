@@ -85,6 +85,7 @@ namespace Borealis
 				Value to clear the attachment with
 		*************************************************************************/
 		void ClearAttachment(uint32_t attachmentIndex, int value) override;
+		void ClearAttachment(uint32_t attachmentIndex, glm::vec4 value) override;
 
 		/*!***********************************************************************
 			\brief

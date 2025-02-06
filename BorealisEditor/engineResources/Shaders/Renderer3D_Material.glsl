@@ -116,7 +116,7 @@ void main()
 //layout(location = 0) out vec4 color;
 layout(location = 0) out vec4 fragColor;
 layout(location = 1) out int entityIDs;
-
+layout(location = 2) out float outRevealage;
 struct MaterialUBOData
 {
     vec4 albedoColor;
@@ -522,12 +522,14 @@ void Render3DPass()
 
 	vec3 finalColor = color.rgb;
     finalColor = finalColor / (finalColor + vec3(1.0));
-    finalColor = pow(finalColor, vec3(1.0/2.2)); 
+    //finalColor = pow(finalColor, vec3(1.0/2.2)); 
 
     if(u_Transparent)
     {
-        float weight = clamp(pow(1.0 - gl_FragCoord.z, 3.0) * 8.0, 0.01, 1.0);
+        //float weight = clamp(pow(1.0 - gl_FragCoord.z, 3.0) * 8.0, 0.01, 1.0);
+        float weight = clamp(pow(min(1.0, GetAlbedoColor().a * 10.0) + 0.01, 3.0) * 1e8 * pow(1.0 - gl_FragCoord.z * 0.9, 3.0), 1e-2, 3e3);
         fragColor = vec4(finalColor.rgb * GetAlbedoColor().a * weight, GetAlbedoColor().a * weight);
+        outRevealage = GetAlbedoColor().a;
     }
     else
     {

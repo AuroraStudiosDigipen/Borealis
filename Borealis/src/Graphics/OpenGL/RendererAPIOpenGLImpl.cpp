@@ -93,11 +93,12 @@ namespace Borealis
 		if (stage == TransparencyStage::ACCUMULATION)
 		{
 			glBlendFunci(0, GL_ONE, GL_ONE);
-			glBlendFunci(2, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
+			glBlendFunci(2, GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
+			glBlendEquation(GL_FUNC_ADD);
 		}
 		else
 		{
-			glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		}
 	}
 

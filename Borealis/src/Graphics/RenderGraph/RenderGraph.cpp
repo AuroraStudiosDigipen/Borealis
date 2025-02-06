@@ -643,17 +643,22 @@ namespace Borealis
 			}
 		}
 
-		opaqueTarget->Bind();
+		if (accumulaionTarget->Width != renderTarget->Width || accumulaionTarget->Height != renderTarget->Height)
+		{
+			accumulaionTarget->buffer->Resize(renderTarget->Width, renderTarget->Height);
+		}
+
+		renderTarget->Bind();
 		RenderCommand::Clear();
 		Renderer3D::End();
-		opaqueTarget->Unbind();
+		renderTarget->Unbind();
 
 		//Transparency
 
 		accumulaionTarget->Bind();
 
 		accumulaionTarget->buffer->ClearAttachment(0, {0.f,0.f,0.f,0.f});
-		accumulaionTarget->buffer->ClearAttachment(2, 0);
+		accumulaionTarget->buffer->ClearAttachment(2, glm::vec4(1.f));
 		RenderCommand::EnableBlend();
 		RenderCommand::EnableDepthTest();
 		RenderCommand::SetDepthMask(false);
@@ -662,18 +667,20 @@ namespace Borealis
 		accumulaionTarget->Unbind();
 
 		renderTarget->Bind();
-		RenderCommand::DisableDepthTest();
-		RenderCommand::DisableBlend();
+		//RenderCommand::DisableDepthTest();
+		//RenderCommand::DisableBlend();
 		//RenderCommand::ConfigureBlendForTransparency(TransparencyStage::REVEALAGE);
 		revealage_shader->Bind();
 		accumulaionTarget->buffer->BindTexture(0, 0);
 		revealage_shader->Set("accumColorTex", 0);
 		accumulaionTarget->buffer->BindTexture(2, 1);
 		revealage_shader->Set("accumAlphaTex", 1);
-		opaqueTarget->buffer->BindTexture(0, 2);
-		revealage_shader->Set("opaqueTex", 2);
+		//opaqueTarget->buffer->BindTexture(0, 2);
+		//revealage_shader->Set("opaqueTex", 2);
 
-		//accumulaionTarget->buffer->BindTexture(0, 0);
+
+		//quad_shader->Bind();
+		//accumulaionTarget->buffer->BindTexture(1, 0);
 		//quad_shader->Set("u_Texture0", 0);
 
 		Renderer3D::DrawQuad();

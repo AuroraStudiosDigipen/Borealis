@@ -166,6 +166,9 @@ layout(std140) uniform LightsUBO
 	int u_LightsCount;
 };
 
+
+uniform bool u_Transparent;
+
 in vec2 v_TexCoord;
 in vec3 v_FragPos;
 in vec3 v_Normal; 
@@ -518,11 +521,19 @@ void Render3DPass()
 	vec3 ambient = vec3(0.1f) * GetAlbedoColor().rgb;
 
 	vec3 finalColor = color.rgb;
-
-	finalColor = finalColor / (finalColor + vec3(1.0));
+    finalColor = finalColor / (finalColor + vec3(1.0));
     finalColor = pow(finalColor, vec3(1.0/2.2)); 
-	fragColor =  vec4(finalColor,GetAlbedoColor().a);
-	
+
+    if(u_Transparent)
+    {
+        float weight = clamp(pow(1.0 - gl_FragCoord.z, 3.0) * 8.0, 0.01, 1.0);
+        fragColor = vec4(finalColor.rgb * GetAlbedoColor().a * weight, GetAlbedoColor().a * weight);
+    }
+    else
+    {
+	    fragColor =  vec4(finalColor,GetAlbedoColor().a);
+    }
+
 	entityIDs = v_EntityID;
 }
 

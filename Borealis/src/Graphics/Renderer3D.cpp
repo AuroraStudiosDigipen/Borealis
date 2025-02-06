@@ -99,6 +99,7 @@ namespace Borealis
 			drawCall.shaderID->Bind();
 			drawCall.shaderID->Set("materialIndex", materialMap[drawCall.materialHash]->GetIndex());
 			drawCall.shaderID->Set("u_HasAnimation", false);
+			drawCall.shaderID->Set("u_Transparent", false);
 
 			auto const& textureMap = materialMap[drawCall.materialHash]->GetTextureMaps();
 
@@ -156,9 +157,10 @@ namespace Borealis
 
 		for (DrawCall const& drawCall : drawQueueTransparent)
 		{
-			transparencyShader->Bind();
-			transparencyShader->Set("materialIndex", materialMap[drawCall.materialHash]->GetIndex());
-			transparencyShader->Set("u_HasAnimation", false);
+			drawCall.shaderID->Bind();
+			drawCall.shaderID->Set("materialIndex", materialMap[drawCall.materialHash]->GetIndex());
+			drawCall.shaderID->Set("u_HasAnimation", false);
+			drawCall.shaderID->Set("u_Transparent", true);
 
 			auto const& textureMap = materialMap[drawCall.materialHash]->GetTextureMaps();
 
@@ -166,42 +168,42 @@ namespace Borealis
 
 			if (textureMap.contains(Material::Albedo))
 			{
-				transparencyShader->Set("albedoMap", textureUnit);
+				drawCall.shaderID->Set("albedoMap", textureUnit);
 				textureMap.at(Material::Albedo)->Bind(textureUnit);
 				textureUnit++;
 			}
 			if (textureMap.contains(Material::NormalMap))
 			{
-				transparencyShader->Set("normalMap", textureUnit);
+				drawCall.shaderID->Set("normalMap", textureUnit);
 				textureMap.at(Material::NormalMap)->Bind(textureUnit);
 				textureUnit++;
 			}
 			if (textureMap.contains(Material::Specular))
 			{
-				transparencyShader->Set("specularMap", textureUnit);
+				drawCall.shaderID->Set("specularMap", textureUnit);
 				textureMap.at(Material::Specular)->Bind(textureUnit);
 				textureUnit++;
 			}
 			if (textureMap.contains(Material::Metallic))
 			{
-				transparencyShader->Set("metallicMap", textureUnit);
+				drawCall.shaderID->Set("metallicMap", textureUnit);
 				textureMap.at(Material::Metallic)->Bind(textureUnit);
 				textureUnit++;
 			}
 
 			if (std::holds_alternative<Ref<Model>>(drawCall.model))
 			{
-				std::get<Ref<Model>>(drawCall.model)->Draw(drawCall.transform, transparencyShader, drawCall.entityID);
+				std::get<Ref<Model>>(drawCall.model)->Draw(drawCall.transform, drawCall.shaderID, drawCall.entityID);
 			}
 			else
 			{
 				if (drawCall.drawData.hasAnimation)
 				{
-					transparencyShader->Set("u_HasAnimation", true);
-					transparencyShader->Set("u_AnimationIndex", drawCall.drawData.animationIndex);
+					drawCall.shaderID->Set("u_HasAnimation", true);
+					drawCall.shaderID->Set("u_AnimationIndex", drawCall.drawData.animationIndex);
 				}
 
-				std::get<Ref<SkinnedModel>>(drawCall.model)->Draw(drawCall.transform, transparencyShader, drawCall.entityID);
+				std::get<Ref<SkinnedModel>>(drawCall.model)->Draw(drawCall.transform, drawCall.shaderID, drawCall.entityID);
 			}
 		}
 

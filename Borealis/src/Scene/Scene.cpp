@@ -1019,6 +1019,7 @@ namespace Borealis
 		CopyComponent<SkinnedMeshRendererComponent>(newEntity,entity);
 		CopyComponent<AnimatorComponent>(newEntity,entity);
 		CopyComponent<BoxColliderComponent>(newEntity,entity);
+		CopyComponent<SphereColliderComponent>(newEntity, entity);
 		CopyComponent<CapsuleColliderComponent>(newEntity,entity);
 		CopyComponent<TaperedCapsuleColliderComponent>(newEntity,entity);
 		CopyComponent<RigidbodyComponent>(newEntity, entity);
@@ -1214,6 +1215,7 @@ namespace Borealis
 		CopyComponent<SkinnedMeshRendererComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<AnimatorComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<BoxColliderComponent>(newRegistry, originalRegistry, UUIDtoENTT);
+		CopyComponent<SphereColliderComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<CapsuleColliderComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<TaperedCapsuleColliderComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<RigidbodyComponent>(newRegistry, originalRegistry, UUIDtoENTT);

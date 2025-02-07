@@ -530,6 +530,7 @@ void Render3DPass()
 
 	vec3 finalColor = color.rgb;
     finalColor = finalColor / (finalColor + vec3(1.0));
+    finalColor = pow(finalColor, vec3(1.0/2.2)); 
 
     if(u_Transparent)
     {

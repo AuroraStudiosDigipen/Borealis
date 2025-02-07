@@ -67,8 +67,8 @@ void main()
 {
     float accumAlpha = texture(accumAlphaTex, v_TexCoord).r;
 
-    // if (isApproximatelyEqual(accumAlpha, 1.0f))
-    //     discard;
+    if (isApproximatelyEqual(accumAlpha, 1.0f))
+        discard;
 
     vec4 accumColor = texture(accumColorTex, v_TexCoord);
 

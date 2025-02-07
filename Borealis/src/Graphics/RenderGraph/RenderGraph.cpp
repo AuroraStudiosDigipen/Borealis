@@ -652,13 +652,13 @@ namespace Borealis
 		RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLess);
 		RenderCommand::SetDepthMask(true);
 		RenderCommand::DisableBlend();
-		//RenderCommand::SetClearColor(glm::vec4(1.f,1.f,1.f,1.f));
+		RenderCommand::SetClearColor(glm::vec4(0.1f,0.1f,0.1f,1.f));
 		renderTarget->Bind();
 		RenderCommand::Clear();
 		Renderer3D::End();
 		renderTarget->Unbind();
 
-		//Transparency
+		////Transparency
 
 		uint32_t depthTexture = renderTarget->buffer->DetachDepthBuffer();
 		accumulaionTarget->buffer->AttachDepthBuffer(depthTexture);
@@ -673,9 +673,6 @@ namespace Borealis
 		Renderer3D::RenderTransparentObjects(material_shader_transparency);
 		accumulaionTarget->Unbind();
 
-		//depthTexture = accumulaionTarget->buffer->DetachDepthBuffer();
-		//renderTarget->buffer->AttachDepthBuffer(depthTexture);
-
 		//Composite
 
 		RenderCommand::ConfigureDepthFunc(DepthFunc::DepthAlways);
@@ -689,23 +686,11 @@ namespace Borealis
 		revealage_shader->Set("accumAlphaTex", 1);
 		Renderer3D::DrawQuad();
 
-
-		//RenderCommand::DisableDepthTest();
-		//RenderCommand::SetDepthMask(true);
-		//RenderCommand::DisableBlend();
-
-		RenderCommand::ConfigureBlendForTransparency(TransparencyStage::NONE);
-		//renderTarget->Bind();
-		////RenderCommand::Clear();
-		//quad_shader->Bind();
-		//opaqueTarget->buffer->BindTexture(0, 0);
-		//quad_shader->Set("u_Texture0", 0);
-		//Renderer3D::DrawQuad();
-		//quad_shader->Unbind();
-		//renderTarget->Unbind();
+		////RenderCommand::ConfigureBlendForTransparency(TransparencyStage::NONE);
+		RenderCommand::SetDepthMask(true);
 		RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLess);
 		RenderCommand::EnableDepthTest();
-		RenderCommand::DisableBlend();
+		////RenderCommand::DisableBlend();
 	}
 
 	void Render2D::Execute(float dt)
@@ -777,8 +762,11 @@ namespace Borealis
 			}
 		}
 
+		//RenderCommand::EnableBlend();
+		RenderCommand::ConfigureBlendForTransparency(TransparencyStage::REVEALAGE);
 		Renderer2D::DrawLineFromQueue();
 		Renderer2D::End();
+		//RenderCommand::DisableBlend();
 
 		renderTarget->Unbind();
 	}
@@ -1773,6 +1761,7 @@ namespace Borealis
 			//std::swap(UIFBO, renderTarget->buffer);
 
 			RenderCommand::DisableDepthTest();
+			//RenderCommand::EnableBlend();
 			uiFBO->BindTexture(0, 0);
 			shader->Bind();
 			shader->Set("u_Texture0", 0);
@@ -1783,6 +1772,7 @@ namespace Borealis
 
 			shader->Unbind();
 			RenderCommand::EnableDepthTest();
+			//RenderCommand::DisableBlend();
 		}
 	}
 
@@ -1843,7 +1833,11 @@ namespace Borealis
 				Renderer2D::DrawSprite(canvasTransform, sprite, (int)entity);
 			}
 		}
+
+		//RenderCommand::EnableBlend();
+		//RenderCommand::ConfigureBlendForTransparency(TransparencyStage::REVEALAGE);
 		Renderer2D::End();
+		//RenderCommand::DisableBlend();
 
 		renderTarget->Unbind();
 	}

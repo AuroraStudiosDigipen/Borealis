@@ -72,6 +72,9 @@ uniform sampler2D u_Texture[16];
 
 void main()
 {
-	color = texture(u_Texture[v_TexIndex], v_TexCoord * v_TilingFactor) * v_Color;
+
+    vec4 finalColor = texture(u_Texture[v_TexIndex], v_TexCoord * v_TilingFactor) * v_Color;
+    finalColor = pow(finalColor, vec4(1.0/2.2)); 
+	color =finalColor;
 	entityIDs = v_EntityID;
 }

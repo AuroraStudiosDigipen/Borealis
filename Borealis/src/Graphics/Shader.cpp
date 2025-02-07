@@ -31,7 +31,6 @@ namespace Borealis
 	{
 		if (!s_material3dShader)
 		{
-			//s_material3dShader = Create("../Borealis/engineResources/Shaders/Renderer3D_Material.glsl");
 			s_material3dShader = Create("engineResources/Shaders/Renderer3D_Material.glsl");
 			UniformBufferObject::BindToShader(s_material3dShader->GetID(), "Camera", CAMERA_BIND);
 			UniformBufferObject::BindToShader(s_material3dShader->GetID(), "MaterialUBO", MATERIAL_ARRAY_BIND);

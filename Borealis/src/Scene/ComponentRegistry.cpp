@@ -60,12 +60,20 @@ namespace Borealis
             .property("Height", &CapsuleColliderComponent::height)
             .property("Direction", &CapsuleColliderComponent::direction);
 
+        registration::class_<TaperedCapsuleColliderComponent>("Tapered Capsule Collider Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("Is Trigger", &TaperedCapsuleColliderComponent::isTrigger)
+            .property("Provides Contact", &TaperedCapsuleColliderComponent::providesContact)
+            .property("Top Radius", &TaperedCapsuleColliderComponent::topRadius)
+            .property("Bot Radius", &TaperedCapsuleColliderComponent::botRadius)
+            .property("Height", &TaperedCapsuleColliderComponent::height);
 
         registration::class_<SphereColliderComponent>("Sphere Collider Component")
             (metadata("Component", true))
             .constructor<>()
             .property("Is Trigger", &SphereColliderComponent::isTrigger)
-            .property("Provides Contact", &CapsuleColliderComponent::providesContact)
+            .property("Provides Contact", &SphereColliderComponent::providesContact)
             .property("Center", &SphereColliderComponent::center)
             .property("Radius", &SphereColliderComponent::radius);
 
@@ -180,10 +188,10 @@ namespace Borealis
 				value("Z", CapsuleColliderComponent::Direction::Z)
 				);
 
-        registration::class_<RigidBodyComponent>("Rigid Body Component")
+        registration::class_<RigidbodyComponent>("Rigid Body Component")
             (metadata("Component", true))
             .constructor<>()
-			.property("Movement", &RigidBodyComponent::movement)
+			.property("Movement", &RigidbodyComponent::movement)
 
 			//.property("Dynamic", &RigidBodyComponent::dynamicBody)
 
@@ -199,9 +207,9 @@ namespace Borealis
             //.property("Half Height", &RigidBodyComponent::halfHeight)
             //(metadata("Dependency", "Shape"), metadata("Visible for", "Capsule"))
             
-            .property("Friction", &RigidBodyComponent::friction)
+            .property("Friction", &RigidbodyComponent::friction)
             
-            .property("Bounciness", &RigidBodyComponent::bounciness);
+            .property("Bounciness", &RigidbodyComponent::bounciness);
 
         registration::class_<CharacterControllerComponent>("Character Controller Component")
             (metadata("Component", true))
@@ -304,6 +312,9 @@ namespace Borealis
     		.property("Interactable", &ButtonComponent::interactable)
             .property("Center", &ButtonComponent::center)
             .property("Size", &ButtonComponent::size)
+            .property("On Click Entity", &ButtonComponent::onClickEntity)
+            .property("On Hover Entity", &ButtonComponent::onHoverEntity)
+            .property("On Release Entity", &ButtonComponent::onReleaseEntity)
             .property("On Click Function Name", &ButtonComponent::onClickFunctionName)
             .property("On Hover Function Name", &ButtonComponent::onHoverFunctionName)
             .property("On Release Function Name", &ButtonComponent::onReleaseFunctionName)
@@ -467,8 +478,9 @@ void Borealis::ComponentRegistry::SetPropertyInternal(const std::string& propert
     RegisterSetPropertyFunction(AnimatorComponent);
     RegisterSetPropertyFunction(BoxColliderComponent);
     RegisterSetPropertyFunction(CapsuleColliderComponent);
+    RegisterSetPropertyFunction(TaperedCapsuleColliderComponent);
     RegisterSetPropertyFunction(SphereColliderComponent);
-    RegisterSetPropertyFunction(RigidBodyComponent);
+    RegisterSetPropertyFunction(RigidbodyComponent);
     RegisterSetPropertyFunction(LightComponent);
     RegisterSetPropertyFunction(TextComponent);
 
@@ -483,8 +495,9 @@ void Borealis::ComponentRegistry::SetPropertyInternal(const std::string& propert
     RegisterCopyPropertyFunction(AnimatorComponent);
     RegisterCopyPropertyFunction(BoxColliderComponent);
     RegisterCopyPropertyFunction(CapsuleColliderComponent);
+    RegisterCopyPropertyFunction(TaperedCapsuleColliderComponent);
     RegisterCopyPropertyFunction(SphereColliderComponent);
-    RegisterCopyPropertyFunction(RigidBodyComponent);
+    RegisterCopyPropertyFunction(RigidbodyComponent);
     RegisterCopyPropertyFunction(LightComponent);
     RegisterCopyPropertyFunction(TextComponent);
 }

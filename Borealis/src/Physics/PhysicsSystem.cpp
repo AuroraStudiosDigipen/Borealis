@@ -40,6 +40,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
+#include <Jolt/Physics/Collision/Shape/TaperedCapsuleShape.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Body/BodyActivationListener.h>
 #include <Jolt/Physics/Collision/Shape/RotatedTranslatedShape.h>
@@ -361,6 +362,8 @@ namespace Borealis
 		{
 			sPhysicsData.onTriggerPairRemovedQueue.pop();
 		}
+		bodyIDMapUUID.clear();
+		bodySensorMap.clear();
 	}
 
 	void PhysicsSystem::Init()
@@ -446,25 +449,12 @@ namespace Borealis
 		sPhysicsData.mSystem->DrawBodies(sPhysicsData.draw_settings, sPhysicsData.debug_renderer);
 	}
 
-	void PhysicsSystem::PushTransform(ColliderComponent& collider, TransformComponent& transform, RigidBodyComponent* rigidbody)
+	void PhysicsSystem::PushTransform(ColliderComponent& collider, TransformComponent& transform, RigidbodyComponent* rigidbody)
 	{
 		auto entityTransform = transform.GetGlobalTransform();
 		auto modelCenter = collider.center;
 		auto actualCenterVec4 = entityTransform * glm::vec4(modelCenter, 1.0f);
 		auto actualCenter = glm::vec3(actualCenterVec4.x, actualCenterVec4.y, actualCenterVec4.z);
-
-		//TODO Fix scaling
-		//// Assuming `body` is a pointer to an existing body
-		//ShapeRefC oldShape = sPhysicsData.body_interface->GetShape((BodyID(rigidbody.bodyID)));
-	
-		//// Specify the new scale factor as a Vec3
-		//Vec3 newScale(transform.Scale.x,transform.Scale.y,transform.Scale.z); // Example: scaling by 1.5 on all axes
-
-		//// Create a scaled shape
-		//ScaledShape* scaledShape = new ScaledShape(oldShape, newScale);
-
-		//// Replace the body�s shape with the scaled shape
-		//sPhysicsData.body_interface->SetShape((BodyID(rigidbody.bodyID)), scaledShape, true, EActivation::Activate);
 	
 		// Convert position (glm::vec3 to Jolt's RVec3)
 		JPH::RVec3 newPosition = JPH::RVec3(actualCenter.x, actualCenter.y, actualCenter.z);
@@ -477,7 +467,10 @@ namespace Borealis
 
 		// Set position and rotation in the physics system
 		sPhysicsData.body_interface->SetPosition((BodyID)collider.bodyID, newPosition, EActivation::Activate);
-		sPhysicsData.body_interface->SetRotation((BodyID)collider.bodyID, newRotation, EActivation::Activate);
+		if (rigidbody->movement != MovementType::Kinematic)
+		{
+			sPhysicsData.body_interface->SetRotation((BodyID)collider.bodyID, newRotation, EActivation::Activate);
+		}
 
 		//Set motion type if necceassary
 		if (rigidbody)
@@ -502,6 +495,7 @@ namespace Borealis
 	void PhysicsSystem::PullTransform(ColliderComponent& collider, TransformComponent& transform)
 	{
 		// Get position from the physics system (JPH::RVec3 to glm::vec3)
+
 		JPH::RVec3 newPosition = sPhysicsData.body_interface->GetPosition((BodyID)collider.bodyID);
 		glm::vec3 newTranslate = glm::vec3(newPosition.GetX(), newPosition.GetY(), newPosition.GetZ());
 		// Get rotation from the physics system (JPH::Quat to glm::quat)
@@ -599,8 +593,9 @@ namespace Borealis
 		delete sPhysicsData.job_system;
 		delete sPhysicsData.debug_renderer;
 		delete sPhysicsData.mSystem;
-
+		UnregisterTypes();
 		delete Factory::sInstance;
+		Factory::sInstance = nullptr;
 	}
 
 	UUID PhysicsSystem::BodyIDToUUID(unsigned int bodyID)
@@ -726,13 +721,20 @@ namespace Borealis
 	glm::vec3 PhysicsSystem::GetPosition(unsigned int bodyID)
 	{
 		auto Data = sPhysicsData.body_interface->GetPosition((BodyID)bodyID);
+		//std::cout << Data.GetX() << " , " << Data.GetY() << " , " << Data.GetZ() << std::endl;
 		return { Data.GetX(), Data.GetY(), Data.GetZ() };
 	}
 
 	void PhysicsSystem::SetPosition(unsigned int bodyID, glm::vec3 position)
 	{
-		sPhysicsData.body_interface->SetPosition((BodyID)bodyID, JPH::RVec3(position.x, position.y, position.z), EActivation::Activate);
+		// Set the position of the body
+		sPhysicsData.body_interface->SetPosition(
+			(BodyID)bodyID,
+			JPH::RVec3(position.x, position.y, position.z),
+			EActivation::Activate
+		);
 	}
+
 
 	glm::vec3 PhysicsSystem::GetRotation(unsigned int bodyID)
 	{
@@ -742,6 +744,15 @@ namespace Borealis
 
 	void PhysicsSystem::SetRotation(unsigned int bodyID, glm::vec3 rotation)
 	{
+		// Convert bodyID to BodyID (assuming BodyID is convertible from unsigned int)
+		BodyID joltBodyID(bodyID);
+
+		// Convert glm::vec3 rotation (Euler angles in radians) to a Quat
+		Quat joltRotation = Quat::sEulerAngles(Vec3(rotation.x, rotation.y, rotation.z));
+
+		// Set the rotation with activation
+		EActivation activationMode = EActivation::Activate; // Activate the body (or use EActivation::DontActivate if preferred)
+		sPhysicsData.body_interface->SetRotation(joltBodyID, joltRotation, activationMode);
 	}
 
 	void PhysicsSystem::move(ColliderComponent& rigidbody, glm::vec3 motion)
@@ -762,6 +773,9 @@ namespace Borealis
 		BoxColliderComponent* boxPtr = dynamic_cast<BoxColliderComponent*>(&collider);
 		SphereColliderComponent* spherePtr = dynamic_cast<SphereColliderComponent*>(&collider);
 		CapsuleColliderComponent* capsulePtr = dynamic_cast<CapsuleColliderComponent*>(&collider);
+		TaperedCapsuleColliderComponent* tCapsulePtr = dynamic_cast<TaperedCapsuleColliderComponent*>(&collider);
+
+
 		if (boxPtr)
 		{
 			glm::vec3 size = { boxPtr->size.x * 0.5f * transform.Scale.x, boxPtr->size.y * 0.5f * transform.Scale.y, boxPtr->size.z * 0.5f * transform.Scale.z };
@@ -782,6 +796,13 @@ namespace Borealis
 			CapsuleShapeSettings capsule_shape_settings(capsulePtr->radius * (transform.Scale.x + transform.Scale.z) * 0.5f, capsulePtr->height * transform.Scale.y); //For capsule scaling when Y is up, X and Z is the width and Y is the height.
 			capsule_shape_settings.SetEmbedded();
 			shape_result = capsule_shape_settings.Create();
+			shape = shape_result.Get();
+		}
+		else if (tCapsulePtr)
+		{
+			TaperedCapsuleShapeSettings tCapsule_shape_settings(tCapsulePtr->height * transform.Scale.y, tCapsulePtr->topRadius * (transform.Scale.x + transform.Scale.z) * 0.5f, tCapsulePtr->botRadius * (transform.Scale.x + transform.Scale.z) * 0.5f);
+			tCapsule_shape_settings.SetEmbedded();
+			shape_result = tCapsule_shape_settings.Create();
 			shape = shape_result.Get();
 		}
 
@@ -856,9 +877,6 @@ namespace Borealis
 		}
 
 		// Update the character rotation and its up vector to match the up vector set by the user settings
-		Quat character_up_rotation = Quat::sEulerAngles(Vec3(0, 0, 0));
-		mCharacter->SetUp(character_up_rotation.RotateAxisY());
-		mCharacter->SetRotation(character_up_rotation);
 
 		// A cheaper way to update the character's ground velocity,
 		// the platforms that the character is standing on may have changed velocity
@@ -888,12 +906,12 @@ namespace Borealis
 			new_velocity = current_vertical_velocity;
 
 		// Gravity
-		new_velocity += (character_up_rotation * Vec3(0.f,-controllerComp.gravity,0.f)) * inDeltaTime;
+		new_velocity += (Vec3(0.f,-controllerComp.gravity,0.f)) * inDeltaTime;
 
 		if (player_controls_horizontal_velocity)
 		{
 			// Player input
-			new_velocity += character_up_rotation * JPH::Vec3(controllerComp.targetVelocity.x, controllerComp.targetVelocity.y, controllerComp.targetVelocity.z);
+			new_velocity += JPH::Vec3(controllerComp.targetVelocity.x, controllerComp.targetVelocity.y, controllerComp.targetVelocity.z);
 		}
 		else
 		{
@@ -999,10 +1017,6 @@ namespace Borealis
 		hitInfo->distance = maxDistance * result.mFraction;
 		hitInfo->ID = PhysicsSystem::BodyIDToUUID(result.mBodyID.GetIndexAndSequenceNumber());
 
-		// If you want the surface normal of the hit use 
-		// Body::GetWorldSpaceSurfaceNormal(ioHit.mSubShapeID2, 
-		// inRay.GetPointOnRay(ioHit.mFraction)) on body with ID ioHit.mBodyID.
-
 		JPH::BodyLockRead lock(sPhysicsData.mSystem->GetBodyLockInterface(), result.mBodyID);
 		if (lock.Succeeded())
 		{
@@ -1072,6 +1086,8 @@ namespace Borealis
 		BoxColliderComponent* boxPtr = dynamic_cast<BoxColliderComponent*>(&collider);
 		SphereColliderComponent* spherePtr = dynamic_cast<SphereColliderComponent*>(&collider);
 		CapsuleColliderComponent* capsulePtr = dynamic_cast<CapsuleColliderComponent*>(&collider);
+		TaperedCapsuleColliderComponent* tCapsulePtr = dynamic_cast<TaperedCapsuleColliderComponent*>(&collider);
+
 		if (boxPtr)
 		{
 			glm::vec3 size = { boxPtr->size.x * 0.5f * transform.Scale.x, boxPtr->size.y * 0.5f * transform.Scale.y, boxPtr->size.z * 0.5f * transform.Scale.z };
@@ -1103,9 +1119,16 @@ namespace Borealis
 		}
 		else if (capsulePtr)
 		{
-			CapsuleShapeSettings capsule_shape_settings(capsulePtr->radius * (transform.Scale.x + transform.Scale.z) * 0.5f, capsulePtr->height * transform.Scale.y);
+			CapsuleShapeSettings capsule_shape_settings(capsulePtr->height * transform.Scale.y, capsulePtr->radius * (transform.Scale.x + transform.Scale.z) * 0.5f);
 			capsule_shape_settings.SetEmbedded();
 			shape_result = capsule_shape_settings.Create();
+			shape = shape_result.Get();
+		}
+		else if (tCapsulePtr)
+		{
+			TaperedCapsuleShapeSettings tCapsule_shape_settings(tCapsulePtr->height * transform.Scale.y, tCapsulePtr->topRadius * (transform.Scale.x + transform.Scale.z)*0.5f,tCapsulePtr->botRadius * (transform.Scale.x + transform.Scale.z)*0.5f);
+			tCapsule_shape_settings.SetEmbedded();
+			shape_result = tCapsule_shape_settings.Create();
 			shape = shape_result.Get();
 		}
 		
@@ -1113,7 +1136,7 @@ namespace Borealis
 
 	}
 
-	void PhysicsSystem::addBody(TransformComponent& transform, RigidBodyComponent* rigidbody, ColliderComponent& collider, UUID entityID)
+	void PhysicsSystem::addBody(TransformComponent& transform, RigidbodyComponent* rigidbody, ColliderComponent& collider, UUID entityID)
 	{
 		ShapeRefC shape;
 		ShapeSettings::ShapeResult shape_result;
@@ -1121,6 +1144,8 @@ namespace Borealis
 		BoxColliderComponent* boxPtr = dynamic_cast<BoxColliderComponent*>(&collider);
 		SphereColliderComponent* spherePtr = dynamic_cast<SphereColliderComponent*>(&collider);
 		CapsuleColliderComponent* capsulePtr = dynamic_cast<CapsuleColliderComponent*>(&collider);
+		TaperedCapsuleColliderComponent* tCapsulePtr = dynamic_cast<TaperedCapsuleColliderComponent*>(&collider);
+
 		if (boxPtr)
 		{
 			glm::vec3 size = { boxPtr->size.x * 0.5f * transform.Scale.x, boxPtr->size.y * 0.5f * transform.Scale.y, boxPtr->size.z * 0.5f * transform.Scale.z };
@@ -1152,9 +1177,16 @@ namespace Borealis
 		}
 		else if (capsulePtr)
 		{
-			CapsuleShapeSettings capsule_shape_settings(capsulePtr->radius * (transform.Scale.x+transform.Scale.z) * 0.5f, capsulePtr->height * transform.Scale.y);
+			CapsuleShapeSettings capsule_shape_settings(capsulePtr->height * transform.Scale.y, capsulePtr->radius * (transform.Scale.x+transform.Scale.z) * 0.5f);
 			capsule_shape_settings.SetEmbedded();
 			shape_result = capsule_shape_settings.Create();
+			shape = shape_result.Get();
+		}
+		else if (tCapsulePtr)
+		{
+			TaperedCapsuleShapeSettings tCapsule_shape_settings(tCapsulePtr->height * transform.Scale.y, tCapsulePtr->topRadius * (transform.Scale.x + transform.Scale.z) * 0.5f, tCapsulePtr->botRadius * (transform.Scale.x + transform.Scale.z) * 0.5f);
+			tCapsule_shape_settings.SetEmbedded();
+			shape_result = tCapsule_shape_settings.Create();
 			shape = shape_result.Get();
 		}
 
@@ -1173,7 +1205,7 @@ namespace Borealis
 		// Convert glm::quat to Jolt's Quat (JPH::Quat)
 		JPH::Quat newRotation = JPH::Quat(quatRot.x, quatRot.y, quatRot.z, quatRot.w);
 
-		BodyCreationSettings body_settings(shape, RVec3(actualCenter.x, actualCenter.y, actualCenter.z), newRotation, EMotionType::Static, Layers::NON_MOVING);
+		BodyCreationSettings body_settings(shape, RVec3(actualCenter.x, actualCenter.y, actualCenter.z), newRotation, EMotionType::Static, Layers::MOVING);
 
 		if (rigidbody)
 		{

@@ -240,7 +240,7 @@ namespace Borealis
 		Kinematic
 	};
 
-	struct RigidBodyComponent
+	struct RigidbodyComponent
 	{
 		MovementType movement = MovementType::Static;
 		float friction = 0.5f;
@@ -260,8 +260,8 @@ namespace Borealis
 		//bool useGravity = true;
 		//bool isKinematic = false;
 
-		RigidBodyComponent() = default;
-		RigidBodyComponent(const RigidBodyComponent&) = default;
+		RigidbodyComponent() = default;
+		RigidbodyComponent(const RigidbodyComponent&) = default;
 	};
 
 	struct ColliderComponent
@@ -271,8 +271,15 @@ namespace Borealis
 		bool providesContact = false;
 		glm::vec3 center = { 0,0,0 };
 		Ref<PhysicMaterial> Material;
-		RigidBodyComponent* rigidBody = nullptr;
+		RigidbodyComponent* rigidBody = nullptr;
 		unsigned int bodyID = 0;
+	};
+
+	struct TaperedCapsuleColliderComponent : public ColliderComponent
+	{
+		float botRadius = 1.f;
+		float topRadius = 0.5f;
+		float height = 2.f;
 	};
 
 	struct BoxColliderComponent : public ColliderComponent
@@ -510,17 +517,17 @@ namespace Borealis
 
 	struct ButtonComponent
 	{
-		std::string onClickFunctionName;
-		std::string onReleaseFunctionName;
-		std::string onHoverFunctionName;
+		std::string onClickFunctionName{};
+		std::string onReleaseFunctionName{};
+		std::string onHoverFunctionName{};
 
-		std::string onClickClass;
-		std::string onReleaseClass;
-		std::string onHoverClass;
+		std::string onClickClass{};
+		std::string onReleaseClass{};
+		std::string onHoverClass{};
 
-		UUID onClickEntity;
-		UUID onReleaseEntity;
-		UUID onHoverEntity;
+		UUID onClickEntity = 0;
+		UUID onReleaseEntity = 0;
+		UUID onHoverEntity = 0;
 
 		bool hovered = false;
 		bool clicked = false;

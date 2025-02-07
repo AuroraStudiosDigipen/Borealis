@@ -414,6 +414,8 @@ namespace Borealis
 			shader->Bind();
 			shader->Set("shadowPass", false);
 			shader->Set("u_HasShadow", false);
+			shader->Set("u_ShadowMap", 0);
+			shader->Set("u_CascadeShadowMap", 1);
 			entt::basic_group group = registryPtr->group<>(entt::get<TransformComponent, LightComponent>);
 			for (auto& entity : group)
 			{

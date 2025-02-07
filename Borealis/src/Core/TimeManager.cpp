@@ -20,12 +20,25 @@ namespace Borealis
 {
 
 	float TimeManager::m_DeltaTime = 0.0f;
+	float TimeManager::m_TimeScale = 1.0f;
 	void TimeManager::SetDeltaTime(float deltaTime)
 	{
 		m_DeltaTime = deltaTime;
 	}
 
 	float TimeManager::GetDeltaTime()
+	{
+		return m_DeltaTime * m_TimeScale;
+	}
+	void TimeManager::SetTimeScale(float timeScale)
+	{
+		m_TimeScale = timeScale;
+	}
+	float TimeManager::GetTimeScale()
+	{
+		return m_TimeScale;
+	}
+	float TimeManager::GetUnscaledDeltaTime()
 	{
 		return m_DeltaTime;
 	}

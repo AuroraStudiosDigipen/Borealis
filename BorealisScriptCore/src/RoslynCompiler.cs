@@ -20,7 +20,7 @@ namespace Borealis
             \param assemblyName
                 The name of the assembly to create.
         *************************************************************************/
-        public byte[] CompileCode(IEnumerable<string> filePaths, string assemblyName)
+        public byte[] CompileCode(IEnumerable<string> filePaths, string assemblyName, out bool success)
         {
             var syntaxTrees = filePaths.Select(filePath =>
             {
@@ -50,9 +50,24 @@ namespace Borealis
                 {
                     foreach (var diagnostic in emitResult.Diagnostics)
                     {
-                        Debug.Log(diagnostic.ToString());  // This will print the detailed diagnostic message
+                        if (diagnostic.Severity == DiagnosticSeverity.Info)
+                        {
+                            Debug.Log(diagnostic.ToString());
+                        }
+                        else if (diagnostic.Severity == DiagnosticSeverity.Warning)
+                        {
+                            Debug.LogWarning(diagnostic.ToString());
+                        }
+                        else if (diagnostic.Severity == DiagnosticSeverity.Error)
+                        {
+                            Debug.LogError(diagnostic.ToString());
+                        }
+
                     }
+                    success = false;
+                    return null;
                 }
+                success = true;
                 return dllStream.ToArray();
             }
         }

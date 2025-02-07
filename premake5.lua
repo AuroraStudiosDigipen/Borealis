@@ -255,7 +255,7 @@ workspace "Borealis"
 		targetdir ("build/" .. outputdir .. "/%{prj.name}")
 		objdir ("build-int/" .. outputdir .. "/%{prj.name}")
 		flags { "MultiProcessorCompile" }
-
+		buildoptions { "/bigobj" }
 		files
 		{
 			"%{prj.name}/inc/**.hpp",

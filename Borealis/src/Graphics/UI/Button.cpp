@@ -30,6 +30,12 @@ namespace Borealis
 
         for (auto entity : group)
         {
+            Entity brEntity{ entity, SceneManager::GetActiveScene().get()};
+            if (!brEntity.IsActive())
+            {
+                continue;
+            }
+
             auto [button, transform] = group.get<ButtonComponent, TransformComponent>(entity);
 
             if (!button.interactable) continue;

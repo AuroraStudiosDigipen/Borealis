@@ -51,7 +51,7 @@ namespace Borealis
 
 		AudioEngine::Init();
 		InputSystem::Init();
-		PhysicsSystem::Init();
+		//PhysicsSystem::Init();
 	}
 
 	/*!***********************************************************************
@@ -67,7 +67,7 @@ namespace Borealis
 		mLayerSystem.Clear();
 		ScriptingSystem::Free();
 
-		PhysicsSystem::Free();
+		//PhysicsSystem::Free();
 		delete mWindowManager;
 		glfwTerminate(); // Terminate after system shuts down
 

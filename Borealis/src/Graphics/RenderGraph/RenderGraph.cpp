@@ -704,7 +704,7 @@ namespace Borealis
 				}
 
 				auto [transform, text] = group.get<TransformComponent, TextComponent>(entity);
-				Renderer2D::DrawString(text.text, text.font, transform.GetGlobalTransform(), (int)entity, text.fontSize, text.colour);
+				Renderer2D::DrawString(text.text, text.font, transform.GetGlobalTransform(), (int)entity, text.fontSize, text.colour, text.align == TextComponent::TextAlign::Left ? false : true);
 			}
 		}
 
@@ -735,7 +735,7 @@ namespace Borealis
 			{
 				TextComponent const& text = parent.GetComponent<TextComponent>();
 
-				Renderer2D::DrawString(text.text, text.font, transform, (int)parent, text.fontSize, text.colour);
+				Renderer2D::DrawString(text.text, text.font, transform, (int)parent, text.fontSize, text.colour, text.align == TextComponent::TextAlign::Left? false:true);
 			}
 		}
 

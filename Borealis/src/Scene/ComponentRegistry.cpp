@@ -275,6 +275,12 @@ namespace Borealis
             .property("Angle", &ParticleSystemComponent::angle)
             .property("Texture", &ParticleSystemComponent::texture);
 
+        registration::enumeration<TextComponent::TextAlign>("Text Align")
+            (
+                value("Left", TextComponent::TextAlign::Left),
+                value("Center", TextComponent::TextAlign::Center)
+                );
+
         registration::class_<TextComponent>("Text Component")
             (metadata("Component", true))
             .constructor<>()
@@ -282,6 +288,7 @@ namespace Borealis
             .property("Font", &TextComponent::font)
             .property("Font Size", &TextComponent::fontSize)
             .property("Colour", &TextComponent::colour)
+			.property("Align", &TextComponent::align)
             (metadata("Colour", true));
 
         registration::class_<TagComponent>("Tag Component")

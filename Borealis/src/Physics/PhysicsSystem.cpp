@@ -877,9 +877,6 @@ namespace Borealis
 		}
 
 		// Update the character rotation and its up vector to match the up vector set by the user settings
-		Quat character_up_rotation = Quat::sEulerAngles(Vec3(0, 0, 0));
-		mCharacter->SetUp(character_up_rotation.RotateAxisY());
-		mCharacter->SetRotation(character_up_rotation);
 
 		// A cheaper way to update the character's ground velocity,
 		// the platforms that the character is standing on may have changed velocity
@@ -909,12 +906,12 @@ namespace Borealis
 			new_velocity = current_vertical_velocity;
 
 		// Gravity
-		new_velocity += (character_up_rotation * Vec3(0.f,-controllerComp.gravity,0.f)) * inDeltaTime;
+		new_velocity += (Vec3(0.f,-controllerComp.gravity,0.f)) * inDeltaTime;
 
 		if (player_controls_horizontal_velocity)
 		{
 			// Player input
-			new_velocity += character_up_rotation * JPH::Vec3(controllerComp.targetVelocity.x, controllerComp.targetVelocity.y, controllerComp.targetVelocity.z);
+			new_velocity += JPH::Vec3(controllerComp.targetVelocity.x, controllerComp.targetVelocity.y, controllerComp.targetVelocity.z);
 		}
 		else
 		{

@@ -695,54 +695,87 @@ namespace Borealis
 		sData->mStats.QuadCount++;
 	}
 
-	void Renderer2D::DrawString(const std::string& string, Ref<Font> font, const glm::mat4& transform, int entityID, float size, glm::vec4 colour)
+	void Renderer2D::DrawString(const std::string& string, Ref<Font> font,
+		const glm::mat4& transform, int entityID,
+		float size, glm::vec4 colour)
 	{
-		if (!font) font = Font::GetDefaultFont();
+		if (!font)
+			font = Font::GetDefaultFont();
 
 		Ref<Texture2D> fontAtlas = font->GetAtlasTexture();
-
-		if (!fontAtlas) return;
+		if (!fontAtlas)
+			return;
 
 		sData->FontTexture = fontAtlas;
-
 		FontInfo const& fontInfo = font->GetFontInfo();
 
-		double x = 0.0;
+		// Compute scale factor for the desired font size.
 		double fsScale = size / (fontInfo.ascenderY - fontInfo.descenderY);
 
-		double y = 0.0;
-
-		for (int i{}; i < string.size(); i++)
+		// First pass: calculate the total width of the string.
+		double totalWidth = 0.0;
+		for (size_t i = 0; i < string.size(); i++)
 		{
 			char character = string[i];
-
-			if (character == '\r')
+			// Skip carriage returns (or newlines, if any)
+			if (character == '\r' || character == '\n')
 				continue;
 
-			if (character == '\n' || string[i + 1] == '\n')
+			// Get the glyph for this character
+			FontGlyph glyph = fontInfo.glyphs.at(character);
+			double advance = glyph.advance;
+
+			// If a kerning value exists with the next character, use it.
+			if (i < string.size() - 1)
 			{
-				x = 0;
-				//y -= fsScale * metrics.lineHeight + textParams.LineSpacing;
-				continue;
+				char nextCharacter = string[i + 1];
+				// It’s good practice to check if the kerning pair exists.
+				auto it = fontInfo.kernings.find({ character, nextCharacter });
+				if (it != fontInfo.kernings.end())
+					advance = it->second;
 			}
+
+			totalWidth += fsScale * advance;
+		}
+
+		// Start drawing at x = -totalWidth/2 so that the string is centered.
+		double x = -totalWidth / 2.0;
+		double y = 0.0;
+
+		// Second pass: draw each glyph.
+		for (size_t i = 0; i < string.size(); i++)
+		{
+			char character = string[i];
+			if (character == '\r' || character == '\n')
+				continue;
 
 			FontGlyph glyph = fontInfo.glyphs.at(character);
 
-			glm::vec2 texCoordMin((float)glyph.altasBound.left, (float)glyph.altasBound.bottom);
-			glm::vec2 texCoordMax((float)glyph.altasBound.right, (float)glyph.altasBound.top);
+			// Compute texture coordinates (adjust as necessary for your atlas)
+			glm::vec2 texCoordMin(static_cast<float>(glyph.altasBound.left),
+				static_cast<float>(glyph.altasBound.bottom));
+			glm::vec2 texCoordMax(static_cast<float>(glyph.altasBound.right),
+				static_cast<float>(glyph.altasBound.top));
 
-			glm::vec2 quadMin((float)glyph.planeBound.left, (float)glyph.planeBound.bottom);
-			glm::vec2 quadMax((float)glyph.planeBound.right, (float)glyph.planeBound.top);
+			// Compute the quad for this glyph in local space.
+			glm::vec2 quadMin(static_cast<float>(glyph.planeBound.left),
+				static_cast<float>(glyph.planeBound.bottom));
+			glm::vec2 quadMax(static_cast<float>(glyph.planeBound.right),
+				static_cast<float>(glyph.planeBound.top));
 
-			quadMin *= fsScale, quadMax *= fsScale;
+			// Scale and offset the quad by the current pen position.
+			quadMin *= fsScale;
+			quadMax *= fsScale;
 			quadMin += glm::vec2(x, y);
 			quadMax += glm::vec2(x, y);
 
+			// Convert atlas pixel coordinates to texture coordinates.
 			float texelWidth = 1.0f / fontAtlas->GetWidth();
 			float texelHeight = 1.0f / fontAtlas->GetHeight();
 			texCoordMin *= glm::vec2(texelWidth, texelHeight);
 			texCoordMax *= glm::vec2(texelWidth, texelHeight);
 
+			// Submit the 4 vertices (a quad) for the glyph.
 			sData->FontBufferPtr->Position = transform * glm::vec4(quadMin, 0.0f, 1.0f);
 			sData->FontBufferPtr->Colour = colour;
 			sData->FontBufferPtr->TexCoord = texCoordMin;
@@ -770,17 +803,19 @@ namespace Borealis
 			sData->FontIndexCount += 6;
 			sData->mStats.QuadCount++;
 
+			// Advance the pen position.
 			if (i < string.size() - 1)
 			{
 				double advance = glyph.advance;
 				char nextCharacter = string[i + 1];
-				//fontGeometry.getAdvance(advance, character, nextCharacter);
-				advance = fontInfo.kernings.at({character, nextCharacter});
-
-				x += fsScale * advance;// +textParams.Kerning;
+				auto it = fontInfo.kernings.find({ character, nextCharacter });
+				if (it != fontInfo.kernings.end())
+					advance = it->second;
+				x += fsScale * advance;
 			}
 		}
 	}
+
 
 	void Renderer2D::DrawString(TextComponent& text, TransformComponent& trans, int entityID)
 	{
@@ -875,15 +910,14 @@ namespace Borealis
 			sData->TextureSlotIndex++;
 		}
 
-		
 		constexpr glm::vec2 texCoords[] = { {0.0f,0.0f},{1.0f,0.0f},{1.0f,1.0f},{0.0f,1.0f} };
 
-		//constexpr glm::vec2 texCoords[] = {
-		//	{0.0f, 1.0f},
-		//	{1.0f, 1.0f},
-		//	{1.0f, 0.0f},
-		//	{0.0f, 0.0f} 
-		//};
+		/*constexpr glm::vec2 texCoords[] = {
+			{0.0f, 1.0f},
+			{1.0f, 1.0f},
+			{1.0f, 0.0f},
+			{0.0f, 0.0f} 
+		};*/
 
 		for (int i = 0; i < 4; i++)
 		{

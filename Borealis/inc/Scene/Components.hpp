@@ -370,10 +370,17 @@ namespace Borealis
 
 	struct TextComponent
 	{
+		enum class TextAlign : uint8_t
+		{
+			Left,
+			Center
+		};
+
 		std::string text{};
 		uint32_t fontSize = 16; //change to float?
 		glm::vec4 colour{ 1.f,1.f,1.f,1.f };
 		Ref<Font> font;
+		TextAlign align = TextAlign::Left;
 
 		TextComponent() = default;
 		TextComponent(const TextComponent&) = default;

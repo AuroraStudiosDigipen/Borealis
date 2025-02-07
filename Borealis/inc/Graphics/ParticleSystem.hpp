@@ -64,16 +64,22 @@ namespace Borealis
 		float		mStartLifeTime = 5.f;
 		float		mStartSpeed = 5.f; //speed of particles
 		bool		m_3DStartSizeBool = false; //if false, uniform scale
+		bool		mRandomStartSizeBool = false; 
 		glm::vec3	mStartSize = glm::vec3{ 1.f }; //if not 3d, use .x for size
+		glm::vec3	mStartSize2 = glm::vec3{ 1.f }; //if not 3d, use .x for size
 		bool		m_3DStartRotationBool = false; //if false, uniform rotation
 		glm::vec3	mStartRotation = glm::vec3{ 0.f }; // if not 3d, use .x for rotation
+		bool		mRandomStartColor = false;
 		glm::vec4	mStartColor = glm::vec4{ 1.f };
+		glm::vec4	mStartColor2 = glm::vec4{ 1.f };
 		float		mGravityModifer = 0.f;
 		float		mSimulationSpeed = 1.f; //speed of simulation
 		uint32_t	mMaxParticles = 1000;
 		uint32_t	mParticlesCount = 0;
 		float		mRateOverTime = 10.f;
 		float		mAngle = 25.f;
+		float		mRadius = 1.f;
+		float		mRadiusThickness = 1.f;
 
 		std::vector<Particle> mParticles;
 

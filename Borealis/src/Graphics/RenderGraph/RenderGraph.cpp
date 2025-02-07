@@ -1900,7 +1900,7 @@ namespace Borealis
 				glm::mat4 transfrom = glm::translate(glm::mat4(1.0f), particle.position) *
 					glm::toMat4(particle.startRotation) *
 					glm::scale(glm::mat4(1.0f), particle.startSize);
-				Renderer2D::DrawQuad(transfrom, brEntity.GetComponent<ParticleSystemComponent>().texture, 1.f, particle.startColor, -1, true);
+				Renderer2D::DrawQuad(transfrom, brEntity.GetComponent<ParticleSystemComponent>().texture, particle.startSize[0], particle.startColor, -1, true);
 			}
 		}
 		Renderer2D::End();

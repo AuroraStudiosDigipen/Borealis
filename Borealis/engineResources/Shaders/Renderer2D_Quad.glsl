@@ -22,7 +22,7 @@ out vec4 		v_Color;
 flat out int 	v_TexIndex;
 out float 		v_TilingFactor;
 flat out int 	v_EntityID;
-//out int			v_BillBoarding;
+flat out int	v_BillBoarding;
 
 void main()
 {
@@ -31,7 +31,7 @@ void main()
 	v_TexIndex = a_TexIndex;
 	v_TilingFactor = a_TilingFactor;
 	v_EntityID = a_EntityID;
-	//v_BillBoarding = a_BillBoarding;	
+	v_BillBoarding = a_BillBoarding;	
 
 	vec3 position = a_Position;
     
@@ -46,11 +46,8 @@ void main()
         vec3 right = normalize(cross(worldUp, toCamera));
         vec3 up = normalize(cross(toCamera, right));
         
-        // Convert texture coordinates to offset [-0.5, 0.5]
         vec2 quadOffset = (a_TexCoord - 0.5) * 2.0;
-        quadOffset *= a_TilingFactor; // Use tiling factor as size scale
-        
-        // Offset position
+        quadOffset *= a_TilingFactor;
         position += right * quadOffset.x + up * quadOffset.y;
     }
     
@@ -67,13 +64,14 @@ in vec4 	v_Color;
 flat in int v_TexIndex;
 in float 	v_TilingFactor;
 flat in int v_EntityID;
+flat in int v_BillBoarding;
 			
 uniform sampler2D u_Texture[16];
 
 void main()
 {
-
-    vec4 finalColor = texture(u_Texture[v_TexIndex], v_TexCoord * v_TilingFactor) * v_Color;
+    float tilingFactor = (v_BillBoarding == 1) ?  1.f : v_TilingFactor;
+    vec4 finalColor = texture(u_Texture[v_TexIndex], v_TexCoord * tilingFactor) * v_Color;
     finalColor = pow(finalColor, vec4(1.0/2.2)); 
 	color =finalColor;
 	entityIDs = v_EntityID;

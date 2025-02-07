@@ -34,16 +34,21 @@ namespace Borealis
 		mStartLifeTime = particleSystemComponent.startLifeTime;
 		mStartSpeed = particleSystemComponent.startSpeed; //speed of particles
 		m_3DStartSizeBool = particleSystemComponent._3DStartSizeBool; //if false, uniform scale
+		mRandomStartSizeBool = particleSystemComponent.randomStartSize;
 		mStartSize = particleSystemComponent.startSize; //if not 3d, use .x for size
 		m_3DStartRotationBool = particleSystemComponent._3DStartRotationBool; //if false, uniform rotation
 		mStartRotation = particleSystemComponent.startRotation; // if not 3d, use .x for rotation
+		mRandomStartColor = particleSystemComponent.randomStartColor;
 		mStartColor = particleSystemComponent.startColor;
+		mStartColor2 = particleSystemComponent.startColor2;
 		mGravityModifer = particleSystemComponent.gravityModifer;
 		mSimulationSpeed = particleSystemComponent.simulationSpeed; //speed of simulation
 		mMaxParticles = particleSystemComponent.maxParticles;
 		mParticlesCount = 0;
 		mRateOverTime = particleSystemComponent.rateOverTime;
 		mAngle = particleSystemComponent.angle;
+		mRadius = particleSystemComponent.radius;
+		mRadiusThickness = particleSystemComponent.radiusThickness;
 		mTimer = 0.f;
 
 		mParticles.resize(mMaxParticles);
@@ -124,40 +129,75 @@ namespace Borealis
 	void ParticleSystem::SpawnParticle(TransformComponent & transform, Particle& particle, float startSpeed)
 	{
 		particle.isActive = true;
-		particle.position = transform.GetGlobalTranslate();
 
-		// Get the Euler angles (pitch, yaw, roll) from the transform
-		glm::vec3 rotation = transform.GetGlobalRotation(); // Assuming this returns Euler angles
+		// Get emitter world position
+		glm::vec3 emitterPos = transform.GetGlobalTranslate();
+
+		// Convert emitter rotation (Euler to Quaternion)
+		glm::vec3 rotation = transform.GetGlobalRotation();
 		glm::quat orientation = glm::quat(rotation);
 
-		glm::vec3 forward = orientation * glm::vec3(0.0f, 0.0f, 1.0f);
+		// Generate a random position in a 2D disc (radius = mRadius)
+		float randomAngle = static_cast<float>(rand()) / RAND_MAX * glm::two_pi<float>();
+		float randomRadius = mRadius * glm::sqrt(static_cast<float>(rand()) / RAND_MAX); // Even distribution in a circle
 
+		glm::vec3 spawnOffset = glm::vec3(
+			randomRadius * glm::cos(randomAngle),
+			0.0f,  // Keep it on the base (Y = 0)
+			randomRadius * glm::sin(randomAngle)
+		);
+
+		// Offset the particle spawn position
+		particle.position = emitterPos + (orientation * spawnOffset);
+
+		// Generate a random direction within the cone
 		float coneAngle = glm::radians(mAngle);
 
 		float u = static_cast<float>(rand()) / RAND_MAX;
 		float v = static_cast<float>(rand()) / RAND_MAX;
 
-		float theta = v * 2.0f * glm::pi<float>();  // Random around circle
-		float phi = glm::acos(1.0f - u * (1.0f - glm::cos(coneAngle)));  // Within cone
+		float theta = v * 2.0f * glm::pi<float>(); // Random around the circle
+		float phi = glm::acos(1.0f - u * (1.0f - glm::cos(coneAngle))); // Spread within the cone
 
-		glm::vec3 dir;
-		dir.x = glm::sin(phi) * glm::cos(theta);
-		dir.y = glm::sin(phi) * glm::sin(theta);
-		dir.z = glm::cos(phi);
+		glm::vec3 direction = glm::vec3(
+			glm::sin(phi) * glm::cos(theta),
+			glm::cos(phi), // Y-axis is up
+			glm::sin(phi) * glm::sin(theta)
+		);
 
-		// Align direction with emitter's orientation
-		glm::vec3 finalDirection = orientation * dir;
-		finalDirection = glm::normalize(finalDirection);
+		// Align direction with emitter rotation
+		glm::vec3 finalDirection = glm::normalize(orientation * direction);
 
-		// Set the particle's velocity, scaled by the startSpeed
+		// Apply velocity
 		particle.startVelocity = startSpeed * finalDirection;
 
-		// Set other properties
-		particle.startColor = mStartColor;
-		particle.startSize = mStartSize;
+		// Random start color (if enabled)
+		if (mRandomStartColor)
+		{
+			float colorLerp = static_cast<float>(rand()) / RAND_MAX;
+			particle.startColor = glm::mix(mStartColor, mStartColor2, colorLerp);
+		}
+		else
+		{
+			particle.startColor = mStartColor;
+		}
+
+		// Random start size (if enabled)
+		if (mRandomStartSizeBool)
+		{
+			float sizeLerp = static_cast<float>(rand()) / RAND_MAX;
+			particle.startSize = glm::mix(mStartSize, mStartSize2, sizeLerp);
+		}
+		else
+		{
+			particle.startSize = mStartSize;
+		}
+
+		// Set rotation
 		particle.startRotation = glm::quat(mStartRotation);
 
-		particle.life = 0.f;
+		// Reset life counter
+		particle.life = 0.0f;
 	}
 
 	void ParticleSystem::SyncWithEditor(ParticleSystemComponent& particleSystemComponent)
@@ -170,10 +210,14 @@ namespace Borealis
 		mStartLifeTime = particleSystemComponent.startLifeTime;
 		mStartSpeed = particleSystemComponent.startSpeed; //speed of particles
 		m_3DStartSizeBool = particleSystemComponent._3DStartSizeBool; //if false, uniform scale
+		mRandomStartSizeBool = particleSystemComponent.randomStartSize;
 		mStartSize = particleSystemComponent.startSize; //if not 3d, use .x for size
+		mStartSize2 = particleSystemComponent.startSize2;
 		m_3DStartRotationBool = particleSystemComponent._3DStartRotationBool; //if false, uniform rotation
 		mStartRotation = particleSystemComponent.startRotation; // if not 3d, use .x for rotation
+		mRandomStartColor = particleSystemComponent.randomStartColor;
 		mStartColor = particleSystemComponent.startColor;
+		mStartColor2 = particleSystemComponent.startColor2;
 		mGravityModifer = particleSystemComponent.gravityModifer;
 		mSimulationSpeed = particleSystemComponent.simulationSpeed; //speed of simulation
 		if(mMaxParticles != particleSystemComponent.maxParticles)
@@ -189,6 +233,8 @@ namespace Borealis
 		}
 		mRateOverTime = particleSystemComponent.rateOverTime;
 		mAngle = particleSystemComponent.angle;
+		mRadius = particleSystemComponent.radius;
+		mRadiusThickness = particleSystemComponent.radiusThickness;
 
 		UpdateParticles(mStartSize, mStartRotation, mStartColor);
 	}

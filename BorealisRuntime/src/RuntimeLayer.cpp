@@ -17,7 +17,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/RenderGraph/RenderGraph.hpp>
 #include <Scene/ComponentRegistry.hpp>
 #include <Scene/Serialiser.hpp>
-
+#include <Graphics/UI/Button.hpp>
 #include <Graphics/Font.hpp>
 namespace BorealisRuntime
 {
@@ -138,6 +138,9 @@ namespace BorealisRuntime
 			Borealis::SceneManager::GetActiveScene()->UpdateRenderer(dt);
 		}
 
+		float normalizedMouseX = Borealis::InputSystem::GetMouseX() / (float)windowWidth - 0.5f;
+		float normalizedMouseY = Borealis::InputSystem::GetMouseY() / (float)windowHeight - 0.5f;
+		Borealis::ButtonSystem::SetMousePos({normalizedMouseX, normalizedMouseY});
 		Borealis::SceneManager::GetActiveScene()->UpdateRuntime(dt);
 
 		if (Borealis::SceneManager::ToNextScene)

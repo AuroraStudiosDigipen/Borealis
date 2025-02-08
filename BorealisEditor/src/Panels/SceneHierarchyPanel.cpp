@@ -1185,10 +1185,11 @@ namespace Borealis
 	{
 		TextureConfig config = GetConfig<TextureConfig>(metaData.Config);
 
+		ImGui::Text("Texture Configuration");
+
 		const char* textureTypeNames[] = { "Default", "Normal Map" };
 		int selectedTextureType = static_cast<int>(config.type);
 
-		ImGui::Text("Texture Configuration");
 		if (ImGui::Combo("Texture Type", &selectedTextureType, textureTypeNames, IM_ARRAYSIZE(textureTypeNames))) {
 			config.type = static_cast<TextureType>(selectedTextureType);
 			metaData.Config = config;
@@ -1205,6 +1206,26 @@ namespace Borealis
 		bool sRGB = config.sRGB;
 		if (ImGui::Checkbox("sRGB", &sRGB)) {
 			config.sRGB = sRGB;
+			metaData.Config = config;
+		}
+
+		bool generateMipMaps = config.generateMipMaps;
+		if (ImGui::Checkbox("Generate Mipmaps", &generateMipMaps)) {
+			config.generateMipMaps = generateMipMaps;
+			metaData.Config = config;
+		}
+
+		const char* wrapModeNames[] = { "Repeat", "Mirrored Repeat", "Clamp to Edge", "Clamp to Border" };
+		int selectedWrapMode = static_cast<int>(config.wrapMode);
+		if (ImGui::Combo("Wrap Mode", &selectedWrapMode, wrapModeNames, IM_ARRAYSIZE(wrapModeNames))) {
+			config.wrapMode = static_cast<TextureWrap>(selectedWrapMode);
+			metaData.Config = config;
+		}
+
+		const char* filterModeNames[] = { "Linear", "Nearest" };
+		int selectedFilterMode = static_cast<int>(config.filterMode);
+		if (ImGui::Combo("Filter Mode", &selectedFilterMode, filterModeNames, IM_ARRAYSIZE(filterModeNames))) {
+			config.filterMode = static_cast<TextureFilter>(selectedFilterMode);
 			metaData.Config = config;
 		}
 

@@ -29,8 +29,7 @@ int main(int argc, char** argv)
     }
 
     std::filesystem::path filePath = argv[1];
-
-    //std::filesystem::path filePath = "C:\\Users\\Owner\\Documents\\Digipen\\GAM300\\Atest\\Assets\\Logo.png";
+    //std::filesystem::path filePath = "C:\\Users\\Owner\\Documents\\Digipen\\GAM300\\DTest\\Assets\\Dragon_Nor.png";
 
     filePath = filePath.string() + ".meta";
 

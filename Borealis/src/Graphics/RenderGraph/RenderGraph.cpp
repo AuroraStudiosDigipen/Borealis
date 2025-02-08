@@ -656,7 +656,7 @@ namespace Borealis
 		RenderCommand::DisableBlend();
 		RenderCommand::SetClearColor(glm::vec4(0.1f,0.1f,0.1f,1.f));
 		renderTarget->Bind();
-		RenderCommand::Clear();
+		//RenderCommand::Clear();
 		Renderer3D::End();
 		renderTarget->Unbind();
 

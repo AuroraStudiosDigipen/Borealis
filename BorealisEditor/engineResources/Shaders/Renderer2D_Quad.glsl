@@ -58,6 +58,7 @@ void main()
 #version 410 core			
 layout(location = 0) out vec4 color;
 layout(location = 1) out int entityIDs;
+layout(location = 2) out float outRevealage;
 
 in vec2 	v_TexCoord;
 in vec4 	v_Color;
@@ -66,6 +67,7 @@ in float 	v_TilingFactor;
 flat in int v_EntityID;
 flat in int v_BillBoarding;
 			
+uniform bool u_Transparent;
 uniform sampler2D u_Texture[16];
 
 void main()
@@ -73,6 +75,17 @@ void main()
     float tilingFactor = (v_BillBoarding == 1) ?  1.f : v_TilingFactor;
     vec4 finalColor = texture(u_Texture[v_TexIndex], v_TexCoord * tilingFactor) * v_Color;
     finalColor = pow(finalColor, vec4(1.0/2.2)); 
-	color =finalColor;
+	
 	entityIDs = v_EntityID;
+
+    if(u_Transparent)
+    {
+        float weight = clamp(pow(min(1.0, finalColor.a * 10.0) + 0.01, 3.0) * 1e4 * pow(1.0 - gl_FragCoord.z * 0.9, 3.0), 1e-2, 3e3);
+        color = vec4(finalColor.rgb * finalColor.a * weight, finalColor.a * weight);
+        outRevealage = finalColor.a;
+    }
+    else
+    {
+        color = finalColor;
+    }
 }

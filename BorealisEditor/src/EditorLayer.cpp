@@ -263,6 +263,7 @@ namespace Borealis {
 
 				RenderPassConfig particleSystemPass(RenderPassType::ParticleSystemPass, "ParticleSystem");
 				particleSystemPass.AddSinkLinkage("camera", "EditorCamera")
+					.AddSinkLinkage("accumulaionTarget", "accumulaionBuffer")
 					.AddSinkLinkage("renderTarget", "UIWorldPass.renderTarget");
 				fconfig.AddPass(particleSystemPass);
 
@@ -338,6 +339,7 @@ namespace Borealis {
 				{
 					RenderPassConfig particleSystemPass(RenderPassType::ParticleSystemPass, "ParticleSystemEditor");
 					particleSystemPass.AddSinkLinkage("camera", "EditorCamera")
+						.AddSinkLinkage("accumulaionTarget", "accumulaionBuffer")
 						.AddSinkLinkage("renderTarget", "Highlight.renderTarget");
 					fconfig.AddPass(particleSystemPass);
 				}

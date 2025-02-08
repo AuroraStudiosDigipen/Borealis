@@ -333,6 +333,10 @@ namespace Borealis
 		Flush();
 
 	}
+	void Renderer2D::EndParticles()
+	{
+		FlushParticles();
+	}
 	void Renderer2D::Flush()
 	{
 		PROFILE_FUNCTION();
@@ -345,6 +349,7 @@ namespace Borealis
 				sData->TextureSlots[i]->Bind(i);
 			}
 			sData->mQuadShader->Bind();
+			sData->mQuadShader->Set("u_Transparent", false);
 			RenderCommand::DrawElements(sData->mQuadVAO, sData->QuadIndexCount);
 			sData->mStats.DrawCalls++;
 		}
@@ -374,6 +379,23 @@ namespace Borealis
 			sData->FontTexture->Bind(0);
 			sData->mFontShader->Bind();
 			RenderCommand::DrawElements(sData->mFontVAO, sData->FontIndexCount);
+			sData->mStats.DrawCalls++;
+		}
+	}
+
+	void Renderer2D::FlushParticles()
+	{
+		if (sData->QuadIndexCount)
+		{
+			uint32_t size = (uint32_t)((uint8_t*)sData->QuadBufferPtr - (uint8_t*)sData->QuadBufferBase);
+			sData->mQuadVBO->SetData(sData->QuadBufferBase, size);
+			for (uint32_t i = 0; i < sData->TextureSlotIndex; i++)
+			{
+				sData->TextureSlots[i]->Bind(i);
+			}
+			sData->mQuadShader->Bind();
+			sData->mQuadShader->Set("u_Transparent", true);
+			RenderCommand::DrawElements(sData->mQuadVAO, sData->QuadIndexCount);
 			sData->mStats.DrawCalls++;
 		}
 	}

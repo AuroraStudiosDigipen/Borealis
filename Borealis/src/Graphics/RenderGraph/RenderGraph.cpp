@@ -1854,7 +1854,7 @@ namespace Borealis
 	void ParticleSystemPass::Execute(float dt)
 	{
 		Ref<RenderTargetSource> renderTarget = nullptr;
-		Ref<RenderTargetSource> runTimeRenderTarget = nullptr;
+		Ref<RenderTargetSource> accumulaionTarget = nullptr;
 
 		for (auto sink : sinkList)
 		{
@@ -1864,12 +1864,28 @@ namespace Borealis
 				{
 					renderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
 				}
+
+				if (sink->sinkName == "accumulaionTarget")
+				{
+					accumulaionTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
+					accumulaionTarget->buffer->ClearAttachment(1, -1);
+				}
 			}
 		}
 
 		auto group = registryPtr->group<>(entt::get<TransformComponent, ParticleSystemComponent>);
 
-		renderTarget->Bind();
+		uint32_t depthTexture = renderTarget->buffer->DetachDepthBuffer();
+		accumulaionTarget->buffer->AttachDepthBuffer(depthTexture);
+
+		RenderCommand::EnableDepthTest();
+		RenderCommand::SetDepthMask(false);
+		RenderCommand::EnableBlend();
+		RenderCommand::ConfigureBlendForTransparency(TransparencyStage::ACCUMULATION);
+		accumulaionTarget->Bind();
+		accumulaionTarget->buffer->ClearAttachment(0, { 0.f,0.f,0.f,0.f });
+		accumulaionTarget->buffer->ClearAttachment(2, glm::vec4(1.f));
+
 		Renderer2D::Begin(glm::mat4{});
 
 		for (auto& entity : group)
@@ -1904,8 +1920,27 @@ namespace Borealis
 				Renderer2D::DrawQuad(transfrom, brEntity.GetComponent<ParticleSystemComponent>().texture, particle.startSize[0], particle.currentColor, -1, true);
 			}
 		}
-		Renderer2D::End();
+
+		Renderer2D::EndParticles();
+		accumulaionTarget->Unbind();
+
+		//Composite
+
+		RenderCommand::ConfigureDepthFunc(DepthFunc::DepthAlways);
+		RenderCommand::EnableBlend();
+		RenderCommand::ConfigureBlendForTransparency(TransparencyStage::REVEALAGE);
+		renderTarget->Bind();
+		revealage_shader->Bind();
+		accumulaionTarget->buffer->BindTexture(0, 0);
+		revealage_shader->Set("accumColorTex", 0);
+		accumulaionTarget->buffer->BindTexture(2, 1);
+		revealage_shader->Set("accumAlphaTex", 1);
+		Renderer3D::DrawQuad();
 		renderTarget->Unbind();
+
+		RenderCommand::SetDepthMask(true);
+		RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLess);
+		RenderCommand::EnableDepthTest();
 	}
 
 	//========================================================================

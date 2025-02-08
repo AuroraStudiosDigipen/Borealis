@@ -672,7 +672,8 @@ namespace Borealis
 					particleSystemComponent.particleSystem = MakeRef<ParticleSystem>();
 					particleSystemComponent.particleSystem->Init(particleSystemComponent);
 
-					particleSystemComponent.texture = Texture2D::GetDefaultTexture();
+					//if(particleSystemComponent.texture == nullptr)
+						//particleSystemComponent.texture = Texture2D::GetDefaultTexture();
 				}
 
 				particleSystemComponent.particleSystem->Update(particleSystemComponent, transform, dt);

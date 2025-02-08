@@ -1910,7 +1910,8 @@ namespace Borealis
 				particleSystem = MakeRef<ParticleSystem>();
 				particleSystem->Init(brEntity.GetComponent<ParticleSystemComponent>());
 
-				brEntity.GetComponent<ParticleSystemComponent>().texture = Texture2D::GetDefaultTexture();
+				if(brEntity.GetComponent<ParticleSystemComponent>().texture == nullptr)
+					brEntity.GetComponent<ParticleSystemComponent>().texture = Texture2D::GetDefaultTexture();
 			}
 			
 			std::vector<Particle> const& particles = particleSystem->GetParticles();

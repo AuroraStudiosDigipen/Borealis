@@ -99,6 +99,7 @@ namespace Borealis
 			drawCall.shaderID->Bind();
 			drawCall.shaderID->Set("materialIndex", materialMap[drawCall.materialHash]->GetIndex());
 			drawCall.shaderID->Set("u_HasAnimation", false);
+			drawCall.shaderID->Set("u_Transparent", false);
 
 			auto const& textureMap = materialMap[drawCall.materialHash]->GetTextureMaps();
 
@@ -136,14 +137,78 @@ namespace Borealis
 			else
 			{
 				if (drawCall.drawData.hasAnimation)
+				{
 					drawCall.shaderID->Set("u_HasAnimation", true);
+					drawCall.shaderID->Set("u_AnimationIndex", drawCall.drawData.animationIndex);
+				}
 
 				std::get<Ref<SkinnedModel>>(drawCall.model)->Draw(drawCall.transform, drawCall.shaderID, drawCall.entityID);
 			}
 		}
 
 		drawQueue.clear();
-		mLightEngine.Begin();//clear vector
+	}
+
+	void Renderer3D::RenderTransparentObjects(Ref<Shader> const& transparencyShader)
+	{
+		std::sort(drawQueueTransparent.begin(), drawQueueTransparent.end(), DrawCallComparator);
+
+		UpdateMaterialUBO();
+
+		for (DrawCall const& drawCall : drawQueueTransparent)
+		{
+			drawCall.shaderID->Bind();
+			drawCall.shaderID->Set("materialIndex", materialMap[drawCall.materialHash]->GetIndex());
+			drawCall.shaderID->Set("u_HasAnimation", false);
+			drawCall.shaderID->Set("u_Transparent", true);
+
+			auto const& textureMap = materialMap[drawCall.materialHash]->GetTextureMaps();
+
+			int textureUnit = 2;
+
+			if (textureMap.contains(Material::Albedo))
+			{
+				drawCall.shaderID->Set("albedoMap", textureUnit);
+				textureMap.at(Material::Albedo)->Bind(textureUnit);
+				textureUnit++;
+			}
+			if (textureMap.contains(Material::NormalMap))
+			{
+				drawCall.shaderID->Set("normalMap", textureUnit);
+				textureMap.at(Material::NormalMap)->Bind(textureUnit);
+				textureUnit++;
+			}
+			if (textureMap.contains(Material::Specular))
+			{
+				drawCall.shaderID->Set("specularMap", textureUnit);
+				textureMap.at(Material::Specular)->Bind(textureUnit);
+				textureUnit++;
+			}
+			if (textureMap.contains(Material::Metallic))
+			{
+				drawCall.shaderID->Set("metallicMap", textureUnit);
+				textureMap.at(Material::Metallic)->Bind(textureUnit);
+				textureUnit++;
+			}
+
+			if (std::holds_alternative<Ref<Model>>(drawCall.model))
+			{
+				std::get<Ref<Model>>(drawCall.model)->Draw(drawCall.transform, drawCall.shaderID, drawCall.entityID);
+			}
+			else
+			{
+				if (drawCall.drawData.hasAnimation)
+				{
+					drawCall.shaderID->Set("u_HasAnimation", true);
+					drawCall.shaderID->Set("u_AnimationIndex", drawCall.drawData.animationIndex);
+				}
+
+				std::get<Ref<SkinnedModel>>(drawCall.model)->Draw(drawCall.transform, drawCall.shaderID, drawCall.entityID);
+			}
+		}
+
+		drawQueueTransparent.clear();
+		//mLightEngine.Begin();//clear vector
 	}
 
 	void Renderer3D::AddLight(LightComponent & lightComponent)
@@ -187,7 +252,7 @@ namespace Borealis
 		}
 	}
 
-	void Renderer3D::DrawSkinnedMesh(const glm::mat4& transform, const SkinnedMeshRendererComponent& skinnedMeshRenderer, Ref<Shader> shader, int entityID)
+	void Renderer3D::DrawSkinnedMesh(const glm::mat4& transform, const SkinnedMeshRendererComponent& skinnedMeshRenderer, Ref<Shader> shader, int entityID, int animationIndex)
 	{
 		if (skinnedMeshRenderer.SkinnnedModel)
 		{
@@ -199,7 +264,10 @@ namespace Borealis
 			//skinnedMeshRenderer.SkinnnedModel->Draw(transform, shader, entityID);
 			DrawData drawData;
 			if (skinnedMeshRenderer.SkinnnedModel->mAnimation)
+			{
 				drawData.hasAnimation = true;
+				drawData.animationIndex = animationIndex;
+			}
 			AddToDrawQueue(skinnedMeshRenderer.SkinnnedModel, shader, skinnedMeshRenderer.Material, entityID, transform, drawData);
 		}
 	}
@@ -359,8 +427,18 @@ namespace Borealis
 			mNewMaterialAdded = true;
 		}
 		if(drawData.has_value())
-			drawQueue.push_back({ model, shaderID, materialHash->hash, entityID, transform, drawData.value()});
+		{
+			if(materialHash->isTransparent)
+				drawQueueTransparent.push_back({ model, shaderID, materialHash->hash, entityID, transform, drawData.value() });
+			else
+				drawQueue.push_back({ model, shaderID, materialHash->hash, entityID, transform, drawData.value() });
+		}
 		else
-			drawQueue.push_back({ model, shaderID, materialHash->hash, entityID, transform });
+		{
+			if (materialHash->isTransparent)
+				drawQueueTransparent.push_back({ model, shaderID, materialHash->hash, entityID, transform });
+			else
+				drawQueue.push_back({ model, shaderID, materialHash->hash, entityID, transform });
+		}
 	}
 }

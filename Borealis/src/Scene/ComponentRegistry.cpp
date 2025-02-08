@@ -247,7 +247,8 @@ namespace Borealis
         registration::class_<CanvasComponent>("Canvas Component")
             (metadata("Component", true))
             .constructor<>()
-            .property("Render Mode", &CanvasComponent::renderMode);;
+            .property("Render Mode", &CanvasComponent::renderMode)
+            .property("Render Index", &CanvasComponent::renderIndex);
 
         registration::class_<CanvasRendererComponent>("Canvas Renderer Component")
             (metadata("Component", true))
@@ -264,15 +265,26 @@ namespace Borealis
             .property("Start Life Time", &ParticleSystemComponent::startLifeTime)
             .property("Start Speed", &ParticleSystemComponent::startSpeed)
             .property("3D Start Size", &ParticleSystemComponent::_3DStartSizeBool)
+            .property("Random Start Size", &ParticleSystemComponent::randomStartSize)
             .property("Start size", &ParticleSystemComponent::startSize)
+            .property("Start size 2", &ParticleSystemComponent::startSize2)
             .property("3D Start Rotation", &ParticleSystemComponent::_3DStartRotationBool)
             .property("Start Rotation", &ParticleSystemComponent::startRotation)
+            .property("Random Start Color", &ParticleSystemComponent::randomStartColor)
             .property("Start Color", &ParticleSystemComponent::startColor)
+            (metadata("Colour", true))            
+            .property("Start Color 2", &ParticleSystemComponent::startColor2)
+            (metadata("Colour", true))
+            .property("Set End Color", &ParticleSystemComponent::endColorBool)
+            .property("End Color", &ParticleSystemComponent::endColor)
             (metadata("Colour", true))
             .property("Gravity Modifier", &ParticleSystemComponent::gravityModifer)
             .property("Max Particles", &ParticleSystemComponent::maxParticles)
             .property("Rate Over Time", &ParticleSystemComponent::rateOverTime)
             .property("Angle", &ParticleSystemComponent::angle)
+            .property("Radius", &ParticleSystemComponent::radius)
+            .property("Radius Thickness", &ParticleSystemComponent::radiusThickness)
+            .property("Billboard", &ParticleSystemComponent::billboard)
             .property("Texture", &ParticleSystemComponent::texture);
 
         registration::enumeration<TextComponent::TextAlign>("Text Align")
@@ -288,6 +300,7 @@ namespace Borealis
             .property("Font", &TextComponent::font)
             .property("Font Size", &TextComponent::fontSize)
             .property("Colour", &TextComponent::colour)
+            (metadata("Colour", true))
 			.property("Align", &TextComponent::align)
             (metadata("Colour", true));
 

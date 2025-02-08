@@ -211,6 +211,8 @@ namespace Borealis
 
 		bool isModified = false;
 
+		bool isTransparent = false;
+
 		Ref<Shader> GetShader() { return mShader; }
 
 		int GetIndex() { return mMaterialIndex; }

@@ -221,12 +221,17 @@ namespace Borealis
 
 		bool hasRuntimeStarted = false;
 
+		void CreateBuffers();
+
 		//render graph being in scene cause error with imgui when scene is changed, consider moving it out
 		Ref<FrameBuffer> mViewportFrameBuffer;
 		Ref<FrameBuffer> mRuntimeFrameBuffer;
 		Ref<FrameBuffer> mGFrameBuffer;
 		Ref<FrameBuffer> mShadowMapBuffer;
 		Ref<PixelBuffer> mPixelBuffer;
+		Ref<FrameBuffer> mOpaqueFBO;
+		Ref<FrameBuffer> mAccumulaionFBO;
+		Ref<FrameBuffer> mCompositeFBO;
 		RenderGraph mRenderGraph;
 	};
 }

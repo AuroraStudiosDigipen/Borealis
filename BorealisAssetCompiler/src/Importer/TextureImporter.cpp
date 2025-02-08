@@ -30,7 +30,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace BorealisAssetCompiler
 {
-    void SaveAsDDSCompressonator(std::filesystem::path const& filePath, std::filesystem::path const& output)
+    void SaveAsDDSCompressonator(std::filesystem::path const& filePath, std::filesystem::path const& output, TextureConfig & config)
     {
         CMP_InitFramework();
 
@@ -42,7 +42,7 @@ namespace BorealisAssetCompiler
             return;
         }
 
-        if (MipSetIn.m_nMipLevels <= 1)
+        if (config.generateMipMaps && MipSetIn.m_nMipLevels <= 1)
         {
             CMP_INT requestLevel = 10; // Request 10 miplevels for the source image
 
@@ -66,8 +66,10 @@ namespace BorealisAssetCompiler
         KernelOptions   kernel_options;
         memset(&kernel_options, 0, sizeof(KernelOptions));
 
-        //kernel_options.format = CMP_FORMAT_BC5;   // Set the format to process
-        kernel_options.format = CMP_FORMAT_BC3;   // Set the format to process
+        if(config.type == TextureType::_NORMAL_MAP)
+            kernel_options.format = CMP_FORMAT_BC5;   // Set the format to process
+        else
+            kernel_options.format = CMP_FORMAT_BC3;   // Set the format to process
         kernel_options.fquality = 1;     // Set the quality of the result (range of 0 - 1)
         kernel_options.threads = 0;            // Auto setting
 
@@ -172,7 +174,8 @@ namespace BorealisAssetCompiler
             std::filesystem::path path1 = str;
             std::filesystem::path path2 = str2;
 
-            SaveAsDDSCompressonator(path1, path2);
+            TextureConfig config{};
+            SaveAsDDSCompressonator(path1, path2, config);
 
             facesArray[i] = path2;
 
@@ -347,7 +350,7 @@ namespace BorealisAssetCompiler
 
 
         //SaveDDSFile(cacheString.c_str(), width, height, compressedData, header);
-        SaveAsDDSCompressonator(sourcePath, cacheString);
+        SaveAsDDSCompressonator(sourcePath, cacheString, config);
 
         //stbi_image_free(imageData);
     }

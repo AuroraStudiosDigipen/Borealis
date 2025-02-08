@@ -24,6 +24,19 @@ namespace Borealis
             InternalCalls.CharacterController_Jump(GetInstanceID(), ref speed);
         }
 
+        public Vector3 linearVelocity
+        {
+            get
+            {
+                InternalCalls.CharacterController_GetLinearVelocity(GetInstanceID(), out Vector3 vel);
+                return vel;
+            }
+            set
+            {
+                InternalCalls.CharacterController_SetLinearVelocity(GetInstanceID(), ref value);
+            }
+        }
+
         public bool isGrounded
         {
             get

@@ -708,6 +708,19 @@ namespace Borealis
 		return { data.GetX(), data.GetY(), data.GetZ() };
 	}
 
+	glm::vec3 PhysicsSystem::GetLinearVelocity(void* character)
+	{
+
+		CharacterVirtual* mCharacter = reinterpret_cast<CharacterVirtual*>(character);
+		return { mCharacter->GetLinearVelocity().GetX(), mCharacter->GetLinearVelocity().GetY(), mCharacter->GetLinearVelocity().GetZ() };
+	}
+
+	void PhysicsSystem::SetLinearVelocity(void* character, glm::vec3 vel)
+	{
+		CharacterVirtual* mCharacter = reinterpret_cast<CharacterVirtual*>(character);
+		mCharacter->SetLinearVelocity({ vel.x,vel.y,vel.z });
+	}
+
 	void PhysicsSystem::SetLinearVelocity(unsigned int bodyID, glm::vec3 velocity)
 	{
 		sPhysicsData.body_interface->SetLinearVelocity((BodyID)bodyID, JPH::RVec3(velocity.x, velocity.y, velocity.z));

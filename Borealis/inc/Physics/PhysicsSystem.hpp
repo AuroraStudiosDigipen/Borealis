@@ -98,6 +98,8 @@ namespace Borealis
 
 		static glm::vec3 GetLinearVelocity(unsigned int bodyID);
 		static glm::vec3 GetAngularVelocity(unsigned int bodyID);
+		static glm::vec3 GetLinearVelocity(void* character);
+		static void SetLinearVelocity(void* character, glm::vec3 vel);
 		static void SetLinearVelocity(unsigned int bodyID, glm::vec3 velocity);
 		static void SetAngularVelocity(unsigned int bodyID, glm::vec3 velocity);
 		static glm::vec3 GetPosition(unsigned int bodyID);

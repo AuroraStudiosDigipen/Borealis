@@ -1692,10 +1692,10 @@ namespace Borealis
 		sData->CameraUBO->SetData(&sData->cameraData, sizeof(sData->cameraData));
 		Renderer2D::Begin(viewProjMatrix);
 
-		bool UIexist = false;
 
 		for (int i = 0; i < 10; ++i)
 		{
+			bool UIexist = false;
 			auto group = registryPtr->group<>(entt::get<TransformComponent, CanvasComponent>);
 			for (auto& entity : group)
 			{

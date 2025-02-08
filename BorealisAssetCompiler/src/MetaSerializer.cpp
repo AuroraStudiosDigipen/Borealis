@@ -35,6 +35,22 @@ namespace BorealisAssetCompiler
 		return TextureShape::_2D;
 	}
 
+	TextureWrap GetTextureWrap(std::string const& typeStr)
+	{
+		if (typeStr == "Repeat") return TextureWrap::_REPEAT;
+		if (typeStr == "Mirrored") return TextureWrap::_MIRRORED;
+		if (typeStr == "ClampToEdge") return TextureWrap::_CLAMP_TO_EDGE;
+		if (typeStr == "ClampToBorder") return TextureWrap::_CLAMP_TO_BORDER;
+		return TextureWrap::_REPEAT;
+	}
+
+	TextureFilter GetTextureFilter(std::string const& typeStr)
+	{
+		if (typeStr == "Linear") return TextureFilter::_LINEAR;
+		if (typeStr == "Nearest") return TextureFilter::_NEAREST;
+		return TextureFilter::_LINEAR;
+	}
+
 	TextureConfig DeserializeTextureConfig(YAML::Node& node)
 	{
 		TextureConfig config;
@@ -46,7 +62,10 @@ namespace BorealisAssetCompiler
 			config.sRGB = node["sRGB"].as<bool>();
 		if (node["MipMaps"])
 			config.generateMipMaps = node["MipMaps"].as<bool>();
-
+		if (node["TextureWrap"])
+			config.wrapMode = GetTextureWrap(node["TextureWrap"].as<std::string>());
+		if (node["TextureFilter"])
+			config.filterMode = GetTextureFilter(node["TextureFilter"].as<std::string>());
 		return config;
 	}
 
@@ -244,12 +263,44 @@ namespace BorealisAssetCompiler
 		return {};
 	}
 
+	std::string GetTextureWrapString(TextureWrap type)
+	{
+		switch (type)
+		{
+		case TextureWrap::_REPEAT:
+			return "Repeat";
+		case TextureWrap::_MIRRORED:
+			return "Mirrored";
+		case TextureWrap::_CLAMP_TO_EDGE:
+			return "ClampToEdge";
+		case TextureWrap::_CLAMP_TO_BORDER:
+			return "ClampToBorder";
+		default:
+			return "Invalid";
+		}
+	}
+
+	std::string GetTextureFilterString(TextureFilter type)
+	{
+		switch (type)
+		{
+		case TextureFilter::_LINEAR:
+			return "Linear";
+		case TextureFilter::_NEAREST:
+			return "Nearest";
+		default:
+			break;
+		}
+	}
+
 	void SerializeTextureConfig(YAML::Emitter& out, TextureConfig const& textureConfig)
 	{
 		out << YAML::Key << "TextureType" << YAML::Value << GetTextureTypeString(textureConfig.type);
 		out << YAML::Key << "TextureShape" << YAML::Value << GetTextureShapeString(textureConfig.shape);
 		out << YAML::Key << "sRGB" << YAML::Value << textureConfig.sRGB;
 		out << YAML::Key << "MipMaps" << YAML::Value << textureConfig.generateMipMaps;
+		out << YAML::Key << "TextureWrap" << YAML::Value << GetTextureWrapString(textureConfig.wrapMode);
+		out << YAML::Key << "TextureFilter" << YAML::Value << GetTextureFilterString(textureConfig.filterMode);
 	}
 
 	void SerializeMeshConfig(YAML::Emitter& out, MeshConfig const& meshConfig)

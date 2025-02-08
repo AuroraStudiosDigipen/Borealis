@@ -39,6 +39,9 @@ namespace Borealis
 			ImportAsset(metaData);
 			AssetMetaData meta = MetaFileSerializer::GetAssetMetaDataFile(metaData.SourcePath.string() + ".meta");
 			AssetManager::InsertMetaData(meta);
+			AssetImporter::SerializeRegistry();
+
+			Project::GetEditorAssetsManager()->SubmitAssetReloadRequest(metaData.Handle);
 		}
 
 		mQueue.clear();
@@ -347,11 +350,9 @@ namespace Borealis
 					//compare modified file with meta file
 					//check if need to re compile
 					
-					if (path.extension() == ".meta") return;
-					
 					assetHandleBuffer = GetAssetHandle(mAssetPath / path);
 					assetMetaDataBuffer = Project::GetEditorAssetsManager()->GetMetaData(assetHandleBuffer);
-					if (assetMetaDataBuffer.SourceFileHash == MetaFileSerializer::HashFile(mAssetPath / path)) return;
+					//if (assetMetaDataBuffer.SourceFileHash == MetaFileSerializer::HashFile(mAssetPath / path)) return;
 					ImportAsset(assetMetaDataBuffer);
 
 					//dont call reload in filewatch as multithreading, submit a reload request and handle it that way

@@ -56,12 +56,44 @@ namespace Borealis
 		return {};
 	}
 
+	std::string GetTextureWrapString(TextureWrap type)
+	{
+		switch (type)
+		{
+		case Borealis::TextureWrap::_REPEAT:
+			return "Repeat";
+		case Borealis::TextureWrap::_MIRRORED:
+			return "Mirrored";
+		case Borealis::TextureWrap::_CLAMP_TO_EDGE:
+			return "ClampToEdge";
+		case Borealis::TextureWrap::_CLAMP_TO_BORDER:
+			return "ClampToBorder";
+		default:
+			return "Invalid";
+		}
+	}
+
+	std::string GetTextureFilterString(TextureFilter type)
+	{
+		switch (type)
+		{
+		case Borealis::TextureFilter::_LINEAR:
+			return "Linear";
+		case Borealis::TextureFilter::_NEAREST:
+			return "Nearest";
+		default:
+			break;
+		}
+	}
+
 	void SerializeTextureConfig(YAML::Emitter& out, TextureConfig const& textureConfig)
 	{
 		out << YAML::Key << "TextureType" << YAML::Value << GetTextureTypeString(textureConfig.type);
 		out << YAML::Key << "TextureShape" << YAML::Value << GetTextureShapeString(textureConfig.shape);
 		out << YAML::Key << "sRGB" << YAML::Value << textureConfig.sRGB;
 		out << YAML::Key << "MipMaps" << YAML::Value << textureConfig.generateMipMaps;
+		out << YAML::Key << "TextureWrap" << YAML::Value << GetTextureWrapString(textureConfig.wrapMode);
+		out << YAML::Key << "TextureFilter" << YAML::Value << GetTextureFilterString(textureConfig.filterMode);
 	}
 
 	void SerializeMeshConfig(YAML::Emitter& out, MeshConfig const& meshConfig)
@@ -129,6 +161,22 @@ namespace Borealis
 		return TextureShape::_2D;
 	}
 
+	TextureWrap GetTextureWrap(std::string const& typeStr)
+	{
+		if (typeStr == "Repeat") return TextureWrap::_REPEAT;
+		if (typeStr == "Mirrored") return TextureWrap::_MIRRORED;
+		if (typeStr == "ClampToEdge") return TextureWrap::_CLAMP_TO_EDGE;
+		if (typeStr == "ClampToBorder") return TextureWrap::_CLAMP_TO_BORDER;
+		return TextureWrap::_REPEAT;
+	}
+
+	TextureFilter GetTextureFilter(std::string const& typeStr)
+	{
+		if (typeStr == "Linear") return TextureFilter::_LINEAR;
+		if (typeStr == "Nearest") return TextureFilter::_NEAREST;
+		return TextureFilter::_LINEAR;
+	}
+
 	TextureConfig DeserializeTextureConfig(YAML::Node& node)
 	{
 		TextureConfig config;
@@ -140,7 +188,10 @@ namespace Borealis
 			config.sRGB = node["sRGB"].as<bool>();
 		if (node["MipMaps"])
 			config.generateMipMaps = node["MipMaps"].as<bool>();
-
+		if (node["TextureWrap"])
+			config.wrapMode = GetTextureWrap(node["TextureWrap"].as<std::string>());
+		if (node["TextureFilter"])
+			config.wrapMode = GetTextureWrap(node["TextureFilter"].as<std::string>());
 		return config;
 	}
 

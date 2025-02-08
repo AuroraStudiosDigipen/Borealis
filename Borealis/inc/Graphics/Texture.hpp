@@ -126,11 +126,13 @@ namespace Borealis
 			\param[in] path
 				const std::string& - Path to the Texture
 		*************************************************************************/
-		static Ref<Texture2D> Create(const std::string& path);
+		static Ref<Texture2D> Create(const std::string& path, std::optional<TextureConfig> textureConfig = std::nullopt);
 
 		static Ref<Texture2D> GetDefaultTexture();
 
 		static Ref<Asset> Load(std::filesystem::path const& cachePath, AssetMetaData const& assetMetaData);
+
+		//static void Reload(AssetMetaData const& assetMetaData);
 
 	private:
 		static Ref<Texture2D> mDefault;

@@ -818,7 +818,7 @@ namespace Borealis
 		}
 		else if (capsulePtr)
 		{
-			CapsuleShapeSettings capsule_shape_settings(capsulePtr->radius * (transform.Scale.x + transform.Scale.z) * 0.5f, capsulePtr->height * transform.Scale.y); //For capsule scaling when Y is up, X and Z is the width and Y is the height.
+			CapsuleShapeSettings capsule_shape_settings(capsulePtr->height * transform.Scale.y, capsulePtr->radius * (transform.Scale.x + transform.Scale.z) * 0.5f); //For capsule scaling when Y is up, X and Z is the width and Y is the height.
 			capsule_shape_settings.SetEmbedded();
 			shape_result = capsule_shape_settings.Create();
 			shape = shape_result.Get();

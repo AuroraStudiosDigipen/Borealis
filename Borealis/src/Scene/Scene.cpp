@@ -35,25 +35,6 @@ namespace Borealis
 {
 	Scene::Scene(std::string name, std::string path) : mName(name), mScenePath(path)
 	{
-		//FrameBufferProperties props{ 1280, 720, false };
-		//props.Attachments = { FramebufferTextureFormat::RGBA8,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
-		//mViewportFrameBuffer = FrameBuffer::Create(props);
-
-		//FrameBufferProperties propsRuntime{ 1280, 720, false };
-		//propsRuntime.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RedInteger,FramebufferTextureFormat::Depth };
-		//mRuntimeFrameBuffer = FrameBuffer::Create(propsRuntime);
-
-		//FrameBufferProperties propsGBuffer{ 1280, 720, false };
-		//propsGBuffer.Attachments = 
-		//{
-		//	FramebufferTextureFormat::RGBA16F,  // Albedo + Alpha
-		//	FramebufferTextureFormat::RedInteger,  // entity id
-		//	FramebufferTextureFormat::RGBA8,   // Normal + roughness
-		//	FramebufferTextureFormat::RGBA8,   // Specular + metallic
-		//	//FramebufferTextureFormat::RGB16F,   // Position
-		//	FramebufferTextureFormat::Depth     // Depth buffer
-		//};
-		//mGFrameBuffer = FrameBuffer::Create(propsGBuffer);
 	}
 
 	Scene::~Scene()
@@ -123,8 +104,6 @@ namespace Borealis
 				{
 					lightComponent.position = buffer;
 					lightComponent.isEdited = true;
-
-					std::cout << "graph Light x {}" << lightComponent.position.x << '\n';
 				}
 
 				buffer = transform.GetGlobalRotation();
@@ -704,71 +683,14 @@ namespace Borealis
 	//move down ltr
 	Ref<FrameBuffer> Scene::GetRunTimeFB()
 	{
-		//move to rendergraph
-		if (!mViewportFrameBuffer || !mRuntimeFrameBuffer || !mGFrameBuffer || !mPixelBuffer)
-		{
-			FrameBufferProperties props{ 1280, 720, false };
-			props.Attachments = { FramebufferTextureFormat::RGBA8,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
-			mViewportFrameBuffer = FrameBuffer::Create(props);
-
-			FrameBufferProperties propsRuntime{ 1280, 720, false };
-			propsRuntime.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RedInteger,FramebufferTextureFormat::Depth };
-			mRuntimeFrameBuffer = FrameBuffer::Create(propsRuntime);
-
-			FrameBufferProperties propsGBuffer{ 1280, 720, false };
-			propsGBuffer.Attachments =
-			{
-				FramebufferTextureFormat::RGBA16F,  // Albedo + Alpha
-				FramebufferTextureFormat::RedInteger,  // entity id
-				FramebufferTextureFormat::RGBA8,   // Normal + roughness
-				FramebufferTextureFormat::RGBA8,   // Specular + metallic
-				//FramebufferTextureFormat::RGB16F,   // Position
-				FramebufferTextureFormat::Depth     // Depth buffer
-			};
-			mGFrameBuffer = FrameBuffer::Create(propsGBuffer);
-
-			FrameBufferProperties propsShadowMapBuffer{ 2024, 2024, false };
-			propsShadowMapBuffer.Attachments = { FramebufferTextureFormat::Depth };
-			mShadowMapBuffer = FrameBuffer::Create(propsShadowMapBuffer);
-
-			PixelBufferProperties propsPixelBuffer{ 1280, 720 };
-			mPixelBuffer = PixelBuffer::Create(propsPixelBuffer);
-		}
+		CreateBuffers();
 		return mRuntimeFrameBuffer;
 	}
 
 	Ref<FrameBuffer> Scene::GetEditorFB()
 	{
 		//move to rendergraph
-		if (!mViewportFrameBuffer || !mRuntimeFrameBuffer || !mGFrameBuffer || !mPixelBuffer)
-		{
-			FrameBufferProperties props{ 1280, 720, false };
-			props.Attachments = { FramebufferTextureFormat::RGBA8,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
-			mViewportFrameBuffer = FrameBuffer::Create(props);
-
-			FrameBufferProperties propsRuntime{ 1280, 720, false };
-			propsRuntime.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RedInteger,FramebufferTextureFormat::Depth };
-			mRuntimeFrameBuffer = FrameBuffer::Create(propsRuntime);
-
-			FrameBufferProperties propsGBuffer{ 1280, 720, false };
-			propsGBuffer.Attachments =
-			{
-				FramebufferTextureFormat::RGBA16F,  // Albedo + Alpha
-				FramebufferTextureFormat::RedInteger,  // entity id
-				FramebufferTextureFormat::RGBA8,   // Normal + roughness
-				FramebufferTextureFormat::RGBA8,   // Specular + metallic
-				//FramebufferTextureFormat::RGB16F,   // Position
-				FramebufferTextureFormat::Depth     // Depth buffer
-			};
-			mGFrameBuffer = FrameBuffer::Create(propsGBuffer);
-
-			FrameBufferProperties propsShadowMapBuffer{ 2024, 2024, false };
-			propsShadowMapBuffer.Attachments = { FramebufferTextureFormat::Depth };
-			mShadowMapBuffer = FrameBuffer::Create(propsShadowMapBuffer);
-
-			PixelBufferProperties propsPixelBuffer{ 1280, 720 };
-			mPixelBuffer = PixelBuffer::Create(propsPixelBuffer);
-		}
+		CreateBuffers();
 		return mViewportFrameBuffer;
 	}
 
@@ -792,21 +714,10 @@ namespace Borealis
 		mRenderGraph.Init();
 	}
 
-	void Scene::UpdateEditor(float dt, EditorCamera& camera)
-	{
-		Renderer3D::Begin(camera);
-		Render3DPass();
-		Renderer3D::End();
-
-		Renderer2D::Begin(camera);
-		Render2DPass();
-		Renderer2D::End();
-	}
-
-	void Scene::UpdateRenderer(float dt)
+	void Scene::CreateBuffers()
 	{
 		//move to rendergraph
-		if (!mViewportFrameBuffer || !mRuntimeFrameBuffer || !mGFrameBuffer)
+		if (!mViewportFrameBuffer || !mRuntimeFrameBuffer || !mGFrameBuffer || !mAccumulaionFBO)
 		{
 			FrameBufferProperties props{ 1280, 720, false };
 			props.Attachments = { FramebufferTextureFormat::RGBA16F,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
@@ -834,7 +745,35 @@ namespace Borealis
 
 			PixelBufferProperties propsPixelBuffer{ 1280, 720 };
 			mPixelBuffer = PixelBuffer::Create(propsPixelBuffer);
+
+			FrameBufferProperties propsOpaque{ 1280, 720, false };
+			propsOpaque.Attachments = { FramebufferTextureFormat::RGBA16F,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
+			mOpaqueFBO = FrameBuffer::Create(propsOpaque);
+
+			FrameBufferProperties propsAccumulaionFBO{ 1280, 720, false };
+			propsAccumulaionFBO.Attachments = { FramebufferTextureFormat::RGBA16F,FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::R16F };
+			mAccumulaionFBO = FrameBuffer::Create(propsAccumulaionFBO);
+			
+			FrameBufferProperties propsCompositeFBO{ 1280, 720, false };
+			propsCompositeFBO.Attachments = { FramebufferTextureFormat::RGBA16F,FramebufferTextureFormat::RedInteger};
+			mCompositeFBO = FrameBuffer::Create(propsAccumulaionFBO);
 		}
+	}
+
+	void Scene::UpdateEditor(float dt, EditorCamera& camera)
+	{
+		Renderer3D::Begin(camera);
+		Render3DPass();
+		Renderer3D::End();
+
+		Renderer2D::Begin(camera);
+		Render2DPass();
+		Renderer2D::End();
+	}
+
+	void Scene::UpdateRenderer(float dt)
+	{
+		CreateBuffers();
 
 		Camera* mainCamera = nullptr; // camera not found
 		glm::mat4 mainCameratransform(1.f);
@@ -873,6 +812,15 @@ namespace Borealis
 
 		PixelBufferSource pixelBuffer("PixelBuffer", mPixelBuffer);
 		mRenderGraph.SetGlobalSource(MakeRef<PixelBufferSource>(pixelBuffer));
+
+		RenderTargetSource opaqueBuffer("opaqueBuffer", mOpaqueFBO);
+		mRenderGraph.SetGlobalSource(MakeRef<RenderTargetSource>(opaqueBuffer));
+
+		RenderTargetSource accumulaionBuffer("accumulaionBuffer", mAccumulaionFBO);
+		mRenderGraph.SetGlobalSource(MakeRef<RenderTargetSource>(accumulaionBuffer));
+
+		RenderTargetSource compositeBuffer("compositeBuffer", mCompositeFBO);
+		mRenderGraph.SetGlobalSource(MakeRef<RenderTargetSource>(compositeBuffer));
 
 		//PixelBufferSource nullPixelBuffer("NullPixelBuffer", nullptr);
 		//mRenderGraph.SetGlobalSource(MakeRef<PixelBufferSource>(nullPixelBuffer));

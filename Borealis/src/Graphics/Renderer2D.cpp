@@ -926,7 +926,10 @@ namespace Borealis
 
 		for (int i = 0; i < 4; i++)
 		{
-			sData->QuadBufferPtr->Position = transform * sData->VertexPos[i];
+			if (billBoard)
+				sData->QuadBufferPtr->Position = transform * glm::vec4(0.f, 0.f, 0.f, 1.f);
+			else
+				sData->QuadBufferPtr->Position = transform * sData->VertexPos[i];
 			sData->QuadBufferPtr->Colour = tint;
 			sData->QuadBufferPtr->TexCoord = texCoords[i];
 			sData->QuadBufferPtr->TexIndex = textureUnit;

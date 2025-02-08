@@ -112,6 +112,8 @@ namespace Borealis
 
         bool isModified = false;
 
+        ImGui::Checkbox("Is Transparent", &material->isTransparent);
+
         for (int i = Material::Albedo; i <= Material::Emission; ++i)
         {
             std::string label = Material::TextureMapToString(static_cast<Material::TextureMaps>(i));

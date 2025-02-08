@@ -20,13 +20,19 @@ uniform int u_EntityID;
 
 //Animation variables
 uniform bool u_HasAnimation;
+uniform int  u_AnimationIndex;
 const int MAX_BONES = 128;
 const int MAX_BONE_INFLUENCE = 4;
-//uniform mat4 u_FinalBonesMatrices[MAX_BONES]; //move to uniform buffer objects
+const int MAX_ANIMATIONS = 5;
+
+struct Animation
+{
+    mat4 FinalBonesMatrices[MAX_BONES];
+};
 
 layout(std140) uniform AnimationUBO
 {
-	mat4 u_FinalBonesMatrices[MAX_BONES];
+    Animation animations[MAX_ANIMATIONS];
 };
 
 //shadow pass variables
@@ -73,14 +79,9 @@ void Render3DPass()
                 TotalPosition = vec4(a_Position,1.0f);
                 break;
             }
-            vec4 localPosition = u_FinalBonesMatrices[boneIds[i]] * vec4(a_Position,1.0f);
+            vec4 localPosition = animations[u_AnimationIndex].FinalBonesMatrices[boneIds[i]] * vec4(a_Position,1.0f);
             TotalPosition += localPosition * weights[i];
-			
-			//weightedNormal += weights[i] * mat3(u_FinalBonesMatrices[boneIds[i]]) * a_Normal;
-
-			//Need to apply weightedTangent and BitTangent as well
         }
-		//N = normalize(weightedNormal);
 
 		gl_Position = u_ViewProjection * u_ModelTransform * TotalPosition;	
 		v_LightPos = u_LightViewProjection * u_ModelTransform * TotalPosition;
@@ -114,7 +115,7 @@ void main()
 //layout(location = 0) out vec4 color;
 layout(location = 0) out vec4 fragColor;
 layout(location = 1) out int entityIDs;
-
+layout(location = 2) out float outRevealage;
 struct MaterialUBOData
 {
     vec4 albedoColor;
@@ -164,6 +165,9 @@ layout(std140) uniform LightsUBO
 	int u_LightsCount;
 };
 
+
+uniform bool u_Transparent;
+
 in vec2 v_TexCoord;
 in vec3 v_FragPos;
 in vec3 v_Normal; 
@@ -200,7 +204,15 @@ vec2 GetTexCoord()
 
 vec4 GetAlbedoColor()
 {
-	vec4 albedoColor = materials[materialIndex].hasAlbedoMap ? texture(albedoMap, GetTexCoord()) : materials[materialIndex].albedoColor;
+	vec4 albedoColor = vec4(0.f);
+    if(materials[materialIndex].hasAlbedoMap) 
+    {
+        albedoColor = vec4(texture(albedoMap, GetTexCoord()).rgb, materials[materialIndex].albedoColor.a);
+    }
+    else
+    {
+        albedoColor = materials[materialIndex].albedoColor;
+    } 
 	return albedoColor;
 }
 
@@ -516,11 +528,20 @@ void Render3DPass()
 	vec3 ambient = vec3(0.1f) * GetAlbedoColor().rgb;
 
 	vec3 finalColor = color.rgb;
-
-	finalColor = finalColor / (finalColor + vec3(1.0));
+    finalColor = finalColor / (finalColor + vec3(1.0));
     finalColor = pow(finalColor, vec3(1.0/2.2)); 
-	fragColor =  vec4(finalColor,GetAlbedoColor().a);
-	
+
+    if(u_Transparent)
+    {
+        float weight = clamp(pow(min(1.0, GetAlbedoColor().a * 10.0) + 0.01, 3.0) * 1e8 * pow(1.0 - gl_FragCoord.z * 0.9, 3.0), 1e-2, 3e3);
+        fragColor = vec4(finalColor.rgb * GetAlbedoColor().a * weight, GetAlbedoColor().a * weight);
+        outRevealage = GetAlbedoColor().a;
+    }
+    else
+    {
+	    fragColor =  vec4(finalColor,GetAlbedoColor().a);
+    }
+
 	entityIDs = v_EntityID;
 }
 

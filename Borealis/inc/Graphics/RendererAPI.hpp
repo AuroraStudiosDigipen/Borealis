@@ -29,7 +29,8 @@ namespace Borealis
 	{
 		ACCUMULATION,
 		REVEALAGE,
-		NONE
+		NONE,
+		QUERY
 	};
 
 	class RendererAPI

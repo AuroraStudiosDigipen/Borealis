@@ -504,6 +504,8 @@ namespace Borealis
 		bool		randomStartColor = false;
 		glm::vec4	startColor = glm::vec4{ 1.f };
 		glm::vec4	startColor2 = glm::vec4{ 1.f };
+		bool		endColorBool;
+		glm::vec4	endColor = glm::vec4{ 1.f };
 		float		gravityModifer = 0.f;
 		float		simulationSpeed = 1.f;
 		uint32_t	maxParticles = 1000;

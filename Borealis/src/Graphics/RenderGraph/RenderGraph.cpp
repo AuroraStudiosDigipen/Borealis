@@ -660,7 +660,7 @@ namespace Borealis
 		Renderer3D::End();
 		renderTarget->Unbind();
 
-		////Transparency
+		//Transparency
 
 		uint32_t depthTexture = renderTarget->buffer->DetachDepthBuffer();
 		accumulaionTarget->buffer->AttachDepthBuffer(depthTexture);
@@ -688,11 +688,9 @@ namespace Borealis
 		revealage_shader->Set("accumAlphaTex", 1);
 		Renderer3D::DrawQuad();
 
-		////RenderCommand::ConfigureBlendForTransparency(TransparencyStage::NONE);
 		RenderCommand::SetDepthMask(true);
 		RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLess);
 		RenderCommand::EnableDepthTest();
-		////RenderCommand::DisableBlend();
 	}
 
 	void Render2D::Execute(float dt)
@@ -1840,7 +1838,7 @@ namespace Borealis
 		}
 
 		//RenderCommand::EnableBlend();
-		//RenderCommand::ConfigureBlendForTransparency(TransparencyStage::REVEALAGE);
+		RenderCommand::ConfigureBlendForTransparency(TransparencyStage::REVEALAGE);
 		Renderer2D::End();
 		//RenderCommand::DisableBlend();
 
@@ -1903,7 +1901,7 @@ namespace Borealis
 				glm::mat4 transfrom = glm::translate(glm::mat4(1.0f), particle.position) *
 					glm::toMat4(particle.startRotation) *
 					glm::scale(glm::mat4(1.0f), particle.startSize);
-				Renderer2D::DrawQuad(transfrom, brEntity.GetComponent<ParticleSystemComponent>().texture, particle.startSize[0], particle.startColor, -1, true);
+				Renderer2D::DrawQuad(transfrom, brEntity.GetComponent<ParticleSystemComponent>().texture, particle.startSize[0], particle.currentColor, -1, true);
 			}
 		}
 		Renderer2D::End();

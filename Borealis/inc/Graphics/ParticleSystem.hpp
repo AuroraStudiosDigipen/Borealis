@@ -33,7 +33,8 @@ namespace Borealis
 		glm::vec3	startVelocity = glm::vec3{5.f};
 		glm::vec3	startSize = glm::vec3{ 1.f }; //if not 3d, use .x for size
 		glm::quat	startRotation = glm::vec3{ 0.f }; // if not 3d, use .x for rotation
-		glm::vec4	startColor = glm::vec4{ 1.f }; //color can be uniform for all particles?
+		glm::vec4	startColor = glm::vec4{ 1.f }; 
+		glm::vec4	currentColor = glm::vec4{ 1.f }; 
 	};
 
 	struct ParticleSystemComponent;
@@ -72,6 +73,8 @@ namespace Borealis
 		bool		mRandomStartColor = false;
 		glm::vec4	mStartColor = glm::vec4{ 1.f };
 		glm::vec4	mStartColor2 = glm::vec4{ 1.f };
+		bool		mEndColorBool = false;
+		glm::vec4	mEndColor = glm::vec4{ 1.f };
 		float		mGravityModifer = 0.f;
 		float		mSimulationSpeed = 1.f; //speed of simulation
 		uint32_t	mMaxParticles = 1000;

@@ -100,9 +100,44 @@ namespace Borealis
 		{
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		}
+		else if(stage == TransparencyStage::NONE)
+		{
+			glBlendFunc(GL_ONE, GL_ZERO);
+		}
 		else
 		{
-			glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+			GLint srcFactor, dstFactor;
+
+			glGetIntegerv(GL_BLEND_SRC, &srcFactor);
+			glGetIntegerv(GL_BLEND_DST, &dstFactor);
+
+			switch (srcFactor) {
+			case GL_ZERO: std::cout << "Source Factor: GL_ZERO" << std::endl; break;
+			case GL_ONE: std::cout << "Source Factor: GL_ONE" << std::endl; break;
+			case GL_SRC_COLOR: std::cout << "Source Factor: GL_SRC_COLOR" << std::endl; break;
+			case GL_ONE_MINUS_SRC_COLOR: std::cout << "Source Factor: GL_ONE_MINUS_SRC_COLOR" << std::endl; break;
+			case GL_DST_COLOR: std::cout << "Source Factor: GL_DST_COLOR" << std::endl; break;
+			case GL_ONE_MINUS_DST_COLOR: std::cout << "Source Factor: GL_ONE_MINUS_DST_COLOR" << std::endl; break;
+			case GL_SRC_ALPHA: std::cout << "Source Factor: GL_SRC_ALPHA" << std::endl; break;
+			case GL_ONE_MINUS_SRC_ALPHA: std::cout << "Source Factor: GL_ONE_MINUS_SRC_ALPHA" << std::endl; break;
+			case GL_DST_ALPHA: std::cout << "Source Factor: GL_DST_ALPHA" << std::endl; break;
+			case GL_ONE_MINUS_DST_ALPHA: std::cout << "Source Factor: GL_ONE_MINUS_DST_ALPHA" << std::endl; break;
+			default: std::cout << "Source Factor: Unknown" << std::endl; break;
+			}
+
+			switch (dstFactor) {
+			case GL_ZERO: std::cout << "Destination Factor: GL_ZERO" << std::endl; break;
+			case GL_ONE: std::cout << "Destination Factor: GL_ONE" << std::endl; break;
+			case GL_SRC_COLOR: std::cout << "Destination Factor: GL_SRC_COLOR" << std::endl; break;
+			case GL_ONE_MINUS_SRC_COLOR: std::cout << "Destination Factor: GL_ONE_MINUS_SRC_COLOR" << std::endl; break;
+			case GL_DST_COLOR: std::cout << "Destination Factor: GL_DST_COLOR" << std::endl; break;
+			case GL_ONE_MINUS_DST_COLOR: std::cout << "Destination Factor: GL_ONE_MINUS_DST_COLOR" << std::endl; break;
+			case GL_SRC_ALPHA: std::cout << "Destination Factor: GL_SRC_ALPHA" << std::endl; break;
+			case GL_ONE_MINUS_SRC_ALPHA: std::cout << "Destination Factor: GL_ONE_MINUS_SRC_ALPHA" << std::endl; break;
+			case GL_DST_ALPHA: std::cout << "Destination Factor: GL_DST_ALPHA" << std::endl; break;
+			case GL_ONE_MINUS_DST_ALPHA: std::cout << "Destination Factor: GL_ONE_MINUS_DST_ALPHA" << std::endl; break;
+			default: std::cout << "Destination Factor: Unknown" << std::endl; break;
+			}
 		}
 	}
 

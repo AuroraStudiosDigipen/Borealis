@@ -41,6 +41,8 @@ namespace Borealis
 		mRandomStartColor = particleSystemComponent.randomStartColor;
 		mStartColor = particleSystemComponent.startColor;
 		mStartColor2 = particleSystemComponent.startColor2;
+		mEndColorBool = particleSystemComponent.endColorBool;
+		mEndColor = particleSystemComponent.endColor;
 		mGravityModifer = particleSystemComponent.gravityModifer;
 		mSimulationSpeed = particleSystemComponent.simulationSpeed; //speed of simulation
 		mMaxParticles = particleSystemComponent.maxParticles;
@@ -100,6 +102,12 @@ namespace Borealis
 			}
 
 			particle.position += particle.startVelocity * dt;
+
+			if(mEndColorBool)
+			{
+				float t = particle.life / mStartLifeTime; // Normalized lifetime (0 to 1)
+				particle.currentColor = particle.startColor + t * (mEndColor - particle.startColor);
+			}
 		}
 	}
 
@@ -218,6 +226,8 @@ namespace Borealis
 		mRandomStartColor = particleSystemComponent.randomStartColor;
 		mStartColor = particleSystemComponent.startColor;
 		mStartColor2 = particleSystemComponent.startColor2;
+		mEndColorBool = particleSystemComponent.endColorBool;
+		mEndColor = particleSystemComponent.endColor;
 		mGravityModifer = particleSystemComponent.gravityModifer;
 		mSimulationSpeed = particleSystemComponent.simulationSpeed; //speed of simulation
 		if(mMaxParticles != particleSystemComponent.maxParticles)
@@ -236,7 +246,32 @@ namespace Borealis
 		mRadius = particleSystemComponent.radius;
 		mRadiusThickness = particleSystemComponent.radiusThickness;
 
-		UpdateParticles(mStartSize, mStartRotation, mStartColor);
+		glm::vec4 startColor{};
+		glm::vec3 startSize{};
+
+		// Random start color (if enabled)
+		if (mRandomStartColor)
+		{
+			float colorLerp = static_cast<float>(rand()) / RAND_MAX;
+			startColor = glm::mix(mStartColor, mStartColor2, colorLerp);
+		}
+		else
+		{
+			startColor = mStartColor;
+		}
+
+		// Random start size (if enabled)
+		if (mRandomStartSizeBool)
+		{
+			float sizeLerp = static_cast<float>(rand()) / RAND_MAX;
+			startSize = glm::mix(mStartSize, mStartSize2, sizeLerp);
+		}
+		else
+		{
+			startSize = mStartSize;
+		}
+
+		UpdateParticles(startSize, mStartRotation, startColor);
 	}
 
 	void ParticleSystem::UpdateParticles(glm::vec3 size, glm::vec3 rotation, glm::vec4 color)

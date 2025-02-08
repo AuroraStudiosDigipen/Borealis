@@ -351,8 +351,9 @@ namespace Borealis
 		return lightProjection * lightView;
 	}
 
-	void SetShadowVariable(LightComponent const& lightComponent, Ref<Shader> shader, Ref<CameraSource> camera)
+	glm::mat4 SetShadowVariable(LightComponent const& lightComponent, Ref<Shader> shader, Ref<CameraSource> camera)
 	{
+		glm::mat4 lightViewProj;
 		if (lightComponent.type == LightComponent::Type::Spot)
 		{
 			//need to change exact same code on top, fix next time
@@ -362,6 +363,7 @@ namespace Borealis
 			glm::mat4 lightProj = glm::perspective(fieldOfView, 1.f, 1.f, lightComponent.range); //change in the future
 			shader->Bind();
 			shader->Set("u_LightViewProjection", lightProj * lightView);
+			lightViewProj = lightProj * lightView;
 		}
 		else if (lightComponent.type == LightComponent::Type::Directional)
 		{
@@ -403,7 +405,11 @@ namespace Borealis
 
 				cascade_shadow_shader->Unbind();
 			}
+
+			lightViewProj = lightViewProjMatrices[3];
 		}
+
+		return lightViewProj;
 	}
 
 	void SetShadowAndLight(Ref<RenderTargetSource> shadowMap, Ref<Shader> shader,  entt::registry* registryPtr, Ref<CameraSource> camera, bool editor)
@@ -1057,6 +1063,7 @@ namespace Borealis
 		}
 
 		{
+			glm::mat4 lightViewProj{};
 			static bool editorChange = false;
 			bool directionalLight = false;
 			entt::basic_group group = registryPtr->group<>(entt::get<TransformComponent, LightComponent>);
@@ -1093,11 +1100,11 @@ namespace Borealis
 
 					if (!editor)
 					{
-						if (glm::distance(tempPos, cameraPosition) > 0.1f) cameraChange = true;
+						if (glm::distance(tempPos, cameraPosition) > 0.05f) cameraChange = true;
 					}
 					else
 					{
-						if (glm::distance(tempPosEditor, cameraPosition) > 0.1f) cameraChange = true;
+						if (glm::distance(tempPosEditor, cameraPosition) > 0.05f) cameraChange = true;
 					}
 
 					if (lightChange || cameraChange)
@@ -1126,7 +1133,7 @@ namespace Borealis
 					directionalLight = true;
 				}
 
-				SetShadowVariable(lightComponent, shader, camera);
+				lightViewProj = SetShadowVariable(lightComponent, shader, camera);
 
 				break; //TODO 1 shadow for now
 			}
@@ -1134,7 +1141,7 @@ namespace Borealis
 			shader->Bind();
 			shader->Set("shadowPass", true);
 
-			Frustum frustum = ComputeFrustum(viewProjMatrix);
+			Frustum frustum = ComputeFrustum(lightViewProj);
 
 			if(!directionalLight)
 			{

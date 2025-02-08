@@ -969,7 +969,7 @@ namespace Borealis
 		CopyComponent<BoxColliderComponent>(newEntity,entity);
 		CopyComponent<SphereColliderComponent>(newEntity, entity);
 		CopyComponent<CapsuleColliderComponent>(newEntity,entity);
-		CopyComponent<TaperedCapsuleColliderComponent>(newEntity,entity);
+		CopyComponent<CylinderColliderComponent>(newEntity,entity);
 		CopyComponent<RigidbodyComponent>(newEntity, entity);
 		CopyComponent<CharacterControllerComponent>(newEntity, entity);
 		CopyComponent<LightComponent>(newEntity, entity);
@@ -1165,7 +1165,7 @@ namespace Borealis
 		CopyComponent<BoxColliderComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<SphereColliderComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<CapsuleColliderComponent>(newRegistry, originalRegistry, UUIDtoENTT);
-		CopyComponent<TaperedCapsuleColliderComponent>(newRegistry, originalRegistry, UUIDtoENTT);
+		CopyComponent<CylinderColliderComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<RigidbodyComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<LightComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<CharacterControllerComponent>(newRegistry, originalRegistry, UUIDtoENTT);
@@ -1258,7 +1258,7 @@ namespace Borealis
 			}
 		}
 
-		auto tCapsuleGroup = mRegistry.group<>(entt::get<TransformComponent, TaperedCapsuleColliderComponent>);
+		auto tCapsuleGroup = mRegistry.group<>(entt::get<TransformComponent, CylinderColliderComponent>);
 		for (auto entity : tCapsuleGroup)
 		{
 			Entity brEntity{ entity, this };
@@ -1266,7 +1266,7 @@ namespace Borealis
 			{
 				continue;
 			}
-			auto [transform, capsule] = tCapsuleGroup.get<TransformComponent, TaperedCapsuleColliderComponent>(entity);
+			auto [transform, capsule] = tCapsuleGroup.get<TransformComponent, CylinderColliderComponent>(entity);
 			auto entityID = mRegistry.get<IDComponent>(entity).ID;
 			if (mRegistry.storage<RigidbodyComponent>().contains(entity))
 			{
@@ -1576,8 +1576,42 @@ namespace Borealis
 	}
 
 	template<>
-	void Scene::OnComponentAdded<TaperedCapsuleColliderComponent>(Entity entity, TaperedCapsuleColliderComponent& component)
+	void Scene::OnComponentAdded<CylinderColliderComponent>(Entity entity, CylinderColliderComponent& component)
 	{
+		if (entity.HasComponent<MeshFilterComponent>())
+		{
+			if (entity.GetComponent<MeshFilterComponent>().Model)
+			{
+				component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).first;
+				glm::vec3 data = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).second;
+				component.radius = PhysicsSystem::calculateCapsuleDimensions(data).first;
+				component.height = PhysicsSystem::calculateCapsuleDimensions(data).second;
+				if (component.height <= 0.f)
+				{
+					component.height = 2.f;
+				}
+			}
+		}
+		else if (entity.HasComponent<SkinnedMeshRendererComponent>())
+		{
+			if (entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel)
+			{
+				component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel.get())).first;
+				glm::vec3 data = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel.get())).second;
+				component.radius = PhysicsSystem::calculateCapsuleDimensions(data).first;
+				component.height = PhysicsSystem::calculateCapsuleDimensions(data).second;
+				if (component.height <= 0.f)
+				{
+					component.height = 2.f;
+				}
+			}
+		}
+		else
+		{
+			component.radius = 1.f;
+			component.height = 2.f;
+			component.center = { 0,0,0 };
+		}
 	}
 
 	template<>

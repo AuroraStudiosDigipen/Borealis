@@ -82,11 +82,6 @@ namespace Borealis
 		ULONGLONG prevTickCount = GetTickCount64(); // Get initial tick count
 		PROFILE_FUNCTION();
 
-		Audio audio = AudioEngine::LoadAudio("MoodSwingsBGM.wav");
-		Ref<Audio> ref = MakeRef<Audio>(audio);
-		int ch = AudioEngine::Play(ref, {}, 1.f, true, "BGM");
-		AudioEngine::ApplyFadeIn(ch, 3.f, 1.f);
-
 		float count = 0.f;
 
 		while (mIsRunning)

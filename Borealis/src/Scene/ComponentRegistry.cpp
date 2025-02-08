@@ -60,7 +60,7 @@ namespace Borealis
             .property("Height", &CapsuleColliderComponent::height)
             .property("Direction", &CapsuleColliderComponent::direction);
 
-        registration::class_<CylinderColliderComponent>("Cylinder Capsule Collider Component")
+        registration::class_<CylinderColliderComponent>("Cylinder Collider Component")
             (metadata("Component", true))
             .constructor<>()
             .property("Is Trigger", &CylinderColliderComponent::isTrigger)

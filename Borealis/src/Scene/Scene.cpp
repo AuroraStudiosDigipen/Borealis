@@ -1584,8 +1584,8 @@ namespace Borealis
 			{
 				component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).first;
 				glm::vec3 data = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).second;
-				component.radius = PhysicsSystem::calculateCapsuleDimensions(data).first;
-				component.height = PhysicsSystem::calculateCapsuleDimensions(data).second;
+				component.radius = PhysicsSystem::calculateCylinderDimensions(data).first;
+				component.height = PhysicsSystem::calculateCylinderDimensions(data).second;
 				if (component.height <= 0.f)
 				{
 					component.height = 2.f;
@@ -1598,8 +1598,8 @@ namespace Borealis
 			{
 				component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel.get())).first;
 				glm::vec3 data = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel.get())).second;
-				component.radius = PhysicsSystem::calculateCapsuleDimensions(data).first;
-				component.height = PhysicsSystem::calculateCapsuleDimensions(data).second;
+				component.radius = PhysicsSystem::calculateCylinderDimensions(data).first;
+				component.height = PhysicsSystem::calculateCylinderDimensions(data).second;
 				if (component.height <= 0.f)
 				{
 					component.height = 2.f;

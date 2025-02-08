@@ -681,7 +681,7 @@ namespace Borealis
 		return { radius, halfHeight };
 	}
 
-	static std::pair<float, float> calculateCylinderDimensions(glm::vec3 boundingVolume)
+	std::pair<float, float> PhysicsSystem::calculateCylinderDimensions(glm::vec3 boundingVolume)
 	{
 		// Radius is half of the smallest width in the X or Z dimensions
 		float radius = 0.5f * std::min(boundingVolume.x, boundingVolume.z);

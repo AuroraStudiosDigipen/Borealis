@@ -60,14 +60,13 @@ namespace Borealis
             .property("Height", &CapsuleColliderComponent::height)
             .property("Direction", &CapsuleColliderComponent::direction);
 
-        registration::class_<TaperedCapsuleColliderComponent>("Tapered Capsule Collider Component")
+        registration::class_<CylinderColliderComponent>("Cylinder Collider Component")
             (metadata("Component", true))
             .constructor<>()
-            .property("Is Trigger", &TaperedCapsuleColliderComponent::isTrigger)
-            .property("Provides Contact", &TaperedCapsuleColliderComponent::providesContact)
-            .property("Top Radius", &TaperedCapsuleColliderComponent::topRadius)
-            .property("Bot Radius", &TaperedCapsuleColliderComponent::botRadius)
-            .property("Height", &TaperedCapsuleColliderComponent::height);
+            .property("Is Trigger", &CylinderColliderComponent::isTrigger)
+            .property("Provides Contact", &CylinderColliderComponent::providesContact)
+            .property("Radius", &CylinderColliderComponent::radius)
+            .property("Height", &CylinderColliderComponent::height);
 
         registration::class_<SphereColliderComponent>("Sphere Collider Component")
             (metadata("Component", true))
@@ -498,7 +497,7 @@ void Borealis::ComponentRegistry::SetPropertyInternal(const std::string& propert
     RegisterSetPropertyFunction(AnimatorComponent);
     RegisterSetPropertyFunction(BoxColliderComponent);
     RegisterSetPropertyFunction(CapsuleColliderComponent);
-    RegisterSetPropertyFunction(TaperedCapsuleColliderComponent);
+    RegisterSetPropertyFunction(CylinderColliderComponent);
     RegisterSetPropertyFunction(SphereColliderComponent);
     RegisterSetPropertyFunction(RigidbodyComponent);
     RegisterSetPropertyFunction(LightComponent);
@@ -515,7 +514,7 @@ void Borealis::ComponentRegistry::SetPropertyInternal(const std::string& propert
     RegisterCopyPropertyFunction(AnimatorComponent);
     RegisterCopyPropertyFunction(BoxColliderComponent);
     RegisterCopyPropertyFunction(CapsuleColliderComponent);
-    RegisterCopyPropertyFunction(TaperedCapsuleColliderComponent);
+    RegisterCopyPropertyFunction(CylinderColliderComponent);
     RegisterCopyPropertyFunction(SphereColliderComponent);
     RegisterCopyPropertyFunction(RigidbodyComponent);
     RegisterCopyPropertyFunction(LightComponent);

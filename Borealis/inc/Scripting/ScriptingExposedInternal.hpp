@@ -413,6 +413,8 @@ namespace Borealis
 	void CharacterController_Jump(uint64_t id, float jumpSpeed);
 
 	void CharacterController_IsGrounded(uint64_t id, bool* grounded);
+	void CharacterController_GetLinearVelocity(uint64_t id, glm::vec3* vel);
+	void CharacterController_SetLinearVelocity(uint64_t id, glm::vec3* vel);
 
 	void AudioSource_GetClip(uint64_t ID, uint64_t* ClipID);
 	void AudioSource_SetClip(uint64_t ID, uint64_t* ClipID);

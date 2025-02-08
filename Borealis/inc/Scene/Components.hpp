@@ -275,10 +275,9 @@ namespace Borealis
 		unsigned int bodyID = 0;
 	};
 
-	struct TaperedCapsuleColliderComponent : public ColliderComponent
+	struct CylinderColliderComponent : public ColliderComponent
 	{
-		float botRadius = 1.f;
-		float topRadius = 0.5f;
+		float radius = 1.f;
 		float height = 2.f;
 	};
 

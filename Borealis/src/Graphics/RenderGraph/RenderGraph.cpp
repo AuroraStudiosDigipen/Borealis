@@ -492,7 +492,6 @@ namespace Borealis
 		Ref<CameraSource> camera = nullptr;
 		Ref<RenderTargetSource> renderTarget = nullptr;
 		Ref<RenderTargetSource> shadowMap = nullptr;
-		Ref<RenderTargetSource> opaqueTarget = nullptr;
 		Ref<RenderTargetSource> accumulaionTarget = nullptr;
 		Ref<PixelBufferSource> pixelBuffer = nullptr;
 		glm::vec3 camPos{};
@@ -523,13 +522,7 @@ namespace Borealis
 				{
 					accumulaionTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
 					accumulaionTarget->buffer->ClearAttachment(1, -1);
-				}				
-				
-				if (sink->sinkName == "opaqueTarget")
-				{
-					opaqueTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
-					opaqueTarget->buffer->ClearAttachment(1, -1);
-				}
+				}			
 
 				if (sink->sinkName == "shadowMap")
 				{

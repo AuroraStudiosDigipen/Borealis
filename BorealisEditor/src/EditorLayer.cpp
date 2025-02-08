@@ -97,6 +97,9 @@ namespace Borealis {
 	static int viewportMouseXCurr = 0;
 	static int viewportMouseYCurr = 0;
 
+
+	static bool particlesForEditor = true;
+
 	void EditorLayer::Init()
 	{
 
@@ -331,10 +334,13 @@ namespace Borealis {
 					.AddSinkLinkage("renderTarget", "ObjectPicking.renderTarget");
 				fconfig.AddPass(highlightPass);
 
-				RenderPassConfig particleSystemPass(RenderPassType::ParticleSystemPass, "ParticleSystemEditor");
-				particleSystemPass.AddSinkLinkage("camera", "EditorCamera")
-					.AddSinkLinkage("renderTarget", "Highlight.renderTarget");
-				fconfig.AddPass(particleSystemPass);
+				if(particlesForEditor)
+				{
+					RenderPassConfig particleSystemPass(RenderPassType::ParticleSystemPass, "ParticleSystemEditor");
+					particleSystemPass.AddSinkLinkage("camera", "EditorCamera")
+						.AddSinkLinkage("renderTarget", "Highlight.renderTarget");
+					fconfig.AddPass(particleSystemPass);
+				}
 			}
 
 			//deferred rendering
@@ -1429,11 +1435,14 @@ namespace Borealis {
 		{
 			Renderer3D::SetGlobalWireFrameMode(!Renderer3D::GetGlobalWireFrameMode());
 		}
+		ImGui::SameLine();
 		bool showCollide = PhysicsSystem::DebugDrawGet();
 		if (ImGui::Checkbox("Show Colliders", &showCollide))
 		{
 			PhysicsSystem::DebugDrawSet(showCollide);
 		}
+		ImGui::SameLine();
+		ImGui::Checkbox("Toggle editor particles", &particlesForEditor);
 
 		ImGui::End();
 

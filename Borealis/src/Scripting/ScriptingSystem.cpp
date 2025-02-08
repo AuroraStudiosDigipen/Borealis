@@ -421,6 +421,7 @@ namespace Borealis
 		RegisterComponent<AudioSourceComponent>();
 		RegisterComponent<OutLineComponent>();
 		RegisterComponent<RigidbodyComponent>();
+		RegisterComponent<TextComponent>();
 
 		//RegisterComponent<LightComponent>();
 

@@ -40,7 +40,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
-#include <Jolt/Physics/Collision/Shape/TaperedCapsuleShape.h>
+#include <Jolt/Physics/Collision/Shape/CylinderShape.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Body/BodyActivationListener.h>
 #include <Jolt/Physics/Collision/Shape/RotatedTranslatedShape.h>
@@ -681,6 +681,18 @@ namespace Borealis
 		return { radius, halfHeight };
 	}
 
+	std::pair<float, float> PhysicsSystem::calculateCylinderDimensions(glm::vec3 boundingVolume)
+	{
+		// Radius is half of the smallest width in the X or Z dimensions
+		float radius = 0.5f * std::min(boundingVolume.x, boundingVolume.z);
+
+		// Half-height is half of the height (Y dimension)
+		float halfHeight = 0.5f * boundingVolume.y;
+
+		return { radius, halfHeight };
+
+	}
+
 	void PhysicsSystem::AddForce(unsigned int bodyID, glm::vec3 force)
 	{
 		sPhysicsData.body_interface->AddForce((BodyID)bodyID, JPH::RVec3(force.x, force.y, force.z));
@@ -706,6 +718,19 @@ namespace Borealis
 	{
 		auto data = sPhysicsData.body_interface->GetAngularVelocity((BodyID)bodyID);
 		return { data.GetX(), data.GetY(), data.GetZ() };
+	}
+
+	glm::vec3 PhysicsSystem::GetLinearVelocity(void* character)
+	{
+
+		CharacterVirtual* mCharacter = reinterpret_cast<CharacterVirtual*>(character);
+		return { mCharacter->GetLinearVelocity().GetX(), mCharacter->GetLinearVelocity().GetY(), mCharacter->GetLinearVelocity().GetZ() };
+	}
+
+	void PhysicsSystem::SetLinearVelocity(void* character, glm::vec3 vel)
+	{
+		CharacterVirtual* mCharacter = reinterpret_cast<CharacterVirtual*>(character);
+		mCharacter->SetLinearVelocity({ vel.x,vel.y,vel.z });
 	}
 
 	void PhysicsSystem::SetLinearVelocity(unsigned int bodyID, glm::vec3 velocity)
@@ -773,7 +798,7 @@ namespace Borealis
 		BoxColliderComponent* boxPtr = dynamic_cast<BoxColliderComponent*>(&collider);
 		SphereColliderComponent* spherePtr = dynamic_cast<SphereColliderComponent*>(&collider);
 		CapsuleColliderComponent* capsulePtr = dynamic_cast<CapsuleColliderComponent*>(&collider);
-		TaperedCapsuleColliderComponent* tCapsulePtr = dynamic_cast<TaperedCapsuleColliderComponent*>(&collider);
+		CylinderColliderComponent* cylinderPtr = dynamic_cast<CylinderColliderComponent*>(&collider);
 
 
 		if (boxPtr)
@@ -798,11 +823,11 @@ namespace Borealis
 			shape_result = capsule_shape_settings.Create();
 			shape = shape_result.Get();
 		}
-		else if (tCapsulePtr)
+		else if (cylinderPtr)
 		{
-			TaperedCapsuleShapeSettings tCapsule_shape_settings(tCapsulePtr->height * transform.Scale.y, tCapsulePtr->topRadius * (transform.Scale.x + transform.Scale.z) * 0.5f, tCapsulePtr->botRadius * (transform.Scale.x + transform.Scale.z) * 0.5f);
-			tCapsule_shape_settings.SetEmbedded();
-			shape_result = tCapsule_shape_settings.Create();
+			CylinderShapeSettings cylinder_shape_settings(cylinderPtr->height * transform.Scale.y, cylinderPtr->radius * (transform.Scale.x + transform.Scale.z) * 0.5f);
+			cylinder_shape_settings.SetEmbedded();
+			shape_result = cylinder_shape_settings.Create();
 			shape = shape_result.Get();
 		}
 
@@ -1086,7 +1111,7 @@ namespace Borealis
 		BoxColliderComponent* boxPtr = dynamic_cast<BoxColliderComponent*>(&collider);
 		SphereColliderComponent* spherePtr = dynamic_cast<SphereColliderComponent*>(&collider);
 		CapsuleColliderComponent* capsulePtr = dynamic_cast<CapsuleColliderComponent*>(&collider);
-		TaperedCapsuleColliderComponent* tCapsulePtr = dynamic_cast<TaperedCapsuleColliderComponent*>(&collider);
+		CylinderColliderComponent* cylinderPtr = dynamic_cast<CylinderColliderComponent*>(&collider);
 
 		if (boxPtr)
 		{
@@ -1124,11 +1149,11 @@ namespace Borealis
 			shape_result = capsule_shape_settings.Create();
 			shape = shape_result.Get();
 		}
-		else if (tCapsulePtr)
+		else if (cylinderPtr)
 		{
-			TaperedCapsuleShapeSettings tCapsule_shape_settings(tCapsulePtr->height * transform.Scale.y, tCapsulePtr->topRadius * (transform.Scale.x + transform.Scale.z)*0.5f,tCapsulePtr->botRadius * (transform.Scale.x + transform.Scale.z)*0.5f);
-			tCapsule_shape_settings.SetEmbedded();
-			shape_result = tCapsule_shape_settings.Create();
+			CylinderShapeSettings cylinder_shape_settings(cylinderPtr->height * transform.Scale.y, cylinderPtr->radius * (transform.Scale.x + transform.Scale.z)*0.5f);
+			cylinder_shape_settings.SetEmbedded();
+			shape_result = cylinder_shape_settings.Create();
 			shape = shape_result.Get();
 		}
 		
@@ -1144,7 +1169,7 @@ namespace Borealis
 		BoxColliderComponent* boxPtr = dynamic_cast<BoxColliderComponent*>(&collider);
 		SphereColliderComponent* spherePtr = dynamic_cast<SphereColliderComponent*>(&collider);
 		CapsuleColliderComponent* capsulePtr = dynamic_cast<CapsuleColliderComponent*>(&collider);
-		TaperedCapsuleColliderComponent* tCapsulePtr = dynamic_cast<TaperedCapsuleColliderComponent*>(&collider);
+		CylinderColliderComponent* cylinderPtr = dynamic_cast<CylinderColliderComponent*>(&collider);
 
 		if (boxPtr)
 		{
@@ -1182,9 +1207,9 @@ namespace Borealis
 			shape_result = capsule_shape_settings.Create();
 			shape = shape_result.Get();
 		}
-		else if (tCapsulePtr)
+		else if (cylinderPtr)
 		{
-			TaperedCapsuleShapeSettings tCapsule_shape_settings(tCapsulePtr->height * transform.Scale.y, tCapsulePtr->topRadius * (transform.Scale.x + transform.Scale.z) * 0.5f, tCapsulePtr->botRadius * (transform.Scale.x + transform.Scale.z) * 0.5f);
+			CylinderShapeSettings tCapsule_shape_settings(cylinderPtr->height * transform.Scale.y, cylinderPtr->radius * (transform.Scale.x + transform.Scale.z) * 0.5f);
 			tCapsule_shape_settings.SetEmbedded();
 			shape_result = tCapsule_shape_settings.Create();
 			shape = shape_result.Get();

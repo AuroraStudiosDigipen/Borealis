@@ -148,6 +148,9 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(CharacterController_Move);
 		BOREALIS_ADD_INTERNAL_CALL(CharacterController_Jump);
 		BOREALIS_ADD_INTERNAL_CALL(CharacterController_IsGrounded);
+		BOREALIS_ADD_INTERNAL_CALL(CharacterController_GetLinearVelocity);
+		BOREALIS_ADD_INTERNAL_CALL(CharacterController_SetLinearVelocity);
+
 
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_GetClip);
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_SetClip);
@@ -1370,6 +1373,24 @@ namespace Borealis
 		{
 			*grounded = false;
 		}
+	}
+
+	void CharacterController_GetLinearVelocity(uint64_t id, glm::vec3* vel)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(id);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*vel = PhysicsSystem::GetLinearVelocity(entity.GetComponent<CharacterControllerComponent>().controller);
+	}
+
+	void CharacterController_SetLinearVelocity(uint64_t id, glm::vec3* vel)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(id);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		PhysicsSystem::SetLinearVelocity(entity.GetComponent<CharacterControllerComponent>().controller, *vel);
 	}
 
 	void AudioSource_GetClip(uint64_t ID, uint64_t* ClipID)

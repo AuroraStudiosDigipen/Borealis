@@ -1694,6 +1694,7 @@ namespace Borealis
 
 		bool UIexist = false;
 
+		for (int i = 0; i < 10; ++i)
 		{
 			auto group = registryPtr->group<>(entt::get<TransformComponent, CanvasComponent>);
 			for (auto& entity : group)
@@ -1705,6 +1706,7 @@ namespace Borealis
 				}
 				auto [transform, canvas] = group.get<TransformComponent, CanvasComponent>(entity);
 				if (canvas.renderMode == CanvasComponent::RenderMode::WorldSpace) continue;
+				if (canvas.renderIndex != i) continue;
 				glm::vec3 currTransfrom = glm::vec3(((glm::mat4)transform)[3]);
 
 				//This is to set the canvas transforms in run time
@@ -1749,32 +1751,33 @@ namespace Borealis
 					transform.SetGlobalTransform(canvasTransform);
 				}
 			}
-		}
 
-		if (UIexist)
-		{
-			uiFBO->Bind();
-			RenderCommand::SetClearColor(glm::vec4{ 0.f });
-			RenderCommand::Clear();
-			RenderCommand::DisableDepthTest();
-			Renderer2D::End();
-			uiFBO->Unbind();
 
-			//std::swap(UIFBO, renderTarget->buffer);
+			if (UIexist)
+			{
+				uiFBO->Bind();
+				RenderCommand::SetClearColor(glm::vec4{ 0.f });
+				RenderCommand::Clear();
+				RenderCommand::DisableDepthTest();
+				Renderer2D::End();
+				uiFBO->Unbind();
 
-			RenderCommand::DisableDepthTest();
-			//RenderCommand::EnableBlend();
-			uiFBO->BindTexture(0, 0);
-			shader->Bind();
-			shader->Set("u_Texture0", 0);
+				//std::swap(UIFBO, renderTarget->buffer);
 
-			renderTarget->Bind();
-			Renderer3D::DrawQuad();
-			renderTarget->Unbind();
+				RenderCommand::DisableDepthTest();
+				//RenderCommand::EnableBlend();
+				uiFBO->BindTexture(0, 0);
+				shader->Bind();
+				shader->Set("u_Texture0", 0);
 
-			shader->Unbind();
-			RenderCommand::EnableDepthTest();
-			//RenderCommand::DisableBlend();
+				renderTarget->Bind();
+				Renderer3D::DrawQuad();
+				renderTarget->Unbind();
+
+				shader->Unbind();
+				RenderCommand::EnableDepthTest();
+				//RenderCommand::DisableBlend();
+			}
 		}
 	}
 

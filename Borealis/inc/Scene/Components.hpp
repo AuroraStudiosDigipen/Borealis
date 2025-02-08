@@ -474,6 +474,7 @@ namespace Borealis
 			ScreenSpace
 		};
 		RenderMode renderMode = RenderMode::ScreenSpace;
+		int renderIndex{};
 
 		CanvasComponent() = default;
 		CanvasComponent(const CanvasComponent&) = default;

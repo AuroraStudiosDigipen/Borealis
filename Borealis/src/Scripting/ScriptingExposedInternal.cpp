@@ -45,6 +45,10 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(DrawLine);
 		BOREALIS_ADD_INTERNAL_CALL(CreateEntity);
 		BOREALIS_ADD_INTERNAL_CALL(SetActive);
+		BOREALIS_ADD_INTERNAL_CALL(SetFullscreen);
+		BOREALIS_ADD_INTERNAL_CALL(SetMasterVolume);
+		BOREALIS_ADD_INTERNAL_CALL(SetSFXVolume);
+		BOREALIS_ADD_INTERNAL_CALL(SetMusicVolume);
 
 		BOREALIS_ADD_INTERNAL_CALL(Entity_AddComponent);
 		BOREALIS_ADD_INTERNAL_CALL(Entity_HasComponent);
@@ -228,6 +232,26 @@ namespace Borealis
 		{
 			entity.GetComponent<TagComponent>().active = value;
 		}
+	}
+
+	void SetFullscreen(bool value)
+	{
+		ApplicationManager::Get().GetWindow()->SetFullScreen(value);
+	}
+
+	void SetMasterVolume(float vol)
+	{
+		AudioEngine::SetMasterVolume(vol);
+	}
+
+	void SetSFXVolume(float vol)
+	{
+		AudioEngine::SetGroupVolume("SFX", vol);
+	}
+
+	void SetMusicVolume(float vol)
+	{
+		AudioEngine::SetGroupVolume("BGM", vol);
 	}
 
 	float Time_GetDeltaTime()

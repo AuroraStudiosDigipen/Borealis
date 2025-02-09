@@ -31,6 +31,18 @@ namespace Borealis
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static ulong CreateEntity(string text);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void SetFullscreen(bool on);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void SetMasterVolume(float vol);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void SetSFXVolume(float vol);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void SetMusicVolume(float vol);
         #region LayerMask
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void LayerMask_LayerToName(int layerNum, out string layerName);

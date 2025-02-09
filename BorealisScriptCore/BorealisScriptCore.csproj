@@ -21,7 +21,8 @@
     <OutputPath>..\BorealisEditor\Resources\Scripts\Core\</OutputPath>
     <BaseIntermediateOutputPath>..\BorealisEditor\Resources\Scripts\Core\Intermediate\Debug\BorealisScriptCore\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
-    <DefineConstants></DefineConstants>
+    <DefineConstants>
+    </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -33,7 +34,8 @@
     <OutputPath>..\BorealisEditor\Resources\Scripts\Core\</OutputPath>
     <BaseIntermediateOutputPath>..\BorealisEditor\Resources\Scripts\Core\Intermediate\Release\BorealisScriptCore\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
-    <DefineConstants></DefineConstants>
+    <DefineConstants>
+    </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -45,7 +47,8 @@
     <OutputPath>..\BorealisEditor\Resources\Scripts\Core\</OutputPath>
     <BaseIntermediateOutputPath>..\BorealisEditor\Resources\Scripts\Core\Intermediate\Distribution\BorealisScriptCore\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
-    <DefineConstants></DefineConstants>
+    <DefineConstants>
+    </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -157,6 +160,7 @@
     <Compile Include="src\Components\Text.cs" />
     <Compile Include="src\Components\Transform.cs" />
     <Compile Include="src\Core\Attributes.cs" />
+    <Compile Include="src\Core\AudioManager.cs" />
     <Compile Include="src\Core\Cursor.cs" />
     <Compile Include="src\Core\Debug.cs" />
     <Compile Include="src\Core\Input.cs" />
@@ -167,6 +171,7 @@
     <Compile Include="src\Core\State.cs" />
     <Compile Include="src\Core\StateMachine.cs" />
     <Compile Include="src\Core\Time.cs" />
+    <Compile Include="src\Core\WindowManager.cs" />
     <Compile Include="src\Math\Color.cs" />
     <Compile Include="src\Math\Color32.cs" />
     <Compile Include="src\Math\Mathf.cs" />

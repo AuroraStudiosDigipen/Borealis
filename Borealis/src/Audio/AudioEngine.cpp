@@ -423,8 +423,6 @@ namespace Borealis
         {
             std::cerr << "Error: Group \"" << groupName << "\" not found!" << std::endl;
         }
-        // If no group is found, return -1 or handle the case accordingly
-        return -1;
     }
     Ref<Asset> AudioEngine::Load(std::filesystem::path const& cachePath, AssetMetaData const& assetMetaData)
     {

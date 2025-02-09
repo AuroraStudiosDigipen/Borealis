@@ -21,11 +21,11 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 namespace Borealis {
 
     // Enum to represent different audio groups
-    enum class AudioGroup {
-        Master = 0,
-        BGM,
-        SFX
-    };
+    namespace AudioGroups {
+        const std::string Master = "Master";
+        const std::string BGM = "BGM";
+        const std::string SFX = "SFX";
+    }
 
 } // End of Borealis namespace
 

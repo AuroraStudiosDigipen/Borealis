@@ -331,6 +331,18 @@ namespace Borealis
 						PhysicsSystem::PushTransform(capsule, transform, capsule.rigidBody);
 					}
 
+					auto cylinderGroup = mRegistry.group<>(entt::get<TransformComponent, CylinderColliderComponent, RigidbodyComponent>);
+					for (auto entity : cylinderGroup)
+					{
+						Entity brEntity{ entity, this };
+						if (!brEntity.IsActive())
+						{
+							continue;
+						}
+						auto [transform, cylinder, rigidbody] = cylinderGroup.get<TransformComponent, CylinderColliderComponent, RigidbodyComponent>(entity);
+						PhysicsSystem::PushTransform(cylinder, transform, cylinder.rigidBody);
+					}
+
 
 					PhysicsSystem::Update(fixedTimeStep);
 
@@ -898,6 +910,11 @@ namespace Borealis
 				PhysicsSystem::FreeRigidBody(entity.GetComponent<CapsuleColliderComponent>());
 				entity.GetComponent<CapsuleColliderComponent>().rigidBody = nullptr;
 			}
+			else if (entity.HasComponent<CylinderColliderComponent>())
+			{
+				PhysicsSystem::FreeRigidBody(entity.GetComponent<CylinderColliderComponent>());
+				entity.GetComponent<CylinderColliderComponent>().rigidBody = nullptr;
+			}
 		}
 		mRegistry.destroy(entity);
 	}
@@ -1259,15 +1276,15 @@ namespace Borealis
 			}
 		}
 
-		auto tCapsuleGroup = mRegistry.group<>(entt::get<TransformComponent, CylinderColliderComponent>);
-		for (auto entity : tCapsuleGroup)
+		auto cylinderGroup = mRegistry.group<>(entt::get<TransformComponent, CylinderColliderComponent>);
+		for (auto entity : cylinderGroup)
 		{
 			Entity brEntity{ entity, this };
 			if (!brEntity.IsActive())
 			{
 				continue;
 			}
-			auto [transform, capsule] = tCapsuleGroup.get<TransformComponent, CylinderColliderComponent>(entity);
+			auto [transform, capsule] = cylinderGroup.get<TransformComponent, CylinderColliderComponent>(entity);
 			auto entityID = mRegistry.get<IDComponent>(entity).ID;
 			if (mRegistry.storage<RigidbodyComponent>().contains(entity))
 			{
@@ -1410,6 +1427,16 @@ namespace Borealis
 				PhysicsSystem::FreeRigidBody(sphereView.get<SphereColliderComponent>(entity));
 			}
 		}
+
+		{
+			auto cylinderView = mRegistry.view<CylinderColliderComponent>();
+			for (auto entity : cylinderView)
+			{
+				if (!mRegistry.storage<CharacterControllerComponent>().contains(entity))
+					PhysicsSystem::FreeRigidBody(cylinderView.get<CylinderColliderComponent>(entity));
+			}
+		}
+
 		PhysicsSystem::EndScene();
 		PhysicsSystem::GetCollisionEnterQueue() = std::queue<CollisionPair>();
 		PhysicsSystem::GetCollisionPersistQueue() = std::queue<CollisionPair>();

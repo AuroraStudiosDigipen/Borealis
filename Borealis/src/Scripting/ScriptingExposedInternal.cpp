@@ -1007,6 +1007,15 @@ namespace Borealis
 				*max = collider.Max;
 				*size = collider.size;*/
 		}
+		else if (entity.HasComponent<CylinderColliderComponent>())
+		{
+			auto& collider = entity.GetComponent<CylinderColliderComponent>();
+			*center = collider.center;
+			//*extents = collider.Extents;
+			//*min = collider.Min;
+			//*max = collider.Max;
+			//*size = collider.Size;
+		}
 	}
 	void ColliderComponent_UpdateScale(UUID uuid)
 	{
@@ -1027,6 +1036,11 @@ namespace Borealis
 		{
 			auto& collider = entity.GetComponent<SphereColliderComponent>();
 			PhysicsSystem::UpdateScale(entity.GetComponent<SphereColliderComponent>(), entity.GetComponent<TransformComponent>());
+		}
+		else if (entity.HasComponent<CylinderColliderComponent>())
+		{
+			auto& collider = entity.GetComponent<CylinderColliderComponent>();
+			PhysicsSystem::UpdateScale(entity.GetComponent<CylinderColliderComponent>(), entity.GetComponent<TransformComponent>());
 		}
 	}
 	void AnimatorComponent_SetCurrentAnimation(UUID uuid, UUID animation)

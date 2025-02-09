@@ -359,7 +359,7 @@ vec3 ComputeDirectionalLight(Light light, vec3 normal, vec3 viewDir)
 
     vec3 halfwayDir = normalize(lightDir + viewDir);
 
-    vec3 radiance = light.ambient * 10.f;
+    vec3 radiance = light.diffuse * 10.f;
 
     float D = DistributionGGX(normal, halfwayDir, GetRoughness());
     float G = GeometrySmith(normal, viewDir, lightDir, GetRoughness());
@@ -384,7 +384,7 @@ vec3 ComputeDirectionalLight(Light light, vec3 normal, vec3 viewDir)
     
     if(u_HasShadow)
     {
-        color += shadowFactor * ((GetAlbedoColor().xyz / PI + specular) * radiance * NdotL);
+        color += shadowFactor * ((/*kD **/GetAlbedoColor().xyz / PI + specular) * radiance * NdotL);
     }
     else
     {

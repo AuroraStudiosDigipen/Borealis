@@ -438,8 +438,6 @@ namespace Borealis
 				{
 					lightComponent.position = buffer;
 					lightComponent.isEdited = true;
-
-					std::cout << "graph Light x {}" << lightComponent.position.x << '\n';
 				}
 
 				buffer = transform.GetGlobalRotation();
@@ -562,7 +560,7 @@ namespace Borealis
 					materialShader = meshRenderer.Material->GetShader();
 					Renderer3D::Begin(viewProjMatrix, materialShader);
 					SetShadowAndLight(shadowMap, materialShader, registryPtr, camera, editor);
-					Renderer3D::SetLights(sData->LightsUBO);
+					//Renderer3D::SetLights(sData->LightsUBO);
 				}
 
 				Renderer3D::DrawMesh(transform.GetGlobalTransform(), meshFilter, meshRenderer, materialShader, (int)entity);

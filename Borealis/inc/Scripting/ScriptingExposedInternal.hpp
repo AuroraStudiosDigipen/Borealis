@@ -61,6 +61,10 @@ namespace Borealis
 	void DrawLine(glm::vec3 start, glm::vec3 end, glm::vec4 color);
 
 	void SetActive(bool value, uint64_t* outEntityID);
+	void SetFullscreen(bool value);
+	void SetMasterVolume(float vol);
+	void SetSFXVolume(float vol);
+	void SetMusicVolume(float vol);
 
 	/*!***********************************************************************
 		\brief

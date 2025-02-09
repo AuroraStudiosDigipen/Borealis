@@ -143,6 +143,32 @@ namespace Borealis
 		}
 	}
 
+	void WindowManager::SetFullScreen(bool on)
+	{
+		if (on)
+		{
+			if (mData.mIsFullScreen) { return; }
+			int windowedWidth, windowedHeight;
+			int windowedPosX, windowedPosY;
+			glfwGetWindowPos((GLFWwindow*)mWindow, &windowedPosX, &windowedPosY);
+			glfwGetWindowSize((GLFWwindow*)mWindow, &windowedWidth, &windowedHeight);
+			mData.mPosX = windowedPosX; mData.mPosY = windowedPosY;
+			mData.mWidth = windowedWidth; mData.mHeight = windowedHeight;
+
+			GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+			const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+
+			glfwSetWindowMonitor((GLFWwindow*)mWindow, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+			mData.mIsFullScreen = true;
+		}
+		else
+		{
+			if (!mData.mIsFullScreen) { return; }
+			glfwSetWindowMonitor((GLFWwindow*)mWindow, nullptr, mData.mPosX, mData.mPosY, mData.mWidth, mData.mHeight, 0);
+			mData.mIsFullScreen = false;
+		}
+	}
+
 	/*!***********************************************************************
 		\brief
 			Initializes the window

@@ -808,6 +808,33 @@ namespace Borealis
 		}
 	}
 
+	void RenderCanvasRecursiveWorld(Entity parent)
+	{
+		if (!parent.HasComponent<TransformComponent>()) return;
+		glm::mat4 transform = parent.GetComponent<TransformComponent>().GetGlobalTransform();
+
+		if (parent.HasComponent<CanvasRendererComponent>())
+		{
+			if (parent.HasComponent<SpriteRendererComponent>())
+			{
+				Renderer2D::DrawSprite(transform, parent.GetComponent<SpriteRendererComponent>(), (int)parent);
+			}
+
+			if (parent.HasComponent<TextComponent>())
+			{
+				const TextComponent& text = parent.GetComponent<TextComponent>();
+				Renderer2D::DrawString(text.text, text.font, transform, (int)parent, text.fontSize, text.colour, text.align == TextComponent::TextAlign::Left ? false : true);
+			}
+		}
+
+		for (UUID childID : parent.GetComponent<TransformComponent>().ChildrenID)
+		{
+			Entity child = SceneManager::GetActiveScene()->GetEntityByUUID(childID);
+			if (child.HasComponent<TagComponent>() && child.IsActive())
+				RenderCanvasRecursiveWorld(child);
+		}
+	}
+
 	void UIWorldPass::Execute(float dt)
 	{
 		PROFILE_FUNCTION();
@@ -850,7 +877,7 @@ namespace Borealis
 
 				glm::mat4 canvasTransform = transform.GetGlobalTransform();
 
-				RenderCanvasRecursive(brEntity, canvasTransform);
+				RenderCanvasRecursiveWorld(brEntity);
 			}
 		}
 

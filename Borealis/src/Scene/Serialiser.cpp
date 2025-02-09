@@ -139,6 +139,11 @@ namespace Borealis
 			SerializeComponent(out, entity.GetComponent<SphereColliderComponent>());
 		}
 
+		if (entity.HasComponent<CylinderColliderComponent>())
+		{
+			SerializeComponent(out, entity.GetComponent<CylinderColliderComponent>());
+		}
+
 
 		if (entity.HasComponent<CapsuleColliderComponent>())
 		{
@@ -432,6 +437,7 @@ namespace Borealis
 		DeserialiseComponent<BoxColliderComponent>(entity, BorealisEntity);
 		DeserialiseComponent<SphereColliderComponent>(entity, BorealisEntity);
 		DeserialiseComponent<CapsuleColliderComponent>(entity, BorealisEntity);
+		DeserialiseComponent<CylinderColliderComponent>(entity, BorealisEntity);
 		DeserialiseComponent<BehaviourTreeComponent>(entity, BorealisEntity);
 		DeserialiseComponent<ButtonComponent>(entity, BorealisEntity);
 		DeserialiseAbstractItems(entity, BorealisEntity);

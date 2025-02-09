@@ -82,16 +82,21 @@ namespace Borealis
 		ULONGLONG prevTickCount = GetTickCount64(); // Get initial tick count
 		PROFILE_FUNCTION();
 
-		float count = 0.f;
+		//Audio audio = AudioEngine::LoadAudio("MoodSwingsBGM.wav");
+		//Ref<Audio> ref = MakeRef<Audio>(audio);
+		//int ch = AudioEngine::Play(ref, {}, 1.f, true, "BGM");
+		//AudioEngine::ApplyFadeIn(ch, 3.f, 1.f);
+
+		//float count = 0.f;
 
 		while (mIsRunning)
 		{
-			count += 0.0016f;
-				std::cout << count << '\n';
-			if (count >= 5.f)
-			{
-				AudioEngine::ApplyFadeOut(ch, 10.f);
-			}
+			//count += 0.0016f;
+			//	std::cout << count << '\n';
+			//if (count >= 5.f)
+			//{
+			//	AudioEngine::ApplyFadeOut(ch, 10.f);
+			//}
 			PROFILE_SCOPE("ApplicationManager Run Loop");
 
 			ULONGLONG currentTickCount = GetTickCount64();

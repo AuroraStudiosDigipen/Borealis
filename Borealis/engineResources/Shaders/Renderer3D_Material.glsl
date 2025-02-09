@@ -166,7 +166,7 @@ layout(std140) uniform LightsUBO
 };
 
 
-uniform bool u_Transparent;
+uniform bool u_Transparent = false;
 
 in vec2 v_TexCoord;
 in vec3 v_FragPos;
@@ -188,12 +188,16 @@ uniform mat4 u_LightSpaceMatrices[4];
 uniform float u_CascadePlaneDistances[4];
 uniform int cascadeCount;
 
+uniform samplerCube u_cubeMap;
+
 uniform int materialIndex;
 uniform sampler2D albedoMap;
 uniform sampler2D specularMap;
 uniform sampler2D metallicMap;
 uniform sampler2D normalMap;
 
+const float airIOR   = 1.0;
+const float glassIOR = 1.5;
 
 const float PI = 3.14159265359;
 
@@ -389,6 +393,17 @@ vec3 ComputeDirectionalLight(Light light, vec3 normal, vec3 viewDir)
     else
     {
         color += ((kD * GetAlbedoColor().xyz / PI + specular) * radiance * NdotL);
+    }
+
+    if(u_Transparent)
+    {
+        vec3 reflectionDir = reflect(-viewDir, normal);
+        vec3 refractionDir = refract(-viewDir, normal, airIOR / glassIOR);
+        vec3 reflectionColor = texture(u_cubeMap, normalize(reflectionDir)).rgb;
+        vec3 refractionColor = texture(u_cubeMap, normalize(refractionDir)).rgb;
+        float fresnelFactor = pow(1.0 - max(dot(normal, viewDir), 0.0), 5.0);
+        vec3 envGlass = mix(refractionColor, reflectionColor, fresnelFactor);
+        color += envGlass;
     }
 
     return color;

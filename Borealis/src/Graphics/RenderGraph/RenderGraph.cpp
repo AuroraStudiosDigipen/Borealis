@@ -494,6 +494,13 @@ namespace Borealis
 		Ref<PixelBufferSource> pixelBuffer = nullptr;
 		glm::vec3 camPos{};
 
+		static Ref<TextureCubeMap> cubeMap = nullptr;
+
+		if (!cubeMap)
+		{
+			cubeMap = TextureCubeMap::GetDefaultCubeMap2();
+		}
+
 		for (auto sink : sinkList)
 		{
 			if (sink->source->sourceType == RenderSourceType::Camera)
@@ -669,7 +676,7 @@ namespace Borealis
 		accumulaionTarget->Bind();
 		accumulaionTarget->buffer->ClearAttachment(0, {0.f,0.f,0.f,0.f});
 		accumulaionTarget->buffer->ClearAttachment(2, glm::vec4(1.f));
-		Renderer3D::RenderTransparentObjects(material_shader_transparency);
+		Renderer3D::RenderTransparentObjects(cubeMap);
 		accumulaionTarget->Unbind();
 
 		//Composite
@@ -1476,8 +1483,8 @@ namespace Borealis
 
 		RenderCommand::DisableDepthTest();
 		shader->Bind();
-		cubeMap->Bind(0);
-		shader->Set("u_Skybox", 0);
+		cubeMap->Bind(7);
+		shader->Set("u_Skybox", 7);
 		shader->Set("u_ViewProjection", projMatrix * view);
 		renderTarget->Bind();
 		Renderer3D::DrawCubeMap();

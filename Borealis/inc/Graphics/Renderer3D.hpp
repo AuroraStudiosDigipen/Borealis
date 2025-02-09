@@ -56,7 +56,7 @@ namespace Borealis
 
 		static void End();
 
-		static void RenderTransparentObjects(Ref<Shader> const& transparencyShader);
+		static void RenderTransparentObjects(Ref<TextureCubeMap> const& cubeMap);
 
 		static void AddLight(LightComponent & lightComponent);
 

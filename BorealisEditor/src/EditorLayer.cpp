@@ -278,10 +278,10 @@ namespace Borealis {
 
 			//forward rendering editor
 			{
-				//RenderPassConfig editorSkyBoxPass(RenderPassType::SkyboxPass, "editorSkyBox");
-				//editorSkyBoxPass.AddSinkLinkage("renderTarget", "EditorBuffer");
-				//editorSkyBoxPass.AddSinkLinkage("camera", "EditorCamera");
-				//fconfig.AddPass(editorSkyBoxPass);
+				RenderPassConfig editorSkyBoxPass(RenderPassType::SkyboxPass, "editorSkyBox");
+				editorSkyBoxPass.AddSinkLinkage("renderTarget", "EditorBuffer");
+				editorSkyBoxPass.AddSinkLinkage("camera", "EditorCamera");
+				fconfig.AddPass(editorSkyBoxPass);
 
 				RenderPassConfig editorShadowPass(RenderPassType::Shadow, "editorShadowPass");
 				editorShadowPass.AddSinkLinkage("shadowMap", "ShadowMapBuffer")

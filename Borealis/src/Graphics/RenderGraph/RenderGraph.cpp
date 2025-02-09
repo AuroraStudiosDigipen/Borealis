@@ -438,8 +438,6 @@ namespace Borealis
 				{
 					lightComponent.position = buffer;
 					lightComponent.isEdited = true;
-
-					std::cout << "graph Light x {}" << lightComponent.position.x << '\n';
 				}
 
 				buffer = transform.GetGlobalRotation();
@@ -495,6 +493,13 @@ namespace Borealis
 		Ref<RenderTargetSource> accumulaionTarget = nullptr;
 		Ref<PixelBufferSource> pixelBuffer = nullptr;
 		glm::vec3 camPos{};
+
+		static Ref<TextureCubeMap> cubeMap = nullptr;
+
+		if (!cubeMap)
+		{
+			cubeMap = TextureCubeMap::GetDefaultCubeMap2();
+		}
 
 		for (auto sink : sinkList)
 		{
@@ -562,7 +567,7 @@ namespace Borealis
 					materialShader = meshRenderer.Material->GetShader();
 					Renderer3D::Begin(viewProjMatrix, materialShader);
 					SetShadowAndLight(shadowMap, materialShader, registryPtr, camera, editor);
-					Renderer3D::SetLights(sData->LightsUBO);
+					//Renderer3D::SetLights(sData->LightsUBO);
 				}
 
 				Renderer3D::DrawMesh(transform.GetGlobalTransform(), meshFilter, meshRenderer, materialShader, (int)entity);
@@ -671,7 +676,7 @@ namespace Borealis
 		accumulaionTarget->Bind();
 		accumulaionTarget->buffer->ClearAttachment(0, {0.f,0.f,0.f,0.f});
 		accumulaionTarget->buffer->ClearAttachment(2, glm::vec4(1.f));
-		Renderer3D::RenderTransparentObjects(material_shader_transparency);
+		Renderer3D::RenderTransparentObjects(cubeMap);
 		accumulaionTarget->Unbind();
 
 		//Composite
@@ -1505,8 +1510,8 @@ namespace Borealis
 
 		RenderCommand::DisableDepthTest();
 		shader->Bind();
-		cubeMap->Bind(0);
-		shader->Set("u_Skybox", 0);
+		cubeMap->Bind(7);
+		shader->Set("u_Skybox", 7);
 		shader->Set("u_ViewProjection", projMatrix * view);
 		renderTarget->Bind();
 		Renderer3D::DrawCubeMap();

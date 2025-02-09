@@ -66,9 +66,9 @@ namespace Borealis
 
 		lightUBO.pos = glm::vec4(lightComponent.position, 0.f);
 		lightUBO.ambient = glm::vec4(glm::vec3(lightComponent.color) * 0.8f * lightComponent.Intensity, 0.f);
-		lightUBO.diffuse = glm::vec4(glm::vec3(lightComponent.color) * 0.5f * lightComponent.Intensity, 0.f);
+		lightUBO.diffuse = glm::vec4(glm::vec3(lightComponent.color) * lightComponent.Intensity, 0.f);
 		lightUBO.specular = glm::vec4(glm::vec3(lightComponent.color) * 0.5f * lightComponent.Intensity, 0.f);
-		lightUBO.direction = glm::vec4(glm::radians(lightComponent.direction), 0.f);
+		lightUBO.direction = glm::vec4(glm::normalize(lightComponent.direction), 0.f);
 		lightUBO.innerOuterDirection = innerOuterSpot;
 		lightUBO.linear = 1.0f / lightComponent.range;
 		lightUBO.quadratic = 1.0f / (lightComponent.range * lightComponent.range);

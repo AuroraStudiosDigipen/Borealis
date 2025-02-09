@@ -146,10 +146,12 @@ namespace Borealis
 		static Ref<TextureCubeMap> Load(AssetMetaData const& assetMetaData);
 
 		static Ref<TextureCubeMap> GetDefaultCubeMap();
+		static Ref<TextureCubeMap> GetDefaultCubeMap2();
 
 	private:
 
 		static Ref<TextureCubeMap> mDefaultCubeMap;
+		static Ref<TextureCubeMap> mDefaultCubeMap2;
 	};
 
 } // Namespace Borealis

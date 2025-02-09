@@ -188,7 +188,7 @@ uniform mat4 u_LightSpaceMatrices[4];
 uniform float u_CascadePlaneDistances[4];
 uniform int cascadeCount;
 
-uniform samplerCube u_cubeMap;
+//uniform samplerCube u_cubeMap;
 
 uniform int materialIndex;
 uniform sampler2D albedoMap;
@@ -395,16 +395,16 @@ vec3 ComputeDirectionalLight(Light light, vec3 normal, vec3 viewDir)
         color += ((kD * GetAlbedoColor().xyz / PI + specular) * radiance * NdotL);
     }
 
-    if(u_Transparent)
-    {
-        vec3 reflectionDir = reflect(-viewDir, normal);
-        vec3 refractionDir = refract(-viewDir, normal, airIOR / glassIOR);
-        vec3 reflectionColor = texture(u_cubeMap, normalize(reflectionDir)).rgb;
-        vec3 refractionColor = texture(u_cubeMap, normalize(refractionDir)).rgb;
-        float fresnelFactor = pow(1.0 - max(dot(normal, viewDir), 0.0), 5.0);
-        vec3 envGlass = mix(refractionColor, reflectionColor, fresnelFactor);
-        color += envGlass;
-    }
+    // if(u_Transparent)
+    // {
+    //     vec3 reflectionDir = reflect(-viewDir, normal);
+    //     vec3 refractionDir = refract(-viewDir, normal, airIOR / glassIOR);
+    //     vec3 reflectionColor = texture(u_cubeMap, normalize(reflectionDir)).rgb;
+    //     vec3 refractionColor = texture(u_cubeMap, normalize(refractionDir)).rgb;
+    //     float fresnelFactor = pow(1.0 - max(dot(normal, viewDir), 0.0), 5.0);
+    //     vec3 envGlass = mix(refractionColor, reflectionColor, fresnelFactor);
+    //     color += envGlass;
+    // }
 
     return color;
 }

@@ -191,9 +191,9 @@ namespace Borealis
 				textureUnit++;
 			}
 
-			cubeMap->Bind(7);
-			drawCall.shaderID->Set("u_cubeMap", 7);
-			textureUnit++;
+			//cubeMap->Bind(7);
+			//drawCall.shaderID->Set("u_cubeMap", 7);
+			//textureUnit++;
 
 			if (std::holds_alternative<Ref<Model>>(drawCall.model))
 			{

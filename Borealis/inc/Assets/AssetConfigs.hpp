@@ -31,12 +31,28 @@ namespace Borealis
 		_CUBE
 	};
 
+	enum class TextureWrap
+	{
+		_REPEAT,
+		_MIRRORED,
+		_CLAMP_TO_EDGE,
+		_CLAMP_TO_BORDER
+	};
+
+	enum class TextureFilter
+	{
+		_LINEAR,
+		_NEAREST
+	};
+
 	struct TextureConfig 
 	{
 		TextureType type = TextureType::_DEFAULT;
 		TextureShape shape = TextureShape::_2D;
 		bool sRGB = true;
 		bool generateMipMaps = false;
+		TextureWrap wrapMode = TextureWrap::_REPEAT;
+		TextureFilter filterMode = TextureFilter::_LINEAR;
 	};
 
 	struct MeshConfig

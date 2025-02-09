@@ -51,7 +51,7 @@ namespace Borealis
 
 		AudioEngine::Init();
 		InputSystem::Init();
-		PhysicsSystem::Init();
+		//PhysicsSystem::Init();
 	}
 
 	/*!***********************************************************************
@@ -67,7 +67,7 @@ namespace Borealis
 		mLayerSystem.Clear();
 		ScriptingSystem::Free();
 
-		PhysicsSystem::Free();
+		//PhysicsSystem::Free();
 		delete mWindowManager;
 		glfwTerminate(); // Terminate after system shuts down
 
@@ -91,12 +91,11 @@ namespace Borealis
 
 		while (mIsRunning)
 		{
-			//count += 0.0016f;
-			//	std::cout << count << '\n';
-			//if (count >= 5.f)
-			//{
-			//	AudioEngine::ApplyFadeOut(ch, 10.f);
-			//}
+			if (InputSystem::IsKeyPressed(GLFW_KEY_1) && InputSystem::IsKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
+
+				TracyProfiler::toggleProfiler();
+			}
+
 			PROFILE_SCOPE("ApplicationManager Run Loop");
 
 			ULONGLONG currentTickCount = GetTickCount64();

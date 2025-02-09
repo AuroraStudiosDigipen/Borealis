@@ -56,9 +56,11 @@ namespace Borealis
 
 		static void End();
 
-		static void AddLight(LightComponent const& lightComponent);
+		static void RenderTransparentObjects(Ref<Shader> const& transparencyShader);
 
-		static void SetLights(Ref<Shader> shader);
+		static void AddLight(LightComponent & lightComponent);
+
+		static void SetLights(Ref<UniformBufferObject> const& LightsUBO);
 
 		/*!***********************************************************************
 			\brief
@@ -77,7 +79,7 @@ namespace Borealis
 
 		static void DrawHighlightedMesh(const glm::mat4& transform, const MeshFilterComponent& meshFilter, Ref<Shader> shader);
 
-		static void DrawSkinnedMesh(const glm::mat4& transform, const SkinnedMeshRendererComponent & skinnedMeshRenderer, Ref<Shader> shader, int entityID = -1);
+		static void DrawSkinnedMesh(const glm::mat4& transform, const SkinnedMeshRendererComponent & skinnedMeshRenderer, Ref<Shader> shader, int entityID = -1, int animationIndex = -1);
 
 		static void DrawQuad();
 
@@ -95,9 +97,35 @@ namespace Borealis
 	
 		static void SetGlobalWireFrameMode(bool wireFrameMode);
 		static bool GetGlobalWireFrameMode();
+
+		static void UpdateMaterialUBO();
+
+		struct DrawData
+		{
+			bool hasAnimation{};
+			int animationIndex{};
+		};
+
+		struct DrawCall
+		{
+			std::variant<Ref<Model>,Ref<SkinnedModel>> model;
+			Ref<Shader> shaderID;
+			std::size_t materialHash;
+			uint32_t entityID;
+			glm::mat4 transform;
+			DrawData drawData;
+		};
+
 	private:
 		inline static bool mGlobalWireFrame = false;
+		inline static bool mNewMaterialAdded = false;
 		static LightEngine mLightEngine;
+
+		inline static std::vector<DrawCall> drawQueue;
+		inline static std::vector<DrawCall> drawQueueTransparent;
+		inline static std::unordered_map<std::size_t, Ref<Material>> materialMap;
+		inline static std::unordered_map<std::size_t, MaterialUBOData> materialUBODataMap;
+		static void AddToDrawQueue(std::variant<Ref<Model>, Ref<SkinnedModel>> model, Ref<Shader> shaderID, Ref<Material> materialHash, uint32_t entityID, glm::mat4 const& transform, std::optional<DrawData> drawData = std::nullopt);
 	};
 }
 

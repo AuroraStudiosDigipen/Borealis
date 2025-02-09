@@ -46,6 +46,12 @@ namespace Borealis
         #region Time
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static float Time_GetDeltaTime();
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static float Time_GetUnscaledDeltaTime();
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void Time_SetTimeScale(float scale);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static float Time_GetTimeScale();
         #endregion
 
         #region Input
@@ -105,6 +111,12 @@ namespace Borealis
         internal extern static void Entity_GetName(ulong id, out string name);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void Entity_SetName(ulong id, string name);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void Entity_GetTag(ulong id, out string name);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void Entity_SetTag(ulong id, string name);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void Entity_GetEntitiesFromTag(string tag, out GameObject[] entities);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void Entity_GetEntitiesFromLayer(int layer, out GameObject[] entities);
 
@@ -296,6 +308,16 @@ namespace Borealis
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void CharacterController_IsGrounded(ulong id, out bool grounded);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void CharacterController_Jump(ulong id, ref float speed);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void CharacterController_GetLinearVelocity(ulong id, out Vector3 vel);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void CharacterController_SetLinearVelocity(ulong id, ref Vector3 vel);
+
         #endregion
 
         #region AudioSource
@@ -354,6 +376,11 @@ namespace Borealis
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void AnimatorComponent_SwapBlendBuffer(ulong uuid);
 
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void AnimatorComponent_GetAnimationDuration(ulong uuid, out float duration);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void AnimatorComponent_GetCurrentTime(ulong uuid, out float duration);
         #endregion
 
         #region SceneManager
@@ -362,6 +389,8 @@ namespace Borealis
         internal extern static void SceneManager_SetActiveScene(string name);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void SceneManager_Quit();
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void SceneManager_SetMainCamera(ulong ID);
         #endregion
     }
 }

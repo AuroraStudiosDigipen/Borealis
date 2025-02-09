@@ -120,12 +120,13 @@ namespace Borealis
 
 		MonoString* str2 = mono_string_new(mono_domain_get(), "CSharp_Assembly");
 
-		void* args[3] = { monoFilePaths, str2 };
+		bool success = false;
+		void* args[3] = { monoFilePaths, str2, &success };
 
-		auto method = mono_class_get_method_from_name(GetScriptClassUtils("RoslynCompiler")->GetMonoClass(), "CompileCode", 2);
+		auto method = mono_class_get_method_from_name(GetScriptClassUtils("RoslynCompiler")->GetMonoClass(), "CompileCode", 3);
 		MonoObject* result = mono_runtime_invoke(method, monoCompiler, args, nullptr);
 
-		if (result) {
+		if (success) {
 			MonoArray* byteArray = (MonoArray*)result;
 			int length = mono_array_length(byteArray);
 			void* data = mono_array_addr_with_size(byteArray, 0, 0);
@@ -419,6 +420,8 @@ namespace Borealis
 		RegisterComponent<CharacterControllerComponent>();
 		RegisterComponent<AudioSourceComponent>();
 		RegisterComponent<OutLineComponent>();
+		RegisterComponent<RigidbodyComponent>();
+		RegisterComponent<TextComponent>();
 
 		//RegisterComponent<LightComponent>();
 

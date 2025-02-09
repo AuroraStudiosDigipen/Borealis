@@ -69,32 +69,32 @@ namespace Borealis
 	Mesh::Mesh(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& texCoords)
 	{
 
-		mIndices = indices;
-		mIndicesCount = (uint32_t)indices.size();
-		mVerticesCount = (uint32_t)vertices.size();
+		//mIndices = indices;
+		//mIndicesCount = (uint32_t)indices.size();
+		//mVerticesCount = (uint32_t)vertices.size();
 
-		for (int i{}; i < vertices.size(); i++)
-		{
-			Vertex vertex;
-			vertex.Position = vertices[i];
-			vertex.Normal = normals[i];
-			vertex.TexCoords = texCoords[i];
+		//for (int i{}; i < vertices.size(); i++)
+		//{
+		//	Vertex vertex;
+		//	vertex.Position = vertices[i];
+		//	vertex.Normal = normals[i];
+		//	vertex.TexCoords = texCoords[i];
 
-			mVertices.push_back(vertex);
-		}
+		//	mVertices.push_back(vertex);
+		//}
 
-		SetupMesh();
+		//SetupMesh();
 	}
 
 	Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices)
 	{
-		mVertices = vertices;
-		mIndices = indices;
+		//mVertices = vertices;
+		//mIndices = indices;
 
-		mVerticesCount = (uint32_t)vertices.size();
-		mIndicesCount = (uint32_t)indices.size();
+		//mVerticesCount = (uint32_t)vertices.size();
+		//mIndicesCount = (uint32_t)indices.size();
 
-		SetupMesh();
+		//SetupMesh();
 	}
 
 	Mesh::~Mesh()
@@ -112,39 +112,86 @@ namespace Borealis
 		ComputeTangents();
 
 		glGenVertexArrays(1, &VAO);
-		glGenBuffers(1, &VBO);
-		glGenBuffers(1, &EBO);
+		glGenBuffers(1, &VBOs[0]); // Positions
+		glGenBuffers(1, &VBOs[1]); // Normals
+		glGenBuffers(1, &VBOs[2]); // Texture coordinates
+		glGenBuffers(1, &VBOs[3]); // Tangents
+		glGenBuffers(1, &VBOs[4]); // Bitangents
+		glGenBuffers(1, &EBO);     // Indices
 
 		glBindVertexArray(VAO);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-		glBufferData(GL_ARRAY_BUFFER, mVertices.size() * sizeof(Vertex), &mVertices[0], GL_STATIC_DRAW);
-
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, mIndices.size() * sizeof(unsigned int),
-			&mIndices[0], GL_STATIC_DRAW);
-
-		// vertex positions
+		// Position Buffer
+		glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
+		glBufferData(GL_ARRAY_BUFFER, mPositions.size() * sizeof(glm::vec3), mPositions.data(), GL_STATIC_DRAW);
 		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-		// vertex normals
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+		// Normal Buffer
+		glBindBuffer(GL_ARRAY_BUFFER, VBOs[1]);
+		glBufferData(GL_ARRAY_BUFFER, mNormals.size() * sizeof(glm::vec3), mNormals.data(), GL_STATIC_DRAW);
 		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
-		// vertex texture coords
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+		// Texture Coordinate Buffer
+		glBindBuffer(GL_ARRAY_BUFFER, VBOs[2]);
+		glBufferData(GL_ARRAY_BUFFER, mTexCoords.size() * sizeof(glm::vec2), mTexCoords.data(), GL_STATIC_DRAW);
 		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
-		// Tangents
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+		// Tangent Buffer
+		glBindBuffer(GL_ARRAY_BUFFER, VBOs[3]);
+		glBufferData(GL_ARRAY_BUFFER, mTangent.size() * sizeof(glm::vec3), mTangent.data(), GL_STATIC_DRAW);
 		glEnableVertexAttribArray(3);
-		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Tangent));
-		// Bitangents
+		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+		// Bitangent Buffer
+		glBindBuffer(GL_ARRAY_BUFFER, VBOs[4]);
+		glBufferData(GL_ARRAY_BUFFER, mBitangent.size() * sizeof(glm::vec3), mBitangent.data(), GL_STATIC_DRAW);
 		glEnableVertexAttribArray(4);
-		glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Bitangent));
+		glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+		// Element Buffer
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, mIndices.size() * sizeof(unsigned int), mIndices.data(), GL_STATIC_DRAW);
 
 		// Unbind VAO
 		glBindVertexArray(0);
+
+		//glGenVertexArrays(1, &VAO);
+		//glGenBuffers(1, &VBO);
+		//glGenBuffers(1, &EBO);
+
+		//glBindVertexArray(VAO);
+		//glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+		//glBufferData(GL_ARRAY_BUFFER, mVertices.size() * sizeof(Vertex), &mVertices[0], GL_STATIC_DRAW);
+
+		//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+		//glBufferData(GL_ELEMENT_ARRAY_BUFFER, mIndices.size() * sizeof(unsigned int),
+		//	&mIndices[0], GL_STATIC_DRAW);
+
+		//// vertex positions
+		//glEnableVertexAttribArray(0);
+		//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+		//// vertex normals
+		//glEnableVertexAttribArray(1);
+		//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
+		//// vertex texture coords
+		//glEnableVertexAttribArray(2);
+		//glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
+		//// Tangents
+		//glEnableVertexAttribArray(3);
+		//glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Tangent));
+		//// Bitangents
+		//glEnableVertexAttribArray(4);
+		//glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Bitangent));
+
+		//// Unbind VAO
+		//glBindVertexArray(0);
 	}
 
-	void Mesh::Draw(const glm::mat4& transform, Ref<Shader> shader, int entityID)
+	void Mesh::Draw(const glm::mat4& transform, Ref<Shader> shader, int entityID, bool posOnly)
 	{
 		PROFILE_FUNCTION();
 
@@ -157,6 +204,23 @@ namespace Borealis
 		}
 
 		glBindVertexArray(VAO);
+
+		if (posOnly)
+		{
+			glEnableVertexAttribArray(0); 
+			glDisableVertexAttribArray(1);
+			glDisableVertexAttribArray(2);
+			glDisableVertexAttribArray(3);
+			glDisableVertexAttribArray(4);
+		}
+		else
+		{
+			glEnableVertexAttribArray(0);
+			glEnableVertexAttribArray(1);
+			glEnableVertexAttribArray(2);
+			glEnableVertexAttribArray(3);
+			glEnableVertexAttribArray(4);
+		}
 		glDrawElements(GL_TRIANGLES, (int)mIndices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 
@@ -171,20 +235,20 @@ namespace Borealis
 
 	void Mesh::GenerateRitterBoundingSphere()
 	{
-		if (mVertices.empty()) return;
+		if (mPositions.empty()) return;
 
 		// Step 1: Find an initial point (p) and a farthest point (q)
-		glm::vec3 p = mVertices[0].Position;
+		glm::vec3 p = mPositions[0];
 		glm::vec3 q = p;
 		float maxDistSq = 0.0f;
 
-		for (const auto& vertex : mVertices)
+		for (const auto& pos : mPositions)
 		{
-			float distSq = DistanceSquared(p, vertex.Position);
+			float distSq = DistanceSquared(p, pos);
 			if (distSq > maxDistSq)
 			{
 				maxDistSq = distSq;
-				q = vertex.Position;
+				q = pos;
 			}
 		}
 
@@ -193,9 +257,9 @@ namespace Borealis
 		float radius = std::sqrt(maxDistSq) / 2.0f;
 
 		// Step 3: Expand sphere to include any outside points
-		for (const auto& vertex : mVertices)
+		for (const auto& pos : mPositions)
 		{
-			glm::vec3 dir = vertex.Position - center;
+			glm::vec3 dir = pos - center;
 			float distSq = glm::dot(dir, dir);
 
 			if (distSq > radius * radius)
@@ -214,18 +278,18 @@ namespace Borealis
 	void Mesh::GenerateAABB()
 	{
 		AABB aabb{};
-		aabb.minExtent = mVertices[0].Position;
-		aabb.maxExtent = mVertices[0].Position;
+		aabb.minExtent = mPositions[0];
+		aabb.maxExtent = mPositions[0];
 
-		for (Vertex const& vertex : mVertices)
+		for (glm::vec3 const& pos : mPositions)
 		{
-			aabb.minExtent.x = std::min(aabb.minExtent.x, vertex.Position.x);
-			aabb.minExtent.y = std::min(aabb.minExtent.y, vertex.Position.y);
-			aabb.minExtent.z = std::min(aabb.minExtent.z, vertex.Position.z);
+			aabb.minExtent.x = std::min(aabb.minExtent.x, pos.x);
+			aabb.minExtent.y = std::min(aabb.minExtent.y, pos.y);
+			aabb.minExtent.z = std::min(aabb.minExtent.z, pos.z);
 
-			aabb.maxExtent.x = std::max(aabb.maxExtent.x, vertex.Position.x);
-			aabb.maxExtent.y = std::max(aabb.maxExtent.y, vertex.Position.y);
-			aabb.maxExtent.z = std::max(aabb.maxExtent.z, vertex.Position.z);
+			aabb.maxExtent.x = std::max(aabb.maxExtent.x, pos.x);
+			aabb.maxExtent.y = std::max(aabb.maxExtent.y, pos.y);
+			aabb.maxExtent.z = std::max(aabb.maxExtent.z, pos.z);
 		}
 
 		mAABB = aabb;
@@ -709,15 +773,45 @@ namespace Borealis
 		return mIndices;
 	}
 
-	std::vector<Vertex> const& Mesh::GetVertices() const
+	std::vector<glm::vec3> const& Mesh::GetPosition() const
 	{
-		return mVertices;
+		return mPositions;
 	}
 
-	std::vector<Vertex>& Mesh::GetVertices()
+	std::vector<glm::vec3>& Mesh::GetPosition()
 	{
-		return mVertices;
+		return mPositions;
 	}
+
+	std::vector<glm::vec3> const& Mesh::GetNormal() const
+	{
+		return mNormals;
+	}
+
+	std::vector<glm::vec3>& Mesh::GetNormal()
+	{
+		return mNormals;
+	}
+
+	std::vector<glm::vec2> const& Mesh::GetTexCoord() const
+	{
+		return mTexCoords;
+	}
+
+	std::vector<glm::vec2>& Mesh::GetTexCoord()
+	{
+		return mTexCoords;
+	}
+
+	//std::vector<Vertex> const& Mesh::GetVertices() const
+	//{
+	//	return mVertices;
+	//}
+
+	//std::vector<Vertex>& Mesh::GetVertices()
+	//{
+	//	return mVertices;
+	//}
 
 	uint32_t Mesh::GetVerticesCount() const
 	{
@@ -741,28 +835,30 @@ namespace Borealis
 
 	void Mesh::ComputeTangents() 
 	{
-		//mVertices.resize(mVertices.size());
-		// Initialize tangents and bitangents to zero
-		for (size_t i = 0; i < mVertices.size(); i++) {
-			mVertices[i].Tangent = glm::vec3(0.0f);
-			mVertices[i].Bitangent = glm::vec3(0.0f);
+		mTangent.resize(mNormals.size());
+		mBitangent.resize(mNormals.size());
+		for (size_t i = 0; i < mNormals.size(); i++) 
+		{
+			mTangent[i] = glm::vec3(0.0f);
+			mBitangent[i] = glm::vec3(0.0f);
 		}
 
 		// Loop over each triangle
-		for (size_t i = 0; i < mIndices.size(); i += 3) {
-			Vertex& v0 = mVertices[mIndices[i]];
-			Vertex& v1 = mVertices[mIndices[i + 1]];
-			Vertex& v2 = mVertices[mIndices[i + 2]];
+		for (size_t i = 0; i < mIndices.size(); i += 3) 
+		{
+			int index0 = mIndices[i];
+			int index1 = mIndices[i + 1];
+			int index2 = mIndices[i + 2];
 
 			// Positions
-			glm::vec3& p0 = v0.Position;
-			glm::vec3& p1 = v1.Position;
-			glm::vec3& p2 = v2.Position;
+			glm::vec3& p0 = mPositions[index0];
+			glm::vec3& p1 = mPositions[index1];
+			glm::vec3& p2 = mPositions[index2];
 
 			// Texture coordinates
-			glm::vec2& uv0 = v0.TexCoords;
-			glm::vec2& uv1 = v1.TexCoords;
-			glm::vec2& uv2 = v2.TexCoords;
+			glm::vec2& uv0 = mTexCoords[index0];
+			glm::vec2& uv1 = mTexCoords[index1];
+			glm::vec2& uv2 = mTexCoords[index2];
 
 			// Edges of the triangle : position delta
 			glm::vec3 deltaPos1 = p1 - p0;
@@ -778,19 +874,20 @@ namespace Borealis
 			glm::vec3 bitangent = f * (-deltaPos1 * deltaUV2.x + deltaPos2 * deltaUV1.x);
 
 			// Accumulate the tangents and bitangents
-			v0.Tangent += tangent;
-			v1.Tangent += tangent;
-			v2.Tangent += tangent;
+			mTangent[index0] += tangent;
+			mTangent[index1] += tangent;
+			mTangent[index2] += tangent;
 
-			v0.Bitangent += bitangent;
-			v1.Bitangent += bitangent;
-			v2.Bitangent += bitangent;
+			mBitangent[index0] += bitangent;
+			mBitangent[index1] += bitangent;
+			mBitangent[index2] += bitangent;
 		}
 
 		// Normalize the tangents and bitangents
-		for (size_t i = 0; i < mVertices.size(); i++) {
-			mVertices[i].Tangent = glm::normalize(mVertices[i].Tangent);
-			mVertices[i].Bitangent = glm::normalize(mVertices[i].Bitangent);
+		for (size_t i = 0; i < mNormals.size(); i++) 
+		{
+			mTangent[i] = glm::normalize(mTangent[i]);
+			mBitangent[i] = glm::normalize(mBitangent[i]);
 		}
 	}
 }

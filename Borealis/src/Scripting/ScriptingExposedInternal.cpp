@@ -55,10 +55,16 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(Entity_GetComponent);
 		BOREALIS_ADD_INTERNAL_CALL(Entity_GetName);
 		BOREALIS_ADD_INTERNAL_CALL(Entity_SetName);
+		BOREALIS_ADD_INTERNAL_CALL(Entity_GetTag);
+		BOREALIS_ADD_INTERNAL_CALL(Entity_SetTag);
+		BOREALIS_ADD_INTERNAL_CALL(Entity_GetEntitiesFromTag);
 		BOREALIS_ADD_INTERNAL_CALL(Entity_GetEntitiesFromLayer);
 
 
 		BOREALIS_ADD_INTERNAL_CALL(Time_GetDeltaTime);
+		BOREALIS_ADD_INTERNAL_CALL(Time_GetUnscaledDeltaTime);
+		BOREALIS_ADD_INTERNAL_CALL(Time_SetTimeScale);
+		BOREALIS_ADD_INTERNAL_CALL(Time_GetTimeScale);
 
 		BOREALIS_ADD_INTERNAL_CALL(Input_GetMousePosition);
 		BOREALIS_ADD_INTERNAL_CALL(Input_GetMouseScrollDelta);
@@ -117,14 +123,14 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_AddTorque);
 		BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_AddImpulse);
 		BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_Move);
-		//BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_GetLinearVelocity);
-		//BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_SetLinearVelocity);
-		//BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_GetAngularVelocity);
-		//BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_SetAngularVelocity);
-		//BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_GetPosition);
-		//BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_SetPosition);
-		//BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_GetRotation);
-		//BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_SetRotation);
+		BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_GetLinearVelocity);
+		BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_SetLinearVelocity);
+		BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_GetAngularVelocity);
+		BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_SetAngularVelocity);
+		BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_GetPosition);
+		BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_SetPosition);
+		BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_GetRotation);
+		BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_SetRotation);
 		BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_SetIsKinematic);
 		BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_GetIsKinematic);
 
@@ -140,7 +146,11 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(Physics_RaycastAll);
 
 		BOREALIS_ADD_INTERNAL_CALL(CharacterController_Move);
+		BOREALIS_ADD_INTERNAL_CALL(CharacterController_Jump);
 		BOREALIS_ADD_INTERNAL_CALL(CharacterController_IsGrounded);
+		BOREALIS_ADD_INTERNAL_CALL(CharacterController_GetLinearVelocity);
+		BOREALIS_ADD_INTERNAL_CALL(CharacterController_SetLinearVelocity);
+
 
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_GetClip);
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_SetClip);
@@ -163,10 +173,13 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_SetBlend);
 		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_GetBlend);
 		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_SwapBlendBuffer);
+		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_GetCurrentTime);
+		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_GetAnimationDuration);
+
 
 		BOREALIS_ADD_INTERNAL_CALL(SceneManager_SetActiveScene);
 		BOREALIS_ADD_INTERNAL_CALL(SceneManager_Quit);
-
+		BOREALIS_ADD_INTERNAL_CALL(SceneManager_SetMainCamera);
 	}
 	uint64_t GenerateUUID()
 	{
@@ -220,6 +233,21 @@ namespace Borealis
 	float Time_GetDeltaTime()
 	{
 		return TimeManager::GetDeltaTime();
+	}
+
+	float Time_GetUnscaledDeltaTime()
+	{
+		return TimeManager::GetUnscaledDeltaTime();
+	}
+
+	void Time_SetTimeScale(float scale)
+	{
+		TimeManager::SetTimeScale(scale);
+	}
+
+	float Time_GetTimeScale()
+	{
+		return TimeManager::GetTimeScale();
 	}
 
 	void Entity_RemoveComponent(uint64_t entityID, MonoReflectionType* reflectionType)
@@ -361,7 +389,7 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(entityID);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		std::string str = entity.GetComponent<TagComponent>().Tag;
+		std::string str = entity.GetComponent<TagComponent>().Name;
 		*name = mono_string_new(mono_domain_get(), str.c_str());
 	}
 	void Entity_SetName(uint64_t entityID, MonoString* name)
@@ -375,7 +403,34 @@ namespace Borealis
 		Scene* scene = SceneManager::GetActiveScene().get();
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(entityID);
+		entity.GetComponent<TagComponent>().Name = str;
+	}
+	void Entity_GetTag(uint64_t entityID, MonoString** tag)
+	{
+		if (entityID == 0)
+		{
+			return;
+		}
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(entityID);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		std::string str = entity.GetComponent<TagComponent>().Tag;
+		*tag = mono_string_new(mono_domain_get(), str.c_str());
+	}
+	void Entity_SetTag(uint64_t entityID, MonoString* tag)
+	{
+		if (entityID == 0)
+		{
+			return;
+		}
+		char* message = mono_string_to_utf8(tag);
+		std::string str = message;
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(entityID);
 		entity.GetComponent<TagComponent>().Tag = str;
+		TagList::AddEntity(str, entityID);
 	}
 	void Entity_FindEntity(MonoString* name, UUID* ID)
 	{
@@ -385,7 +440,7 @@ namespace Borealis
 		for (auto entity : entityList)
 		{
 			auto tag = entityList.get<TagComponent>(entity);
-			if (tag.Tag == entityName)
+			if (tag.Name == entityName)
 			{
 				*ID = SceneManager::GetActiveScene()->GetRegistry().get<IDComponent>(entity).ID;
 				return;
@@ -400,6 +455,21 @@ namespace Borealis
 		*objectArray = mono_array_new(mono_domain_get(), mono_get_object_class(), entities.size());
 		int counter = 0;
 		for (auto id : entities)
+		{
+			MonoObject* obj;
+			InitGameObject(obj, id, "GameObject");
+			mono_array_set(*objectArray, MonoObject*, counter++, obj);
+		}
+	}
+	void Entity_GetEntitiesFromTag(MonoString* tag, MonoArray** objectArray)
+	{
+		char* message = mono_string_to_utf8(tag);
+		std::string entityTag = message;
+		auto List = TagList::getEntitiesAtTag(entityTag);
+
+		*objectArray = mono_array_new(mono_domain_get(), mono_get_object_class(), List.size());
+		int counter = 0;
+		for (auto id : List)
 		{
 			MonoObject* obj;
 			InitGameObject(obj, id, "GameObject");
@@ -689,7 +759,7 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		auto& rb = entity.GetComponent<RigidBodyComponent>();
+		auto& rb = entity.GetComponent<RigidbodyComponent>();
 		//PhysicsSystem::AddForce(entity.GetComponent<RigidBodyComponent>().bodyID, *force);
 	}
 	void RigidbodyComponent_AddTorque(UUID uuid, glm::vec3* force)
@@ -698,7 +768,7 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		auto& rb = entity.GetComponent<RigidBodyComponent>();
+		auto& rb = entity.GetComponent<RigidbodyComponent>();
 		//PhysicsSystem::AddForce(entity.GetComponent<RigidBodyComponent>().bodyID, *force);
 	}
 	void RigidbodyComponent_Move(UUID uuid, glm::vec3* vec)
@@ -707,7 +777,7 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		auto& rb = entity.GetComponent<RigidBodyComponent>();
+		auto& rb = entity.GetComponent<RigidbodyComponent>();
 		//PhysicsSystem::move(rb, *vec);
 	}
 	void RigidbodyComponent_GetLinearVelocity(UUID uuid, glm::vec3* velocity)
@@ -716,8 +786,8 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		auto& rb = entity.GetComponent<RigidBodyComponent>();
-		//*velocity = PhysicsSystem::GetLinearVelocity(entity.GetComponent<RigidBodyComponent>().bodyID);
+		auto& rb = entity.GetComponent<RigidbodyComponent>();
+		*velocity = PhysicsSystem::GetLinearVelocity(entity.GetComponent<BoxColliderComponent>().bodyID);
 	}
 	void RigidbodyComponent_SetLinearVelocity(UUID uuid, glm::vec3* velocity)
 	{
@@ -725,8 +795,8 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		auto& rb = entity.GetComponent<RigidBodyComponent>();
-		//PhysicsSystem::SetLinearVelocity(entity.GetComponent<RigidBodyComponent>().bodyID, *velocity);
+		auto& rb = entity.GetComponent<RigidbodyComponent>();
+		PhysicsSystem::SetLinearVelocity(entity.GetComponent<BoxColliderComponent>().bodyID, *velocity);
 	}
 	void RigidbodyComponent_GetAngularVelocity(UUID uuid, glm::vec3* velocity)
 	{
@@ -734,8 +804,8 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		auto& rb = entity.GetComponent<RigidBodyComponent>();
-		//*velocity = PhysicsSystem::GetAngularVelocity(entity.GetComponent<RigidBodyComponent>().bodyID);
+		auto& rb = entity.GetComponent<RigidbodyComponent>();
+		*velocity = PhysicsSystem::GetAngularVelocity(entity.GetComponent<BoxColliderComponent>().bodyID);
 	}
 	void RigidbodyComponent_SetAngularVelocity(UUID uuid, glm::vec3* velocity)
 	{
@@ -743,8 +813,8 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		auto& rb = entity.GetComponent<RigidBodyComponent>();
-		//PhysicsSystem::SetAngularVelocity(entity.GetComponent<RigidBodyComponent>().bodyID, *velocity);
+		auto& rb = entity.GetComponent<RigidbodyComponent>();
+		PhysicsSystem::SetAngularVelocity(entity.GetComponent<BoxColliderComponent>().bodyID, *velocity);
 	}
 	void RigidbodyComponent_GetPosition(UUID uuid, glm::vec3* position)
 	{
@@ -752,8 +822,8 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		auto& rb = entity.GetComponent<RigidBodyComponent>();
-		//*position = PhysicsSystem::GetPosition(entity.GetComponent<RigidBodyComponent>().bodyID);
+		auto& rb = entity.GetComponent<RigidbodyComponent>();
+		*position = PhysicsSystem::GetPosition(entity.GetComponent<BoxColliderComponent>().bodyID);
 	}
 	void RigidbodyComponent_SetPosition(UUID uuid, glm::vec3* position)
 	{
@@ -761,8 +831,8 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		auto& rb = entity.GetComponent<RigidBodyComponent>();
-		//PhysicsSystem::SetPosition(entity.GetComponent<RigidBodyComponent>().bodyID, *position);
+		//auto& rb = entity.GetComponent<RigidbodyComponent>();
+		PhysicsSystem::SetPosition(entity.GetComponent<BoxColliderComponent>().bodyID, *position);
 	}
 	void RigidbodyComponent_GetRotation(UUID uuid, glm::vec3* rotation)
 	{
@@ -770,8 +840,8 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		auto& rb = entity.GetComponent<RigidBodyComponent>();
-		//*rotation = PhysicsSystem::GetRotation(entity.GetComponent<RigidBodyComponent>().bodyID);
+		//auto& rb = entity.GetComponent<RigidbodyComponent>();
+		*rotation = PhysicsSystem::GetRotation(entity.GetComponent<BoxColliderComponent>().bodyID);
 	}
 	void RigidbodyComponent_SetRotation(UUID uuid, glm::vec3* rotation)
 	{
@@ -779,8 +849,8 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		auto& rb = entity.GetComponent<RigidBodyComponent>();
-		//PhysicsSystem::SetRotation(entity.GetComponent<RigidBodyComponent>().bodyID, *rotation);
+		auto& rb = entity.GetComponent<RigidbodyComponent>();
+		PhysicsSystem::SetRotation(entity.GetComponent<BoxColliderComponent>().bodyID, *rotation);
 	}
 	void RigidbodyComponent_SetIsKinematic(UUID uuid, bool* kinematic)
 	{
@@ -788,7 +858,7 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		auto& rb = entity.GetComponent<RigidBodyComponent>();
+		auto& rb = entity.GetComponent<RigidbodyComponent>();
 		*kinematic == true? rb.movement = MovementType::Dynamic : rb.movement = MovementType::Static;
 	}
 	void RigidbodyComponent_GetIsKinematic(UUID uuid, bool* kinematic)
@@ -797,7 +867,7 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		auto& rb = entity.GetComponent<RigidBodyComponent>();
+		auto& rb = entity.GetComponent<RigidbodyComponent>();
 
 		if (rb.movement == MovementType::Static)
 		{
@@ -1061,6 +1131,41 @@ namespace Borealis
 		entity.GetComponent<AnimatorComponent>().animation = entity.GetComponent<AnimatorComponent>().animator.mNextAnimation;
 		entity.GetComponent<AnimatorComponent>().animator.mNextAnimation = firstAnimation;
 	}
+	void AnimatorComponent_GetCurrentTime(UUID uuid, float* currentTime)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*currentTime = entity.GetComponent<AnimatorComponent>().animator.GetCurrentAnimationTime();
+	}
+	void AnimatorComponent_GetAnimationDuration(UUID uuid, float* duration)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*duration = entity.GetComponent<AnimatorComponent>().animator.GetAnimationDuration();
+	}
+	void SceneManager_SetMainCamera(uint64_t entityID)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(entityID);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		if (entity.HasComponent<CameraComponent>())
+		{
+			auto view = SceneManager::GetActiveScene()->GetRegistry().view<CameraComponent>();
+			for (auto entity : view)
+			{
+				auto& camera = view.get<CameraComponent>(entity);
+				camera.Primary = false;
+			}
+			entity.GetComponent<CameraComponent>().Primary = true;
+		}
+
+
+	}
 	void SceneManager_SetActiveScene(MonoString* sceneName)
 	{
 		std::string sceneNme = mono_string_to_utf8(sceneName);
@@ -1248,6 +1353,15 @@ namespace Borealis
 		}
 	
 	}
+	void CharacterController_Jump(uint64_t id, float jumpSpeed)
+	{
+		Entity entity = SceneManager::GetActiveScene()->GetEntityByUUID(id);
+		if (entity.HasComponent<CharacterControllerComponent>())
+		{
+			entity.GetComponent<CharacterControllerComponent>().jumpSpeed = jumpSpeed;
+			entity.GetComponent<CharacterControllerComponent>().isJump = true;
+		}
+	}
 	void CharacterController_IsGrounded(uint64_t id, bool* grounded)
 	{
 		Entity entity = SceneManager::GetActiveScene()->GetEntityByUUID(id);
@@ -1259,6 +1373,24 @@ namespace Borealis
 		{
 			*grounded = false;
 		}
+	}
+
+	void CharacterController_GetLinearVelocity(uint64_t id, glm::vec3* vel)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(id);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*vel = PhysicsSystem::GetLinearVelocity(entity.GetComponent<CharacterControllerComponent>().controller);
+	}
+
+	void CharacterController_SetLinearVelocity(uint64_t id, glm::vec3* vel)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(id);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		PhysicsSystem::SetLinearVelocity(entity.GetComponent<CharacterControllerComponent>().controller, *vel);
 	}
 
 	void AudioSource_GetClip(uint64_t ID, uint64_t* ClipID)

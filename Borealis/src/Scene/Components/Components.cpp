@@ -115,5 +115,58 @@ namespace Borealis
 
 		ParentID = 0;
 	}
+
+	 void ButtonComponent::onClick()
+	 {
+		auto entity = SceneManager::GetActiveScene()->GetEntityByUUID(onClickEntity);
+		if (!entity.HasComponent<ScriptComponent>())
+			 return;
+
+		auto& sc = entity.GetComponent<ScriptComponent>();
+		auto iter = sc.mScripts.find(onClickClass);
+		if (iter == sc.mScripts.end())
+			 return; // script class not found
+
+		auto scriptInstance = iter->second;
+		auto scriptClass = scriptInstance->GetScriptClass();
+		auto method = scriptClass->GetMethod(onClickFunctionName, 0);
+		if (method)
+			 scriptClass->InvokeMethod(scriptInstance->GetInstance(), method, nullptr);
+	 }
+
+	 void ButtonComponent::onRelease()
+	 {
+		 if (onReleaseEntity == 0) return;
+		 auto entity = SceneManager::GetActiveScene()->GetEntityByUUID(onReleaseEntity);
+		 if (!entity.HasComponent<ScriptComponent>()) return;
+
+		 auto& sc = entity.GetComponent<ScriptComponent>();
+		 auto iter = sc.mScripts.find(onReleaseClass);
+		 if (iter == sc.mScripts.end()) return;
+
+		 auto scriptInstance = iter->second;
+		 auto scriptClass = scriptInstance->GetScriptClass();
+		 auto method = scriptClass->GetMethod(onReleaseFunctionName, 0);
+		 if (method)
+			 scriptClass->InvokeMethod(scriptInstance->GetInstance(), method, nullptr);
+	 }
+
+	 void ButtonComponent::onHover()
+	 {
+		 if (onHoverEntity == 0) return;
+		 auto entity = SceneManager::GetActiveScene()->GetEntityByUUID(onHoverEntity);
+		 if (!entity.HasComponent<ScriptComponent>()) return;
+
+		 auto& sc = entity.GetComponent<ScriptComponent>();
+		 auto iter = sc.mScripts.find(onHoverClass);
+		 if (iter == sc.mScripts.end()) return;
+
+		 auto scriptInstance = iter->second;
+		 auto scriptClass = scriptInstance->GetScriptClass();
+		 auto method = scriptClass->GetMethod(onHoverFunctionName, 0);
+		 if (method)
+			 scriptClass->InvokeMethod(scriptInstance->GetInstance(), method, nullptr);
+	 }
+
 }
 

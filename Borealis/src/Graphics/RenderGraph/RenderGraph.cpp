@@ -13,6 +13,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
  /******************************************************************************/
 
 #include <BorealisPCH.hpp>
+#include <Core/LoggerSystem.hpp>
 
 #include <Graphics/RenderGraph/RenderGraph.hpp>
 
@@ -25,6 +26,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scene/SceneManager.hpp>
 
 #include <Graphics/PixelBuffer.hpp>
+#include <Graphics/UniformBufferObject.hpp>
+#include <Graphics/UBOBindings.hpp>
 
 //shadows
 #define S_MATERIALSHADOW true
@@ -38,6 +41,8 @@ namespace Borealis
 {
 	Ref<Shader> s_shader = nullptr;
 	Ref<Shader> material_shader = nullptr;
+	Ref<Shader> material_shader_transparency = nullptr;
+	Ref<Shader> revealage_shader = nullptr;
 	Ref<Shader> cascade_shadow_shader = nullptr;
 	Ref<Shader> common_shader = nullptr;
 	Ref<Shader> quad_shader = nullptr;
@@ -46,6 +51,23 @@ namespace Borealis
 
 	Ref<FrameBuffer> mCascadeShadowMapBuffer = nullptr;
 	Ref<FrameBuffer> mCascadeShadowMapBufferEditor = nullptr;
+
+	struct RenderData
+	{
+		struct CameraData
+		{
+			glm::mat4 ViewProjection;
+			glm::vec4 CameraPos;
+		};
+		CameraData cameraData;
+		Ref<UniformBufferObject> CameraUBO;
+
+		Ref<UniformBufferObject> AnimationUBO;
+
+		Ref<UniformBufferObject> LightsUBO;
+	};
+
+	static std::unique_ptr<RenderData> sData;
 
 	//========================================================================
 	//BUFFER SOURCE
@@ -329,8 +351,9 @@ namespace Borealis
 		return lightProjection * lightView;
 	}
 
-	void SetShadowVariable(LightComponent const& lightComponent, Ref<Shader> shader, Ref<CameraSource> camera)
+	glm::mat4 SetShadowVariable(LightComponent const& lightComponent, Ref<Shader> shader, Ref<CameraSource> camera)
 	{
+		glm::mat4 lightViewProj;
 		if (lightComponent.type == LightComponent::Type::Spot)
 		{
 			//need to change exact same code on top, fix next time
@@ -340,6 +363,7 @@ namespace Borealis
 			glm::mat4 lightProj = glm::perspective(fieldOfView, 1.f, 1.f, lightComponent.range); //change in the future
 			shader->Bind();
 			shader->Set("u_LightViewProjection", lightProj * lightView);
+			lightViewProj = lightProj * lightView;
 		}
 		else if (lightComponent.type == LightComponent::Type::Directional)
 		{
@@ -381,15 +405,23 @@ namespace Borealis
 
 				cascade_shadow_shader->Unbind();
 			}
+
+			lightViewProj = lightViewProjMatrices[3];
 		}
+
+		return lightViewProj;
 	}
 
 	void SetShadowAndLight(Ref<RenderTargetSource> shadowMap, Ref<Shader> shader,  entt::registry* registryPtr, Ref<CameraSource> camera, bool editor)
 	{
 		//add light to light engine and shadow pass
 		{
+			bool shadowCasted = false;
+			shader->Bind();
 			shader->Set("shadowPass", false);
 			shader->Set("u_HasShadow", false);
+			shader->Set("u_ShadowMap", 0);
+			shader->Set("u_CascadeShadowMap", 1);
 			entt::basic_group group = registryPtr->group<>(entt::get<TransformComponent, LightComponent>);
 			for (auto& entity : group)
 			{
@@ -400,40 +432,53 @@ namespace Borealis
 				}
 
 				auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
-				lightComponent.position = transform.GetGlobalTranslate();
-				lightComponent.direction = transform.GetGlobalRotation();
+
+				glm::vec3 buffer = transform.GetGlobalTranslate();
+				if (buffer != lightComponent.position)
+				{
+					lightComponent.position = buffer;
+					lightComponent.isEdited = true;
+
+					std::cout << "graph Light x {}" << lightComponent.position.x << '\n';
+				}
+
+				buffer = transform.GetGlobalRotation();
+				if (buffer != lightComponent.direction)
+				{
+					lightComponent.direction = buffer;
+					lightComponent.isEdited = true;
+				}
 				Renderer3D::AddLight(lightComponent);
-
-				SetShadowVariable(lightComponent, shader, camera);
-
-				shader->Bind();
-				shader->Set("u_HasShadow", true);
-				if (lightComponent.type == LightComponent::Type::Spot)
+				if(!shadowCasted && lightComponent.castShadow)
 				{
-					if (shadowMap)
+					shadowCasted = true;
+					SetShadowVariable(lightComponent, shader, camera);
+					shader->Bind();
+					shader->Set("u_HasShadow", true);
+					if (lightComponent.type == LightComponent::Type::Spot)
 					{
-						shadowMap->BindDepthBuffer(0);
-						shader->Set("u_ShadowMap", 0);
+						if (shadowMap)
+						{
+							shadowMap->BindDepthBuffer(0);
+							shader->Set("u_ShadowMap", 0);
+						}
+					}
+					else if (lightComponent.type == LightComponent::Type::Directional)
+					{
+						if (!editor && mCascadeShadowMapBuffer)
+						{
+							mCascadeShadowMapBuffer->BindDepthBuffer(1, true);
+							shader->Set("u_CascadeShadowMap", 1);
+						}
+						else if (editor && mCascadeShadowMapBufferEditor)
+						{
+							mCascadeShadowMapBufferEditor->BindDepthBuffer(1, true);
+							shader->Set("u_CascadeShadowMap", 1);
+						}
 					}
 				}
-				else if(lightComponent.type == LightComponent::Type::Directional)
-				{
-					if (!editor && mCascadeShadowMapBuffer)
-					{
-						mCascadeShadowMapBuffer->BindDepthBuffer(1, true);
-						shader->Set("u_CascadeShadowMap", 1);
-					}
-					else if (editor && mCascadeShadowMapBufferEditor)
-					{
-						mCascadeShadowMapBufferEditor->BindDepthBuffer(1, true);
-						shader->Set("u_CascadeShadowMap", 1);
-					}
-				}
-
-				
+				Renderer3D::SetLights(sData->LightsUBO);
 				shader->Unbind();
-
-				break; //TODO, for now 1 shadow
 			}
 		}
 	}
@@ -447,6 +492,7 @@ namespace Borealis
 		Ref<CameraSource> camera = nullptr;
 		Ref<RenderTargetSource> renderTarget = nullptr;
 		Ref<RenderTargetSource> shadowMap = nullptr;
+		Ref<RenderTargetSource> accumulaionTarget = nullptr;
 		Ref<PixelBufferSource> pixelBuffer = nullptr;
 		glm::vec3 camPos{};
 
@@ -454,6 +500,9 @@ namespace Borealis
 		{
 			if (sink->source->sourceType == RenderSourceType::Camera)
 			{
+				sData->cameraData.ViewProjection = std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj();
+				sData->cameraData.CameraPos = glm::vec4(std::dynamic_pointer_cast<CameraSource>(sink->source)->position,0.f);
+				sData->CameraUBO->SetData(&sData->cameraData, sizeof(RenderData::CameraData));
 				viewProjMatrix = std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj();
 				editor = std::dynamic_pointer_cast<CameraSource>(sink->source)->editor;
 				camPos = std::dynamic_pointer_cast<CameraSource>(sink->source)->position;
@@ -469,6 +518,12 @@ namespace Borealis
 					renderTarget->buffer->ClearAttachment(1, -1);
 				}
 
+				if (sink->sinkName == "accumulaionTarget")
+				{
+					accumulaionTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
+					accumulaionTarget->buffer->ClearAttachment(1, -1);
+				}			
+
 				if (sink->sinkName == "shadowMap")
 				{
 					shadowMap = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
@@ -476,7 +531,6 @@ namespace Borealis
 			}
 		}
 
-		Renderer3D::BeginCommonShapes(viewProjMatrix);
 		Frustum frustum = ComputeFrustum(viewProjMatrix);
 		//mesh pass
 		{
@@ -492,7 +546,6 @@ namespace Borealis
 
 				auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
 
-
 				if (!meshFilter.Model || !meshRenderer.Material || !meshRenderer.active) continue;
 
 				BoundingSphere modelBoundingSphere = meshFilter.Model->mBoundingSphere;
@@ -501,7 +554,6 @@ namespace Borealis
 
 				if (CullBoundingSphere(frustum, modelBoundingSphere))
 				{
-					//BOREALIS_CORE_INFO("Culling entity {}", (int)entity);
 					continue;
 				}
 
@@ -509,38 +561,21 @@ namespace Borealis
 				{
 					materialShader = meshRenderer.Material->GetShader();
 					Renderer3D::Begin(viewProjMatrix, materialShader);
-
-
 					SetShadowAndLight(shadowMap, materialShader, registryPtr, camera, editor);
-					Renderer3D::SetLights(materialShader);
+					Renderer3D::SetLights(sData->LightsUBO);
 				}
 
-				renderTarget->Bind();
 				Renderer3D::DrawMesh(transform.GetGlobalTransform(), meshFilter, meshRenderer, materialShader, (int)entity);
-
-				if (Renderer3D::GetGlobalWireFrameMode())
-				{
-					AABB modelAABB = meshFilter.Model->mAABB;
-					modelAABB.Transform(transform.GetGlobalTransform());
-					if (brEntity.HasComponent<BoxColliderComponent>())
-					{
-						auto& rigidbody = brEntity.GetComponent<BoxColliderComponent>();
-						glm::vec3 half = { rigidbody.size.x / 2, rigidbody.size.y / 2, rigidbody.size.z / 2 };
-						Renderer3D::DrawCube(rigidbody.center, -half, half, { 0.f,1.f,0.f,1.f }, true);
-						//rigidbody.minExtent = modelAABB.minExtent;
-						//rigidbody.maxExtent = modelAABB.maxExtent;
-						//Renderer3D::DrawCube(transform.Translate, rigidbody.minExtent, rigidbody.maxExtent, { 0.f,1.f,0.f,1.f }, true);
-					}
-				}
-				renderTarget->Unbind();
 			}
 			materialShader = nullptr;
 		}
 
-
 		//skinned mesh pass
 		{
+			//Add uniforms to drawInfo, pass it to drawqueue
+			//Add lights and animations to UBO
 			auto group = registryPtr->group<>(entt::get<TransformComponent, SkinnedMeshRendererComponent>);
+			int animationCount = 0;
 			for (auto& entity : group)
 			{
 				Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
@@ -553,15 +588,9 @@ namespace Borealis
 
 				if (!skinnedMesh.SkinnnedModel || !skinnedMesh.Material) continue;
 
-
 				Ref<Shader> materialShader = skinnedMesh.Material->GetShader();
 
-				Renderer3D::Begin(viewProjMatrix, materialShader);
-
-				materialShader->Bind();
-				materialShader->Set("u_HasAnimation", false);
-
-				SetShadowAndLight(shadowMap, materialShader, registryPtr, camera, editor);
+				//SetShadowAndLight(shadowMap, materialShader, registryPtr, camera, editor);
 				if (registryPtr->storage<AnimatorComponent>().contains(entity))
 				{
 					AnimatorComponent& animatorComponent = registryPtr->get<AnimatorComponent>(entity);
@@ -582,15 +611,10 @@ namespace Borealis
 
 						if (skinnedMesh.SkinnnedModel->mAnimation)
 						{
-							materialShader->Bind();
-							materialShader->Set("u_HasAnimation", true);
-							auto transforms =  animatorComponent.animator.GetFinalBoneMatrices();
-							for (int i = 0; i < transforms.size(); ++i)
-							{
-								std::string str = "u_FinalBonesMatrices[" + std::to_string(i) + "]";
-								materialShader->Set(str.c_str(), transforms[i]);
-							}
-							materialShader->Unbind();
+							auto const& transforms =  animatorComponent.animator.GetFinalBoneMatrices();
+
+							sData->AnimationUBO->SetData(transforms.data(), 128 * sizeof(glm::mat4), 128 * sizeof(glm::mat4) * animationCount);
+							animationCount++;
 						}
 					}
 				}
@@ -607,16 +631,65 @@ namespace Borealis
 
 				//Renderer3D::SetLights(shader);
 
-				renderTarget->Bind();
-				materialShader->Bind();
-				Renderer3D::SetLights(materialShader);
-				Renderer3D::DrawSkinnedMesh(transform.GetGlobalTransform(), skinnedMesh, materialShader, (int)entity);
-				materialShader->Unbind();
-				renderTarget->Unbind();
+				//Renderer3D::SetLights(materialShader);
+				Renderer3D::DrawSkinnedMesh(transform.GetGlobalTransform(), skinnedMesh, materialShader, (int)entity, animationCount-1);
+
+				if (animationCount >= 5)
+				{
+					renderTarget->Bind();
+					Renderer3D::End();
+					renderTarget->Unbind();
+					animationCount = 0;
+				}
 			}
 		}
 
+		if (accumulaionTarget->Width != renderTarget->Width || accumulaionTarget->Height != renderTarget->Height)
+		{
+			accumulaionTarget->buffer->Resize(renderTarget->Width, renderTarget->Height);
+		}
+
+		RenderCommand::EnableDepthTest();
+		RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLess);
+		RenderCommand::SetDepthMask(true);
+		RenderCommand::DisableBlend();
+		RenderCommand::SetClearColor(glm::vec4(0.1f,0.1f,0.1f,1.f));
+		renderTarget->Bind();
+		//RenderCommand::Clear();
 		Renderer3D::End();
+		renderTarget->Unbind();
+
+		//Transparency
+
+		uint32_t depthTexture = renderTarget->buffer->DetachDepthBuffer();
+		accumulaionTarget->buffer->AttachDepthBuffer(depthTexture);
+
+		RenderCommand::EnableDepthTest();
+		RenderCommand::SetDepthMask(false);
+		RenderCommand::EnableBlend();
+		RenderCommand::ConfigureBlendForTransparency(TransparencyStage::ACCUMULATION);
+		accumulaionTarget->Bind();
+		accumulaionTarget->buffer->ClearAttachment(0, {0.f,0.f,0.f,0.f});
+		accumulaionTarget->buffer->ClearAttachment(2, glm::vec4(1.f));
+		Renderer3D::RenderTransparentObjects(material_shader_transparency);
+		accumulaionTarget->Unbind();
+
+		//Composite
+
+		RenderCommand::ConfigureDepthFunc(DepthFunc::DepthAlways);
+		RenderCommand::EnableBlend();
+		RenderCommand::ConfigureBlendForTransparency(TransparencyStage::REVEALAGE);
+		renderTarget->Bind();
+		revealage_shader->Bind();
+		accumulaionTarget->buffer->BindTexture(0, 0);
+		revealage_shader->Set("accumColorTex", 0);
+		accumulaionTarget->buffer->BindTexture(2, 1);
+		revealage_shader->Set("accumAlphaTex", 1);
+		Renderer3D::DrawQuad();
+
+		RenderCommand::SetDepthMask(true);
+		RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLess);
+		RenderCommand::EnableDepthTest();
 	}
 
 	void Render2D::Execute(float dt)
@@ -629,6 +702,8 @@ namespace Borealis
 		{
 			if (sink->source->sourceType == RenderSourceType::Camera)
 			{
+				//sData->cameraData.ViewProjection = std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj();
+				//sData->CameraUBO->SetData(&sData->cameraData, sizeof(RenderData::CameraData));
 				Renderer2D::Begin(std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj());
 				editor = std::dynamic_pointer_cast<CameraSource>(sink->source)->editor;
 			}
@@ -682,13 +757,99 @@ namespace Borealis
 				}
 
 				auto [transform, text] = group.get<TransformComponent, TextComponent>(entity);
-				Renderer2D::DrawString(text.text, text.font, transform.GetGlobalTransform(), (int)entity, text.fontSize, text.colour);
+				Renderer2D::DrawString(text.text, text.font, transform.GetGlobalTransform(), (int)entity, text.fontSize, text.colour, text.align == TextComponent::TextAlign::Left ? false : true);
 			}
 		}
 
+		//RenderCommand::EnableBlend();
+		RenderCommand::ConfigureBlendForTransparency(TransparencyStage::REVEALAGE);
 		Renderer2D::DrawLineFromQueue();
 		Renderer2D::End();
+		//RenderCommand::DisableBlend();
 
+		renderTarget->Unbind();
+	}
+
+	UIWorldPass::UIWorldPass(std::string name) : EntityPass((name))
+	{
+		shader = s_shader;
+	}
+
+	void RenderCanvasRecursive(Entity parent, const glm::mat4& canvasTransform)
+	{
+		if (!parent.HasComponent<TransformComponent>()) return;
+		glm::mat4 globalTansform = parent.GetComponent<TransformComponent>().GetGlobalTransform();//(glm::mat4)parent.GetComponent<TransformComponent>();
+		if (parent.HasComponent<CanvasRendererComponent>())
+		{
+			glm::mat4 transform = canvasTransform * globalTansform;
+			if (parent.HasComponent<SpriteRendererComponent>())
+			{
+				Renderer2D::DrawSprite(transform, parent.GetComponent<SpriteRendererComponent>(), (int)parent);
+			}
+
+			if (parent.HasComponent<TextComponent>())
+			{
+				TextComponent const& text = parent.GetComponent<TextComponent>();
+
+				Renderer2D::DrawString(text.text, text.font, transform, (int)parent, text.fontSize, text.colour, text.align == TextComponent::TextAlign::Left? false:true);
+			}
+		}
+
+		for (UUID childID : parent.GetComponent<TransformComponent>().ChildrenID)
+		{
+			Entity child = SceneManager::GetActiveScene()->GetEntityByUUID(childID);
+			if (child.HasComponent<TagComponent>() && child.IsActive())
+				RenderCanvasRecursive(child, canvasTransform);
+		}
+	}
+
+	void UIWorldPass::Execute(float dt)
+	{
+		PROFILE_FUNCTION();
+		Ref<RenderTargetSource> renderTarget = nullptr;
+		glm::mat4 viewProjMatrix{};
+
+		for (auto sink : sinkList)
+		{
+			if (sink->source->sourceType == RenderSourceType::RenderTargetColor)
+			{
+				if (sink->sinkName == "renderTarget")
+				{
+					renderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
+				}
+			}
+
+			if (sink->source->sourceType == RenderSourceType::Camera)
+			{
+				viewProjMatrix = std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj();
+			}
+		}
+
+		//viewProjMatrix = glm::ortho(0.0f, (float)renderTarget->Width, (float)renderTarget->Height, 0.0f, -100.0f, 100.0f);
+
+		renderTarget->Bind();
+		Renderer2D::Begin(viewProjMatrix);
+
+		{
+			auto group = registryPtr->group<>(entt::get<TransformComponent, CanvasComponent>);
+
+			for (auto& entity : group)
+			{
+				Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
+				if (!brEntity.IsActive())
+				{
+					continue;
+				}
+				auto [transform, canvas] = group.get<TransformComponent, CanvasComponent>(entity);
+				if (canvas.renderMode != CanvasComponent::RenderMode::WorldSpace) continue;
+
+				glm::mat4 canvasTransform = transform.GetGlobalTransform();
+
+				RenderCanvasRecursive(brEntity, canvasTransform);
+			}
+		}
+
+		Renderer2D::End();
 		renderTarget->Unbind();
 	}
 
@@ -743,8 +904,7 @@ namespace Borealis
 					continue;
 				}
 				auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
-				if (!meshRenderer.active) { continue; }
-
+				if (!meshFilter.Model || !meshRenderer.Material || !meshRenderer.active) continue;
 				BoundingSphere modelBoundingSphere = meshFilter.Model->mBoundingSphere;
 				modelBoundingSphere.Transform(transform.GetGlobalTransform());
 
@@ -829,11 +989,22 @@ namespace Borealis
 					continue;
 				}
 				auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
-				lightComponent.position = transform.GetGlobalTranslate();
-				lightComponent.direction = transform.GetGlobalRotation();
+				glm::vec3 buffer = transform.GetGlobalTranslate();
+				if (buffer != lightComponent.position)
+				{
+					lightComponent.position = buffer;
+					lightComponent.isEdited = true;
+				}
+
+				buffer = transform.GetGlobalRotation();
+				if (buffer != lightComponent.direction)
+				{
+					lightComponent.direction = buffer;
+					lightComponent.isEdited = true;
+				}
 				Renderer3D::AddLight(lightComponent);
 			}
-			Renderer3D::SetLights(shader);
+			Renderer3D::SetLights(sData->LightsUBO);
 		}
 
 		renderTarget->Bind();
@@ -846,7 +1017,7 @@ namespace Borealis
 
 	ShadowPass::ShadowPass(std::string name) : EntityPass(name)
 	{
-		shader = material_shader;
+		shader = material_shader;//switch out
 	}
 
 	void ShadowPass::Execute(float dt)
@@ -885,8 +1056,7 @@ namespace Borealis
 		}
 
 		{
-
-
+			glm::mat4 lightViewProj{};
 			static bool editorChange = false;
 			bool directionalLight = false;
 			entt::basic_group group = registryPtr->group<>(entt::get<TransformComponent, LightComponent>);
@@ -899,50 +1069,64 @@ namespace Borealis
 				{
 					continue;
 				}
-				lightComponent.position = transform.GetGlobalTranslate();
-				lightComponent.direction = transform.GetGlobalRotation();
+				glm::vec3 buffer = transform.GetGlobalTranslate();
+				if (buffer != lightComponent.position)
+				{
+					lightComponent.position = buffer;
+					lightComponent.isEdited = true;
+				}
+
+				buffer = transform.GetGlobalRotation();
+				if (buffer != lightComponent.direction)
+				{
+					lightComponent.direction = buffer;
+					lightComponent.isEdited = true;
+				}
 
 				bool lightChange = false, cameraChange = false;
 				static glm::vec3 tempLightDir{};
 				static glm::vec3 tempPos{}, tempPosEditor{};
 
-				if (tempLightDir != lightComponent.direction) lightChange = true;
+				//if(false/*TURN ON FOR PERFORMANCE*/)
+				//{
+					if (tempLightDir != lightComponent.direction) lightChange = true;
 
-				if (!editor)
-				{
-					if (glm::distance(tempPos, cameraPosition) > 20.f) cameraChange = true;
-				}
-				else
-				{
-					if (glm::distance(tempPosEditor, cameraPosition) > 20.f) cameraChange = true;
-				}
-
-				if (lightChange || cameraChange)
-				{
-					tempLightDir = lightComponent.direction;
-
-					if (editor)
+					if (!editor)
 					{
-						tempPosEditor = cameraPosition;
+						if (glm::distance(tempPos, cameraPosition) > 0.05f) cameraChange = true;
 					}
 					else
 					{
-						tempPos = cameraPosition;
-						editorChange = false;
+						if (glm::distance(tempPosEditor, cameraPosition) > 0.05f) cameraChange = true;
 					}
-				}
-				else
-				{
-					if(editorChange)
-						return;
-				}
+
+					if (lightChange || cameraChange)
+					{
+						tempLightDir = lightComponent.direction;
+
+						if (editor)
+						{
+							tempPosEditor = cameraPosition;
+						}
+						else
+						{
+							tempPos = cameraPosition;
+							editorChange = false;
+						}
+					}
+					else
+					{
+						if (editorChange)
+							return;
+					}
+				//}
 
 				if (lightComponent.type == LightComponent::Type::Directional)
 				{
 					directionalLight = true;
 				}
 
-				SetShadowVariable(lightComponent, shader, camera);
+				lightViewProj = SetShadowVariable(lightComponent, shader, camera);
 
 				break; //TODO 1 shadow for now
 			}
@@ -950,7 +1134,7 @@ namespace Borealis
 			shader->Bind();
 			shader->Set("shadowPass", true);
 
-			Frustum frustum = ComputeFrustum(viewProjMatrix);
+			Frustum frustum = ComputeFrustum(lightViewProj);
 
 			if(!directionalLight)
 			{
@@ -967,9 +1151,12 @@ namespace Borealis
 						auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
 						if (!meshRenderer.active) { continue; }
 
+						if (!meshFilter.Model || !meshRenderer.Material || !meshRenderer.active) continue;
+
+						if (!meshRenderer.castShadow) continue;
+
 						BoundingSphere modelBoundingSphere = meshFilter.Model->mBoundingSphere;
 						modelBoundingSphere.Transform(transform.GetGlobalTransform());
-
 
 						if (CullBoundingSphere(frustum, modelBoundingSphere))
 						{
@@ -977,13 +1164,16 @@ namespace Borealis
 							continue;
 						}
 
-
-
 						RenderCommand::EnableFrontFaceCull();
 						Renderer3D::DrawMesh(transform.GetGlobalTransform(), meshFilter, meshRenderer, shader, (int)entity);
 						RenderCommand::EnableBackFaceCull();
 					}
 				}
+
+				RenderCommand::EnableFrontFaceCull();
+				Renderer3D::End();
+				RenderCommand::EnableBackFaceCull();
+
 				shadowMap->Unbind();
 			}
 
@@ -1012,7 +1202,9 @@ namespace Borealis
 						continue;
 					}
 					auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
-					if (!meshRenderer.active) { continue; }
+					if (!meshFilter.Model || !meshRenderer.Material || !meshRenderer.active) continue;
+
+					if (!meshRenderer.castShadow) continue;
 
 					BoundingSphere modelBoundingSphere = meshFilter.Model->mBoundingSphere;
 					modelBoundingSphere.Transform(transform.GetGlobalTransform());
@@ -1170,7 +1362,6 @@ namespace Borealis
 				}
 
 				shader->Bind();
-				shader->Set("u_ViewProjection", viewProjMatrix);
 				if (entityID == hoveredEntity)
 				{
 					shader->Set("u_Filled", false);
@@ -1383,7 +1574,7 @@ namespace Borealis
 				if (!outline.active) continue;
 
 				shader->Bind();
-				shader->Set("u_ViewProjection", viewProjMatrix);
+				//shader->Set("u_ViewProjection", viewProjMatrix);
 				shader->Set("u_Filled", outline.filled);
 				shader->Set("u_HighlightPass", false);
 				shader->Set("u_Color", outline.color);
@@ -1470,34 +1661,6 @@ namespace Borealis
 		shader = quad_shader;
 	}
 
-	void RenderCanvasRecursive(Entity parent, const glm::mat4& canvasTransform)
-	{
-		if (!parent.HasComponent<TransformComponent>()) return;
-		glm::mat4 globalTansform = parent.GetComponent<TransformComponent>().GetGlobalTransform();//(glm::mat4)parent.GetComponent<TransformComponent>();
-		if (parent.HasComponent<CanvasRendererComponent>())
-		{
-			glm::mat4 transform = canvasTransform * globalTansform;
-			if (parent.HasComponent<SpriteRendererComponent>())
-			{
-				Renderer2D::DrawSprite(transform, parent.GetComponent<SpriteRendererComponent>(), (int)parent);
-			}
-
-			if (parent.HasComponent<TextComponent>())
-			{
-				TextComponent const& text = parent.GetComponent<TextComponent>();
-				
-				Renderer2D::DrawString(text.text, text.font, transform, (int)parent, text.fontSize, text.colour);
-			}
-		}
-
-		for (UUID childID : parent.GetComponent<TransformComponent>().ChildrenID)
-		{
-			Entity child = SceneManager::GetActiveScene()->GetEntityByUUID(childID);
-			if (child.HasComponent<TagComponent>() && child.IsActive())
-				RenderCanvasRecursive(child, canvasTransform);
-		}
-	}
-
 	void UIPass::Execute(float dt)
 	{
 		PROFILE_FUNCTION();
@@ -1523,11 +1686,14 @@ namespace Borealis
 		Ref<FrameBuffer> uiFBO = nullptr;
 
 		viewProjMatrix = glm::ortho(0.0f, (float)renderTarget->Width, (float)renderTarget->Height, 0.0f, -100.0f, 100.0f);
+		sData->cameraData.ViewProjection = viewProjMatrix;
+		sData->CameraUBO->SetData(&sData->cameraData, sizeof(sData->cameraData));
 		Renderer2D::Begin(viewProjMatrix);
 
-		bool UIexist = false;
 
+		for (int i = 0; i < 10; ++i)
 		{
+			bool UIexist = false;
 			auto group = registryPtr->group<>(entt::get<TransformComponent, CanvasComponent>);
 			for (auto& entity : group)
 			{
@@ -1537,6 +1703,8 @@ namespace Borealis
 					continue;
 				}
 				auto [transform, canvas] = group.get<TransformComponent, CanvasComponent>(entity);
+				if (canvas.renderMode == CanvasComponent::RenderMode::WorldSpace) continue;
+				if (canvas.renderIndex != i) continue;
 				glm::vec3 currTransfrom = glm::vec3(((glm::mat4)transform)[3]);
 
 				//This is to set the canvas transforms in run time
@@ -1553,7 +1721,7 @@ namespace Borealis
 				if (!canvas.canvasFrameBuffer)
 				{
 					FrameBufferProperties props{ 1280, 720, false };
-					props.Attachments = { FramebufferTextureFormat::RGBA8,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
+					props.Attachments = { FramebufferTextureFormat::RGBA16F,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
 					canvas.canvasFrameBuffer = FrameBuffer::Create(props);
 				}
 
@@ -1581,30 +1749,33 @@ namespace Borealis
 					transform.SetGlobalTransform(canvasTransform);
 				}
 			}
-		}
 
-		if(UIexist)
-		{
-			uiFBO->Bind();
-			RenderCommand::SetClearColor(glm::vec4{ 0.f });
-			RenderCommand::Clear();
-			RenderCommand::DisableDepthTest();
-			Renderer2D::End();
-			uiFBO->Unbind();
 
-			//std::swap(UIFBO, renderTarget->buffer);
+			if (UIexist)
+			{
+				uiFBO->Bind();
+				RenderCommand::SetClearColor(glm::vec4{ 0.f });
+				RenderCommand::Clear();
+				RenderCommand::DisableDepthTest();
+				Renderer2D::End();
+				uiFBO->Unbind();
 
-			RenderCommand::DisableDepthTest();
-			uiFBO->BindTexture(0, 0);
-			shader->Bind();
-			shader->Set("u_Texture0", 0);
+				//std::swap(UIFBO, renderTarget->buffer);
 
-			renderTarget->Bind();
-			Renderer3D::DrawQuad();
-			renderTarget->Unbind();
+				RenderCommand::DisableDepthTest();
+				//RenderCommand::EnableBlend();
+				uiFBO->BindTexture(0, 0);
+				shader->Bind();
+				shader->Set("u_Texture0", 0);
 
-			shader->Unbind();
-			RenderCommand::EnableDepthTest();
+				renderTarget->Bind();
+				Renderer3D::DrawQuad();
+				renderTarget->Unbind();
+
+				shader->Unbind();
+				RenderCommand::EnableDepthTest();
+				//RenderCommand::DisableBlend();
+			}
 		}
 	}
 
@@ -1651,6 +1822,7 @@ namespace Borealis
 				}
 
 				auto [transform, canvas] = group.get<TransformComponent, CanvasComponent>(entity);
+				if (canvas.renderMode == CanvasComponent::RenderMode::WorldSpace) continue;
 				canvas.scaleFactor = 0.01f;
 				canvas.canvasSize.x = runTimeRenderTarget->Width * canvas.scaleFactor;
 				canvas.canvasSize.y = runTimeRenderTarget->Height * canvas.scaleFactor;
@@ -1664,9 +1836,112 @@ namespace Borealis
 				Renderer2D::DrawSprite(canvasTransform, sprite, (int)entity);
 			}
 		}
+
+		//RenderCommand::EnableBlend();
+		RenderCommand::ConfigureBlendForTransparency(TransparencyStage::REVEALAGE);
 		Renderer2D::End();
+		//RenderCommand::DisableBlend();
 
 		renderTarget->Unbind();
+	}
+
+
+	ParticleSystemPass::ParticleSystemPass(std::string name) : EntityPass(name)
+	{
+
+	}
+
+	void ParticleSystemPass::Execute(float dt)
+	{
+		Ref<RenderTargetSource> renderTarget = nullptr;
+		Ref<RenderTargetSource> accumulaionTarget = nullptr;
+
+		for (auto sink : sinkList)
+		{
+			if (sink->source->sourceType == RenderSourceType::RenderTargetColor)
+			{
+				if (sink->sinkName == "renderTarget")
+				{
+					renderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
+				}
+
+				if (sink->sinkName == "accumulaionTarget")
+				{
+					accumulaionTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
+					accumulaionTarget->buffer->ClearAttachment(1, -1);
+				}
+			}
+		}
+
+		auto group = registryPtr->group<>(entt::get<TransformComponent, ParticleSystemComponent>);
+
+		uint32_t depthTexture = renderTarget->buffer->DetachDepthBuffer();
+		accumulaionTarget->buffer->AttachDepthBuffer(depthTexture);
+
+		RenderCommand::EnableDepthTest();
+		RenderCommand::SetDepthMask(false);
+		RenderCommand::EnableBlend();
+		RenderCommand::ConfigureBlendForTransparency(TransparencyStage::ACCUMULATION);
+		accumulaionTarget->Bind();
+		accumulaionTarget->buffer->ClearAttachment(0, { 0.f,0.f,0.f,0.f });
+		accumulaionTarget->buffer->ClearAttachment(2, glm::vec4(1.f));
+
+		Renderer2D::Begin(glm::mat4{});
+
+		for (auto& entity : group)
+		{
+			Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
+			if (!brEntity.IsActive())
+			{
+				continue;
+			}
+
+			Ref<ParticleSystem> particleSystem = brEntity.GetComponent<ParticleSystemComponent>().particleSystem;
+
+			if (!particleSystem)
+			{
+				particleSystem = MakeRef<ParticleSystem>();
+				particleSystem->Init(brEntity.GetComponent<ParticleSystemComponent>());
+
+				if(brEntity.GetComponent<ParticleSystemComponent>().texture == nullptr)
+					brEntity.GetComponent<ParticleSystemComponent>().texture = Texture2D::GetDefaultTexture();
+			}
+			
+			std::vector<Particle> const& particles = particleSystem->GetParticles();
+			uint32_t particlesCount = particleSystem->GetParticlesCount();
+			for (Particle const& particle : particles)
+			{
+				if (!particle.isActive)
+				{
+					continue;
+				}
+				glm::mat4 transfrom = glm::translate(glm::mat4(1.0f), particle.position) *
+					glm::toMat4(particle.startRotation) *
+					glm::scale(glm::mat4(1.0f), particle.startSize);
+				Renderer2D::DrawQuad(transfrom, brEntity.GetComponent<ParticleSystemComponent>().texture, particle.startSize[0], particle.currentColor, -1, true);
+			}
+		}
+
+		Renderer2D::EndParticles();
+		accumulaionTarget->Unbind();
+
+		//Composite
+
+		RenderCommand::ConfigureDepthFunc(DepthFunc::DepthAlways);
+		RenderCommand::EnableBlend();
+		RenderCommand::ConfigureBlendForTransparency(TransparencyStage::REVEALAGE);
+		renderTarget->Bind();
+		revealage_shader->Bind();
+		accumulaionTarget->buffer->BindTexture(0, 0);
+		revealage_shader->Set("accumColorTex", 0);
+		accumulaionTarget->buffer->BindTexture(2, 1);
+		revealage_shader->Set("accumAlphaTex", 1);
+		Renderer3D::DrawQuad();
+		renderTarget->Unbind();
+
+		RenderCommand::SetDepthMask(true);
+		RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLess);
+		RenderCommand::EnableDepthTest();
 	}
 
 	//========================================================================
@@ -1683,6 +1958,18 @@ namespace Borealis
 
 		if (!material_shader)
 			material_shader = Shader::GetDefault3DMaterialShader();
+
+		if (!material_shader_transparency)
+		{
+			material_shader_transparency = Shader::Create("engineResources/Shaders/Renderer3D_TransparentMaterial.glsl");
+			UniformBufferObject::BindToShader(material_shader_transparency->GetID(), "Camera", CAMERA_BIND);
+			UniformBufferObject::BindToShader(material_shader_transparency->GetID(), "MaterialUBO", MATERIAL_ARRAY_BIND);
+			UniformBufferObject::BindToShader(material_shader_transparency->GetID(), "LightsUBO", LIGHTING_BIND);
+			UniformBufferObject::BindToShader(material_shader_transparency->GetID(), "AnimationUBO", ANIMATION_BIND);
+		}
+
+		if(!revealage_shader)
+			revealage_shader = Shader::Create("engineResources/Shaders/Renderer3D_Revealage.glsl");
 
 		if (!cascade_shadow_shader)
 			cascade_shadow_shader = Shader::Create("engineResources/Shaders/Renderer3D_CascadeShadow.glsl");
@@ -1708,6 +1995,16 @@ namespace Borealis
 			FrameBufferProperties propsShadowMapBuffer{ 2024, 2024, false };
 			propsShadowMapBuffer.Attachments = { FramebufferTextureFormat::DepthArray };
 			mCascadeShadowMapBufferEditor = FrameBuffer::Create(propsShadowMapBuffer);
+		}
+
+		if(!sData)
+		{
+			sData = std::make_unique<RenderData>();
+			sData->CameraUBO = UniformBufferObject::Create(sizeof(RenderData::CameraData), CAMERA_BIND);
+
+			sData->AnimationUBO = UniformBufferObject::Create(sizeof(glm::mat4) * 128 * 5, ANIMATION_BIND);
+
+			sData->LightsUBO = UniformBufferObject::Create(sizeof(LightUBO) * 32 + sizeof(int), LIGHTING_BIND);
 		}
 	}
 
@@ -1793,6 +2090,8 @@ namespace Borealis
 			case RenderPassType::HighlightPass:
 			case RenderPassType::UIPass:
 			case RenderPassType::EditorUIPass:
+			case RenderPassType::ParticleSystemPass:
+			case RenderPassType::UIWorldPass:
 				AddEntityPassConfig(passesConfig);
 				break;
 			case RenderPassType::ObjectPicking:
@@ -1884,8 +2183,14 @@ namespace Borealis
 		case RenderPassType::UIPass:
 			renderPass = MakeRef<UIPass>(renderPassConfig.mPassName);
 			break;
+		case RenderPassType::UIWorldPass:
+			renderPass = MakeRef<UIWorldPass>(renderPassConfig.mPassName);
+			break;
 		case RenderPassType::EditorUIPass:
 			renderPass = MakeRef<EditorUIPass>(renderPassConfig.mPassName);
+			break;
+		case RenderPassType::ParticleSystemPass:
+			renderPass = MakeRef<ParticleSystemPass>(renderPassConfig.mPassName);
 			break;
 		}
 

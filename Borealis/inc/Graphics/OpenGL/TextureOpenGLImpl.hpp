@@ -35,6 +35,14 @@ namespace Borealis
 		/*!***********************************************************************
 			\brief
 				Constructor for OpenGL Texture2D
+			\param[in] path
+				Path to the texture file
+		*************************************************************************/
+		OpenGLTexture2D(const std::string& path, std::optional<TextureConfig> textureConfig = std::nullopt);
+
+		/*!***********************************************************************
+			\brief
+				Constructor for OpenGL Texture2D
 			\param[in] textureInfo
 				Infomation of the texture
 		*************************************************************************/

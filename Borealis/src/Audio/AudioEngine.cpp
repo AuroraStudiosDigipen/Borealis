@@ -314,10 +314,12 @@ namespace Borealis
     void AudioEngine::StopAllChannels()
     {
         // Stop all tracked channels
-        for (auto& channelPair : sgpImplementation->mChannels)
+        for (auto it = sgpImplementation->mChannels.begin(); it != sgpImplementation->mChannels.end(); ++it)
         {
-            StopChannel(channelPair.first);
-        }
+			FMOD::Channel* pChannel = it->second;
+			pChannel->stop();
+		}
+
         sgpImplementation->mChannels.clear(); // Clear the map as all channels are stopped
 
         // Stop all channels globally via the master group
@@ -421,24 +423,12 @@ namespace Borealis
         {
             std::cerr << "Error: Group \"" << groupName << "\" not found!" << std::endl;
         }
+        // If no group is found, return -1 or handle the case accordingly
+        return -1;
     }
-
-
-    //int AudioEngine::GetGroupIdForAudio(FMOD::Sound* fmodSound)
-    //{
-    //    auto it = sgpImplementation->mAudioGroupMap.find(fmodSound);
-    //    if (it != sgpImplementation->mAudioGroupMap.end())
-    //    {
-    //        return it->second;  // Return the group ID
-    //    }
-
-    //    // If no group is found, return -1 or handle the case accordingly
-    //    return -1;
-    //}
-
-    Ref<Asset> AudioEngine::Load(AssetMetaData const& assetMetaData)
+    Ref<Asset> AudioEngine::Load(std::filesystem::path const& cachePath, AssetMetaData const& assetMetaData)
     {
-        Audio audio = LoadAudio(assetMetaData.SourcePath.string());
+        Audio audio = LoadAudio((cachePath / std::to_string(assetMetaData.Handle)).string());
         return MakeRef<Audio>(audio);
     }
 

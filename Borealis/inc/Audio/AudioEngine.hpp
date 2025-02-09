@@ -223,7 +223,12 @@ namespace Borealis
         \return
             A reference to the loaded audio asset.
         *************************************************************************/
-        static Ref<Asset> Load(AssetMetaData const& assetMetaData);
+        //static Ref<Asset> Load(AssetMetaData const& assetMetaData);
+        static int GetDefaultGroupId();
+
+        static int GetGroupIdForAudio(FMOD::Sound* fmodSound);
+
+        static Ref<Asset> Load(std::filesystem::path const& cachePath, AssetMetaData const& assetMetaData);
 
         static int mDefaultGroupI; /*!< The default audio group ID */
 

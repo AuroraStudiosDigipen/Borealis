@@ -11,16 +11,16 @@
 
 JPH_NAMESPACE_BEGIN
 
-/// Class that constructs a TaperedCapsuleShape
-class JPH_EXPORT TaperedCapsuleShapeSettings final : public ConvexShapeSettings
+/// Class that constructs a CylinderShape
+class JPH_EXPORT CylinderShapeSettings final : public ConvexShapeSettings
 {
-	JPH_DECLARE_SERIALIZABLE_VIRTUAL(JPH_EXPORT, TaperedCapsuleShapeSettings)
+	JPH_DECLARE_SERIALIZABLE_VIRTUAL(JPH_EXPORT, CylinderShapeSettings)
 
 	/// Default constructor for deserialization
-							TaperedCapsuleShapeSettings() = default;
+							CylinderShapeSettings() = default;
 
 	/// Create a tapered capsule centered around the origin with one sphere cap at (0, -inHalfHeightOfTaperedCylinder, 0) with radius inBottomRadius and the other at (0, inHalfHeightOfTaperedCylinder, 0) with radius inTopRadius
-							TaperedCapsuleShapeSettings(float inHalfHeightOfTaperedCylinder, float inTopRadius, float inBottomRadius, const PhysicsMaterial *inMaterial = nullptr);
+							CylinderShapeSettings(float inHalfHeightOfTaperedCylinder, float inTopRadius, float inBottomRadius, const PhysicsMaterial *inMaterial = nullptr);
 
 	/// Check if the settings are valid
 	bool					IsValid() const															{ return mTopRadius > 0.0f && mBottomRadius > 0.0f && mHalfHeightOfTaperedCylinder >= 0.0f; }
@@ -37,14 +37,14 @@ class JPH_EXPORT TaperedCapsuleShapeSettings final : public ConvexShapeSettings
 };
 
 /// A capsule with different top and bottom radii
-class JPH_EXPORT TaperedCapsuleShape final : public ConvexShape
+class JPH_EXPORT CylinderShape final : public ConvexShape
 {
 public:
 	JPH_OVERRIDE_NEW_DELETE
 
 	/// Constructor
-							TaperedCapsuleShape() : ConvexShape(EShapeSubType::TaperedCapsule) { }
-							TaperedCapsuleShape(const TaperedCapsuleShapeSettings &inSettings, ShapeResult &outResult);
+							CylinderShape() : ConvexShape(EShapeSubType::Cylinder) { }
+							CylinderShape(const CylinderShapeSettings &inSettings, ShapeResult &outResult);
 
 	// See Shape::GetCenterOfMass
 	virtual Vec3			GetCenterOfMass() const override										{ return mCenterOfMass; }
@@ -103,7 +103,7 @@ protected:
 
 private:
 	// Class for GetSupportFunction
-	class					TaperedCapsule;
+	class					Cylinder;
 
 	/// Returns box that approximates the inertia
 	AABox					GetInertiaApproximation() const;

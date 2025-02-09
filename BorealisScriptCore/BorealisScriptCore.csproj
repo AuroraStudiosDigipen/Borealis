@@ -164,6 +164,8 @@
     <Compile Include="src\Core\KeyCode.cs" />
     <Compile Include="src\Core\LayerMask.cs" />
     <Compile Include="src\Core\SceneManager.cs" />
+    <Compile Include="src\Core\State.cs" />
+    <Compile Include="src\Core\StateMachine.cs" />
     <Compile Include="src\Core\Time.cs" />
     <Compile Include="src\Math\Color.cs" />
     <Compile Include="src\Math\Color32.cs" />

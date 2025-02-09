@@ -28,12 +28,15 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/Material.hpp>
 #include <Graphics/Font.hpp>
 #include <Graphics/Framebuffer.hpp>
+#include <Graphics/ParticleSystem.hpp>
 #include <AI/BehaviourTree/BehaviourTree.hpp>
 #include <AI/BehaviourTree/BTreeFactory.hpp>
 #include <Core/UUID.hpp>
 #include <Core/Bitset32.hpp>
 #include <Audio/Audio.hpp>
 #include <Audio/AudioGroup.hpp>
+
+#include "Graphics/UI/Button.hpp"
 
 
 namespace Borealis
@@ -50,13 +53,16 @@ namespace Borealis
 	struct TagComponent
 	{
 		bool active = true;
+		std::string Name;
 		std::string Tag;
 		Bitset32 mLayer;
 
 		TagComponent() = default;
 		TagComponent(const TagComponent&) = default;
 		TagComponent(const std::string& tag)
-			: Tag(tag) {}
+			: Name(tag) {
+			Tag = "";
+		}
 	};
 
 	struct TransformComponent
@@ -234,7 +240,7 @@ namespace Borealis
 		Kinematic
 	};
 
-	struct RigidBodyComponent
+	struct RigidbodyComponent
 	{
 		MovementType movement = MovementType::Static;
 		float friction = 0.5f;
@@ -254,8 +260,8 @@ namespace Borealis
 		//bool useGravity = true;
 		//bool isKinematic = false;
 
-		RigidBodyComponent() = default;
-		RigidBodyComponent(const RigidBodyComponent&) = default;
+		RigidbodyComponent() = default;
+		RigidbodyComponent(const RigidbodyComponent&) = default;
 	};
 
 	struct ColliderComponent
@@ -265,8 +271,14 @@ namespace Borealis
 		bool providesContact = false;
 		glm::vec3 center = { 0,0,0 };
 		Ref<PhysicMaterial> Material;
-		RigidBodyComponent* rigidBody = nullptr;
+		RigidbodyComponent* rigidBody = nullptr;
 		unsigned int bodyID = 0;
+	};
+
+	struct CylinderColliderComponent : public ColliderComponent
+	{
+		float radius = 1.f;
+		float height = 2.f;
 	};
 
 	struct BoxColliderComponent : public ColliderComponent
@@ -301,7 +313,9 @@ namespace Borealis
 		bool enableInertia = true;
 		bool moveInAir = true;
 		bool sliding = true;
-
+		bool isJump = false;
+		float jumpSpeed = 0;
+		float gravity = 50.f;
 
 		void* controller = nullptr;
 		glm::vec3 targetVelocity = { 0,0,0 };
@@ -350,14 +364,22 @@ namespace Borealis
 		float spotAngle = 30; //for spot only
 
 		bool castShadow = false;
+		bool isEdited = true;
 	};
 
 	struct TextComponent
 	{
+		enum class TextAlign : uint8_t
+		{
+			Left,
+			Center
+		};
+
 		std::string text{};
 		uint32_t fontSize = 16; //change to float?
 		glm::vec4 colour{ 1.f,1.f,1.f,1.f };
 		Ref<Font> font;
+		TextAlign align = TextAlign::Left;
 
 		TextComponent() = default;
 		TextComponent(const TextComponent&) = default;
@@ -452,6 +474,14 @@ namespace Borealis
 		glm::vec2 canvasSize{};
 		float scaleFactor{};
 		Ref<FrameBuffer> canvasFrameBuffer = nullptr;
+		enum class RenderMode : uint8_t
+		{
+			WorldSpace,
+			ScreenSpace
+		};
+		RenderMode renderMode = RenderMode::ScreenSpace;
+		int renderIndex{};
+
 		CanvasComponent() = default;
 		CanvasComponent(const CanvasComponent&) = default;
 	};
@@ -462,6 +492,73 @@ namespace Borealis
 
 		CanvasRendererComponent() = default;
 		CanvasRendererComponent(const CanvasRendererComponent&) = default;
+	};
+
+	struct ParticleSystemComponent
+	{
+		float		duration = 5.f;
+		bool		looping = true;
+		float		startDelay = 0.f;
+		float		startLifeTime = 5.f;
+		float		startSpeed = 5.f;
+		bool		_3DStartSizeBool = false;
+		bool		randomStartSize = false;
+		glm::vec3	startSize = glm::vec3{ 1.f }; //if not 3d, use .x for size
+		glm::vec3	startSize2 = glm::vec3{ 1.f }; //if not 3d, use .x for size
+		bool		_3DStartRotationBool = false;
+		glm::vec3	startRotation = glm::vec3{ 0.f }; // if not 3d, use .x for rotation
+		bool		randomStartColor = false;
+		glm::vec4	startColor = glm::vec4{ 1.f };
+		glm::vec4	startColor2 = glm::vec4{ 1.f };
+		bool		endColorBool;
+		glm::vec4	endColor = glm::vec4{ 1.f };
+		float		gravityModifer = 0.f;
+		float		simulationSpeed = 1.f;
+		uint32_t	maxParticles = 1000;
+		float		rateOverTime = 10.f;
+		float		angle = 25.f;
+		float		radius = 1.f;
+		float		radiusThickness = 0.f; //0-1 based on radius
+		bool		billboard = true;
+		bool		isEdited = false;
+
+		Ref<Texture2D> texture = nullptr;
+		Ref<ParticleSystem> particleSystem = nullptr;
+		
+		//Add variables for over time
+
+		ParticleSystemComponent() = default;
+		ParticleSystemComponent(const ParticleSystemComponent&) = default;
+	};
+
+	struct ButtonComponent
+	{
+		std::string onClickFunctionName{};
+		std::string onReleaseFunctionName{};
+		std::string onHoverFunctionName{};
+
+		std::string onClickClass{};
+		std::string onReleaseClass{};
+		std::string onHoverClass{};
+
+		UUID onClickEntity = 0;
+		UUID onReleaseEntity = 0;
+		UUID onHoverEntity = 0;
+
+		bool hovered = false;
+		bool clicked = false;
+		bool released = false;
+		bool interactable = true;
+
+		glm::vec3 center{};
+		glm::vec3 size{1.f, 1.f, 1.f};
+
+		void onClick();
+		void onRelease();
+		void onHover();
+
+		ButtonComponent() = default;
+		ButtonComponent(const ButtonComponent&) = default;
 	};
 }
 

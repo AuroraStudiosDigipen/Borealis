@@ -32,7 +32,7 @@ namespace Borealis
 		glm::vec3 point;
 	};
 
-	using CollisionPair = std::pair<UUID, UUID>;
+	using CollisionPair = std::pair<uint64_t, uint64_t>;
 
 
 	class Entity;
@@ -60,7 +60,7 @@ namespace Borealis
    * \param bodyID The ID of the body.
    * \param transform The transform component of the body.
    */
-		static void PushTransform(ColliderComponent& collider, TransformComponent& transform, RigidBodyComponent* rigidbody);
+		static void PushTransform(ColliderComponent& collider, TransformComponent& transform, RigidbodyComponent* rigidbody);
 
 		/**
    * \brief Pulls the transform of the specified body from the physics system.
@@ -74,19 +74,23 @@ namespace Borealis
         * \param position The position of the body.
         * \param rigidbody The rigid body component of the body.
         */
-        static void addBody(TransformComponent& transform, RigidBodyComponent* rigidbody, ColliderComponent& collider, UUID entityID);
+        static void addBody(TransformComponent& transform, RigidbodyComponent* rigidbody, ColliderComponent& collider, UUID entityID);
 		
 		static void EndScene();
 
 		static void FreeRigidBody(ColliderComponent& collider);
 
 		static std::pair<glm::vec3, glm::vec3> calculateBoundingVolume(const Model& model);
+		static std::pair<glm::vec3, glm::vec3> calculateBoundingVolume(const SkinnedModel& model);
+
 
 		static glm::vec3 calculateBoxSize(glm::vec3 minExtent, glm::vec3 maxExtent);
 
 		static float calculateSphereRadius(glm::vec3 boundingVolume);
 
 		static std::pair<float, float> calculateCapsuleDimensions(glm::vec3 boundingVolume);
+
+		static std::pair<float, float> calculateCylinderDimensions(glm::vec3 boundingVolume);
 
 		static void AddForce(unsigned int bodyID, glm::vec3 force);
 
@@ -96,6 +100,8 @@ namespace Borealis
 
 		static glm::vec3 GetLinearVelocity(unsigned int bodyID);
 		static glm::vec3 GetAngularVelocity(unsigned int bodyID);
+		static glm::vec3 GetLinearVelocity(void* character);
+		static void SetLinearVelocity(void* character, glm::vec3 vel);
 		static void SetLinearVelocity(unsigned int bodyID, glm::vec3 velocity);
 		static void SetAngularVelocity(unsigned int bodyID, glm::vec3 velocity);
 		static glm::vec3 GetPosition(unsigned int bodyID);

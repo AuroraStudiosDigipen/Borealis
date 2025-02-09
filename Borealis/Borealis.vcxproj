@@ -101,7 +101,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>BorealisPCH.hpp</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;YAML_CPP_STATIC_DEFINE;JPH_FLOATING_POINT_EXCEPTIONS_ENABLED;JPH_CROSS_PLATFORM_DETERMINISTIC;JPH_ENABLE_ASSERTS;JPH_DEBUG_RENDERER;TRACY_ENABLE;BOREALIS_BUILD_DLL;_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;GLFW_INCLUDE_NONE;_REL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;YAML_CPP_STATIC_DEFINE;JPH_FLOATING_POINT_EXCEPTIONS_ENABLED;JPH_CROSS_PLATFORM_DETERMINISTIC;JPH_ENABLE_ASSERTS;JPH_DEBUG_RENDERER;TRACY_ENABLE;BOREALIS_BUILD_DLL;_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;GLFW_INCLUDE_NONE;_REL;TRACY_DELAYED_INIT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>inc;lib\spdlog\include;lib\GLFW\include;lib\GLAD\include;lib\imgui;lib\glm;lib\ENTT\include;lib\yaml-cpp\include;lib\ImGuizmo;lib\FMOD;lib\tracy;lib\JoltPhysics;lib\mono\include;lib\xproperty\include;lib\gli;lib\RTTR\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -214,8 +214,10 @@
     <ClInclude Include="inc\Graphics\OpenGL\RendererAPIOpenGLImpl.hpp" />
     <ClInclude Include="inc\Graphics\OpenGL\ShaderOpenGLImpl.hpp" />
     <ClInclude Include="inc\Graphics\OpenGL\TextureOpenGLImpl.hpp" />
+    <ClInclude Include="inc\Graphics\OpenGL\UniformBufferObjectOpenGLImpl.hpp" />
     <ClInclude Include="inc\Graphics\OpenGL\VertexArrayOpenGLImpl.hpp" />
     <ClInclude Include="inc\Graphics\OrthographicCamera.hpp" />
+    <ClInclude Include="inc\Graphics\ParticleSystem.hpp" />
     <ClInclude Include="inc\Graphics\PixelBuffer.hpp" />
     <ClInclude Include="inc\Graphics\RenderCommand.hpp" />
     <ClInclude Include="inc\Graphics\RenderGraph\RenderGraph.hpp" />
@@ -229,6 +231,9 @@
     <ClInclude Include="inc\Graphics\SkinnedModel.hpp" />
     <ClInclude Include="inc\Graphics\SubTexture2D.hpp" />
     <ClInclude Include="inc\Graphics\Texture.hpp" />
+    <ClInclude Include="inc\Graphics\UBOBindings.hpp" />
+    <ClInclude Include="inc\Graphics\UI\Button.hpp" />
+    <ClInclude Include="inc\Graphics\UniformBufferObject.hpp" />
     <ClInclude Include="inc\Graphics\VertexArray.hpp" />
     <ClInclude Include="inc\ImGui\ImGuiFontLib.hpp" />
     <ClInclude Include="inc\ImGui\ImGuiLayer.hpp" />
@@ -818,8 +823,10 @@
     <ClCompile Include="src\Graphics\OpenGL\RendererAPIOpenGLImpl.cpp" />
     <ClCompile Include="src\Graphics\OpenGL\ShaderOpenGLImpl.cpp" />
     <ClCompile Include="src\Graphics\OpenGL\TextureOpenGLImpl.cpp" />
+    <ClCompile Include="src\Graphics\OpenGL\UniformBufferObjectOpenGLImpl.cpp" />
     <ClCompile Include="src\Graphics\OpenGL\VertexArrayOpenGLImpl.cpp" />
     <ClCompile Include="src\Graphics\OrthographicCamera.cpp" />
+    <ClCompile Include="src\Graphics\ParticleSystem.cpp" />
     <ClCompile Include="src\Graphics\PixelBuffer.cpp" />
     <ClCompile Include="src\Graphics\RenderCommand.cpp" />
     <ClCompile Include="src\Graphics\RenderGraph\RenderGraph.cpp" />
@@ -833,6 +840,8 @@
     <ClCompile Include="src\Graphics\SkinnedModel.cpp" />
     <ClCompile Include="src\Graphics\SubTexture2D.cpp" />
     <ClCompile Include="src\Graphics\Texture.cpp" />
+    <ClCompile Include="src\Graphics\UI\Button.cpp" />
+    <ClCompile Include="src\Graphics\UniformBufferObject.cpp" />
     <ClCompile Include="src\Graphics\VertexArray.cpp" />
     <ClCompile Include="src\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\ImGui\ImGuiFontLib.cpp" />

@@ -23,6 +23,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/Renderer2D.hpp>
 #include <Graphics/Renderer3D.hpp>
 #include <Core/LoggerSystem.hpp>
+#include <Core/TimeManager.hpp>
 #include "Audio/AudioEngine.hpp"
 #include <Scene/SceneCamera.hpp>
 #include "Graphics/Light.hpp"
@@ -34,30 +35,11 @@ namespace Borealis
 {
 	Scene::Scene(std::string name, std::string path) : mName(name), mScenePath(path)
 	{
-		//FrameBufferProperties props{ 1280, 720, false };
-		//props.Attachments = { FramebufferTextureFormat::RGBA8,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
-		//mViewportFrameBuffer = FrameBuffer::Create(props);
-
-		//FrameBufferProperties propsRuntime{ 1280, 720, false };
-		//propsRuntime.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RedInteger,FramebufferTextureFormat::Depth };
-		//mRuntimeFrameBuffer = FrameBuffer::Create(propsRuntime);
-
-		//FrameBufferProperties propsGBuffer{ 1280, 720, false };
-		//propsGBuffer.Attachments = 
-		//{
-		//	FramebufferTextureFormat::RGBA16F,  // Albedo + Alpha
-		//	FramebufferTextureFormat::RedInteger,  // entity id
-		//	FramebufferTextureFormat::RGBA8,   // Normal + roughness
-		//	FramebufferTextureFormat::RGBA8,   // Specular + metallic
-		//	//FramebufferTextureFormat::RGB16F,   // Position
-		//	FramebufferTextureFormat::Depth     // Depth buffer
-		//};
-		//mGFrameBuffer = FrameBuffer::Create(propsGBuffer);
 	}
 
 	Scene::~Scene()
 	{
-		auto view = mRegistry.view<RigidBodyComponent>();
+		auto view = mRegistry.view<RigidbodyComponent>();
 	}
 
 	void Scene::Render2DPass()
@@ -99,7 +81,7 @@ namespace Borealis
 					continue;
 				}
 				auto [transform, text] = group.get<TransformComponent, TextComponent>(entity);
-				Renderer2D::DrawString(text.text, text.font, transform, (int)entity);
+				Renderer2D::DrawString(text.text, text.font, transform, (int)entity, 1, { 1,1,1,1 }, text.align == TextComponent::TextAlign::Left ? false : true);
 			}
 		}
 	}
@@ -117,8 +99,19 @@ namespace Borealis
 					continue;
 				}
 				auto [transform, lightComponent] = group.get<TransformComponent, LightComponent>(entity);
-				lightComponent.position = transform.GetGlobalTranslate();
-				lightComponent.direction = transform.GetGlobalRotation();	
+				glm::vec3 buffer = transform.GetGlobalTranslate();
+				if (buffer != lightComponent.position)
+				{
+					lightComponent.position = buffer;
+					lightComponent.isEdited = true;
+				}
+
+				buffer = transform.GetGlobalRotation();
+				if (buffer != lightComponent.direction)
+				{
+					lightComponent.direction = buffer;
+					lightComponent.isEdited = true;
+				}
 				Renderer3D::AddLight(lightComponent);
 			}
 		}
@@ -141,6 +134,7 @@ namespace Borealis
 
 	void Scene::UpdateRuntime(float dt)
 	{
+		dt *= TimeManager::GetTimeScale();
 		if (hasRuntimeStarted)
 		{
 			{
@@ -178,8 +172,10 @@ namespace Borealis
 					}
 				}
 			}
+			ButtonSystem::Update();
+
 			static float accumDt = 0.0f; // Accumulated delta time
-			const float fixedTimeStep = 1.66667f; // Fixed update interval (~60 FPS)
+			const float fixedTimeStep = 1.f/60; // Fixed update interval (~60 FPS)
 
 			accumDt += dt; // Accumulate elapsed time
 
@@ -259,285 +255,296 @@ namespace Borealis
 					thread.join();
 				}*/
 
-				auto characterGroup = mRegistry.group<>(entt::get<TransformComponent, CharacterControllerComponent>);
-				for (auto entity : characterGroup)
-				{
-					Entity brEntity{ entity, this };
-					if (!brEntity.IsActive())
-					{
-						continue;
-					}
-					auto [transform, character] = characterGroup.get<TransformComponent, CharacterControllerComponent>(entity);
-					PhysicsSystem::PushCharacterTransform(character, transform.Translate, transform.Rotation);
-					PhysicsSystem::HandleInput(dt, character);
-				}
 
-
-				for (auto entity : characterGroup)
-				{
-					Entity brEntity{ entity, this };
-					if (!brEntity.IsActive())
-					{
-						continue;
-					}
-					auto [transform, character] = characterGroup.get<TransformComponent, CharacterControllerComponent>(entity);
-					PhysicsSystem::PrePhysicsUpdate(dt, character.controller);
-				}
-
-				for (auto entity : characterGroup)
-				{
-					Entity brEntity{ entity, this };
-					if (!brEntity.IsActive())
-					{
-						continue;
-					}
-					auto [transform, character] = characterGroup.get<TransformComponent, CharacterControllerComponent>(entity);
-					PhysicsSystem::PullCharacterTransform(character, transform.Translate, transform.Rotation);
-				}
-
-				auto boxGroup = mRegistry.group<>(entt::get<TransformComponent, BoxColliderComponent, RigidBodyComponent>);
-				for (auto entity : boxGroup)
-				{
-					Entity brEntity{ entity, this };
-					if (!brEntity.IsActive())
-					{
-						continue;
-					}
-					auto [transform, box, rigidbody] = boxGroup.get<TransformComponent, BoxColliderComponent, RigidBodyComponent>(entity);
-					PhysicsSystem::PushTransform(box, transform, box.rigidBody);
-				}
-
-				auto sphereGroup = mRegistry.group<>(entt::get<TransformComponent, SphereColliderComponent, RigidBodyComponent>);
-				for (auto entity : sphereGroup)
-				{
-					Entity brEntity{ entity, this };
-					if (!brEntity.IsActive())
-					{
-						continue;
-					}
-					auto [transform, sphere, rigidbody] = sphereGroup.get<TransformComponent, SphereColliderComponent, RigidBodyComponent>(entity);
-					PhysicsSystem::PushTransform(sphere, transform, sphere.rigidBody);
-				}
-
-				auto capsuleGroup = mRegistry.group<>(entt::get<TransformComponent, CapsuleColliderComponent, RigidBodyComponent>);
-				for (auto entity : capsuleGroup)
-				{
-					Entity brEntity{ entity, this };
-					if (!brEntity.IsActive())
-					{
-						continue;
-					}
-					auto [transform, capsule, rigidbody] = capsuleGroup.get<TransformComponent, CapsuleColliderComponent, RigidBodyComponent>(entity);
-					PhysicsSystem::PushTransform(capsule, transform, capsule.rigidBody);
-				}
+				auto boxGroup = mRegistry.group<>(entt::get<TransformComponent, BoxColliderComponent, RigidbodyComponent>);
+				
 				for (int i = 0; i < timeStep; i++)
-				PhysicsSystem::Update(dt);				
-
-				// Set entity values to Jolt transform.
-				for (auto entity : boxGroup)
 				{
-					Entity brEntity{ entity, this };
-					if (!brEntity.IsActive())
+					auto characterGroup = mRegistry.group<>(entt::get<TransformComponent, CharacterControllerComponent>);
+					for (auto entity : characterGroup)
 					{
-						continue;
+						Entity brEntity{ entity, this };
+						if (!brEntity.IsActive())
+						{
+							continue;
+						}
+						auto [transform, character] = characterGroup.get<TransformComponent, CharacterControllerComponent>(entity);
+						PhysicsSystem::PushCharacterTransform(character, transform.Translate, transform.Rotation);
+						PhysicsSystem::HandleInput(fixedTimeStep, character);
 					}
-					auto [transform, box, rigidbody] = boxGroup.get<TransformComponent, BoxColliderComponent, RigidBodyComponent>(entity);
-					PhysicsSystem::PullTransform(box, transform);
+
+
+					for (auto entity : characterGroup)
+					{
+						Entity brEntity{ entity, this };
+						if (!brEntity.IsActive())
+						{
+							continue;
+						}
+						auto [transform, character] = characterGroup.get<TransformComponent, CharacterControllerComponent>(entity);
+						PhysicsSystem::PrePhysicsUpdate(fixedTimeStep, character.controller);
+					}
+
+					for (auto entity : characterGroup)
+					{
+						Entity brEntity{ entity, this };
+						if (!brEntity.IsActive())
+						{
+							continue;
+						}
+						auto [transform, character] = characterGroup.get<TransformComponent, CharacterControllerComponent>(entity);
+						PhysicsSystem::PullCharacterTransform(character, transform.Translate, transform.Rotation);
+					}
+
+					for (auto entity : boxGroup)
+					{
+						Entity brEntity{ entity, this };
+						if (!brEntity.IsActive())
+						{
+							continue;
+						}
+						auto [transform, box, rigidbody] = boxGroup.get<TransformComponent, BoxColliderComponent, RigidbodyComponent>(entity);
+						PhysicsSystem::PushTransform(box, transform, box.rigidBody);
+					}
+
+					auto sphereGroup = mRegistry.group<>(entt::get<TransformComponent, SphereColliderComponent, RigidbodyComponent>);
+					for (auto entity : sphereGroup)
+					{
+						Entity brEntity{ entity, this };
+						if (!brEntity.IsActive())
+						{
+							continue;
+						}
+						auto [transform, sphere, rigidbody] = sphereGroup.get<TransformComponent, SphereColliderComponent, RigidbodyComponent>(entity);
+						PhysicsSystem::PushTransform(sphere, transform, sphere.rigidBody);
+					}
+
+					auto capsuleGroup = mRegistry.group<>(entt::get<TransformComponent, CapsuleColliderComponent, RigidbodyComponent>);
+					for (auto entity : capsuleGroup)
+					{
+						Entity brEntity{ entity, this };
+						if (!brEntity.IsActive())
+						{
+							continue;
+						}
+						auto [transform, capsule, rigidbody] = capsuleGroup.get<TransformComponent, CapsuleColliderComponent, RigidbodyComponent>(entity);
+						PhysicsSystem::PushTransform(capsule, transform, capsule.rigidBody);
+					}
+
+
+					PhysicsSystem::Update(fixedTimeStep);
+
+					// Set entity values to Jolt transform.
+
+					for (auto entity : boxGroup)
+					{
+						Entity brEntity{ entity, this };
+						if (!brEntity.IsActive())
+						{
+							continue;
+						}
+						auto [transform, box, rigidbody] = boxGroup.get<TransformComponent, BoxColliderComponent, RigidbodyComponent>(entity);
+						PhysicsSystem::PullTransform(box, transform);
+					}
+
+					for (auto entity : capsuleGroup)
+					{
+						Entity brEntity{ entity, this };
+						if (!brEntity.IsActive())
+						{
+							continue;
+						}
+						auto [transform, capsule, rigidbody] = capsuleGroup.get<TransformComponent, CapsuleColliderComponent, RigidbodyComponent>(entity);
+						PhysicsSystem::PullTransform(capsule, transform);
+					}
+					for (auto entity : sphereGroup)
+					{
+						Entity brEntity{ entity, this };
+						if (!brEntity.IsActive())
+						{
+							continue;
+						}
+						auto [transform, sphere, rigidbody] = sphereGroup.get<TransformComponent, SphereColliderComponent, RigidbodyComponent>(entity);
+						PhysicsSystem::PullTransform(sphere, transform);
+					}
+
+					while (!PhysicsSystem::GetCollisionEnterQueue().empty())
+					{
+						auto collisionPair = PhysicsSystem::GetCollisionEnterQueue().front();
+						PhysicsSystem::GetCollisionEnterQueue().pop();
+						Entity entity1 = GetEntityByUUID(collisionPair.first);
+						Entity entity2 = GetEntityByUUID(collisionPair.second);
+						if (entity1.HasComponent<ScriptComponent>())
+						{
+							auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
+							for (auto& [name, script] : scriptComponent1.mScripts)
+							{
+
+								script->OnCollisionEnter(entity2.GetComponent<IDComponent>().ID);
+
+							}
+						}
+
+						if (entity2.HasComponent<ScriptComponent>())
+						{
+							auto& scriptComponent2 = entity2.GetComponent<ScriptComponent>();
+							for (auto& [name, script] : scriptComponent2.mScripts)
+							{
+
+								script->OnCollisionEnter(entity1.GetComponent<IDComponent>().ID);
+
+							}
+						}
+					}
+
+
+					while (!PhysicsSystem::GetCollisionPersistQueue().empty())
+					{
+						auto collisionPair = PhysicsSystem::GetCollisionPersistQueue().front();
+						PhysicsSystem::GetCollisionPersistQueue().pop();
+						Entity entity1 = GetEntityByUUID(collisionPair.first);
+						Entity entity2 = GetEntityByUUID(collisionPair.second);
+
+						if (entity1.HasComponent<ScriptComponent>())
+						{
+							auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
+							for (auto& [name, script] : scriptComponent1.mScripts)
+							{
+								script->OnCollisionStay(entity2.GetComponent<IDComponent>().ID);
+							}
+						}
+						if (entity2.HasComponent<ScriptComponent>())
+						{
+							auto& scriptComponent2 = entity2.GetComponent<ScriptComponent>();
+							for (auto& [name, script] : scriptComponent2.mScripts)
+							{
+
+								script->OnCollisionStay(entity1.GetComponent<IDComponent>().ID);
+
+							}
+						}
+					}
+
+					while (!PhysicsSystem::GetCollisionExitQueue().empty())
+					{
+						auto collisionPair = PhysicsSystem::GetCollisionExitQueue().front();
+						PhysicsSystem::GetCollisionExitQueue().pop();
+						Entity entity1 = GetEntityByUUID(collisionPair.first);
+						Entity entity2 = GetEntityByUUID(collisionPair.second);
+						if (entity1.HasComponent<ScriptComponent>())
+						{
+							auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
+							for (auto& [name, script] : scriptComponent1.mScripts)
+							{
+
+								script->OnCollisionExit(entity2.GetComponent<IDComponent>().ID);
+
+							}
+						}
+
+						if (entity2.HasComponent<ScriptComponent>())
+						{
+							auto& scriptComponent2 = entity2.GetComponent<ScriptComponent>();
+							for (auto& [name, script] : scriptComponent2.mScripts)
+							{
+
+								script->OnCollisionExit(entity1.GetComponent<IDComponent>().ID);
+
+							}
+						}
+					}
+
+
+					while (!PhysicsSystem::GetTriggerEnterQueue().empty())
+					{
+						auto collisionPair = PhysicsSystem::GetTriggerEnterQueue().front();
+						PhysicsSystem::GetTriggerEnterQueue().pop();
+						Entity entity1 = GetEntityByUUID(collisionPair.first);
+						Entity entity2 = GetEntityByUUID(collisionPair.second);
+						if (entity1.HasComponent<ScriptComponent>())
+						{
+							auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
+							for (auto& [name, script] : scriptComponent1.mScripts)
+							{
+
+								script->OnTriggerEnter(collisionPair.second);
+
+							}
+						}
+
+						if (entity2.HasComponent<ScriptComponent>())
+						{
+							auto& scriptComponent2 = entity2.GetComponent<ScriptComponent>();
+							for (auto& [name, script] : scriptComponent2.mScripts)
+							{
+
+								script->OnTriggerEnter(collisionPair.first);
+
+							}
+						}
+					}
+
+
+					while (!PhysicsSystem::GetTriggerPersistQueue().empty())
+					{
+						auto collisionPair = PhysicsSystem::GetTriggerPersistQueue().front();
+						PhysicsSystem::GetTriggerPersistQueue().pop();
+						Entity entity1 = GetEntityByUUID(collisionPair.first);
+						Entity entity2 = GetEntityByUUID(collisionPair.second);
+
+						if (entity1.HasComponent<ScriptComponent>())
+						{
+							auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
+							for (auto& [name, script] : scriptComponent1.mScripts)
+							{
+								script->OnTriggerStay(entity2.GetComponent<IDComponent>().ID);
+							}
+						}
+						if (entity2.HasComponent<ScriptComponent>())
+						{
+							auto& scriptComponent2 = entity2.GetComponent<ScriptComponent>();
+							for (auto& [name, script] : scriptComponent2.mScripts)
+							{
+
+								script->OnTriggerStay(entity1.GetComponent<IDComponent>().ID);
+
+							}
+						}
+					}
+
+					while (!PhysicsSystem::GetTriggerExitQueue().empty())
+					{
+						auto collisionPair = PhysicsSystem::GetTriggerExitQueue().front();
+						PhysicsSystem::GetTriggerExitQueue().pop();
+						Entity entity1 = GetEntityByUUID(collisionPair.first);
+						Entity entity2 = GetEntityByUUID(collisionPair.second);
+						if (entity1.HasComponent<ScriptComponent>())
+						{
+							auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
+							for (auto& [name, script] : scriptComponent1.mScripts)
+							{
+
+								script->OnTriggerExit(entity2.GetComponent<IDComponent>().ID);
+
+							}
+						}
+
+						if (entity2.HasComponent<ScriptComponent>())
+						{
+							auto& scriptComponent2 = entity2.GetComponent<ScriptComponent>();
+							for (auto& [name, script] : scriptComponent2.mScripts)
+							{
+
+								script->OnTriggerExit(entity1.GetComponent<IDComponent>().ID);
+
+							}
+						}
+					}
 				}
 
-				for (auto entity : capsuleGroup)
-				{
-					Entity brEntity{ entity, this };
-					if (!brEntity.IsActive())
-					{
-						continue;
-					}
-					auto [transform, capsule, rigidbody] = capsuleGroup.get<TransformComponent, CapsuleColliderComponent, RigidBodyComponent>(entity);
-					PhysicsSystem::PullTransform(capsule, transform);
-				}
-				for (auto entity : sphereGroup)
-				{
-					Entity brEntity{ entity, this };
-					if (!brEntity.IsActive())
-					{
-						continue;
-					}
-					auto [transform, sphere, rigidbody] = sphereGroup.get<TransformComponent, SphereColliderComponent, RigidBodyComponent>(entity);
-					PhysicsSystem::PullTransform(sphere, transform);
-				}
+				
 
-				while (!PhysicsSystem::GetCollisionEnterQueue().empty())
-				{
-					auto collisionPair = PhysicsSystem::GetCollisionEnterQueue().front();
-					PhysicsSystem::GetCollisionEnterQueue().pop();
-					Entity entity1 = GetEntityByUUID(collisionPair.first);
-					Entity entity2 = GetEntityByUUID(collisionPair.second);
-					if (entity1.HasComponent<ScriptComponent>())
-					{
-						auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
-						for (auto& [name, script] : scriptComponent1.mScripts)
-						{
-
-							script->OnCollisionEnter(entity2.GetComponent<IDComponent>().ID);
-
-						}
-					}
-
-					if (entity2.HasComponent<ScriptComponent>())
-					{
-						auto& scriptComponent2 = entity2.GetComponent<ScriptComponent>();
-						for (auto& [name, script] : scriptComponent2.mScripts)
-						{
-
-							script->OnCollisionEnter(entity1.GetComponent<IDComponent>().ID);
-
-						}
-					}
-				}
-
-
-				while (!PhysicsSystem::GetCollisionPersistQueue().empty())
-				{
-					auto collisionPair = PhysicsSystem::GetCollisionPersistQueue().front();
-					PhysicsSystem::GetCollisionPersistQueue().pop();
-					Entity entity1 = GetEntityByUUID(collisionPair.first);
-					Entity entity2 = GetEntityByUUID(collisionPair.second);
-
-					if (entity1.HasComponent<ScriptComponent>())
-					{
-						auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
-						for (auto& [name, script] : scriptComponent1.mScripts)
-						{
-							script->OnCollisionStay(entity2.GetComponent<IDComponent>().ID);
-						}
-					}
-					if (entity2.HasComponent<ScriptComponent>())
-					{
-						auto& scriptComponent2 = entity2.GetComponent<ScriptComponent>();
-						for (auto& [name, script] : scriptComponent2.mScripts)
-						{
-
-							script->OnCollisionStay(entity1.GetComponent<IDComponent>().ID);
-
-						}
-					}
-				}
-
-				while (!PhysicsSystem::GetCollisionExitQueue().empty())
-				{
-					auto collisionPair = PhysicsSystem::GetCollisionExitQueue().front();
-					PhysicsSystem::GetCollisionExitQueue().pop();
-					Entity entity1 = GetEntityByUUID(collisionPair.first);
-					Entity entity2 = GetEntityByUUID(collisionPair.second);
-					if (entity1.HasComponent<ScriptComponent>())
-					{
-						auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
-						for (auto& [name, script] : scriptComponent1.mScripts)
-						{
-
-							script->OnCollisionExit(entity2.GetComponent<IDComponent>().ID);
-
-						}
-					}
-
-					if (entity2.HasComponent<ScriptComponent>())
-					{
-						auto& scriptComponent2 = entity2.GetComponent<ScriptComponent>();
-						for (auto& [name, script] : scriptComponent2.mScripts)
-						{
-
-							script->OnCollisionExit(entity1.GetComponent<IDComponent>().ID);
-
-						}
-					}
-				}
-
-
-				while (!PhysicsSystem::GetTriggerEnterQueue().empty())
-				{
-					auto collisionPair = PhysicsSystem::GetTriggerEnterQueue().front();
-					PhysicsSystem::GetTriggerEnterQueue().pop();
-					Entity entity1 = GetEntityByUUID(collisionPair.first);
-					Entity entity2 = GetEntityByUUID(collisionPair.second);
-					if (entity1.HasComponent<ScriptComponent>())
-					{
-						auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
-						for (auto& [name, script] : scriptComponent1.mScripts)
-						{
-
-							script->OnTriggerEnter(collisionPair.second);
-
-						}
-					}
-
-					if (entity2.HasComponent<ScriptComponent>())
-					{
-						auto& scriptComponent2 = entity2.GetComponent<ScriptComponent>();
-						for (auto& [name, script] : scriptComponent2.mScripts)
-						{
-
-							script->OnTriggerEnter(collisionPair.first);
-
-						}
-					}
-				}
-
-
-				while (!PhysicsSystem::GetTriggerPersistQueue().empty())
-				{
-					auto collisionPair = PhysicsSystem::GetTriggerPersistQueue().front();
-					PhysicsSystem::GetTriggerPersistQueue().pop();
-					Entity entity1 = GetEntityByUUID(collisionPair.first);
-					Entity entity2 = GetEntityByUUID(collisionPair.second);
-
-					if (entity1.HasComponent<ScriptComponent>())
-					{
-						auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
-						for (auto& [name, script] : scriptComponent1.mScripts)
-						{
-							script->OnTriggerStay(entity2.GetComponent<IDComponent>().ID);
-						}
-					}
-					if (entity2.HasComponent<ScriptComponent>())
-					{
-						auto& scriptComponent2 = entity2.GetComponent<ScriptComponent>();
-						for (auto& [name, script] : scriptComponent2.mScripts)
-						{
-
-							script->OnTriggerStay(entity1.GetComponent<IDComponent>().ID);
-
-						}
-					}
-				}
-
-				while (!PhysicsSystem::GetTriggerExitQueue().empty())
-				{
-					auto collisionPair = PhysicsSystem::GetTriggerExitQueue().front();
-					PhysicsSystem::GetTriggerExitQueue().pop();
-					Entity entity1 = GetEntityByUUID(collisionPair.first);
-					Entity entity2 = GetEntityByUUID(collisionPair.second);
-					if (entity1.HasComponent<ScriptComponent>())
-					{
-						auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
-						for (auto& [name, script] : scriptComponent1.mScripts)
-						{
-
-							script->OnTriggerExit(entity2.GetComponent<IDComponent>().ID);
-
-						}
-					}
-
-					if (entity2.HasComponent<ScriptComponent>())
-					{
-						auto& scriptComponent2 = entity2.GetComponent<ScriptComponent>();
-						for (auto& [name, script] : scriptComponent2.mScripts)
-						{
-
-							script->OnTriggerExit(entity1.GetComponent<IDComponent>().ID);
-
-						}
-					}
-				}
+			
 
 				for (auto entity : view)
 				{
@@ -559,6 +566,7 @@ namespace Borealis
 					PhysicsSystem::DrawDebug();
 			}
 		}
+
 
 		Camera* mainCamera = nullptr;
 		glm::mat4 mainCameratransform(1.f);
@@ -646,76 +654,44 @@ namespace Borealis
 				}
 			}
 		}
+
+		//particles
+		{
+			entt::basic_group group = mRegistry.group<>(entt::get<TransformComponent, ParticleSystemComponent>);
+			for (auto& entity : group)
+			{
+				auto entityBR = Entity{ entity, this };
+				if (!entityBR.IsActive())
+				{
+					continue;
+				}
+				auto [transform, particleSystemComponent] = group.get<TransformComponent, ParticleSystemComponent>(entity);
+
+				if (!particleSystemComponent.particleSystem)
+				{
+					particleSystemComponent.particleSystem = MakeRef<ParticleSystem>();
+					particleSystemComponent.particleSystem->Init(particleSystemComponent);
+
+					//if(particleSystemComponent.texture == nullptr)
+						//particleSystemComponent.texture = Texture2D::GetDefaultTexture();
+				}
+
+				particleSystemComponent.particleSystem->Update(particleSystemComponent, transform, dt);
+			}
+		}
 	}
 
 	//move down ltr
 	Ref<FrameBuffer> Scene::GetRunTimeFB()
 	{
-		//move to rendergraph
-		if (!mViewportFrameBuffer || !mRuntimeFrameBuffer || !mGFrameBuffer || !mPixelBuffer)
-		{
-			FrameBufferProperties props{ 1280, 720, false };
-			props.Attachments = { FramebufferTextureFormat::RGBA8,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
-			mViewportFrameBuffer = FrameBuffer::Create(props);
-
-			FrameBufferProperties propsRuntime{ 1280, 720, false };
-			propsRuntime.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RedInteger,FramebufferTextureFormat::Depth };
-			mRuntimeFrameBuffer = FrameBuffer::Create(propsRuntime);
-
-			FrameBufferProperties propsGBuffer{ 1280, 720, false };
-			propsGBuffer.Attachments =
-			{
-				FramebufferTextureFormat::RGBA16F,  // Albedo + Alpha
-				FramebufferTextureFormat::RedInteger,  // entity id
-				FramebufferTextureFormat::RGBA8,   // Normal + roughness
-				FramebufferTextureFormat::RGBA8,   // Specular + metallic
-				//FramebufferTextureFormat::RGB16F,   // Position
-				FramebufferTextureFormat::Depth     // Depth buffer
-			};
-			mGFrameBuffer = FrameBuffer::Create(propsGBuffer);
-
-			FrameBufferProperties propsShadowMapBuffer{ 2024, 2024, false };
-			propsShadowMapBuffer.Attachments = { FramebufferTextureFormat::Depth };
-			mShadowMapBuffer = FrameBuffer::Create(propsShadowMapBuffer);
-
-			PixelBufferProperties propsPixelBuffer{ 1280, 720 };
-			mPixelBuffer = PixelBuffer::Create(propsPixelBuffer);
-		}
+		CreateBuffers();
 		return mRuntimeFrameBuffer;
 	}
 
 	Ref<FrameBuffer> Scene::GetEditorFB()
 	{
 		//move to rendergraph
-		if (!mViewportFrameBuffer || !mRuntimeFrameBuffer || !mGFrameBuffer || !mPixelBuffer)
-		{
-			FrameBufferProperties props{ 1280, 720, false };
-			props.Attachments = { FramebufferTextureFormat::RGBA8,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
-			mViewportFrameBuffer = FrameBuffer::Create(props);
-
-			FrameBufferProperties propsRuntime{ 1280, 720, false };
-			propsRuntime.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RedInteger,FramebufferTextureFormat::Depth };
-			mRuntimeFrameBuffer = FrameBuffer::Create(propsRuntime);
-
-			FrameBufferProperties propsGBuffer{ 1280, 720, false };
-			propsGBuffer.Attachments =
-			{
-				FramebufferTextureFormat::RGBA16F,  // Albedo + Alpha
-				FramebufferTextureFormat::RedInteger,  // entity id
-				FramebufferTextureFormat::RGBA8,   // Normal + roughness
-				FramebufferTextureFormat::RGBA8,   // Specular + metallic
-				//FramebufferTextureFormat::RGB16F,   // Position
-				FramebufferTextureFormat::Depth     // Depth buffer
-			};
-			mGFrameBuffer = FrameBuffer::Create(propsGBuffer);
-
-			FrameBufferProperties propsShadowMapBuffer{ 2024, 2024, false };
-			propsShadowMapBuffer.Attachments = { FramebufferTextureFormat::Depth };
-			mShadowMapBuffer = FrameBuffer::Create(propsShadowMapBuffer);
-
-			PixelBufferProperties propsPixelBuffer{ 1280, 720 };
-			mPixelBuffer = PixelBuffer::Create(propsPixelBuffer);
-		}
+		CreateBuffers();
 		return mViewportFrameBuffer;
 	}
 
@@ -739,28 +715,17 @@ namespace Borealis
 		mRenderGraph.Init();
 	}
 
-	void Scene::UpdateEditor(float dt, EditorCamera& camera)
-	{
-		Renderer3D::Begin(camera);
-		Render3DPass();
-		Renderer3D::End();
-
-		Renderer2D::Begin(camera);
-		Render2DPass();
-		Renderer2D::End();
-	}
-
-	void Scene::UpdateRenderer(float dt)
+	void Scene::CreateBuffers()
 	{
 		//move to rendergraph
-		if (!mViewportFrameBuffer || !mRuntimeFrameBuffer || !mGFrameBuffer)
+		if (!mViewportFrameBuffer || !mRuntimeFrameBuffer || !mGFrameBuffer || !mAccumulaionFBO)
 		{
 			FrameBufferProperties props{ 1280, 720, false };
-			props.Attachments = { FramebufferTextureFormat::RGBA8,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
+			props.Attachments = { FramebufferTextureFormat::RGBA16F,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
 			mViewportFrameBuffer = FrameBuffer::Create(props);
 
 			FrameBufferProperties propsRuntime{ 1280, 720, false };
-			propsRuntime.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RedInteger,FramebufferTextureFormat::Depth };
+			propsRuntime.Attachments = { FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RedInteger,FramebufferTextureFormat::Depth };
 			mRuntimeFrameBuffer = FrameBuffer::Create(propsRuntime);
 
 			FrameBufferProperties propsGBuffer{ 1280, 720, false };
@@ -781,7 +746,35 @@ namespace Borealis
 
 			PixelBufferProperties propsPixelBuffer{ 1280, 720 };
 			mPixelBuffer = PixelBuffer::Create(propsPixelBuffer);
+
+			FrameBufferProperties propsOpaque{ 1280, 720, false };
+			propsOpaque.Attachments = { FramebufferTextureFormat::RGBA16F,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
+			mOpaqueFBO = FrameBuffer::Create(propsOpaque);
+
+			FrameBufferProperties propsAccumulaionFBO{ 1280, 720, false };
+			propsAccumulaionFBO.Attachments = { FramebufferTextureFormat::RGBA16F,FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::R16F };
+			mAccumulaionFBO = FrameBuffer::Create(propsAccumulaionFBO);
+			
+			FrameBufferProperties propsCompositeFBO{ 1280, 720, false };
+			propsCompositeFBO.Attachments = { FramebufferTextureFormat::RGBA16F,FramebufferTextureFormat::RedInteger};
+			mCompositeFBO = FrameBuffer::Create(propsAccumulaionFBO);
 		}
+	}
+
+	void Scene::UpdateEditor(float dt, EditorCamera& camera)
+	{
+		Renderer3D::Begin(camera);
+		Render3DPass();
+		Renderer3D::End();
+
+		Renderer2D::Begin(camera);
+		Render2DPass();
+		Renderer2D::End();
+	}
+
+	void Scene::UpdateRenderer(float dt)
+	{
+		CreateBuffers();
 
 		Camera* mainCamera = nullptr; // camera not found
 		glm::mat4 mainCameratransform(1.f);
@@ -820,6 +813,15 @@ namespace Borealis
 
 		PixelBufferSource pixelBuffer("PixelBuffer", mPixelBuffer);
 		mRenderGraph.SetGlobalSource(MakeRef<PixelBufferSource>(pixelBuffer));
+
+		RenderTargetSource opaqueBuffer("opaqueBuffer", mOpaqueFBO);
+		mRenderGraph.SetGlobalSource(MakeRef<RenderTargetSource>(opaqueBuffer));
+
+		RenderTargetSource accumulaionBuffer("accumulaionBuffer", mAccumulaionFBO);
+		mRenderGraph.SetGlobalSource(MakeRef<RenderTargetSource>(accumulaionBuffer));
+
+		RenderTargetSource compositeBuffer("compositeBuffer", mCompositeFBO);
+		mRenderGraph.SetGlobalSource(MakeRef<RenderTargetSource>(compositeBuffer));
 
 		//PixelBufferSource nullPixelBuffer("NullPixelBuffer", nullptr);
 		//mRenderGraph.SetGlobalSource(MakeRef<PixelBufferSource>(nullPixelBuffer));
@@ -908,10 +910,10 @@ namespace Borealis
 	}
 
 	template<>
-	static void CopyComponent<RigidBodyComponent>(Entity dst, Entity src)
+	static void CopyComponent<RigidbodyComponent>(Entity dst, Entity src)
 	{
-		if (src.HasComponent<RigidBodyComponent>())
-			dst.AddOrReplaceComponent<RigidBodyComponent>(src.GetComponent<RigidBodyComponent>());
+		if (src.HasComponent<RigidbodyComponent>())
+			dst.AddOrReplaceComponent<RigidbodyComponent>(src.GetComponent<RigidbodyComponent>());
 	}
 
 	template <>
@@ -966,8 +968,10 @@ namespace Borealis
 		CopyComponent<SkinnedMeshRendererComponent>(newEntity,entity);
 		CopyComponent<AnimatorComponent>(newEntity,entity);
 		CopyComponent<BoxColliderComponent>(newEntity,entity);
+		CopyComponent<SphereColliderComponent>(newEntity, entity);
 		CopyComponent<CapsuleColliderComponent>(newEntity,entity);
-		CopyComponent<RigidBodyComponent>(newEntity, entity);
+		CopyComponent<CylinderColliderComponent>(newEntity,entity);
+		CopyComponent<RigidbodyComponent>(newEntity, entity);
 		CopyComponent<CharacterControllerComponent>(newEntity, entity);
 		CopyComponent<LightComponent>(newEntity, entity);
 		CopyComponent<CircleRendererComponent>(newEntity, entity);
@@ -979,6 +983,8 @@ namespace Borealis
 		CopyComponent<OutLineComponent>(newEntity, entity);
 		CopyComponent<CanvasComponent>(newEntity, entity);
 		CopyComponent<CanvasRendererComponent>(newEntity, entity);
+		CopyComponent<ParticleSystemComponent>(newEntity, entity);
+		CopyComponent<ButtonComponent>(newEntity, entity);
 		auto& tc = newEntity.GetComponent<TransformComponent>();
 		if (tc.ParentID)
 		{
@@ -1114,6 +1120,7 @@ namespace Borealis
 					{
 						MonoObject* DstData = dstIT->second->GetFieldValue<MonoObject*>(property.first);
 						MonoObject* Data = srcIT->second->GetFieldValue<MonoObject*>(property.first);
+						if (!Data) continue;
 						UUID setUUID = property.second.GetGameObjectID(Data);
 						BOREALIS_CORE_ASSERT(setUUID != 0, "UUID is 0");
 						InitGameObject(DstData, setUUID, property.second.mFieldClassName());
@@ -1141,9 +1148,10 @@ namespace Borealis
 		for (auto entity : idView)
 		{
 			UUID uuid = originalRegistry.get<IDComponent>(entity).ID;
-			const auto& name = originalRegistry.get<TagComponent>(entity).Tag;
+			const auto& name = originalRegistry.get<TagComponent>(entity).Name;
 			UUIDtoENTT[uuid] = newScene->CreateEntityWithUUID(name, uuid);
 			Entity newEntity = newScene->GetEntityByUUID(uuid);
+			newEntity.GetComponent<TagComponent>().Tag = originalRegistry.get<TagComponent>(entity).Tag;
 			newEntity.GetComponent<TagComponent>().active = originalRegistry.get<TagComponent>(entity).active;
 			newEntity.GetComponent<TagComponent>().mLayer = originalRegistry.get<TagComponent>(entity).mLayer;
 		}
@@ -1156,8 +1164,10 @@ namespace Borealis
 		CopyComponent<SkinnedMeshRendererComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<AnimatorComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<BoxColliderComponent>(newRegistry, originalRegistry, UUIDtoENTT);
+		CopyComponent<SphereColliderComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<CapsuleColliderComponent>(newRegistry, originalRegistry, UUIDtoENTT);
-		CopyComponent<RigidBodyComponent>(newRegistry, originalRegistry, UUIDtoENTT);
+		CopyComponent<CylinderColliderComponent>(newRegistry, originalRegistry, UUIDtoENTT);
+		CopyComponent<RigidbodyComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<LightComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<CharacterControllerComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<CircleRendererComponent>(newRegistry, originalRegistry, UUIDtoENTT);
@@ -1169,11 +1179,12 @@ namespace Borealis
 		CopyComponent<OutLineComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<CanvasComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<CanvasRendererComponent>(newRegistry, originalRegistry, UUIDtoENTT);
-
+		CopyComponent<ParticleSystemComponent>(newRegistry, originalRegistry, UUIDtoENTT);
+		CopyComponent<ButtonComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		auto tcView = newRegistry.view<TransformComponent>();
 		for (auto entity : tcView)
 		{
-			auto name = newRegistry.get<TagComponent>(entity).Tag;
+			auto name = newRegistry.get<TagComponent>(entity).Name;
 			auto& tc = tcView.get<TransformComponent>(entity);
 		}
 
@@ -1183,6 +1194,7 @@ namespace Borealis
 	void Scene::RuntimeStart()
 	{
 		hasRuntimeStarted = true;
+		PhysicsSystem::Init();
 
 		auto boxGroup = mRegistry.group<>(entt::get<TransformComponent, BoxColliderComponent>);
 		for (auto entity : boxGroup)
@@ -1194,10 +1206,10 @@ namespace Borealis
 			}
 			auto [transform, box] = boxGroup.get<TransformComponent, BoxColliderComponent>(entity);
 			auto entityID = mRegistry.get<IDComponent>(entity).ID;
-			if (mRegistry.storage<RigidBodyComponent>().contains(entity))
+			if (mRegistry.storage<RigidbodyComponent>().contains(entity))
 			{
-				PhysicsSystem::addBody(transform, &mRegistry.get<RigidBodyComponent>(entity), box, entityID);
-				box.rigidBody = &mRegistry.get<RigidBodyComponent>(entity);
+				PhysicsSystem::addBody(transform, &mRegistry.get<RigidbodyComponent>(entity), box, entityID);
+				box.rigidBody = &mRegistry.get<RigidbodyComponent>(entity);
 			}
 			else if (!mRegistry.storage<CharacterControllerComponent>().contains(entity))
 			{
@@ -1215,10 +1227,10 @@ namespace Borealis
 			}
 			auto [transform, sphere] = sphereGroup.get<TransformComponent, SphereColliderComponent>(entity);
 			auto entityID = mRegistry.get<IDComponent>(entity).ID;
-			if (mRegistry.storage<RigidBodyComponent>().contains(entity))
+			if (mRegistry.storage<RigidbodyComponent>().contains(entity))
 			{
-				PhysicsSystem::addBody(transform, &mRegistry.get<RigidBodyComponent>(entity), sphere, entityID);
-				sphere.rigidBody = &mRegistry.get<RigidBodyComponent>(entity);
+				PhysicsSystem::addBody(transform, &mRegistry.get<RigidbodyComponent>(entity), sphere, entityID);
+				sphere.rigidBody = &mRegistry.get<RigidbodyComponent>(entity);
 			}
 			else
 			{
@@ -1236,16 +1248,38 @@ namespace Borealis
 			}
 			auto [transform, capsule] = capsuleGroup.get<TransformComponent, CapsuleColliderComponent>(entity);
 			auto entityID = mRegistry.get<IDComponent>(entity).ID;
-			if (mRegistry.storage<RigidBodyComponent>().contains(entity))
+			if (mRegistry.storage<RigidbodyComponent>().contains(entity))
 			{
-				PhysicsSystem::addBody(transform, &mRegistry.get<RigidBodyComponent>(entity), capsule, entityID);
-				capsule.rigidBody = &mRegistry.get<RigidBodyComponent>(entity);
+				PhysicsSystem::addBody(transform, &mRegistry.get<RigidbodyComponent>(entity), capsule, entityID);
+				capsule.rigidBody = &mRegistry.get<RigidbodyComponent>(entity);
 			}
 			else
 			{
 				PhysicsSystem::addBody(transform, nullptr, capsule, entityID);
 			}
 		}
+
+		auto tCapsuleGroup = mRegistry.group<>(entt::get<TransformComponent, CylinderColliderComponent>);
+		for (auto entity : tCapsuleGroup)
+		{
+			Entity brEntity{ entity, this };
+			if (!brEntity.IsActive())
+			{
+				continue;
+			}
+			auto [transform, capsule] = tCapsuleGroup.get<TransformComponent, CylinderColliderComponent>(entity);
+			auto entityID = mRegistry.get<IDComponent>(entity).ID;
+			if (mRegistry.storage<RigidbodyComponent>().contains(entity))
+			{
+				PhysicsSystem::addBody(transform, &mRegistry.get<RigidbodyComponent>(entity), capsule, entityID);
+				capsule.rigidBody = &mRegistry.get<RigidbodyComponent>(entity);
+			}
+			else
+			{
+				PhysicsSystem::addBody(transform, nullptr, capsule, entityID);
+			}
+		}
+
 
 		auto CapsulecharacterGroup = mRegistry.group<>(entt::get<TransformComponent, CharacterControllerComponent, CapsuleColliderComponent>);
 		for (auto entity : CapsulecharacterGroup)
@@ -1258,6 +1292,7 @@ namespace Borealis
 			auto entityID = mRegistry.get<IDComponent>(entity).ID;
 			PhysicsSystem::addCharacter(brEntity.GetComponent<CharacterControllerComponent>(), brEntity.GetComponent<TransformComponent>(), brEntity.GetComponent<CapsuleColliderComponent>(), entityID);
 		}
+
 		auto BoxcharacterGroup = mRegistry.group<>(entt::get<TransformComponent, CharacterControllerComponent, BoxColliderComponent>);
 		for (auto entity : BoxcharacterGroup)
 		{
@@ -1376,6 +1411,14 @@ namespace Borealis
 			}
 		}
 		PhysicsSystem::EndScene();
+		PhysicsSystem::GetCollisionEnterQueue() = std::queue<CollisionPair>();
+		PhysicsSystem::GetCollisionPersistQueue() = std::queue<CollisionPair>();
+		PhysicsSystem::GetCollisionExitQueue() = std::queue<CollisionPair>();
+		PhysicsSystem::GetTriggerEnterQueue() = std::queue<CollisionPair>();
+		PhysicsSystem::GetTriggerPersistQueue() = std::queue<CollisionPair>();
+		PhysicsSystem::GetTriggerExitQueue() = std::queue<CollisionPair>();
+		PhysicsSystem::Free();
+
 		LayerList::resetEntities();
 		AudioEngine::StopAllChannels();
 	}
@@ -1459,6 +1502,14 @@ namespace Borealis
 				component.size = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).second;
 			}
 		}
+		else if (entity.HasComponent<SkinnedMeshRendererComponent>())
+		{
+			if (entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel)
+			{
+				component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel.get())).first;
+				component.size = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel.get())).second;
+			}
+		}
 		else
 		{
 			component.center = { 0,0,0 };
@@ -1475,6 +1526,16 @@ namespace Borealis
 			{
 				component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).first;
 				glm::vec3 data = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).second;
+				component.radius = PhysicsSystem::calculateCapsuleDimensions(data).first;
+				component.height = PhysicsSystem::calculateCapsuleDimensions(data).second;
+			}
+		}
+		else if (entity.HasComponent<SkinnedMeshRendererComponent>())
+		{
+			if (entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel)
+			{
+				component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel.get())).first;
+				glm::vec3 data = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel.get())).second;
 				component.radius = PhysicsSystem::calculateCapsuleDimensions(data).first;
 				component.height = PhysicsSystem::calculateCapsuleDimensions(data).second;
 			}
@@ -1499,6 +1560,15 @@ namespace Borealis
 				component.radius = PhysicsSystem::calculateSphereRadius(data);
 			}
 		}
+		else if (entity.HasComponent<SkinnedMeshRendererComponent>())
+		{
+			if (entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel)
+			{
+				component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel.get())).first;
+				glm::vec3 data = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel.get())).second;
+				component.radius = PhysicsSystem::calculateSphereRadius(data);
+			}
+		}
 		else
 		{
 			component.center = { 0,0,0 };
@@ -1507,9 +1577,49 @@ namespace Borealis
 	}
 
 	template<>
-	void Scene::OnComponentAdded<RigidBodyComponent>(Entity entity, RigidBodyComponent& component)
+	void Scene::OnComponentAdded<CylinderColliderComponent>(Entity entity, CylinderColliderComponent& component)
+	{
+		if (entity.HasComponent<MeshFilterComponent>())
+		{
+			if (entity.GetComponent<MeshFilterComponent>().Model)
+			{
+				component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).first;
+				glm::vec3 data = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).second;
+				component.radius = PhysicsSystem::calculateCylinderDimensions(data).first;
+				component.height = PhysicsSystem::calculateCylinderDimensions(data).second;
+				if (component.height <= 0.f)
+				{
+					component.height = 2.f;
+				}
+			}
+		}
+		else if (entity.HasComponent<SkinnedMeshRendererComponent>())
+		{
+			if (entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel)
+			{
+				component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel.get())).first;
+				glm::vec3 data = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel.get())).second;
+				component.radius = PhysicsSystem::calculateCylinderDimensions(data).first;
+				component.height = PhysicsSystem::calculateCylinderDimensions(data).second;
+				if (component.height <= 0.f)
+				{
+					component.height = 2.f;
+				}
+			}
+		}
+		else
+		{
+			component.radius = 1.f;
+			component.height = 2.f;
+			component.center = { 0,0,0 };
+		}
+	}
+
+	template<>
+	void Scene::OnComponentAdded<RigidbodyComponent>(Entity entity, RigidbodyComponent& component)
 	{
 	}
+
 	template<>
 	void Scene::OnComponentAdded<LightComponent>(Entity entity, LightComponent& component)
 	{
@@ -1573,5 +1683,17 @@ namespace Borealis
 	void Scene::OnComponentAdded<CanvasRendererComponent>(Entity entity, CanvasRendererComponent& component)
 	{
 
+	}	
+
+	template<>
+	void Scene::OnComponentAdded<ParticleSystemComponent>(Entity entity, ParticleSystemComponent& component)
+	{
+
+	}
+
+	template<>
+	void Scene::OnComponentAdded<ButtonComponent>(Entity entity, ButtonComponent& component)
+	{
+		
 	}
 }

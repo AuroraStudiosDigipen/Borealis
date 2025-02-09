@@ -97,6 +97,9 @@ namespace Borealis {
 	static int viewportMouseXCurr = 0;
 	static int viewportMouseYCurr = 0;
 
+
+	static bool particlesForEditor = true;
+
 	void EditorLayer::Init()
 	{
 
@@ -128,8 +131,8 @@ namespace Borealis {
 		
 		//TEMP
 		{
-			Font font(std::filesystem::path("engineResources/fonts/OpenSans_Condensed-Bold.bfi"));
-			font.SetTexture(std::filesystem::path("engineResources/fonts/OpenSans_Condensed-Bold.dds"));
+			Font font(std::filesystem::path("engineResources/fonts/Aseprite.bfi"));
+			font.SetTexture(std::filesystem::path("engineResources/fonts/Aseprite.dds"));
 			Font::SetDefaultFont(MakeRef<Font>(font));
 		}
 	}
@@ -241,6 +244,7 @@ namespace Borealis {
 
 				RenderPassConfig Render3D(RenderPassType::Render3D, "Render3D");
 				Render3D.AddSinkLinkage("renderTarget", "RunTimeBuffer");
+				Render3D.AddSinkLinkage("accumulaionTarget", "accumulaionBuffer");
 				Render3D.AddSinkLinkage("shadowMap", "ShadowPass.shadowMap");
 				Render3D.AddSinkLinkage("camera", "RunTimeCamera");
 				fconfig.AddPass(Render3D);
@@ -250,8 +254,19 @@ namespace Borealis {
 				Render2D.AddSinkLinkage("camera", "RunTimeCamera");
 				fconfig.AddPass(Render2D);
 
+				RenderPassConfig UIWorldPass(RenderPassType::UIWorldPass, "UIWorldPass");
+				UIWorldPass.AddSinkLinkage("renderTarget", "Render2D.renderTarget");
+				UIWorldPass.AddSinkLinkage("camera", "RunTimeCamera");
+				fconfig.AddPass(UIWorldPass);
+
+				RenderPassConfig particleSystemPass(RenderPassType::ParticleSystemPass, "ParticleSystem");
+				particleSystemPass.AddSinkLinkage("camera", "EditorCamera")
+					.AddSinkLinkage("accumulaionTarget", "accumulaionBuffer")
+					.AddSinkLinkage("renderTarget", "UIWorldPass.renderTarget");
+				fconfig.AddPass(particleSystemPass);
+
 				RenderPassConfig UIPass(RenderPassType::UIPass, "UIPass");
-				UIPass.AddSinkLinkage("renderTarget", "Render2D.renderTarget");
+				UIPass.AddSinkLinkage("renderTarget", "ParticleSystem.renderTarget");
 				UIPass.AddSinkLinkage("camera", "RunTimeCamera");
 				fconfig.AddPass(UIPass);
 
@@ -275,6 +290,9 @@ namespace Borealis {
 
 				RenderPassConfig editorRender3D(RenderPassType::Render3D, "editorRender3D");
 				editorRender3D.AddSinkLinkage("renderTarget", "EditorBuffer")
+					.AddSinkLinkage("opaqueTarget", "opaqueBuffer")
+					.AddSinkLinkage("accumulaionTarget", "accumulaionBuffer")
+					.AddSinkLinkage("compositeTarget", "compositeBuffer")
 					.AddSinkLinkage("shadowMap", "editorShadowPass.shadowMap")
 					.AddSinkLinkage("camera", "EditorCamera");
 				fconfig.AddPass(editorRender3D);
@@ -284,8 +302,13 @@ namespace Borealis {
 					.AddSinkLinkage("camera", "EditorCamera");
 				fconfig.AddPass(editorRender2D);
 
+				RenderPassConfig UIEditorWorldPass(RenderPassType::UIWorldPass, "editorUIWorldPass");
+				UIEditorWorldPass.AddSinkLinkage("renderTarget", "editorRender2D.renderTarget");
+				UIEditorWorldPass.AddSinkLinkage("camera", "EditorCamera");
+				fconfig.AddPass(UIEditorWorldPass);
+
 				RenderPassConfig editorUIPass(RenderPassType::EditorUIPass, "EditorUI");
-				editorUIPass.AddSinkLinkage("renderTarget", "editorRender2D.renderTarget")
+				editorUIPass.AddSinkLinkage("renderTarget", "editorUIWorldPass.renderTarget")
 					.AddSinkLinkage("camera", "EditorCamera")
 					.AddSinkLinkage("runTimeRenderTarget", "RunTimeBuffer");
 				fconfig.AddPass(editorUIPass);
@@ -309,6 +332,15 @@ namespace Borealis {
 				highlightPass.AddSinkLinkage("camera", "EditorCamera")
 					.AddSinkLinkage("renderTarget", "ObjectPicking.renderTarget");
 				fconfig.AddPass(highlightPass);
+
+				if(particlesForEditor)
+				{
+					RenderPassConfig particleSystemPass(RenderPassType::ParticleSystemPass, "ParticleSystemEditor");
+					particleSystemPass.AddSinkLinkage("camera", "EditorCamera")
+						.AddSinkLinkage("accumulaionTarget", "accumulaionBuffer")
+						.AddSinkLinkage("renderTarget", "Highlight.renderTarget");
+					fconfig.AddPass(particleSystemPass);
+				}
 			}
 
 			//deferred rendering
@@ -795,11 +827,33 @@ namespace Borealis {
 				{
 					mRuntimeHovered = ImGui::IsWindowHovered();
 					mRuntimeFocused = ImGui::IsWindowFocused();
+
 					ImVec2 runtimeSize = ImGui::GetContentRegionAvail();
 					mRuntimeSize = { runtimeSize.x, runtimeSize.y };
-					//uint64_t screenID = static_cast<uint64_t>(mRuntimeFrameBuffer->GetColorAttachmentRendererID());
-					uint64_t screenID = static_cast<uint64_t>(SceneManager::GetActiveScene()->GetRunTimeFB()->GetColorAttachmentRendererID());
+
+					uint64_t screenID = (uint64_t)SceneManager::GetActiveScene()->GetRunTimeFB()->GetColorAttachmentRendererID();
+					ImVec2 cursorScreenPos = ImGui::GetCursorScreenPos();
+
 					ImGui::Image((ImTextureID)screenID, ImVec2{ mRuntimeSize.x, mRuntimeSize.y }, ImVec2{ 0,1 }, ImVec2{ 1,0 });
+
+					if (ImGui::IsWindowHovered(ImGuiHoveredFlags_None))
+					{
+						ImVec2 mousePosAbs = ImGui::GetMousePos();
+
+						float halfW = mRuntimeSize.x * 0.5f;
+						float halfH = mRuntimeSize.y * 0.5f;
+						float centerX = cursorScreenPos.x + halfW;
+						float centerY = cursorScreenPos.y + halfH;
+
+						float localX = mousePosAbs.x - centerX;
+						float localY = mousePosAbs.y - centerY;
+
+						float normalizedX = localX / (mRuntimeSize.x);
+						float normalizedY = localY / (mRuntimeSize.y);
+
+						ButtonSystem::SetMousePos({ normalizedX, normalizedY });
+						ImGui::SetTooltip("Mouse Centered: (%.2f, %.2f)", normalizedX, normalizedY);
+					}
 				}
 			}
 			ImGui::End(); // Of Runtime
@@ -1275,10 +1329,10 @@ namespace Borealis {
 						mainCamera = Entity{ entity, SceneManager::GetActiveScene().get() };
 						hasRuntimeCamera = true;
 						mRuntimeCamera = mainCamera;
-						currentCameraTag = tag.Tag.c_str();
+						currentCameraTag = tag.Name.c_str();
 					}
 					cameraEntities.push_back(Entity{ entity, SceneManager::GetActiveScene().get() });
-					cameraTags.push_back(tag.Tag.c_str());
+					cameraTags.push_back(tag.Name.c_str());
 				});
 
 			if (!currentCameraTag && !group.empty())
@@ -1381,11 +1435,14 @@ namespace Borealis {
 		{
 			Renderer3D::SetGlobalWireFrameMode(!Renderer3D::GetGlobalWireFrameMode());
 		}
+		ImGui::SameLine();
 		bool showCollide = PhysicsSystem::DebugDrawGet();
 		if (ImGui::Checkbox("Show Colliders", &showCollide))
 		{
 			PhysicsSystem::DebugDrawSet(showCollide);
 		}
+		ImGui::SameLine();
+		ImGui::Checkbox("Toggle editor particles", &particlesForEditor);
 
 		ImGui::End();
 

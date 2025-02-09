@@ -20,6 +20,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 namespace BorealisAssetCompiler
 {
 	void OptimizeModel(Model& model);
+	void OptimizeModel(SkinnedModel& model);
 }
 
 #endif

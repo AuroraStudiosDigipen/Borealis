@@ -30,7 +30,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace BorealisAssetCompiler
 {
-    void SaveAsDDSCompressonator(std::filesystem::path const& filePath, std::filesystem::path const& output)
+    void SaveAsDDSCompressonator(std::filesystem::path const& filePath, std::filesystem::path const& output, TextureConfig & config)
     {
         CMP_InitFramework();
 
@@ -42,7 +42,7 @@ namespace BorealisAssetCompiler
             return;
         }
 
-        if (MipSetIn.m_nMipLevels <= 1)
+        if (config.generateMipMaps && MipSetIn.m_nMipLevels <= 1)
         {
             CMP_INT requestLevel = 10; // Request 10 miplevels for the source image
 
@@ -66,8 +66,10 @@ namespace BorealisAssetCompiler
         KernelOptions   kernel_options;
         memset(&kernel_options, 0, sizeof(KernelOptions));
 
-        //kernel_options.format = CMP_FORMAT_BC5;   // Set the format to process
-        kernel_options.format = CMP_FORMAT_BC3;   // Set the format to process
+        if(config.type == TextureType::_NORMAL_MAP)
+            kernel_options.format = CMP_FORMAT_BC5;   // Set the format to process
+        else
+            kernel_options.format = CMP_FORMAT_BC3;   // Set the format to process
         kernel_options.fquality = 1;     // Set the quality of the result (range of 0 - 1)
         kernel_options.threads = 0;            // Auto setting
 
@@ -103,8 +105,13 @@ namespace BorealisAssetCompiler
         //----------------------------------------------------------------
         // Save the result into a DDS file
         //----------------------------------------------------------------
-        cmp_status = CMP_SaveTexture(output.string().c_str(), &MipSetCmp);
-
+        std::filesystem::path cachePath = output;
+        cachePath.replace_extension(".dds").string();
+        cmp_status = CMP_SaveTexture(cachePath.string().c_str(), &MipSetCmp);
+        if (cmp_status == CMP_OK)
+        {
+            std::filesystem::rename(cachePath, output);
+        }
         CMP_FreeMipSet(&MipSetIn);
         CMP_FreeMipSet(&MipSetCmp);
     }
@@ -167,7 +174,8 @@ namespace BorealisAssetCompiler
             std::filesystem::path path1 = str;
             std::filesystem::path path2 = str2;
 
-            SaveAsDDSCompressonator(path1, path2);
+            TextureConfig config{};
+            SaveAsDDSCompressonator(path1, path2, config);
 
             facesArray[i] = path2;
 
@@ -264,85 +272,87 @@ namespace BorealisAssetCompiler
             return;
         }
 
-        int width, height, channels;
-        unsigned char* imageData = stbi_load(sourcePath.string().c_str(), &width, &height, &channels, 4);
-        if (!imageData) {
-            std::cerr << "Failed to load image\n";
-            return;
-        }
-
-        if (!config.sRGB || config.type == TextureType::_NORMAL_MAP) 
-        {
-            for (int i = 0; i < width * height * 4; i += 4) {
-                imageData[i] = sRGBToLinear(imageData[i]);     // Red
-                imageData[i + 1] = sRGBToLinear(imageData[i + 1]); // Green
-                imageData[i + 2] = sRGBToLinear(imageData[i + 2]); // Blue
-            }
-        }
-
-        FlipBitmapVertically(imageData, width, height, 4);
-
-        rgba_surface srcSurface;
-        srcSurface.ptr = imageData;
-        srcSurface.width = width;
-        srcSurface.height = height;
-        srcSurface.stride = width * 4;
-
-        int compressedSize = (width / 4) * (height / 4) * 16;
-        std::vector<uint8_t> compressedData(compressedSize);
-
-        DDSHeader header = {};
-        CompressBlocksBC3(&srcSurface, compressedData.data());
-
-        header.dwMagic = 0x20534444;  // 'DDS '
-        header.dwSize = 124;
-        header.dwFlags = 0x1007;  // DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT
-        header.dwHeight = height;
-        header.dwWidth = width;
-        header.dwPitchOrLinearSize = (width / 4) * (height / 4) * 16;  // Compressed size for BC3 blocks
-        header.dwMipMapCount = 1;
-
-        header.ddpf.dwSize = 32;
-        header.ddpf.dwFlags = 4;  // DDPF_FOURCC
-        header.ddpf.dwFourCC = FOURCC_DXT5;  // 'DXT5' FourCC for BC3 (DXT5)
-
-        header.ddsCaps.dwCaps1 = 0x1000;  // DDSCAPS_TEXTURE
-        //else
-        //{
-        //    CompressBlocksBC5(&srcSurface, compressedData.data());
-
-        //    header.dwMagic = 0x20534444;  // 'DDS '
-        //    header.dwSize = 124;
-        //    header.dwFlags = 0x1007;  // DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT
-        //    header.dwHeight = height;
-        //    header.dwWidth = width;
-        //    header.dwPitchOrLinearSize = compressedSize;  // Compressed size for BC5 blocks
-        //    header.dwMipMapCount = 1;
-
-        //    header.ddpf.dwSize = 32;
-        //    header.ddpf.dwFlags = 4;  // DDPF_FOURCC
-        //    header.ddpf.dwFourCC = FOURCC_ATI2;  // 'ATI2' FourCC for BC5
-
-        //    header.ddsCaps.dwCaps1 = 0x1000;
-
-        //    header.dwPitchOrLinearSize = compressedSize;  // Compressed size for BC5 blocks
-        //    header.dwMipMapCount = 1;  // No mipmaps
-
-        //    header.ddpf.dwSize = 32;
-        //    header.ddpf.dwFlags = 4;  // DDPF_FOURCC
-        //    header.ddpf.dwFourCC = 0x32495441;  // 'ATI2' for BC5
-
-        //    header.ddsCaps.dwCaps1 = 0x1000;  // DDSCAPS_TEXTURE
-        //    header.ddsCaps.dwCaps2 = 0;  // Not used
-        //    header.dwReserved1[0] = 0;
+        //int width, height, channels;
+        //unsigned char* imageData = stbi_load(sourcePath.string().c_str(), &width, &height, &channels, 4);
+        //if (!imageData) {
+        //    std::cerr << "Failed to load image\n";
+        //    return;
         //}
 
-        std::string cacheString = cachePath.replace_extension(".dds").string();
+        //if (!config.sRGB || config.type == TextureType::_NORMAL_MAP) 
+        //{
+        //    for (int i = 0; i < width * height * 4; i += 4) {
+        //        imageData[i] = sRGBToLinear(imageData[i]);     // Red
+        //        imageData[i + 1] = sRGBToLinear(imageData[i + 1]); // Green
+        //        imageData[i + 2] = sRGBToLinear(imageData[i + 2]); // Blue
+        //    }
+        //}
+
+        //FlipBitmapVertically(imageData, width, height, 4);
+
+        //rgba_surface srcSurface;
+        //srcSurface.ptr = imageData;
+        //srcSurface.width = width;
+        //srcSurface.height = height;
+        //srcSurface.stride = width * 4;
+
+        //int compressedSize = (width / 4) * (height / 4) * 16;
+        //std::vector<uint8_t> compressedData(compressedSize);
+
+        //DDSHeader header = {};
+        //CompressBlocksBC3(&srcSurface, compressedData.data());
+
+        //header.dwMagic = 0x20534444;  // 'DDS '
+        //header.dwSize = 124;
+        //header.dwFlags = 0x1007;  // DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT
+        //header.dwHeight = height;
+        //header.dwWidth = width;
+        //header.dwPitchOrLinearSize = (width / 4) * (height / 4) * 16;  // Compressed size for BC3 blocks
+        //header.dwMipMapCount = 1;
+
+        //header.ddpf.dwSize = 32;
+        //header.ddpf.dwFlags = 4;  // DDPF_FOURCC
+        //header.ddpf.dwFourCC = FOURCC_DXT5;  // 'DXT5' FourCC for BC3 (DXT5)
+
+        //header.ddsCaps.dwCaps1 = 0x1000;  // DDSCAPS_TEXTURE
+        ////else
+        ////{
+        ////    CompressBlocksBC5(&srcSurface, compressedData.data());
+
+        ////    header.dwMagic = 0x20534444;  // 'DDS '
+        ////    header.dwSize = 124;
+        ////    header.dwFlags = 0x1007;  // DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT
+        ////    header.dwHeight = height;
+        ////    header.dwWidth = width;
+        ////    header.dwPitchOrLinearSize = compressedSize;  // Compressed size for BC5 blocks
+        ////    header.dwMipMapCount = 1;
+
+        ////    header.ddpf.dwSize = 32;
+        ////    header.ddpf.dwFlags = 4;  // DDPF_FOURCC
+        ////    header.ddpf.dwFourCC = FOURCC_ATI2;  // 'ATI2' FourCC for BC5
+
+        ////    header.ddsCaps.dwCaps1 = 0x1000;
+
+        ////    header.dwPitchOrLinearSize = compressedSize;  // Compressed size for BC5 blocks
+        ////    header.dwMipMapCount = 1;  // No mipmaps
+
+        ////    header.ddpf.dwSize = 32;
+        ////    header.ddpf.dwFlags = 4;  // DDPF_FOURCC
+        ////    header.ddpf.dwFourCC = 0x32495441;  // 'ATI2' for BC5
+
+        ////    header.ddsCaps.dwCaps1 = 0x1000;  // DDSCAPS_TEXTURE
+        ////    header.ddsCaps.dwCaps2 = 0;  // Not used
+        ////    header.dwReserved1[0] = 0;
+        ////}
+
+        //std::string cacheString = cachePath.replace_extension(".dds").string();
+        std::string cacheString = cachePath.string();
 
 
-        SaveDDSFile(cacheString.c_str(), width, height, compressedData, header);
+        //SaveDDSFile(cacheString.c_str(), width, height, compressedData, header);
+        SaveAsDDSCompressonator(sourcePath, cacheString, config);
 
-        stbi_image_free(imageData);
+        //stbi_image_free(imageData);
     }
 }
 

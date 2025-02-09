@@ -210,4 +210,14 @@ namespace Borealis
 		}
 	}
 
+	float Animator::GetCurrentAnimationTime()
+	{
+		return mCurrentTime;
+	}
+
+	float Animator::GetAnimationDuration()
+	{
+		return mCurrentAnimation->mDuration;
+	}
+
 }

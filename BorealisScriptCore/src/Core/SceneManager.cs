@@ -12,5 +12,10 @@ namespace Borealis
         {
             InternalCalls.SceneManager_Quit();
         }
+
+        public static void SetMainCamera(GameObject ob)
+        {
+            InternalCalls.SceneManager_SetMainCamera(ob.GetInstanceID());
+        }
     }
 }

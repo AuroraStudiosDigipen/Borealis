@@ -185,7 +185,7 @@ workspace "Borealis"
 		buildoptions { "/bigobj" }
 
 		filter "files:Borealis/lib/ImGuizmo/**.cpp"
-		flags {"NoPCH"}
+		flags {"NoPCH", "MultiProcessorCompile"}
 		
 		filter "configurations:Debug"
 			defines "_DEB"
@@ -254,7 +254,8 @@ workspace "Borealis"
 
 		targetdir ("build/" .. outputdir .. "/%{prj.name}")
 		objdir ("build-int/" .. outputdir .. "/%{prj.name}")
-
+		flags { "MultiProcessorCompile" }
+		buildoptions { "/bigobj" }
 		files
 		{
 			"%{prj.name}/inc/**.hpp",
@@ -441,6 +442,7 @@ workspace "Borealis"
 
 		targetdir("BorealisEditor")
 		objdir ("BorealisEditor/Resources/Scripts/Core/Intermediate")
+		flags { "MultiProcessorCompile" }
 
 		files
 		{

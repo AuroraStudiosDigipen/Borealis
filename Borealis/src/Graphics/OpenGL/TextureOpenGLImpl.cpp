@@ -35,12 +35,23 @@ namespace Borealis
 		gli::gl::format const Format = GL.translate(Texture.format(), Texture.swizzles());
 
 		mInternalFormat = Format.Internal;
+
+		switch (Format.Internal)
+		{
+		case GL_RGB:  mInternalFormat = GL_SRGB8; break;
+		case GL_RGBA: mInternalFormat = GL_SRGB8_ALPHA8; break;
+		case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:	  
+					  mInternalFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT; break;
+		default: break;
+		}
+
 		mDataFormat = Format.External;
 		switch (Format.Internal) 
 		{
 			case GL_RED: mChannels = 1; break;
 			case GL_RG: mChannels = 2; break;
 			case GL_RGB: mChannels = 3; break;
+			case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
 			case GL_RGBA: mChannels = 4; break;
 			default: mChannels = 0;
 		}
@@ -60,7 +71,7 @@ namespace Borealis
 		glTexParameteri(Target, GL_TEXTURE_MAX_LEVEL, static_cast<GLint>(Texture.levels() - 1));
 		glTexParameteriv(Target, GL_TEXTURE_SWIZZLE_RGBA, &Format.Swizzles[0]);
 
-		glTexParameteri(Target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(Target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glTexParameteri(Target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(Target, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(Target, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -72,7 +83,7 @@ namespace Borealis
 			glCompressedTexImage2D(
 				GL_TEXTURE_2D,
 				static_cast<GLint>(Level),
-				Format.Internal,
+				mInternalFormat,
 				Extent.x, Extent.y,
 				0,
 				static_cast<GLsizei>(Texture.size(Level)),
@@ -82,6 +93,135 @@ namespace Borealis
 		glBindTexture(Target, 0);
 
 		mValid = true;
+	}
+
+	OpenGLTexture2D::OpenGLTexture2D(const std::string& path, std::optional<TextureConfig> textureConfig)
+	{
+		PROFILE_FUNCTION();
+
+		gli::texture Texture = gli::load(path);
+		if (Texture.empty())
+		{
+			BOREALIS_CORE_ASSERT(false, "Invalid texture file {}");
+			mValid = false;
+			return;
+		}
+
+
+		gli::gl GL(gli::gl::PROFILE_GL33);
+		gli::gl::format const Format = GL.translate(Texture.format(), Texture.swizzles());
+
+		TextureConfig config{};
+		if (textureConfig.has_value())
+			config = textureConfig.value();
+
+		mInternalFormat = Format.Internal;
+
+		switch (Format.Internal)
+		{
+		case GL_RGB:  mInternalFormat = GL_SRGB8; break;
+		case GL_RGBA: mInternalFormat = GL_SRGB8_ALPHA8; break;
+		case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:	  
+			if(config.sRGB)
+					  mInternalFormat = GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT;
+			else
+					  mInternalFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+			break;
+		default: break;
+		}
+
+		mDataFormat = Format.External;
+		switch (Format.Internal)
+		{
+		case GL_RED: mChannels = 1; break;
+		case GL_RG: mChannels = 2; break;
+		case GL_RGB: mChannels = 3; break;
+		case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
+		case GL_RGBA: mChannels = 4; break;
+		default: mChannels = 0;
+		}
+
+
+		GLenum Target = GL.translate(Texture.target());
+		assert(gli::is_compressed(Texture.format()) && Texture.target() == gli::TARGET_2D);
+
+		glm::tvec3<GLsizei> const Extent(Texture.extent());
+
+		mWidth = Extent.x;
+		mHeight = Extent.y;
+
+		glGenTextures(1, &mRendererID);
+		glBindTexture(Target, mRendererID);
+		glTexParameteri(Target, GL_TEXTURE_BASE_LEVEL, 0);
+		glTexParameteri(Target, GL_TEXTURE_MAX_LEVEL, static_cast<GLint>(Texture.levels() - 1));
+		glTexParameteriv(Target, GL_TEXTURE_SWIZZLE_RGBA, &Format.Swizzles[0]);
+
+		GLuint linearMode{};
+
+		switch (config.filterMode)
+		{
+		case TextureFilter::_LINEAR:
+			if (config.generateMipMaps)
+				linearMode = GL_LINEAR_MIPMAP_LINEAR;
+			else
+				linearMode = GL_LINEAR;
+			break;
+		case TextureFilter::_NEAREST:
+			if (config.generateMipMaps)
+				linearMode = GL_NEAREST_MIPMAP_NEAREST;
+			else
+				linearMode = GL_NEAREST;
+			break;
+		default:
+			break;
+		}
+
+		GLuint wrapMode{};
+
+		switch (config.wrapMode)
+		{
+		case TextureWrap::_REPEAT:
+			wrapMode = GL_REPEAT;
+			break;
+		case TextureWrap::_MIRRORED:
+			wrapMode = GL_MIRRORED_REPEAT;
+			break;
+		case TextureWrap::_CLAMP_TO_EDGE:
+			wrapMode = GL_CLAMP_TO_EDGE;
+			break;
+		case TextureWrap::_CLAMP_TO_BORDER:
+			wrapMode = GL_CLAMP_TO_BORDER;
+			break;
+		default:
+			break;
+		}
+
+		glTexParameteri(Target, GL_TEXTURE_MIN_FILTER, linearMode);
+		glTexParameteri(Target, GL_TEXTURE_MAG_FILTER, linearMode);
+
+
+		glTexParameteri(Target, GL_TEXTURE_WRAP_S, wrapMode);
+		glTexParameteri(Target, GL_TEXTURE_WRAP_T, wrapMode);
+
+		for (std::size_t Level = 0; Level < Texture.levels(); ++Level)
+		{
+			glm::tvec3<GLsizei> Extent = Texture.extent(Level);
+
+			glCompressedTexImage2D(
+				GL_TEXTURE_2D,
+				static_cast<GLint>(Level),
+				mInternalFormat,
+				Extent.x, Extent.y,
+				0,
+				static_cast<GLsizei>(Texture.size(Level)),
+				Texture.data(0, 0, Level));
+		}
+
+		glBindTexture(Target, 0);
+
+		mValid = true;
+
+		BOREALIS_CORE_ASSERT(glGetError() == GL_NO_ERROR, "Error");
 	}
 
 	static GLenum ImageFormatToGLDataFormat(ImageFormat format)

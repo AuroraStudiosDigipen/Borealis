@@ -33,7 +33,9 @@ namespace Borealis
 		static void Begin(const Camera& camera, const glm::mat4& transform);
 		static void Begin(glm::mat4 viewProj);
 		static void End();
+		static void EndParticles();
 		static void Flush();
+		static void FlushParticles();
 
 		static void DrawSprite(const glm::mat4& transform, const SpriteRendererComponent& sprite, int entityID = -1);
 
@@ -51,7 +53,7 @@ namespace Borealis
 		static void DrawQuad(const glm::vec3& position, const glm::vec2& size, const Ref<SubTexture2D>& texture, const float& tilingFactor = 1.f, const glm::vec4 & = glm::vec4(1.0f));
 
 		static void DrawQuad(const glm::mat4& transform, const glm::vec4& colour, int entityID = -1);
-		static void DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const float& tilingFactor = 1.f, const glm::vec4& tint = {1,1,1,1}, int entityID = -1);
+		static void DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const float& tilingFactor = 1.f, const glm::vec4& tint = {1,1,1,1}, int entityID = -1, bool billBoard = false);
 
 		static void DrawHighlightedQuad(const glm::mat4& transform, Ref<Shader> shader);
 
@@ -62,8 +64,8 @@ namespace Borealis
 		static void DrawRotatedQuad(const glm::vec2& position, const float& rotation, const glm::vec2& size, const Ref<SubTexture2D>& texture, const float& tilingFactor = 1.f, const glm::vec4 & = glm::vec4(1.0f));
 		static void DrawRotatedQuad(const glm::vec3& position, const float& rotation, const glm::vec2& size, const Ref<SubTexture2D>& texture, const float& tilingFactor = 1.f, const glm::vec4 & = glm::vec4(1.0f));
 
-		static void DrawString(const std::string& string, Ref<Font> font, const glm::mat4& transform, int entityID, float size = 1.f, glm::vec4 colour = {1.f,1.f,1.f,1.f});
-		static void DrawString(TextComponent& text, TransformComponent& trans, int entityID);
+		static void DrawString(const std::string& string, Ref<Font> font, const glm::mat4& transform, int entityID, float size = 1.f, glm::vec4 colour = {1.f,1.f,1.f,1.f}, bool alignCenter = false);
+		static void DrawString(TextComponent& text, TransformComponent& trans, int entityID, bool alignCenter = false);
 		static void DrawBox(const glm::vec3& pMin, const glm::vec3& pMax, const glm::vec4& colour);
 
 		static void DrawLineFromQueue();

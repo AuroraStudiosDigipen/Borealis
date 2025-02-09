@@ -17,7 +17,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/RenderGraph/RenderGraph.hpp>
 #include <Scene/ComponentRegistry.hpp>
 #include <Scene/Serialiser.hpp>
-
+#include <Graphics/UI/Button.hpp>
 #include <Graphics/Font.hpp>
 namespace BorealisRuntime
 {
@@ -63,14 +63,14 @@ namespace BorealisRuntime
 			}
 		}
 
-		//Borealis::ApplicationManager::Get().GetWindow()->ToggleFullScreen();
+		Borealis::ApplicationManager::Get().GetWindow()->ToggleFullScreen();
 
 		Borealis::SceneManager::GetActiveScene()->RuntimeStart(); // Temporarily
 
 		//TEMP
 		{
-			Borealis::Font font(std::filesystem::path("engineResources/fonts/OpenSans_Condensed-Bold.bfi"));
-			font.SetTexture(std::filesystem::path("engineResources/fonts/OpenSans_Condensed-Bold.dds"));
+			Borealis::Font font(std::filesystem::path("engineResources/fonts/aseprite.bfi"));
+			font.SetTexture(std::filesystem::path("engineResources/fonts/aseprite.dds"));
 			Borealis::Font::SetDefaultFont(MakeRef<Borealis::Font>(font));
 		}
 	}
@@ -111,6 +111,7 @@ namespace BorealisRuntime
 
 			Borealis::RenderPassConfig Render3D(Borealis::RenderPassType::Render3D, "Render3D");
 			Render3D.AddSinkLinkage("renderTarget", "RunTimeBuffer");
+			Render3D.AddSinkLinkage("accumulaionTarget", "accumulaionBuffer");
 			Render3D.AddSinkLinkage("shadowMap", "ShadowPass.shadowMap");
 			Render3D.AddSinkLinkage("camera", "RunTimeCamera");
 			fconfig.AddPass(Render3D);
@@ -119,6 +120,17 @@ namespace BorealisRuntime
 			Render2D.AddSinkLinkage("renderTarget", "Render3D.renderTarget");
 			Render2D.AddSinkLinkage("camera", "RunTimeCamera");
 			fconfig.AddPass(Render2D);
+
+			Borealis::RenderPassConfig UIWorldPass(Borealis::RenderPassType::UIWorldPass, "UIWorldPass");
+			UIWorldPass.AddSinkLinkage("renderTarget", "Render2D.renderTarget");
+			UIWorldPass.AddSinkLinkage("camera", "RunTimeCamera");
+			fconfig.AddPass(UIWorldPass);
+
+			Borealis::RenderPassConfig particleSystemPass(Borealis::RenderPassType::ParticleSystemPass, "ParticleSystem");
+			particleSystemPass.AddSinkLinkage("camera", "RunTimeCamera");
+			particleSystemPass.AddSinkLinkage("accumulaionTarget", "accumulaionBuffer");
+			particleSystemPass.AddSinkLinkage("renderTarget", "UIWorldPass.renderTarget");
+			fconfig.AddPass(particleSystemPass);
 
 			Borealis::RenderPassConfig RunTimeHighlight(Borealis::RenderPassType::HighlightPass, "RunTimeHighlight");
 			RunTimeHighlight.AddSinkLinkage("camera", "RunTimeCamera");
@@ -138,6 +150,9 @@ namespace BorealisRuntime
 			Borealis::SceneManager::GetActiveScene()->UpdateRenderer(dt);
 		}
 
+		float normalizedMouseX = Borealis::InputSystem::GetMouseX() / (float)windowWidth - 0.5f;
+		float normalizedMouseY = Borealis::InputSystem::GetMouseY() / (float)windowHeight - 0.5f;
+		Borealis::ButtonSystem::SetMousePos({normalizedMouseX, normalizedMouseY});
 		Borealis::SceneManager::GetActiveScene()->UpdateRuntime(dt);
 
 		if (Borealis::SceneManager::ToNextScene)

@@ -111,12 +111,18 @@ namespace Borealis
 
 	void Entity_GetName(uint64_t entityID, MonoString** name);
 	void Entity_SetName(uint64_t entityID, MonoString* name);
+	void Entity_GetTag(uint64_t entityID, MonoString** tag);
+	void Entity_SetTag(uint64_t entityID, MonoString* tag);
 
 	void Entity_FindEntity(MonoString* name, UUID* ID);
 
 	void Entity_GetEntitiesFromLayer(int32_t layerNum, MonoArray** objectArray);
-
+	void Entity_GetEntitiesFromTag(MonoString* layerNum, MonoArray** objectArray);
 	float Time_GetDeltaTime();
+	float Time_GetUnscaledDeltaTime();
+	void Time_SetTimeScale(float scale);
+	float Time_GetTimeScale();
+
 
 	/*!***********************************************************************
 		\brief
@@ -346,7 +352,11 @@ namespace Borealis
 	void AnimatorComponent_SetNextAnimation(UUID uuid, UUID animation);
 	void AnimatorComponent_GetNextAnimation(UUID uuid, UUID* animation);
 	void AnimatorComponent_SwapBlendBuffer(UUID uuid);
+	void AnimatorComponent_GetCurrentTime(UUID uuid, float* currentTime);
+	void AnimatorComponent_GetAnimationDuration(UUID uuid, float* duration);
 
+
+	void SceneManager_SetMainCamera(uint64_t entityID);
 	void SceneManager_SetActiveScene(MonoString* sceneName);
 	void SceneManager_Quit();
 	
@@ -400,8 +410,11 @@ namespace Borealis
 			MonoArray** entityIDArray, MonoArray** distanceArray, MonoArray** normalArray, MonoArray** pointArray);
 
 	void CharacterController_Move(uint64_t id, glm::vec3* motion);
+	void CharacterController_Jump(uint64_t id, float jumpSpeed);
 
 	void CharacterController_IsGrounded(uint64_t id, bool* grounded);
+	void CharacterController_GetLinearVelocity(uint64_t id, glm::vec3* vel);
+	void CharacterController_SetLinearVelocity(uint64_t id, glm::vec3* vel);
 
 	void AudioSource_GetClip(uint64_t ID, uint64_t* ClipID);
 	void AudioSource_SetClip(uint64_t ID, uint64_t* ClipID);

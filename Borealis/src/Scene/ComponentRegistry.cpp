@@ -60,12 +60,19 @@ namespace Borealis
             .property("Height", &CapsuleColliderComponent::height)
             .property("Direction", &CapsuleColliderComponent::direction);
 
+        registration::class_<CylinderColliderComponent>("Cylinder Collider Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("Is Trigger", &CylinderColliderComponent::isTrigger)
+            .property("Provides Contact", &CylinderColliderComponent::providesContact)
+            .property("Radius", &CylinderColliderComponent::radius)
+            .property("Height", &CylinderColliderComponent::height);
 
         registration::class_<SphereColliderComponent>("Sphere Collider Component")
             (metadata("Component", true))
             .constructor<>()
             .property("Is Trigger", &SphereColliderComponent::isTrigger)
-            .property("Provides Contact", &CapsuleColliderComponent::providesContact)
+            .property("Provides Contact", &SphereColliderComponent::providesContact)
             .property("Center", &SphereColliderComponent::center)
             .property("Radius", &SphereColliderComponent::radius);
 
@@ -180,10 +187,10 @@ namespace Borealis
 				value("Z", CapsuleColliderComponent::Direction::Z)
 				);
 
-        registration::class_<RigidBodyComponent>("Rigid Body Component")
+        registration::class_<RigidbodyComponent>("Rigid Body Component")
             (metadata("Component", true))
             .constructor<>()
-			.property("Movement", &RigidBodyComponent::movement)
+			.property("Movement", &RigidbodyComponent::movement)
 
 			//.property("Dynamic", &RigidBodyComponent::dynamicBody)
 
@@ -199,9 +206,9 @@ namespace Borealis
             //.property("Half Height", &RigidBodyComponent::halfHeight)
             //(metadata("Dependency", "Shape"), metadata("Visible for", "Capsule"))
             
-            .property("Friction", &RigidBodyComponent::friction)
+            .property("Friction", &RigidbodyComponent::friction)
             
-            .property("Bounciness", &RigidBodyComponent::bounciness);
+            .property("Bounciness", &RigidbodyComponent::bounciness);
 
         registration::class_<CharacterControllerComponent>("Character Controller Component")
             (metadata("Component", true))
@@ -211,7 +218,8 @@ namespace Borealis
             .property("Max Strength", &CharacterControllerComponent::strength)
             .property("Inertia", &CharacterControllerComponent::enableInertia)
             .property("Sliding", &CharacterControllerComponent::sliding)
-            .property("Move In Air", &CharacterControllerComponent::moveInAir);
+            .property("Move In Air", &CharacterControllerComponent::moveInAir)
+            .property("Gravity", &CharacterControllerComponent::gravity);
 
         registration::class_<SpriteRendererComponent>("Sprite Renderer Component")
             .constructor<>()
@@ -229,14 +237,60 @@ namespace Borealis
             .property("Filled", &OutLineComponent::filled)
             .property("Active", &OutLineComponent::active);
 
+        registration::enumeration<CanvasComponent::RenderMode>("Canvas RenderMode")
+            (
+                value("World Space", CanvasComponent::RenderMode::WorldSpace),
+                value("Screen Space", CanvasComponent::RenderMode::ScreenSpace)
+                );
+
         registration::class_<CanvasComponent>("Canvas Component")
             (metadata("Component", true))
-            .constructor<>();
+            .constructor<>()
+            .property("Render Mode", &CanvasComponent::renderMode)
+            .property("Render Index", &CanvasComponent::renderIndex);
 
         registration::class_<CanvasRendererComponent>("Canvas Renderer Component")
             (metadata("Component", true))
             .constructor<>()
             .property("Allow Passthrough", &CanvasRendererComponent::allowPassthrough);
+
+
+        registration::class_<ParticleSystemComponent>("Particle System Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("Duration", &ParticleSystemComponent::duration)
+            .property("Looping", &ParticleSystemComponent::looping)
+            .property("Start Delay", &ParticleSystemComponent::startDelay)
+            .property("Start Life Time", &ParticleSystemComponent::startLifeTime)
+            .property("Start Speed", &ParticleSystemComponent::startSpeed)
+            .property("3D Start Size", &ParticleSystemComponent::_3DStartSizeBool)
+            .property("Random Start Size", &ParticleSystemComponent::randomStartSize)
+            .property("Start size", &ParticleSystemComponent::startSize)
+            .property("Start size 2", &ParticleSystemComponent::startSize2)
+            .property("3D Start Rotation", &ParticleSystemComponent::_3DStartRotationBool)
+            .property("Start Rotation", &ParticleSystemComponent::startRotation)
+            .property("Random Start Color", &ParticleSystemComponent::randomStartColor)
+            .property("Start Color", &ParticleSystemComponent::startColor)
+            (metadata("Colour", true))            
+            .property("Start Color 2", &ParticleSystemComponent::startColor2)
+            (metadata("Colour", true))
+            .property("Set End Color", &ParticleSystemComponent::endColorBool)
+            .property("End Color", &ParticleSystemComponent::endColor)
+            (metadata("Colour", true))
+            .property("Gravity Modifier", &ParticleSystemComponent::gravityModifer)
+            .property("Max Particles", &ParticleSystemComponent::maxParticles)
+            .property("Rate Over Time", &ParticleSystemComponent::rateOverTime)
+            .property("Angle", &ParticleSystemComponent::angle)
+            .property("Radius", &ParticleSystemComponent::radius)
+            .property("Radius Thickness", &ParticleSystemComponent::radiusThickness)
+            .property("Billboard", &ParticleSystemComponent::billboard)
+            .property("Texture", &ParticleSystemComponent::texture);
+
+        registration::enumeration<TextComponent::TextAlign>("Text Align")
+            (
+                value("Left", TextComponent::TextAlign::Left),
+                value("Center", TextComponent::TextAlign::Center)
+                );
 
         registration::class_<TextComponent>("Text Component")
             (metadata("Component", true))
@@ -245,14 +299,18 @@ namespace Borealis
             .property("Font", &TextComponent::font)
             .property("Font Size", &TextComponent::fontSize)
             .property("Colour", &TextComponent::colour)
+            (metadata("Colour", true))
+			.property("Align", &TextComponent::align)
             (metadata("Colour", true));
 
         registration::class_<TagComponent>("Tag Component")
             (metadata("Component", true))
             .constructor<>()
             .property("IsActive", &TagComponent::active)
+            .property("Name", &TagComponent::Name)
+            .property("Layer", &TagComponent::mLayer)
             .property("Tag", &TagComponent::Tag)
-            .property("Layer", &TagComponent::mLayer);
+            (metadata("Tag", true));
 
         registration::class_<TransformComponent>("Transform Component")
             (metadata("Component", true))
@@ -266,7 +324,22 @@ namespace Borealis
             .property("ChildrenID", &TransformComponent::ChildrenID)
             (metadata("Hide", true))
             .method("GetTransform", &TransformComponent::GetTransform);
-            
+
+        registration::class_<ButtonComponent>("Button Component")
+            (metadata("Component", true))
+            .constructor<>()
+    		.property("Interactable", &ButtonComponent::interactable)
+            .property("Center", &ButtonComponent::center)
+            .property("Size", &ButtonComponent::size)
+            .property("On Click Entity", &ButtonComponent::onClickEntity)
+            .property("On Hover Entity", &ButtonComponent::onHoverEntity)
+            .property("On Release Entity", &ButtonComponent::onReleaseEntity)
+            .property("On Click Function Name", &ButtonComponent::onClickFunctionName)
+            .property("On Hover Function Name", &ButtonComponent::onHoverFunctionName)
+            .property("On Release Function Name", &ButtonComponent::onReleaseFunctionName)
+            .property("On Click Class", &ButtonComponent::onClickClass)
+            .property("On Hover Class", &ButtonComponent::onHoverClass)
+            .property("On Release Class", &ButtonComponent::onReleaseClass);
     }
 
     enum dataTypes
@@ -424,8 +497,9 @@ void Borealis::ComponentRegistry::SetPropertyInternal(const std::string& propert
     RegisterSetPropertyFunction(AnimatorComponent);
     RegisterSetPropertyFunction(BoxColliderComponent);
     RegisterSetPropertyFunction(CapsuleColliderComponent);
+    RegisterSetPropertyFunction(CylinderColliderComponent);
     RegisterSetPropertyFunction(SphereColliderComponent);
-    RegisterSetPropertyFunction(RigidBodyComponent);
+    RegisterSetPropertyFunction(RigidbodyComponent);
     RegisterSetPropertyFunction(LightComponent);
     RegisterSetPropertyFunction(TextComponent);
 
@@ -440,8 +514,9 @@ void Borealis::ComponentRegistry::SetPropertyInternal(const std::string& propert
     RegisterCopyPropertyFunction(AnimatorComponent);
     RegisterCopyPropertyFunction(BoxColliderComponent);
     RegisterCopyPropertyFunction(CapsuleColliderComponent);
+    RegisterCopyPropertyFunction(CylinderColliderComponent);
     RegisterCopyPropertyFunction(SphereColliderComponent);
-    RegisterCopyPropertyFunction(RigidBodyComponent);
+    RegisterCopyPropertyFunction(RigidbodyComponent);
     RegisterCopyPropertyFunction(LightComponent);
     RegisterCopyPropertyFunction(TextComponent);
 }

@@ -118,4 +118,12 @@ namespace Borealis
 		}
 		return mDefaultCubeMap;
 	}
+	Ref<TextureCubeMap> TextureCubeMap::GetDefaultCubeMap2()
+	{
+		if (!mDefaultCubeMap)
+		{
+			mDefaultCubeMap = Create(std::filesystem::path("engineResources/Textures/SkyBoxPng4k.dds"));
+		}
+		return mDefaultCubeMap;
+	}
 }

@@ -2,10 +2,10 @@
 namespace Borealis
 {
     [NativeComponent]
-    public class TextComponent : Component
+    public class Text : Component
     {
-        public TextComponent() { }
-        public TextComponent(ulong id)
+        public Text() { }
+        public Text(ulong id)
         {
             InstanceID = id;
             gameObject = new GameObject(id);

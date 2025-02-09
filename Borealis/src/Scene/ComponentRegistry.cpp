@@ -60,14 +60,13 @@ namespace Borealis
             .property("Height", &CapsuleColliderComponent::height)
             .property("Direction", &CapsuleColliderComponent::direction);
 
-        registration::class_<TaperedCapsuleColliderComponent>("Tapered Capsule Collider Component")
+        registration::class_<CylinderColliderComponent>("Cylinder Collider Component")
             (metadata("Component", true))
             .constructor<>()
-            .property("Is Trigger", &TaperedCapsuleColliderComponent::isTrigger)
-            .property("Provides Contact", &TaperedCapsuleColliderComponent::providesContact)
-            .property("Top Radius", &TaperedCapsuleColliderComponent::topRadius)
-            .property("Bot Radius", &TaperedCapsuleColliderComponent::botRadius)
-            .property("Height", &TaperedCapsuleColliderComponent::height);
+            .property("Is Trigger", &CylinderColliderComponent::isTrigger)
+            .property("Provides Contact", &CylinderColliderComponent::providesContact)
+            .property("Radius", &CylinderColliderComponent::radius)
+            .property("Height", &CylinderColliderComponent::height);
 
         registration::class_<SphereColliderComponent>("Sphere Collider Component")
             (metadata("Component", true))
@@ -247,7 +246,8 @@ namespace Borealis
         registration::class_<CanvasComponent>("Canvas Component")
             (metadata("Component", true))
             .constructor<>()
-            .property("Render Mode", &CanvasComponent::renderMode);;
+            .property("Render Mode", &CanvasComponent::renderMode)
+            .property("Render Index", &CanvasComponent::renderIndex);
 
         registration::class_<CanvasRendererComponent>("Canvas Renderer Component")
             (metadata("Component", true))
@@ -264,15 +264,26 @@ namespace Borealis
             .property("Start Life Time", &ParticleSystemComponent::startLifeTime)
             .property("Start Speed", &ParticleSystemComponent::startSpeed)
             .property("3D Start Size", &ParticleSystemComponent::_3DStartSizeBool)
+            .property("Random Start Size", &ParticleSystemComponent::randomStartSize)
             .property("Start size", &ParticleSystemComponent::startSize)
+            .property("Start size 2", &ParticleSystemComponent::startSize2)
             .property("3D Start Rotation", &ParticleSystemComponent::_3DStartRotationBool)
             .property("Start Rotation", &ParticleSystemComponent::startRotation)
+            .property("Random Start Color", &ParticleSystemComponent::randomStartColor)
             .property("Start Color", &ParticleSystemComponent::startColor)
+            (metadata("Colour", true))            
+            .property("Start Color 2", &ParticleSystemComponent::startColor2)
+            (metadata("Colour", true))
+            .property("Set End Color", &ParticleSystemComponent::endColorBool)
+            .property("End Color", &ParticleSystemComponent::endColor)
             (metadata("Colour", true))
             .property("Gravity Modifier", &ParticleSystemComponent::gravityModifer)
             .property("Max Particles", &ParticleSystemComponent::maxParticles)
             .property("Rate Over Time", &ParticleSystemComponent::rateOverTime)
             .property("Angle", &ParticleSystemComponent::angle)
+            .property("Radius", &ParticleSystemComponent::radius)
+            .property("Radius Thickness", &ParticleSystemComponent::radiusThickness)
+            .property("Billboard", &ParticleSystemComponent::billboard)
             .property("Texture", &ParticleSystemComponent::texture);
 
         registration::enumeration<TextComponent::TextAlign>("Text Align")
@@ -486,7 +497,7 @@ void Borealis::ComponentRegistry::SetPropertyInternal(const std::string& propert
     RegisterSetPropertyFunction(AnimatorComponent);
     RegisterSetPropertyFunction(BoxColliderComponent);
     RegisterSetPropertyFunction(CapsuleColliderComponent);
-    RegisterSetPropertyFunction(TaperedCapsuleColliderComponent);
+    RegisterSetPropertyFunction(CylinderColliderComponent);
     RegisterSetPropertyFunction(SphereColliderComponent);
     RegisterSetPropertyFunction(RigidbodyComponent);
     RegisterSetPropertyFunction(LightComponent);
@@ -503,7 +514,7 @@ void Borealis::ComponentRegistry::SetPropertyInternal(const std::string& propert
     RegisterCopyPropertyFunction(AnimatorComponent);
     RegisterCopyPropertyFunction(BoxColliderComponent);
     RegisterCopyPropertyFunction(CapsuleColliderComponent);
-    RegisterCopyPropertyFunction(TaperedCapsuleColliderComponent);
+    RegisterCopyPropertyFunction(CylinderColliderComponent);
     RegisterCopyPropertyFunction(SphereColliderComponent);
     RegisterCopyPropertyFunction(RigidbodyComponent);
     RegisterCopyPropertyFunction(LightComponent);

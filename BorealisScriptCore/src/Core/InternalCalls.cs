@@ -312,6 +312,12 @@ namespace Borealis
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void CharacterController_Jump(ulong id, ref float speed);
 
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void CharacterController_GetLinearVelocity(ulong id, out Vector3 vel);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void CharacterController_SetLinearVelocity(ulong id, ref Vector3 vel);
+
         #endregion
 
         #region AudioSource

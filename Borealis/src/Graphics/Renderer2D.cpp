@@ -333,6 +333,10 @@ namespace Borealis
 		Flush();
 
 	}
+	void Renderer2D::EndParticles()
+	{
+		FlushParticles();
+	}
 	void Renderer2D::Flush()
 	{
 		PROFILE_FUNCTION();
@@ -345,6 +349,7 @@ namespace Borealis
 				sData->TextureSlots[i]->Bind(i);
 			}
 			sData->mQuadShader->Bind();
+			sData->mQuadShader->Set("u_Transparent", false);
 			RenderCommand::DrawElements(sData->mQuadVAO, sData->QuadIndexCount);
 			sData->mStats.DrawCalls++;
 		}
@@ -374,6 +379,23 @@ namespace Borealis
 			sData->FontTexture->Bind(0);
 			sData->mFontShader->Bind();
 			RenderCommand::DrawElements(sData->mFontVAO, sData->FontIndexCount);
+			sData->mStats.DrawCalls++;
+		}
+	}
+
+	void Renderer2D::FlushParticles()
+	{
+		if (sData->QuadIndexCount)
+		{
+			uint32_t size = (uint32_t)((uint8_t*)sData->QuadBufferPtr - (uint8_t*)sData->QuadBufferBase);
+			sData->mQuadVBO->SetData(sData->QuadBufferBase, size);
+			for (uint32_t i = 0; i < sData->TextureSlotIndex; i++)
+			{
+				sData->TextureSlots[i]->Bind(i);
+			}
+			sData->mQuadShader->Bind();
+			sData->mQuadShader->Set("u_Transparent", true);
+			RenderCommand::DrawElements(sData->mQuadVAO, sData->QuadIndexCount);
 			sData->mStats.DrawCalls++;
 		}
 	}
@@ -915,18 +937,21 @@ namespace Borealis
 			sData->TextureSlotIndex++;
 		}
 
-		constexpr glm::vec2 texCoords[] = { {0.0f,0.0f},{1.0f,0.0f},{1.0f,1.0f},{0.0f,1.0f} };
+		//constexpr glm::vec2 texCoords[] = { {0.0f,0.0f},{1.0f,0.0f},{1.0f,1.0f},{0.0f,1.0f} };
 
-		/*constexpr glm::vec2 texCoords[] = {
+		constexpr glm::vec2 texCoords[] = {
 			{0.0f, 1.0f},
 			{1.0f, 1.0f},
 			{1.0f, 0.0f},
 			{0.0f, 0.0f} 
-		};*/
+		};
 
 		for (int i = 0; i < 4; i++)
 		{
-			sData->QuadBufferPtr->Position = transform * sData->VertexPos[i];
+			if (billBoard)
+				sData->QuadBufferPtr->Position = transform * glm::vec4(0.f, 0.f, 0.f, 1.f);
+			else
+				sData->QuadBufferPtr->Position = transform * sData->VertexPos[i];
 			sData->QuadBufferPtr->Colour = tint;
 			sData->QuadBufferPtr->TexCoord = texCoords[i];
 			sData->QuadBufferPtr->TexIndex = textureUnit;

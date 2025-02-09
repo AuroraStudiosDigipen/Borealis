@@ -110,11 +110,15 @@ namespace Borealis
 
 		inline static void DisableBlend() { sRendererAPI->DisableBlend(); }
 
+		inline static void ConfigureBlendForTransparency(TransparencyStage stage) { sRendererAPI->ConfigureBlendForTransparency(stage); }
+
 		inline static void EnableDepthTest() { sRendererAPI->EnableDepthTest(); }
 
 		inline static void ConfigureDepthFunc(DepthFunc func) { sRendererAPI->ConfigureDepthFunc(func); }
 
 		inline static void DisableDepthTest() { sRendererAPI->DisableDepthTest(); }
+
+		inline static void SetDepthMask(bool depthMask) { sRendererAPI->SetDepthMask(depthMask); }
 
 		inline static void EnableBackFaceCull() { sRendererAPI->EnableBackFaceCull(); }
 

@@ -35,25 +35,6 @@ namespace Borealis
 {
 	Scene::Scene(std::string name, std::string path) : mName(name), mScenePath(path)
 	{
-		//FrameBufferProperties props{ 1280, 720, false };
-		//props.Attachments = { FramebufferTextureFormat::RGBA8,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
-		//mViewportFrameBuffer = FrameBuffer::Create(props);
-
-		//FrameBufferProperties propsRuntime{ 1280, 720, false };
-		//propsRuntime.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RedInteger,FramebufferTextureFormat::Depth };
-		//mRuntimeFrameBuffer = FrameBuffer::Create(propsRuntime);
-
-		//FrameBufferProperties propsGBuffer{ 1280, 720, false };
-		//propsGBuffer.Attachments = 
-		//{
-		//	FramebufferTextureFormat::RGBA16F,  // Albedo + Alpha
-		//	FramebufferTextureFormat::RedInteger,  // entity id
-		//	FramebufferTextureFormat::RGBA8,   // Normal + roughness
-		//	FramebufferTextureFormat::RGBA8,   // Specular + metallic
-		//	//FramebufferTextureFormat::RGB16F,   // Position
-		//	FramebufferTextureFormat::Depth     // Depth buffer
-		//};
-		//mGFrameBuffer = FrameBuffer::Create(propsGBuffer);
 	}
 
 	Scene::~Scene()
@@ -123,8 +104,6 @@ namespace Borealis
 				{
 					lightComponent.position = buffer;
 					lightComponent.isEdited = true;
-
-					std::cout << "graph Light x {}" << lightComponent.position.x << '\n';
 				}
 
 				buffer = transform.GetGlobalRotation();
@@ -693,7 +672,8 @@ namespace Borealis
 					particleSystemComponent.particleSystem = MakeRef<ParticleSystem>();
 					particleSystemComponent.particleSystem->Init(particleSystemComponent);
 
-					particleSystemComponent.texture = Texture2D::GetDefaultTexture();
+					//if(particleSystemComponent.texture == nullptr)
+						//particleSystemComponent.texture = Texture2D::GetDefaultTexture();
 				}
 
 				particleSystemComponent.particleSystem->Update(particleSystemComponent, transform, dt);
@@ -704,71 +684,14 @@ namespace Borealis
 	//move down ltr
 	Ref<FrameBuffer> Scene::GetRunTimeFB()
 	{
-		//move to rendergraph
-		if (!mViewportFrameBuffer || !mRuntimeFrameBuffer || !mGFrameBuffer || !mPixelBuffer)
-		{
-			FrameBufferProperties props{ 1280, 720, false };
-			props.Attachments = { FramebufferTextureFormat::RGBA8,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
-			mViewportFrameBuffer = FrameBuffer::Create(props);
-
-			FrameBufferProperties propsRuntime{ 1280, 720, false };
-			propsRuntime.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RedInteger,FramebufferTextureFormat::Depth };
-			mRuntimeFrameBuffer = FrameBuffer::Create(propsRuntime);
-
-			FrameBufferProperties propsGBuffer{ 1280, 720, false };
-			propsGBuffer.Attachments =
-			{
-				FramebufferTextureFormat::RGBA16F,  // Albedo + Alpha
-				FramebufferTextureFormat::RedInteger,  // entity id
-				FramebufferTextureFormat::RGBA8,   // Normal + roughness
-				FramebufferTextureFormat::RGBA8,   // Specular + metallic
-				//FramebufferTextureFormat::RGB16F,   // Position
-				FramebufferTextureFormat::Depth     // Depth buffer
-			};
-			mGFrameBuffer = FrameBuffer::Create(propsGBuffer);
-
-			FrameBufferProperties propsShadowMapBuffer{ 2024, 2024, false };
-			propsShadowMapBuffer.Attachments = { FramebufferTextureFormat::Depth };
-			mShadowMapBuffer = FrameBuffer::Create(propsShadowMapBuffer);
-
-			PixelBufferProperties propsPixelBuffer{ 1280, 720 };
-			mPixelBuffer = PixelBuffer::Create(propsPixelBuffer);
-		}
+		CreateBuffers();
 		return mRuntimeFrameBuffer;
 	}
 
 	Ref<FrameBuffer> Scene::GetEditorFB()
 	{
 		//move to rendergraph
-		if (!mViewportFrameBuffer || !mRuntimeFrameBuffer || !mGFrameBuffer || !mPixelBuffer)
-		{
-			FrameBufferProperties props{ 1280, 720, false };
-			props.Attachments = { FramebufferTextureFormat::RGBA8,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
-			mViewportFrameBuffer = FrameBuffer::Create(props);
-
-			FrameBufferProperties propsRuntime{ 1280, 720, false };
-			propsRuntime.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RedInteger,FramebufferTextureFormat::Depth };
-			mRuntimeFrameBuffer = FrameBuffer::Create(propsRuntime);
-
-			FrameBufferProperties propsGBuffer{ 1280, 720, false };
-			propsGBuffer.Attachments =
-			{
-				FramebufferTextureFormat::RGBA16F,  // Albedo + Alpha
-				FramebufferTextureFormat::RedInteger,  // entity id
-				FramebufferTextureFormat::RGBA8,   // Normal + roughness
-				FramebufferTextureFormat::RGBA8,   // Specular + metallic
-				//FramebufferTextureFormat::RGB16F,   // Position
-				FramebufferTextureFormat::Depth     // Depth buffer
-			};
-			mGFrameBuffer = FrameBuffer::Create(propsGBuffer);
-
-			FrameBufferProperties propsShadowMapBuffer{ 2024, 2024, false };
-			propsShadowMapBuffer.Attachments = { FramebufferTextureFormat::Depth };
-			mShadowMapBuffer = FrameBuffer::Create(propsShadowMapBuffer);
-
-			PixelBufferProperties propsPixelBuffer{ 1280, 720 };
-			mPixelBuffer = PixelBuffer::Create(propsPixelBuffer);
-		}
+		CreateBuffers();
 		return mViewportFrameBuffer;
 	}
 
@@ -792,21 +715,10 @@ namespace Borealis
 		mRenderGraph.Init();
 	}
 
-	void Scene::UpdateEditor(float dt, EditorCamera& camera)
-	{
-		Renderer3D::Begin(camera);
-		Render3DPass();
-		Renderer3D::End();
-
-		Renderer2D::Begin(camera);
-		Render2DPass();
-		Renderer2D::End();
-	}
-
-	void Scene::UpdateRenderer(float dt)
+	void Scene::CreateBuffers()
 	{
 		//move to rendergraph
-		if (!mViewportFrameBuffer || !mRuntimeFrameBuffer || !mGFrameBuffer)
+		if (!mViewportFrameBuffer || !mRuntimeFrameBuffer || !mGFrameBuffer || !mAccumulaionFBO)
 		{
 			FrameBufferProperties props{ 1280, 720, false };
 			props.Attachments = { FramebufferTextureFormat::RGBA16F,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
@@ -834,7 +746,35 @@ namespace Borealis
 
 			PixelBufferProperties propsPixelBuffer{ 1280, 720 };
 			mPixelBuffer = PixelBuffer::Create(propsPixelBuffer);
+
+			FrameBufferProperties propsOpaque{ 1280, 720, false };
+			propsOpaque.Attachments = { FramebufferTextureFormat::RGBA16F,  FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::Depth };
+			mOpaqueFBO = FrameBuffer::Create(propsOpaque);
+
+			FrameBufferProperties propsAccumulaionFBO{ 1280, 720, false };
+			propsAccumulaionFBO.Attachments = { FramebufferTextureFormat::RGBA16F,FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::R16F };
+			mAccumulaionFBO = FrameBuffer::Create(propsAccumulaionFBO);
+			
+			FrameBufferProperties propsCompositeFBO{ 1280, 720, false };
+			propsCompositeFBO.Attachments = { FramebufferTextureFormat::RGBA16F,FramebufferTextureFormat::RedInteger};
+			mCompositeFBO = FrameBuffer::Create(propsAccumulaionFBO);
 		}
+	}
+
+	void Scene::UpdateEditor(float dt, EditorCamera& camera)
+	{
+		Renderer3D::Begin(camera);
+		Render3DPass();
+		Renderer3D::End();
+
+		Renderer2D::Begin(camera);
+		Render2DPass();
+		Renderer2D::End();
+	}
+
+	void Scene::UpdateRenderer(float dt)
+	{
+		CreateBuffers();
 
 		Camera* mainCamera = nullptr; // camera not found
 		glm::mat4 mainCameratransform(1.f);
@@ -873,6 +813,15 @@ namespace Borealis
 
 		PixelBufferSource pixelBuffer("PixelBuffer", mPixelBuffer);
 		mRenderGraph.SetGlobalSource(MakeRef<PixelBufferSource>(pixelBuffer));
+
+		RenderTargetSource opaqueBuffer("opaqueBuffer", mOpaqueFBO);
+		mRenderGraph.SetGlobalSource(MakeRef<RenderTargetSource>(opaqueBuffer));
+
+		RenderTargetSource accumulaionBuffer("accumulaionBuffer", mAccumulaionFBO);
+		mRenderGraph.SetGlobalSource(MakeRef<RenderTargetSource>(accumulaionBuffer));
+
+		RenderTargetSource compositeBuffer("compositeBuffer", mCompositeFBO);
+		mRenderGraph.SetGlobalSource(MakeRef<RenderTargetSource>(compositeBuffer));
 
 		//PixelBufferSource nullPixelBuffer("NullPixelBuffer", nullptr);
 		//mRenderGraph.SetGlobalSource(MakeRef<PixelBufferSource>(nullPixelBuffer));
@@ -1021,7 +970,7 @@ namespace Borealis
 		CopyComponent<BoxColliderComponent>(newEntity,entity);
 		CopyComponent<SphereColliderComponent>(newEntity, entity);
 		CopyComponent<CapsuleColliderComponent>(newEntity,entity);
-		CopyComponent<TaperedCapsuleColliderComponent>(newEntity,entity);
+		CopyComponent<CylinderColliderComponent>(newEntity,entity);
 		CopyComponent<RigidbodyComponent>(newEntity, entity);
 		CopyComponent<CharacterControllerComponent>(newEntity, entity);
 		CopyComponent<LightComponent>(newEntity, entity);
@@ -1217,7 +1166,7 @@ namespace Borealis
 		CopyComponent<BoxColliderComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<SphereColliderComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<CapsuleColliderComponent>(newRegistry, originalRegistry, UUIDtoENTT);
-		CopyComponent<TaperedCapsuleColliderComponent>(newRegistry, originalRegistry, UUIDtoENTT);
+		CopyComponent<CylinderColliderComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<RigidbodyComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<LightComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<CharacterControllerComponent>(newRegistry, originalRegistry, UUIDtoENTT);
@@ -1310,7 +1259,7 @@ namespace Borealis
 			}
 		}
 
-		auto tCapsuleGroup = mRegistry.group<>(entt::get<TransformComponent, TaperedCapsuleColliderComponent>);
+		auto tCapsuleGroup = mRegistry.group<>(entt::get<TransformComponent, CylinderColliderComponent>);
 		for (auto entity : tCapsuleGroup)
 		{
 			Entity brEntity{ entity, this };
@@ -1318,7 +1267,7 @@ namespace Borealis
 			{
 				continue;
 			}
-			auto [transform, capsule] = tCapsuleGroup.get<TransformComponent, TaperedCapsuleColliderComponent>(entity);
+			auto [transform, capsule] = tCapsuleGroup.get<TransformComponent, CylinderColliderComponent>(entity);
 			auto entityID = mRegistry.get<IDComponent>(entity).ID;
 			if (mRegistry.storage<RigidbodyComponent>().contains(entity))
 			{
@@ -1628,8 +1577,42 @@ namespace Borealis
 	}
 
 	template<>
-	void Scene::OnComponentAdded<TaperedCapsuleColliderComponent>(Entity entity, TaperedCapsuleColliderComponent& component)
+	void Scene::OnComponentAdded<CylinderColliderComponent>(Entity entity, CylinderColliderComponent& component)
 	{
+		if (entity.HasComponent<MeshFilterComponent>())
+		{
+			if (entity.GetComponent<MeshFilterComponent>().Model)
+			{
+				component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).first;
+				glm::vec3 data = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).second;
+				component.radius = PhysicsSystem::calculateCylinderDimensions(data).first;
+				component.height = PhysicsSystem::calculateCylinderDimensions(data).second;
+				if (component.height <= 0.f)
+				{
+					component.height = 2.f;
+				}
+			}
+		}
+		else if (entity.HasComponent<SkinnedMeshRendererComponent>())
+		{
+			if (entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel)
+			{
+				component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel.get())).first;
+				glm::vec3 data = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<SkinnedMeshRendererComponent>().SkinnnedModel.get())).second;
+				component.radius = PhysicsSystem::calculateCylinderDimensions(data).first;
+				component.height = PhysicsSystem::calculateCylinderDimensions(data).second;
+				if (component.height <= 0.f)
+				{
+					component.height = 2.f;
+				}
+			}
+		}
+		else
+		{
+			component.radius = 1.f;
+			component.height = 2.f;
+			component.center = { 0,0,0 };
+		}
 	}
 
 	template<>

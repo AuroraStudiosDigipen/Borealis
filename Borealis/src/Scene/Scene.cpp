@@ -1007,7 +1007,7 @@ namespace Borealis
 		{
 			auto parent = GetEntityByUUID(tc.ParentID);
 			auto& parentTC = parent.GetComponent<TransformComponent>();
-			parentTC.ChildrenID.insert(newEntity.GetComponent<IDComponent>().ID);
+			parentTC.ChildrenID.push_back(newEntity.GetComponent<IDComponent>().ID);
 		}
 	}
 

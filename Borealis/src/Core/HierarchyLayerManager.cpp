@@ -12,7 +12,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
  */
  /******************************************************************************/
 
-#include "HierarchyLayerManager.hpp"
+#include <BorealisPCH.hpp>
+#include "Core/HierarchyLayerManager.hpp"
 #include "Scene/Entity.hpp"  // Ensure this provides access to entity components
 #include "Scene/SceneManager.hpp"
 
@@ -38,6 +39,8 @@ namespace Borealis
             Entity entity = Entity(entityHandle, scene.get());
             if (entity.HasComponent<IDComponent>() && entity.HasComponent<TagComponent>())
             {
+                auto& tcComp = entity.GetComponent<TransformComponent>();
+                if (tcComp.ParentID != 0) continue; // Skip child entities (handled by parent entity
                 auto& idComp = entity.GetComponent<IDComponent>();
                 auto& tagComp = entity.GetComponent<TagComponent>();
 
@@ -60,12 +63,14 @@ namespace Borealis
         // Second pass: Assign new layers to entities that had layer 0
         for (const auto& uuid : zeroLayerEntities)
         {
+            Entity entity = SceneManager::GetActiveScene()->GetEntityByUUID(uuid);
+            auto& tcComp = entity.GetComponent<TransformComponent>();
+            if (tcComp.ParentID != 0) continue; // Skip child entities (handled by parent entity
             maxLayer++; // Increment the next available layer
             mEntityLayerMap[uuid] = maxLayer;
             mLayeredEntities.push_back(uuid);
 
             // Update the entity's actual component so the new layer persists
-            Entity entity = SceneManager::GetActiveScene()->GetEntityByUUID(uuid);
             if (entity.HasComponent<TagComponent>())
             {
                 entity.GetComponent<TagComponent>().mHierarchyLayer = maxLayer;

@@ -98,7 +98,7 @@ namespace Borealis
 		ResetParent(entity);
 		ParentID = parent.GetUUID();
 		SetGlobalTransform(globalMat);
-		parent.GetComponent<TransformComponent>().ChildrenID.insert(entity.GetUUID());
+		parent.GetComponent<TransformComponent>().ChildrenID.push_back(entity.GetUUID());
 	}
 
 	 void TransformComponent::ResetParent(Entity entity)
@@ -110,11 +110,27 @@ namespace Borealis
 		{
 			auto parent = SceneManager::GetActiveScene()->GetEntityByUUID(ParentID);
 			auto& parentTC = parent.GetComponent<TransformComponent>();
-			parentTC.ChildrenID.erase(entity.GetUUID());
+			auto pos = std::find(parentTC.ChildrenID.begin(), parentTC.ChildrenID.end(), entity.GetUUID());
+			parentTC.ChildrenID.erase(pos);
 		}
 
 		ParentID = 0;
 	}
+
+	 int TransformComponent::GetHierarchyLayer(Entity entity)
+	 {
+		 
+
+		 if (ParentID == 0)
+			 return entity.GetComponent<TagComponent>().mHierarchyLayer;
+		 else
+		 {
+			 auto parent = SceneManager::GetActiveScene()->GetEntityByUUID(ParentID);
+			 auto& parentTC = parent.GetComponent<TransformComponent>();
+			auto pos = std::find(parentTC.ChildrenID.begin(), parentTC.ChildrenID.end(), entity.GetUUID());
+			return std::distance(parentTC.ChildrenID.begin(), pos) + 1;
+		 }
+	 }
 
 	 void ButtonComponent::onClick()
 	 {

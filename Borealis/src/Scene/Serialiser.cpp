@@ -28,6 +28,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scripting/ScriptField.hpp>
 #include <Scripting/ScriptingSystem.hpp>
 #include <Scripting/ScriptingUtils.hpp>
+#include <Core/HierarchyLayerManager.hpp>
 namespace Borealis
 {
 
@@ -374,6 +375,12 @@ namespace Borealis
 		SerialiseAbstractItems(out, entity);
 
 		out << YAML::EndMap;
+
+		for (auto child : entity.GetComponent<TransformComponent>().ChildrenID)
+		{
+			auto childEntity = mScene->GetEntityByUUID(child);
+			SerializeEntity(out, childEntity);
+		}
 	}
 
 	bool Serialiser::SerialiseScene(const std::string& filepath)
@@ -383,14 +390,10 @@ namespace Borealis
 			<< YAML::Key << "Scene" << YAML::Value << mScene->GetName()
 		    << YAML::Key <<"Entities"	<<	YAML::Value << YAML::BeginSeq;
 
-		auto view = mScene->mRegistry.view<entt::entity>();
-		for (auto enttEntity : view)
+		auto view = HierarchyLayerManager::GetInstance().GetEntitiesInLayerOrder();
+		for (auto id : view)
 		{
-			Entity entity { enttEntity, mScene.get() };
-			if (!entity)
-			{
-				return false;
-			}
+			auto entity = mScene->GetEntityByUUID(id);
 			SerializeEntity(out, entity);
 
 		}
@@ -684,6 +687,27 @@ namespace Borealis
 				auto script = scriptComponent.mScripts.find(scriptData.scriptInstance->GetScriptClass()->mFields[scriptData.scriptFieldName].mFieldClassName());
 				scriptData.scriptInstance->SetFieldValue(scriptData.scriptFieldName, script->second->GetInstance());
 				scriptQueue.pop();
+			}
+		}
+
+		// Delete invalid children
+		for (auto[id, entity] : mScene->mEntityMap)
+		{
+			auto& transform = mScene->GetRegistry().get<TransformComponent>(entity);
+			std::vector<int> removeID;
+			int i = 0;
+			for (auto childID : transform.ChildrenID)
+			{
+				if (!mScene->mEntityMap.contains(childID))
+				{
+					removeID.push_back(i);
+				}
+				i++;
+			}
+
+			for (auto iterator = removeID.rbegin(); iterator < removeID.rend(); iterator++)
+			{
+				transform.ChildrenID.erase(transform.ChildrenID.begin() + *iterator);
 			}
 		}
 

@@ -1284,7 +1284,19 @@ namespace Borealis
 		{
 			if (mSelectedEntity) // Ensure an entity is selected
 			{
-				HierarchyLayerManager::GetInstance().MoveEntityUp(mSelectedEntity.GetUUID());
+				if (mSelectedEntity.GetComponent<TransformComponent>().ParentID != 0)
+				{
+					auto& tc = mSelectedEntity.GetComponent<TransformComponent>();
+					int currID = tc.GetHierarchyLayer(mSelectedEntity);
+					auto parent = SceneManager::GetActiveScene()->GetEntityByUUID(tc.ParentID);
+					auto& parentTC = parent.GetComponent<TransformComponent>();
+					if (currID - 1 != 0)
+					{
+						std::swap(parentTC.ChildrenID[currID-1], parentTC.ChildrenID[currID - 2]);
+					}
+				}
+				else
+					HierarchyLayerManager::GetInstance().MoveEntityUp(mSelectedEntity.GetUUID());
 			}
 		}
 
@@ -1295,7 +1307,19 @@ namespace Borealis
 		{
 			if (mSelectedEntity) // Ensure an entity is selected
 			{
-				HierarchyLayerManager::GetInstance().MoveEntityDown(mSelectedEntity.GetUUID());
+				if (mSelectedEntity.GetComponent<TransformComponent>().ParentID != 0)
+				{
+					auto& tc = mSelectedEntity.GetComponent<TransformComponent>();
+					int currID = tc.GetHierarchyLayer(mSelectedEntity);
+					auto parent = SceneManager::GetActiveScene()->GetEntityByUUID(tc.ParentID);
+					auto& parentTC = parent.GetComponent<TransformComponent>();
+					if (currID != parentTC.ChildrenID.size())
+					{
+						std::swap(parentTC.ChildrenID[currID-1], parentTC.ChildrenID[currID]);
+					}
+				}
+				else
+					HierarchyLayerManager::GetInstance().MoveEntityDown(mSelectedEntity.GetUUID());
 			}
 		}
 
@@ -1304,19 +1328,9 @@ namespace Borealis
 		{
 			const auto& layerMap = HierarchyLayerManager::GetInstance().GetEntityLayerMap();
 			auto it = layerMap.find(mSelectedEntity.GetUUID());
+			auto& tc = mSelectedEntity.GetComponent<TransformComponent>();
+			ImGui::Text("Layer No: %d", tc.GetHierarchyLayer(mSelectedEntity));
 
-			if (it != layerMap.end())
-			{
-				int layerNo = it->second;
-
-				// Display the layer number
-				ImGui::Text("Layer No: %d", layerNo);
-			}
-			else
-			{
-				// If the entity is selected but not in the map
-				ImGui::Text("Layer No: None");
-			}
 		}
 		else
 		{

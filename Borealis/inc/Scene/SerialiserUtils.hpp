@@ -509,6 +509,17 @@ namespace Borealis
 				return true;
 			}
 
+			if (propType == rttr::type::get<std::vector<UUID>>())
+			{
+				std::vector<UUID> uuidList;
+				for (const auto& it : propData) {
+					auto value = it.second; // Get the value
+					UUID uuid = value.as<uint64_t>();
+					uuidList.push_back(uuid);
+				}
+				prop.set_value(instance, uuidList);
+			}
+
 			if (propType == rttr::type::get<std::unordered_set<UUID>>())
 			{
 				std::unordered_set<UUID> uuidList;

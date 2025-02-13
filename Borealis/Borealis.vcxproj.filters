@@ -223,6 +223,9 @@
     <ClInclude Include="inc\Core\EventSystem.hpp">
       <Filter>inc\Core</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Core\HierarchyLayerManager.hpp">
+      <Filter>inc\Core</Filter>
+    </ClInclude>
     <ClInclude Include="inc\Core\InputSystem.hpp">
       <Filter>inc\Core</Filter>
     </ClInclude>
@@ -2047,6 +2050,9 @@
       <Filter>src\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Core\BitSet32.cpp">
+      <Filter>src\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\HierarchyLayerManager.cpp">
       <Filter>src\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Core\InputSystem.cpp">

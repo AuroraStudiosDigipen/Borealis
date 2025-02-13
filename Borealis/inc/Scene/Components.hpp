@@ -72,7 +72,7 @@ namespace Borealis
 		glm::vec3 Rotation{ 0.0f, 0.0f ,0.0f };
 		glm::vec3 Scale = { 1.0f, 1.0f, 1.0f };
 		UUID ParentID = 0;
-		std::unordered_set<UUID> ChildrenID{};
+		std::vector<UUID> ChildrenID{};
 	
 		TransformComponent() = default;
 		TransformComponent(const TransformComponent&) = default;
@@ -97,6 +97,7 @@ namespace Borealis
 		void SetGlobalTransform(glm::mat4 transform);
 		void SetParent(Entity entity, Entity parent);
 		void ResetParent(Entity entity);
+		int GetHierarchyLayer(Entity entity);
 
 		operator glm::mat4() { return GetTransform(); }
 	};

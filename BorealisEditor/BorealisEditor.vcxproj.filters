@@ -93,9 +93,6 @@
     <ClInclude Include="inc\ResourceManager.hpp">
       <Filter>inc</Filter>
     </ClInclude>
-    <ClInclude Include="inc\HierarchyLayerManager.hpp">
-      <Filter>inc</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\BTNodeEditor.cpp">
@@ -162,9 +159,6 @@
       <Filter>src\RenderGraphEditor</Filter>
     </ClCompile>
     <ClCompile Include="src\ResourceManager.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\HierarchyLayerManager.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>

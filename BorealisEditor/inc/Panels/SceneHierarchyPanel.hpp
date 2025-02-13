@@ -20,7 +20,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/core.hpp>
 
 #include <Prefab.hpp>
-#include <HierarchyLayerManager.hpp>
+#include <Core/HierarchyLayerManager.hpp>
 
 #include <string>
 #include <algorithm>

@@ -333,6 +333,10 @@ namespace Borealis
 		Flush();
 
 	}
+	void Renderer2D::EndParticles()
+	{
+		FlushParticles();
+	}
 	void Renderer2D::Flush()
 	{
 		PROFILE_FUNCTION();
@@ -345,6 +349,7 @@ namespace Borealis
 				sData->TextureSlots[i]->Bind(i);
 			}
 			sData->mQuadShader->Bind();
+			sData->mQuadShader->Set("u_Transparent", false);
 			RenderCommand::DrawElements(sData->mQuadVAO, sData->QuadIndexCount);
 			sData->mStats.DrawCalls++;
 		}
@@ -374,6 +379,23 @@ namespace Borealis
 			sData->FontTexture->Bind(0);
 			sData->mFontShader->Bind();
 			RenderCommand::DrawElements(sData->mFontVAO, sData->FontIndexCount);
+			sData->mStats.DrawCalls++;
+		}
+	}
+
+	void Renderer2D::FlushParticles()
+	{
+		if (sData->QuadIndexCount)
+		{
+			uint32_t size = (uint32_t)((uint8_t*)sData->QuadBufferPtr - (uint8_t*)sData->QuadBufferBase);
+			sData->mQuadVBO->SetData(sData->QuadBufferBase, size);
+			for (uint32_t i = 0; i < sData->TextureSlotIndex; i++)
+			{
+				sData->TextureSlots[i]->Bind(i);
+			}
+			sData->mQuadShader->Bind();
+			sData->mQuadShader->Set("u_Transparent", true);
+			RenderCommand::DrawElements(sData->mQuadVAO, sData->QuadIndexCount);
 			sData->mStats.DrawCalls++;
 		}
 	}
@@ -695,54 +717,88 @@ namespace Borealis
 		sData->mStats.QuadCount++;
 	}
 
-	void Renderer2D::DrawString(const std::string& string, Ref<Font> font, const glm::mat4& transform, int entityID, float size, glm::vec4 colour)
+	void Renderer2D::DrawString(const std::string& string, Ref<Font> font,
+		const glm::mat4& transform, int entityID,
+		float size, glm::vec4 colour, bool alignCenter)
 	{
-		if (!font) font = Font::GetDefaultFont();
+		if (!font)
+			font = Font::GetDefaultFont();
 
 		Ref<Texture2D> fontAtlas = font->GetAtlasTexture();
-
-		if (!fontAtlas) return;
+		if (!fontAtlas)
+			return;
 
 		sData->FontTexture = fontAtlas;
 
 		FontInfo const& fontInfo = font->GetFontInfo();
-
-		double x = 0.0;
 		double fsScale = size / (fontInfo.ascenderY - fontInfo.descenderY);
 
+		double x = 0.0;
 		double y = 0.0;
 
-		for (int i{}; i < string.size(); i++)
+		if (alignCenter)
+		{
+			double totalWidth = 0.0;
+			for (size_t i = 0; i < string.size(); ++i)
+			{
+				char character = string[i];
+				if (character == '\r' || character == '\n')
+					continue;  // Skip non-renderable characters
+
+				const FontGlyph& glyph = fontInfo.glyphs.at(character);
+				double advance = glyph.advance;
+
+				// Add kerning if there is a next character.
+				if (i < string.size() - 1)
+				{
+					char nextCharacter = string[i + 1];
+					if (nextCharacter != '\n')
+					{
+						auto kernIt = fontInfo.kernings.find({ character, nextCharacter });
+						if (kernIt != fontInfo.kernings.end())
+							advance = kernIt->second;
+					}
+				}
+				totalWidth += fsScale * advance;
+			}
+			// Offset x so that the text is centered around 0.
+			x = -totalWidth / 2.0;
+		}
+
+		// Render each glyph in the string.
+		for (size_t i = 0; i < string.size(); ++i)
 		{
 			char character = string[i];
-
-			if (character == '\r')
+			if (character == '\r' || character == '\n')
 				continue;
 
-			if (character == '\n' || string[i + 1] == '\n')
-			{
-				x = 0;
-				//y -= fsScale * metrics.lineHeight + textParams.LineSpacing;
-				continue;
-			}
+			const FontGlyph& glyph = fontInfo.glyphs.at(character);
 
-			FontGlyph glyph = fontInfo.glyphs.at(character);
+			// Determine texture coordinates.
+			glm::vec2 texCoordMin(static_cast<float>(glyph.altasBound.left),
+				static_cast<float>(glyph.altasBound.bottom));
+			glm::vec2 texCoordMax(static_cast<float>(glyph.altasBound.right),
+				static_cast<float>(glyph.altasBound.top));
 
-			glm::vec2 texCoordMin((float)glyph.altasBound.left, (float)glyph.altasBound.bottom);
-			glm::vec2 texCoordMax((float)glyph.altasBound.right, (float)glyph.altasBound.top);
+			// Determine quad positions based on glyph plane bounds.
+			glm::vec2 quadMin(static_cast<float>(glyph.planeBound.left),
+				static_cast<float>(glyph.planeBound.bottom));
+			glm::vec2 quadMax(static_cast<float>(glyph.planeBound.right),
+				static_cast<float>(glyph.planeBound.top));
 
-			glm::vec2 quadMin((float)glyph.planeBound.left, (float)glyph.planeBound.bottom);
-			glm::vec2 quadMax((float)glyph.planeBound.right, (float)glyph.planeBound.top);
-
-			quadMin *= fsScale, quadMax *= fsScale;
+			// Scale and offset the quad positions.
+			quadMin *= fsScale;
+			quadMax *= fsScale;
 			quadMin += glm::vec2(x, y);
 			quadMax += glm::vec2(x, y);
 
+			// Adjust texture coordinates for atlas size.
 			float texelWidth = 1.0f / fontAtlas->GetWidth();
 			float texelHeight = 1.0f / fontAtlas->GetHeight();
 			texCoordMin *= glm::vec2(texelWidth, texelHeight);
 			texCoordMax *= glm::vec2(texelWidth, texelHeight);
 
+			// Push vertices for the glyph quad (four vertices forming two triangles).
 			sData->FontBufferPtr->Position = transform * glm::vec4(quadMin, 0.0f, 1.0f);
 			sData->FontBufferPtr->Colour = colour;
 			sData->FontBufferPtr->TexCoord = texCoordMin;
@@ -770,21 +826,27 @@ namespace Borealis
 			sData->FontIndexCount += 6;
 			sData->mStats.QuadCount++;
 
+			// Calculate the advance for the glyph (including kerning with the next glyph, if any).
+			double advance = glyph.advance;
 			if (i < string.size() - 1)
 			{
-				double advance = glyph.advance;
 				char nextCharacter = string[i + 1];
-				//fontGeometry.getAdvance(advance, character, nextCharacter);
-				advance = fontInfo.kernings.at({character, nextCharacter});
-
-				x += fsScale * advance;// +textParams.Kerning;
+				if (nextCharacter != '\n')
+				{
+					auto kernIt = fontInfo.kernings.find({ character, nextCharacter });
+					if (kernIt != fontInfo.kernings.end())
+						advance = kernIt->second;
+				}
 			}
+			// Increment x by the scaled advance.
+			x += fsScale * advance;
 		}
 	}
 
-	void Renderer2D::DrawString(TextComponent& text, TransformComponent& trans, int entityID)
+
+	void Renderer2D::DrawString(TextComponent& text, TransformComponent& trans, int entityID, bool alignCenter)
 	{
-		DrawString(text.text, text.font, trans.GetTransform(), entityID, (float)text.fontSize, text.colour);
+		DrawString(text.text, text.font, trans.GetTransform(), entityID, (float)text.fontSize, text.colour, alignCenter);
 	}
 
 	void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const glm::vec4& colour)
@@ -875,19 +937,21 @@ namespace Borealis
 			sData->TextureSlotIndex++;
 		}
 
-		
-		constexpr glm::vec2 texCoords[] = { {0.0f,0.0f},{1.0f,0.0f},{1.0f,1.0f},{0.0f,1.0f} };
+		//constexpr glm::vec2 texCoords[] = { {0.0f,0.0f},{1.0f,0.0f},{1.0f,1.0f},{0.0f,1.0f} };
 
-		//constexpr glm::vec2 texCoords[] = {
-		//	{0.0f, 1.0f},
-		//	{1.0f, 1.0f},
-		//	{1.0f, 0.0f},
-		//	{0.0f, 0.0f} 
-		//};
+		constexpr glm::vec2 texCoords[] = {
+			{0.0f, 1.0f},
+			{1.0f, 1.0f},
+			{1.0f, 0.0f},
+			{0.0f, 0.0f} 
+		};
 
 		for (int i = 0; i < 4; i++)
 		{
-			sData->QuadBufferPtr->Position = transform * sData->VertexPos[i];
+			if (billBoard)
+				sData->QuadBufferPtr->Position = transform * glm::vec4(0.f, 0.f, 0.f, 1.f);
+			else
+				sData->QuadBufferPtr->Position = transform * sData->VertexPos[i];
 			sData->QuadBufferPtr->Colour = tint;
 			sData->QuadBufferPtr->TexCoord = texCoords[i];
 			sData->QuadBufferPtr->TexIndex = textureUnit;

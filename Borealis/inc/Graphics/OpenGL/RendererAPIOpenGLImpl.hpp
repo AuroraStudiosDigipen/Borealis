@@ -108,11 +108,15 @@ namespace Borealis
 
 		void DisableBlend() override;
 
+		void ConfigureBlendForTransparency(TransparencyStage stage) override;
+
 		void EnableDepthTest() override;
 
 		void ConfigureDepthFunc(DepthFunc func) override;
 
 		void DisableDepthTest() override;
+
+		void SetDepthMask(bool depthMask) override;
 
 		void EnableBackFaceCull() override;
 			

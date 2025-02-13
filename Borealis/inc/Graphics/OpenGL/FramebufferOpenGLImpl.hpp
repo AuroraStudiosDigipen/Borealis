@@ -85,6 +85,7 @@ namespace Borealis
 				Value to clear the attachment with
 		*************************************************************************/
 		void ClearAttachment(uint32_t attachmentIndex, int value) override;
+		void ClearAttachment(uint32_t attachmentIndex, glm::vec4 value) override;
 
 		/*!***********************************************************************
 			\brief
@@ -103,6 +104,11 @@ namespace Borealis
 				Renderer ID of the color attachment
 		*************************************************************************/
 		uint32_t GetColorAttachmentRendererID(uint32_t index = 0) const { return mColorAttachments[index]; }
+
+
+		uint32_t DetachDepthBuffer() override;
+
+		void AttachDepthBuffer(uint32_t index) override;
 
 		/*!***********************************************************************
 			\brief

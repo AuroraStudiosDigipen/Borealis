@@ -157,6 +157,7 @@
     <Compile Include="src\Components\Text.cs" />
     <Compile Include="src\Components\Transform.cs" />
     <Compile Include="src\Core\Attributes.cs" />
+    <Compile Include="src\Core\AudioManager.cs" />
     <Compile Include="src\Core\Cursor.cs" />
     <Compile Include="src\Core\Debug.cs" />
     <Compile Include="src\Core\Input.cs" />
@@ -164,7 +165,10 @@
     <Compile Include="src\Core\KeyCode.cs" />
     <Compile Include="src\Core\LayerMask.cs" />
     <Compile Include="src\Core\SceneManager.cs" />
+    <Compile Include="src\Core\State.cs" />
+    <Compile Include="src\Core\StateMachine.cs" />
     <Compile Include="src\Core\Time.cs" />
+    <Compile Include="src\Core\WindowManager.cs" />
     <Compile Include="src\Math\Color.cs" />
     <Compile Include="src\Math\Color32.cs" />
     <Compile Include="src\Math\Mathf.cs" />

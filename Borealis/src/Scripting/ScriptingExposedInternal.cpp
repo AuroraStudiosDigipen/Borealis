@@ -45,6 +45,10 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(DrawLine);
 		BOREALIS_ADD_INTERNAL_CALL(CreateEntity);
 		BOREALIS_ADD_INTERNAL_CALL(SetActive);
+		BOREALIS_ADD_INTERNAL_CALL(SetFullscreen);
+		BOREALIS_ADD_INTERNAL_CALL(SetMasterVolume);
+		BOREALIS_ADD_INTERNAL_CALL(SetSFXVolume);
+		BOREALIS_ADD_INTERNAL_CALL(SetMusicVolume);
 
 		BOREALIS_ADD_INTERNAL_CALL(Entity_AddComponent);
 		BOREALIS_ADD_INTERNAL_CALL(Entity_HasComponent);
@@ -148,6 +152,9 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(CharacterController_Move);
 		BOREALIS_ADD_INTERNAL_CALL(CharacterController_Jump);
 		BOREALIS_ADD_INTERNAL_CALL(CharacterController_IsGrounded);
+		BOREALIS_ADD_INTERNAL_CALL(CharacterController_GetLinearVelocity);
+		BOREALIS_ADD_INTERNAL_CALL(CharacterController_SetLinearVelocity);
+
 
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_GetClip);
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_SetClip);
@@ -225,6 +232,26 @@ namespace Borealis
 		{
 			entity.GetComponent<TagComponent>().active = value;
 		}
+	}
+
+	void SetFullscreen(bool value)
+	{
+		ApplicationManager::Get().GetWindow()->SetFullScreen(value);
+	}
+
+	void SetMasterVolume(float vol)
+	{
+		AudioEngine::SetMasterVolume(vol);
+	}
+
+	void SetSFXVolume(float vol)
+	{
+		AudioEngine::SetGroupVolume("SFX", vol);
+	}
+
+	void SetMusicVolume(float vol)
+	{
+		AudioEngine::SetGroupVolume("BGM", vol);
 	}
 
 	float Time_GetDeltaTime()
@@ -1004,6 +1031,15 @@ namespace Borealis
 				*max = collider.Max;
 				*size = collider.size;*/
 		}
+		else if (entity.HasComponent<CylinderColliderComponent>())
+		{
+			auto& collider = entity.GetComponent<CylinderColliderComponent>();
+			*center = collider.center;
+			//*extents = collider.Extents;
+			//*min = collider.Min;
+			//*max = collider.Max;
+			//*size = collider.Size;
+		}
 	}
 	void ColliderComponent_UpdateScale(UUID uuid)
 	{
@@ -1024,6 +1060,11 @@ namespace Borealis
 		{
 			auto& collider = entity.GetComponent<SphereColliderComponent>();
 			PhysicsSystem::UpdateScale(entity.GetComponent<SphereColliderComponent>(), entity.GetComponent<TransformComponent>());
+		}
+		else if (entity.HasComponent<CylinderColliderComponent>())
+		{
+			auto& collider = entity.GetComponent<CylinderColliderComponent>();
+			PhysicsSystem::UpdateScale(entity.GetComponent<CylinderColliderComponent>(), entity.GetComponent<TransformComponent>());
 		}
 	}
 	void AnimatorComponent_SetCurrentAnimation(UUID uuid, UUID animation)
@@ -1372,6 +1413,24 @@ namespace Borealis
 		}
 	}
 
+	void CharacterController_GetLinearVelocity(uint64_t id, glm::vec3* vel)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(id);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*vel = PhysicsSystem::GetLinearVelocity(entity.GetComponent<CharacterControllerComponent>().controller);
+	}
+
+	void CharacterController_SetLinearVelocity(uint64_t id, glm::vec3* vel)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(id);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		PhysicsSystem::SetLinearVelocity(entity.GetComponent<CharacterControllerComponent>().controller, *vel);
+	}
+
 	void AudioSource_GetClip(uint64_t ID, uint64_t* ClipID)
 	{
 		Scene* scene = SceneManager::GetActiveScene().get();
@@ -1432,7 +1491,7 @@ namespace Borealis
 		auto& audioSource = entity.GetComponent<AudioSourceComponent>();
 		if (audioSource.audio)
 			/*AudioEngine::PlayAudio(audioSource, translate, audioSource.Volume, audioSource.isMute, audioSource.isLoop)*/
-			AudioEngine::Play(audioSource.audio, translate, audioSource.Volume, audioSource.isLoop, AudioGroup::BGM);
+			AudioEngine::Play(audioSource.audio, translate, audioSource.Volume, audioSource.isLoop, "BGM");
 	}
 	void AudioSource_IsPlaying(uint64_t ID, bool* playing)
 	{

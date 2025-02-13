@@ -20,13 +20,19 @@ uniform int u_EntityID;
 
 //Animation variables
 uniform bool u_HasAnimation;
+uniform int  u_AnimationIndex;
 const int MAX_BONES = 128;
 const int MAX_BONE_INFLUENCE = 4;
-//uniform mat4 u_FinalBonesMatrices[MAX_BONES]; //move to uniform buffer objects
+const int MAX_ANIMATIONS = 5;
+
+struct Animation
+{
+    mat4 FinalBonesMatrices[MAX_BONES];
+};
 
 layout(std140) uniform AnimationUBO
 {
-	mat4 u_FinalBonesMatrices[MAX_BONES];
+    Animation animations[MAX_ANIMATIONS];
 };
 
 //shadow pass variables
@@ -49,7 +55,7 @@ void ShadowPass()
 
 void Render3DPass()
 {
-    v_TexCoord = vec2(a_TexCoord.x, 1 - a_TexCoord.y);
+    v_TexCoord = vec2(a_TexCoord.x, a_TexCoord.y);
 	v_FragPos = vec3(u_ModelTransform * vec4(a_Position, 1.0));
 	
 	mat3 normalMatrix = transpose(inverse(mat3(u_ModelTransform))); //calculate T and N in compiler
@@ -73,14 +79,9 @@ void Render3DPass()
                 TotalPosition = vec4(a_Position,1.0f);
                 break;
             }
-            vec4 localPosition = u_FinalBonesMatrices[boneIds[i]] * vec4(a_Position,1.0f);
+            vec4 localPosition = animations[u_AnimationIndex].FinalBonesMatrices[boneIds[i]] * vec4(a_Position,1.0f);
             TotalPosition += localPosition * weights[i];
-			
-			//weightedNormal += weights[i] * mat3(u_FinalBonesMatrices[boneIds[i]]) * a_Normal;
-
-			//Need to apply weightedTangent and BitTangent as well
         }
-		//N = normalize(weightedNormal);
 
 		gl_Position = u_ViewProjection * u_ModelTransform * TotalPosition;	
 		v_LightPos = u_LightViewProjection * u_ModelTransform * TotalPosition;
@@ -114,7 +115,7 @@ void main()
 //layout(location = 0) out vec4 color;
 layout(location = 0) out vec4 fragColor;
 layout(location = 1) out int entityIDs;
-
+layout(location = 2) out float outRevealage;
 struct MaterialUBOData
 {
     vec4 albedoColor;
@@ -164,6 +165,9 @@ layout(std140) uniform LightsUBO
 	int u_LightsCount;
 };
 
+
+uniform bool u_Transparent = false;
+
 in vec2 v_TexCoord;
 in vec3 v_FragPos;
 in vec3 v_Normal; 
@@ -184,12 +188,16 @@ uniform mat4 u_LightSpaceMatrices[4];
 uniform float u_CascadePlaneDistances[4];
 uniform int cascadeCount;
 
+//uniform samplerCube u_cubeMap;
+
 uniform int materialIndex;
 uniform sampler2D albedoMap;
 uniform sampler2D specularMap;
 uniform sampler2D metallicMap;
 uniform sampler2D normalMap;
 
+const float airIOR   = 1.0;
+const float glassIOR = 1.5;
 
 const float PI = 3.14159265359;
 
@@ -200,7 +208,15 @@ vec2 GetTexCoord()
 
 vec4 GetAlbedoColor()
 {
-	vec4 albedoColor = materials[materialIndex].hasAlbedoMap ? texture(albedoMap, GetTexCoord()) : materials[materialIndex].albedoColor;
+	vec4 albedoColor = vec4(0.f);
+    if(materials[materialIndex].hasAlbedoMap) 
+    {
+        albedoColor = vec4(texture(albedoMap, GetTexCoord()).rgb, materials[materialIndex].albedoColor.a);
+    }
+    else
+    {
+        albedoColor = materials[materialIndex].albedoColor;
+    } 
 	return albedoColor;
 }
 
@@ -347,7 +363,7 @@ vec3 ComputeDirectionalLight(Light light, vec3 normal, vec3 viewDir)
 
     vec3 halfwayDir = normalize(lightDir + viewDir);
 
-    vec3 radiance = light.ambient * 10.f;
+    vec3 radiance = light.diffuse * 10.f;
 
     float D = DistributionGGX(normal, halfwayDir, GetRoughness());
     float G = GeometrySmith(normal, viewDir, lightDir, GetRoughness());
@@ -372,12 +388,23 @@ vec3 ComputeDirectionalLight(Light light, vec3 normal, vec3 viewDir)
     
     if(u_HasShadow)
     {
-        color += shadowFactor * ((GetAlbedoColor().xyz / PI + specular) * radiance * NdotL);
+        color += shadowFactor * ((/*kD **/GetAlbedoColor().xyz / PI + specular) * radiance * NdotL);
     }
     else
     {
         color += ((kD * GetAlbedoColor().xyz / PI + specular) * radiance * NdotL);
     }
+
+    // if(u_Transparent)
+    // {
+    //     vec3 reflectionDir = reflect(-viewDir, normal);
+    //     vec3 refractionDir = refract(-viewDir, normal, airIOR / glassIOR);
+    //     vec3 reflectionColor = texture(u_cubeMap, normalize(reflectionDir)).rgb;
+    //     vec3 refractionColor = texture(u_cubeMap, normalize(refractionDir)).rgb;
+    //     float fresnelFactor = pow(1.0 - max(dot(normal, viewDir), 0.0), 5.0);
+    //     vec3 envGlass = mix(refractionColor, reflectionColor, fresnelFactor);
+    //     color += envGlass;
+    // }
 
     return color;
 }
@@ -516,11 +543,20 @@ void Render3DPass()
 	vec3 ambient = vec3(0.1f) * GetAlbedoColor().rgb;
 
 	vec3 finalColor = color.rgb;
-
-	finalColor = finalColor / (finalColor + vec3(1.0));
+    finalColor = finalColor / (finalColor + vec3(1.0));
     finalColor = pow(finalColor, vec3(1.0/2.2)); 
-	fragColor =  vec4(finalColor,GetAlbedoColor().a);
-	
+
+    if(u_Transparent)
+    {
+        float weight = clamp(pow(min(1.0, GetAlbedoColor().a * 10.0) + 0.01, 3.0) * 1e8 * pow(1.0 - gl_FragCoord.z * 0.9, 3.0), 1e-2, 3e3);
+        fragColor = vec4(finalColor.rgb * GetAlbedoColor().a * weight, GetAlbedoColor().a * weight);
+        outRevealage = GetAlbedoColor().a;
+    }
+    else
+    {
+	    fragColor =  vec4(finalColor,GetAlbedoColor().a);
+    }
+
 	entityIDs = v_EntityID;
 }
 

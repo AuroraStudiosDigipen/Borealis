@@ -33,17 +33,17 @@ namespace Borealis
 	{
 		bool modified = false;
 
-		for (LightComponent * light : mLights)
-		{
-			if (light->isEdited)
-			{
-				modified = true;
-				light->isEdited = false;
-			}
-		}
+		//for (LightComponent * light : mLights)
+		//{
+		//	if (light->isEdited)
+		//	{
+		//		modified = true;
+		//		light->isEdited = false;
+		//	}
+		//}
 
-		if(mNeedToUpdate || modified || mLights.empty())
-		{
+		//if(mNeedToUpdate || modified || mLights.empty())
+		//{
 			for (int i{}; i < mLights.size(); ++i)
 			{
 				Light::SetUBO(*mLights[i], mLightsUBO[i]);
@@ -51,7 +51,7 @@ namespace Borealis
 			LightsUBO->SetData(mLightsUBO.data(), mLightsUBO.size() * sizeof(LightUBO));
 			int lightsCount = static_cast<int>(mLights.size());
 			LightsUBO->SetData(&lightsCount, sizeof(int), mLightsUBO.size() * sizeof(LightUBO));
-		}
+		//}
 	}
 }
 

@@ -61,6 +61,10 @@ namespace Borealis
 	void DrawLine(glm::vec3 start, glm::vec3 end, glm::vec4 color);
 
 	void SetActive(bool value, uint64_t* outEntityID);
+	void SetFullscreen(bool value);
+	void SetMasterVolume(float vol);
+	void SetSFXVolume(float vol);
+	void SetMusicVolume(float vol);
 
 	/*!***********************************************************************
 		\brief
@@ -413,6 +417,8 @@ namespace Borealis
 	void CharacterController_Jump(uint64_t id, float jumpSpeed);
 
 	void CharacterController_IsGrounded(uint64_t id, bool* grounded);
+	void CharacterController_GetLinearVelocity(uint64_t id, glm::vec3* vel);
+	void CharacterController_SetLinearVelocity(uint64_t id, glm::vec3* vel);
 
 	void AudioSource_GetClip(uint64_t ID, uint64_t* ClipID);
 	void AudioSource_SetClip(uint64_t ID, uint64_t* ClipID);

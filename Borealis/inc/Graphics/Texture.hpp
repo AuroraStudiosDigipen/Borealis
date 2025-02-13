@@ -126,11 +126,13 @@ namespace Borealis
 			\param[in] path
 				const std::string& - Path to the Texture
 		*************************************************************************/
-		static Ref<Texture2D> Create(const std::string& path);
+		static Ref<Texture2D> Create(const std::string& path, std::optional<TextureConfig> textureConfig = std::nullopt);
 
 		static Ref<Texture2D> GetDefaultTexture();
 
 		static Ref<Asset> Load(std::filesystem::path const& cachePath, AssetMetaData const& assetMetaData);
+
+		//static void Reload(AssetMetaData const& assetMetaData);
 
 	private:
 		static Ref<Texture2D> mDefault;
@@ -144,10 +146,12 @@ namespace Borealis
 		static Ref<TextureCubeMap> Load(AssetMetaData const& assetMetaData);
 
 		static Ref<TextureCubeMap> GetDefaultCubeMap();
+		static Ref<TextureCubeMap> GetDefaultCubeMap2();
 
 	private:
 
 		static Ref<TextureCubeMap> mDefaultCubeMap;
+		static Ref<TextureCubeMap> mDefaultCubeMap2;
 	};
 
 } // Namespace Borealis

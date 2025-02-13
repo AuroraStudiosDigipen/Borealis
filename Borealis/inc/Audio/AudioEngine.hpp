@@ -89,7 +89,7 @@ namespace Borealis
         \return
             The ID of the channel where the sound is played.
         *************************************************************************/
-        static int PlayAudio(AudioSourceComponent& audio, const glm::vec3& vPosition = glm::vec3{ 0, 0, 0 }, float fVolumedB = 5.0f, bool bMute = false, bool bLoop = false, int groupId = -1);
+        static int PlayAudio(AudioSourceComponent& audio, const glm::vec3& vPosition = glm::vec3{ 0, 0, 0 }, float fVolumedB = 5.0f, bool bMute = false, bool bLoop = false, const std::string& groupName = "Master");
 
         /*!***********************************************************************
         \brief
@@ -203,14 +203,27 @@ namespace Borealis
         \param volume
             The volume level for the group in linear scale (0.0 - 1.0).
         *************************************************************************/
-        static void SetGroupVolume(int groupId, float fVolumedB);
+        static void SetGroupVolume(const std::string& groupName, float fVolumedB);
 
         /*!***********************************************************************
         \brief
             Retrieves the default audio group ID.
         \return
             The ID of the default audio group.
+        //*************************************************************************/
+        //static int GetDefaultGroupId();
+
+        //static int GetGroupIdForAudio(FMOD::Sound* fmodSound);
+
+        /*!***********************************************************************
+        \brief
+            Loads an audio asset from metadata.
+        \param assetMetaData
+            Metadata containing the source path and other properties.
+        \return
+            A reference to the loaded audio asset.
         *************************************************************************/
+        //static Ref<Asset> Load(AssetMetaData const& assetMetaData);
         static int GetDefaultGroupId();
 
         static int GetGroupIdForAudio(FMOD::Sound* fmodSound);
@@ -219,9 +232,59 @@ namespace Borealis
 
         static int mDefaultGroupI; /*!< The default audio group ID */
 
-        static int Play(Ref<Audio> audio, const glm::vec3& position, float volumeDB, bool looping, AudioGroup group);
+        /*!***********************************************************************
+        \brief
+            Plays an audio asset.
+        \param audio
+            Reference to the audio asset.
+        \param position
+            The 3D position where the sound will be played.
+        \param volumeDB
+            The volume in decibels.
+        \param looping
+            Whether the sound should loop.
+        \param groupName
+            The name of the audio group.
+        \return
+            The ID of the playing channel.
+        *************************************************************************/
+        static int Play(Ref<Audio> audio, const glm::vec3& position, float volumeDB, bool looping, const std::string& groupName);
 
-        static void PlayOneShot(Ref<Audio> audio, const glm::vec3& position, float volumeDB, AudioGroup group);
+        /*!***********************************************************************
+        \brief
+            Plays an audio asset as a one-shot sound.
+        \param audio
+            Reference to the audio asset.
+        \param position
+            The 3D position where the sound will be played.
+        \param volumeDB
+            The volume in decibels.
+        \param groupName
+            The name of the audio group.
+        *************************************************************************/
+        static void PlayOneShot(Ref<Audio> audio, const glm::vec3& position, float volumeDB, const std::string& groupName);
+        
+        /*!***********************************************************************
+        \brief
+            Applies a fade-in effect to a specific channel.
+        \param channelId
+            The ID of the channel.
+        \param fadeInTime
+            The duration of the fade-in effect.
+        \param targetVolumeDB
+            The final volume in decibels.
+        *************************************************************************/
+        static void ApplyFadeIn(int channelId, float fadeInTime, float targetVolumeDB);
+        
+        /*!***********************************************************************
+        \brief
+            Applies a fade-out effect to a specific channel.
+        \param channelId
+            The ID of the channel.
+        \param fadeOutTime
+            The duration of the fade-out effect.
+        *************************************************************************/
+        static void ApplyFadeOut(int channelId, float fadeOutTime);
 
     private:
         static std::map<int, float> mGroupVolumes; /*!< Map of group IDs and their volume levels */

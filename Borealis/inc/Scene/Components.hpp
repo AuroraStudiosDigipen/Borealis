@@ -276,10 +276,9 @@ namespace Borealis
 		unsigned int bodyID = 0;
 	};
 
-	struct TaperedCapsuleColliderComponent : public ColliderComponent
+	struct CylinderColliderComponent : public ColliderComponent
 	{
-		float botRadius = 1.f;
-		float topRadius = 0.5f;
+		float radius = 1.f;
 		float height = 2.f;
 	};
 
@@ -371,10 +370,17 @@ namespace Borealis
 
 	struct TextComponent
 	{
+		enum class TextAlign : uint8_t
+		{
+			Left,
+			Center
+		};
+
 		std::string text{};
 		uint32_t fontSize = 16; //change to float?
 		glm::vec4 colour{ 1.f,1.f,1.f,1.f };
 		Ref<Font> font;
+		TextAlign align = TextAlign::Left;
 
 		TextComponent() = default;
 		TextComponent(const TextComponent&) = default;
@@ -403,7 +409,7 @@ namespace Borealis
 	
 	struct AudioSourceComponent
 	{
-		Borealis::AudioGroup group = Borealis::AudioGroup::Master;
+		std::string group = "Master";
 		bool isLoop = false;
 		bool isMute = false;
 		bool isPlaying = false;
@@ -475,6 +481,7 @@ namespace Borealis
 			ScreenSpace
 		};
 		RenderMode renderMode = RenderMode::ScreenSpace;
+		int renderIndex{};
 
 		CanvasComponent() = default;
 		CanvasComponent(const CanvasComponent&) = default;
@@ -496,15 +503,24 @@ namespace Borealis
 		float		startLifeTime = 5.f;
 		float		startSpeed = 5.f;
 		bool		_3DStartSizeBool = false;
+		bool		randomStartSize = false;
 		glm::vec3	startSize = glm::vec3{ 1.f }; //if not 3d, use .x for size
+		glm::vec3	startSize2 = glm::vec3{ 1.f }; //if not 3d, use .x for size
 		bool		_3DStartRotationBool = false;
 		glm::vec3	startRotation = glm::vec3{ 0.f }; // if not 3d, use .x for rotation
+		bool		randomStartColor = false;
 		glm::vec4	startColor = glm::vec4{ 1.f };
+		glm::vec4	startColor2 = glm::vec4{ 1.f };
+		bool		endColorBool;
+		glm::vec4	endColor = glm::vec4{ 1.f };
 		float		gravityModifer = 0.f;
 		float		simulationSpeed = 1.f;
 		uint32_t	maxParticles = 1000;
 		float		rateOverTime = 10.f;
 		float		angle = 25.f;
+		float		radius = 1.f;
+		float		radiusThickness = 0.f; //0-1 based on radius
+		bool		billboard = true;
 		bool		isEdited = false;
 
 		Ref<Texture2D> texture = nullptr;
@@ -518,17 +534,17 @@ namespace Borealis
 
 	struct ButtonComponent
 	{
-		std::string onClickFunctionName;
-		std::string onReleaseFunctionName;
-		std::string onHoverFunctionName;
+		std::string onClickFunctionName{};
+		std::string onReleaseFunctionName{};
+		std::string onHoverFunctionName{};
 
-		std::string onClickClass;
-		std::string onReleaseClass;
-		std::string onHoverClass;
+		std::string onClickClass{};
+		std::string onReleaseClass{};
+		std::string onHoverClass{};
 
-		UUID onClickEntity;
-		UUID onReleaseEntity;
-		UUID onHoverEntity;
+		UUID onClickEntity = 0;
+		UUID onReleaseEntity = 0;
+		UUID onHoverEntity = 0;
 
 		bool hovered = false;
 		bool clicked = false;

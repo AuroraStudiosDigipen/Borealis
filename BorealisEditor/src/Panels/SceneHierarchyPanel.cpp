@@ -1185,10 +1185,11 @@ namespace Borealis
 	{
 		TextureConfig config = GetConfig<TextureConfig>(metaData.Config);
 
+		ImGui::Text("Texture Configuration");
+
 		const char* textureTypeNames[] = { "Default", "Normal Map" };
 		int selectedTextureType = static_cast<int>(config.type);
 
-		ImGui::Text("Texture Configuration");
 		if (ImGui::Combo("Texture Type", &selectedTextureType, textureTypeNames, IM_ARRAYSIZE(textureTypeNames))) {
 			config.type = static_cast<TextureType>(selectedTextureType);
 			metaData.Config = config;
@@ -1205,6 +1206,26 @@ namespace Borealis
 		bool sRGB = config.sRGB;
 		if (ImGui::Checkbox("sRGB", &sRGB)) {
 			config.sRGB = sRGB;
+			metaData.Config = config;
+		}
+
+		bool generateMipMaps = config.generateMipMaps;
+		if (ImGui::Checkbox("Generate Mipmaps", &generateMipMaps)) {
+			config.generateMipMaps = generateMipMaps;
+			metaData.Config = config;
+		}
+
+		const char* wrapModeNames[] = { "Repeat", "Mirrored Repeat", "Clamp to Edge", "Clamp to Border" };
+		int selectedWrapMode = static_cast<int>(config.wrapMode);
+		if (ImGui::Combo("Wrap Mode", &selectedWrapMode, wrapModeNames, IM_ARRAYSIZE(wrapModeNames))) {
+			config.wrapMode = static_cast<TextureWrap>(selectedWrapMode);
+			metaData.Config = config;
+		}
+
+		const char* filterModeNames[] = { "Linear", "Nearest" };
+		int selectedFilterMode = static_cast<int>(config.filterMode);
+		if (ImGui::Combo("Filter Mode", &selectedFilterMode, filterModeNames, IM_ARRAYSIZE(filterModeNames))) {
+			config.filterMode = static_cast<TextureFilter>(selectedFilterMode);
 			metaData.Config = config;
 		}
 
@@ -2414,7 +2435,7 @@ namespace Borealis
 			isEdited = SearchBar<MeshRendererComponent	  >(search_text, entity,"Mesh Renderer", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<BoxColliderComponent	  >(search_text, entity,"Box Collider", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<CapsuleColliderComponent>(search_text, entity,"Capsule Collider", search_buffer) ? true : isEdited;
-			isEdited = SearchBar<TaperedCapsuleColliderComponent>(search_text, entity,"Tapered Capsule Collider", search_buffer) ? true : isEdited;
+			isEdited = SearchBar<CylinderColliderComponent>(search_text, entity,"Cylinder Collider", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<SphereColliderComponent>(search_text, entity, "Sphere Collider", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<RigidbodyComponent	  >(search_text, entity,"Rigidbody", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<CharacterControllerComponent>(search_text, entity, "Character Controller", search_buffer) ? true : isEdited;
@@ -2464,7 +2485,7 @@ namespace Borealis
 		isEdited = DrawComponentLayout<MeshRendererComponent>("Mesh Renderer", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<BoxColliderComponent>("Box Collider", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<CapsuleColliderComponent>("Capsule Collider", entity) ? true : isEdited;
-		isEdited = DrawComponentLayout<TaperedCapsuleColliderComponent>("Tapered Capsule Collider", entity) ? true : isEdited;
+		isEdited = DrawComponentLayout<CylinderColliderComponent>("Cylinder Collider", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<SphereColliderComponent>("Sphere Collider", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<RigidbodyComponent>("Rigidbody", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<CharacterControllerComponent>("Character Controller", entity) ? true : isEdited;

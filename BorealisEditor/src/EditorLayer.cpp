@@ -97,6 +97,9 @@ namespace Borealis {
 	static int viewportMouseXCurr = 0;
 	static int viewportMouseYCurr = 0;
 
+
+	static bool particlesForEditor = true;
+
 	void EditorLayer::Init()
 	{
 
@@ -241,6 +244,7 @@ namespace Borealis {
 
 				RenderPassConfig Render3D(RenderPassType::Render3D, "Render3D");
 				Render3D.AddSinkLinkage("renderTarget", "RunTimeBuffer");
+				Render3D.AddSinkLinkage("accumulaionTarget", "accumulaionBuffer");
 				Render3D.AddSinkLinkage("shadowMap", "ShadowPass.shadowMap");
 				Render3D.AddSinkLinkage("camera", "RunTimeCamera");
 				fconfig.AddPass(Render3D);
@@ -255,8 +259,14 @@ namespace Borealis {
 				UIWorldPass.AddSinkLinkage("camera", "RunTimeCamera");
 				fconfig.AddPass(UIWorldPass);
 
+				RenderPassConfig particleSystemPass(RenderPassType::ParticleSystemPass, "ParticleSystem");
+				particleSystemPass.AddSinkLinkage("camera", "EditorCamera")
+					.AddSinkLinkage("accumulaionTarget", "accumulaionBuffer")
+					.AddSinkLinkage("renderTarget", "UIWorldPass.renderTarget");
+				fconfig.AddPass(particleSystemPass);
+
 				RenderPassConfig UIPass(RenderPassType::UIPass, "UIPass");
-				UIPass.AddSinkLinkage("renderTarget", "UIWorldPass.renderTarget");
+				UIPass.AddSinkLinkage("renderTarget", "ParticleSystem.renderTarget");
 				UIPass.AddSinkLinkage("camera", "RunTimeCamera");
 				fconfig.AddPass(UIPass);
 
@@ -268,10 +278,10 @@ namespace Borealis {
 
 			//forward rendering editor
 			{
-				//RenderPassConfig editorSkyBoxPass(RenderPassType::SkyboxPass, "editorSkyBox");
-				//editorSkyBoxPass.AddSinkLinkage("renderTarget", "EditorBuffer");
-				//editorSkyBoxPass.AddSinkLinkage("camera", "EditorCamera");
-				//fconfig.AddPass(editorSkyBoxPass);
+				RenderPassConfig editorSkyBoxPass(RenderPassType::SkyboxPass, "editorSkyBox");
+				editorSkyBoxPass.AddSinkLinkage("renderTarget", "EditorBuffer");
+				editorSkyBoxPass.AddSinkLinkage("camera", "EditorCamera");
+				fconfig.AddPass(editorSkyBoxPass);
 
 				RenderPassConfig editorShadowPass(RenderPassType::Shadow, "editorShadowPass");
 				editorShadowPass.AddSinkLinkage("shadowMap", "ShadowMapBuffer")
@@ -280,6 +290,9 @@ namespace Borealis {
 
 				RenderPassConfig editorRender3D(RenderPassType::Render3D, "editorRender3D");
 				editorRender3D.AddSinkLinkage("renderTarget", "EditorBuffer")
+					.AddSinkLinkage("opaqueTarget", "opaqueBuffer")
+					.AddSinkLinkage("accumulaionTarget", "accumulaionBuffer")
+					.AddSinkLinkage("compositeTarget", "compositeBuffer")
 					.AddSinkLinkage("shadowMap", "editorShadowPass.shadowMap")
 					.AddSinkLinkage("camera", "EditorCamera");
 				fconfig.AddPass(editorRender3D);
@@ -308,22 +321,26 @@ namespace Borealis {
 					.AddSinkLinkage("MouseSource", "MouseSource");
 				fconfig.AddPass(ObjectPicking);
 
-				RenderPassConfig editorHighlightPass(RenderPassType::EditorHighlightPass, "EditorHighlight");
-				editorHighlightPass.AddSinkLinkage("camera", "EditorCamera")
-					.AddSinkLinkage("renderTarget", "ObjectPicking.renderTarget")
-					.AddSinkLinkage("SelectedEntities", "SelectedEntities")
-					.AddSinkLinkage("EntityIDSource", "ObjectPicking.EntityIDSource");
-				fconfig.AddPass(editorHighlightPass);
+				//RenderPassConfig editorHighlightPass(RenderPassType::EditorHighlightPass, "EditorHighlight");
+				//editorHighlightPass.AddSinkLinkage("camera", "EditorCamera")
+				//	.AddSinkLinkage("renderTarget", "ObjectPicking.renderTarget")
+				//	.AddSinkLinkage("SelectedEntities", "SelectedEntities")
+				//	.AddSinkLinkage("EntityIDSource", "ObjectPicking.EntityIDSource");
+				//fconfig.AddPass(editorHighlightPass);
 
 				RenderPassConfig highlightPass(RenderPassType::HighlightPass, "Highlight");
 				highlightPass.AddSinkLinkage("camera", "EditorCamera")
-					.AddSinkLinkage("renderTarget", "EditorHighlight.renderTarget");
+					.AddSinkLinkage("renderTarget", "ObjectPicking.renderTarget");
 				fconfig.AddPass(highlightPass);
 
-				RenderPassConfig particleSystemPass(RenderPassType::ParticleSystemPass, "ParticleSystem");
-				particleSystemPass.AddSinkLinkage("camera", "EditorCamera")
-					.AddSinkLinkage("renderTarget", "Highlight.renderTarget");
-				fconfig.AddPass(particleSystemPass);
+				if(particlesForEditor)
+				{
+					RenderPassConfig particleSystemPass(RenderPassType::ParticleSystemPass, "ParticleSystemEditor");
+					particleSystemPass.AddSinkLinkage("camera", "EditorCamera")
+						.AddSinkLinkage("accumulaionTarget", "accumulaionBuffer")
+						.AddSinkLinkage("renderTarget", "Highlight.renderTarget");
+					fconfig.AddPass(particleSystemPass);
+				}
 			}
 
 			//deferred rendering
@@ -1524,11 +1541,14 @@ namespace Borealis {
 		{
 			Renderer3D::SetGlobalWireFrameMode(!Renderer3D::GetGlobalWireFrameMode());
 		}
+		ImGui::SameLine();
 		bool showCollide = PhysicsSystem::DebugDrawGet();
 		if (ImGui::Checkbox("Show Colliders", &showCollide))
 		{
 			PhysicsSystem::DebugDrawSet(showCollide);
 		}
+		ImGui::SameLine();
+		ImGui::Checkbox("Toggle editor particles", &particlesForEditor);
 
 		ImGui::End();
 

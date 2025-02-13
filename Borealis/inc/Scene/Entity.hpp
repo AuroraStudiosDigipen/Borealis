@@ -111,6 +111,8 @@ namespace Borealis
 				PhysicsSystem::FreeRigidBody(GetComponent<BoxColliderComponent>());
 			else if (typeid(T) == typeid(SphereColliderComponent))
 				PhysicsSystem::FreeRigidBody(GetComponent<SphereColliderComponent>());
+			else if (typeid(T) == typeid(CylinderColliderComponent))
+				PhysicsSystem::FreeRigidBody(GetComponent<CylinderColliderComponent>());
 
 			mScene->mRegistry.remove<T>(mID);
 		}

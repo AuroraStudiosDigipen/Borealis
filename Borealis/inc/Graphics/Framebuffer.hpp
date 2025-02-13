@@ -133,6 +133,8 @@ namespace Borealis
 		*************************************************************************/
 		virtual void ClearAttachment(uint32_t attachmentIndex, int value) = 0;
 
+		virtual void ClearAttachment(uint32_t attachmentIndex, glm::vec4 value) = 0;
+
 		/*!***********************************************************************
 			\brief
 				Get the color attachment renderer ID
@@ -142,6 +144,10 @@ namespace Borealis
 				The color attachment renderer ID
 		*************************************************************************/
 		virtual uint32_t GetColorAttachmentRendererID(uint32_t index = 0) const = 0;
+
+		virtual uint32_t DetachDepthBuffer() = 0;
+
+		virtual void AttachDepthBuffer(uint32_t index) = 0;
 
 		/*!***********************************************************************
 			\brief

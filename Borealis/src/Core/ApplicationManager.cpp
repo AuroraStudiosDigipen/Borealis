@@ -51,7 +51,7 @@ namespace Borealis
 
 		AudioEngine::Init();
 		InputSystem::Init();
-		PhysicsSystem::Init();
+		//PhysicsSystem::Init();
 	}
 
 	/*!***********************************************************************
@@ -67,7 +67,7 @@ namespace Borealis
 		mLayerSystem.Clear();
 		ScriptingSystem::Free();
 
-		PhysicsSystem::Free();
+		//PhysicsSystem::Free();
 		delete mWindowManager;
 		glfwTerminate(); // Terminate after system shuts down
 
@@ -81,6 +81,14 @@ namespace Borealis
 	{
 		ULONGLONG prevTickCount = GetTickCount64(); // Get initial tick count
 		PROFILE_FUNCTION();
+
+		//Audio audio = AudioEngine::LoadAudio("MoodSwingsBGM.wav");
+		//Ref<Audio> ref = MakeRef<Audio>(audio);
+		//int ch = AudioEngine::Play(ref, {}, 1.f, true, "BGM");
+		//AudioEngine::ApplyFadeIn(ch, 3.f, 1.f);
+
+		//float count = 0.f;
+
 		while (mIsRunning)
 		{
 			if (InputSystem::IsKeyPressed(GLFW_KEY_1) && InputSystem::IsKeyPressed(GLFW_KEY_LEFT_SHIFT)) {

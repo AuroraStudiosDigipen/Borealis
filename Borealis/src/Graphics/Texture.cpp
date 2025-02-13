@@ -43,14 +43,14 @@ namespace Borealis
 
 		return Ref<Texture2D>();
 	}
-	Ref<Texture2D> Texture2D::Create(const std::string& path)
+	Ref<Texture2D> Texture2D::Create(const std::string& path, std::optional<TextureConfig> textureConfig)
 	{
 		Ref<Texture2D> texture = nullptr;
 		switch (Renderer::GetAPI())
 		{
 		case RendererAPI::API::None: BOREALIS_CORE_ASSERT(false, "RendererAPI::None is not supported"); break;
 		case RendererAPI::API::OpenGL: 
-			texture = MakeRef<OpenGLTexture2D>(path);
+			texture = MakeRef<OpenGLTexture2D>(path, textureConfig);
 			if (!texture->IsValid())
 			{
 				texture = nullptr;
@@ -77,8 +77,14 @@ namespace Borealis
 
 	Ref<Asset> Texture2D::Load(std::filesystem::path const& cachePath, AssetMetaData const& assetMetaData)
 	{
-		return Create((cachePath / std::to_string(assetMetaData.Handle)).string());
+		return Create((cachePath / std::to_string(assetMetaData.Handle)).string(), GetConfig<TextureConfig>(assetMetaData.Config));
 	}
+
+	//void Texture2D::Reload(AssetMetaData const& assetMetaData)
+	//{
+	//	TextureConfig config = GetConfig<TextureConfig>(assetMetaData.Config);
+	//	creat
+	//}
 
 	Ref<TextureCubeMap> TextureCubeMap::Create(std::filesystem::path const& path)
 	{
@@ -105,6 +111,14 @@ namespace Borealis
 	}
 
 	Ref<TextureCubeMap> TextureCubeMap::GetDefaultCubeMap()
+	{
+		if (!mDefaultCubeMap)
+		{
+			mDefaultCubeMap = Create(std::filesystem::path("engineResources/Textures/SkyBoxPng4k.dds"));
+		}
+		return mDefaultCubeMap;
+	}
+	Ref<TextureCubeMap> TextureCubeMap::GetDefaultCubeMap2()
 	{
 		if (!mDefaultCubeMap)
 		{

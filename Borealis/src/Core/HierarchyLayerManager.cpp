@@ -47,7 +47,7 @@ namespace Borealis
 		}
     }
 
-    void HierarchyLayerManager::LoadEntitiesIntoLayerManager(const Ref<Scene>& scene, bool onLoad)
+    void HierarchyLayerManager::LoadEntitiesIntoLayerManager(const Ref<Scene>& scene)
     {
         if (!scene) return; // Safety check
 		//std::cout << "Loading entities into layer manager" << std::endl;
@@ -98,14 +98,12 @@ namespace Borealis
         // Sort non-zero layers first
         SortLayers();
 
-        if (onLoad)
+        UpdateDuplicate(mEntityLayerMap, mLayeredEntities, duplicateLayer2IDVector);
+        if (!mLayeredEntities.empty())
         {
-            UpdateDuplicate(mEntityLayerMap, mLayeredEntities, duplicateLayer2IDVector);
-            if (!mLayeredEntities.empty())
-            {
-                maxLayer = mEntityLayerMap[mLayeredEntities.back()];
-            }
+            maxLayer = mEntityLayerMap[mLayeredEntities.back()];
         }
+       
         // Second pass: Assign new layers to entities that had layer 0
         for (const auto& uuid : zeroLayerEntities)
         {

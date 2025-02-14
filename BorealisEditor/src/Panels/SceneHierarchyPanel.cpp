@@ -1249,7 +1249,7 @@ namespace Borealis
 		ClearSelectedEntities();
 		
 		// Load all entities into the HierarchyLayerManager
-		HierarchyLayerManager::GetInstance().LoadEntitiesIntoLayerManager(scene, true);
+		HierarchyLayerManager::GetInstance().LoadEntitiesIntoLayerManager(scene);
 
 		//Testing load all the prefab children
 		for (auto& item : SceneManager::GetActiveScene()->GetRegistry().view<entt::entity>()) {

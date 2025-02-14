@@ -1846,7 +1846,10 @@ namespace Borealis
 					auto currentEntityID = field.GetGameObjectID(Data);
 					if (currentEntityID != 0)
 					{
-						currentEntityName = SceneManager::GetActiveScene()->GetEntityByUUID(currentEntityID).GetName();
+						if (SceneManager::GetActiveScene()->EntityExists(currentEntityID))
+							currentEntityName = SceneManager::GetActiveScene()->GetEntityByUUID(currentEntityID).GetName();
+						else
+							currentEntityName = std::to_string(currentEntityID);
 					}
 				}
 	

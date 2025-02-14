@@ -410,6 +410,7 @@ namespace Borealis
 		return true;
 	}
 
+	static std::unordered_set<UUID> sEntityList;
 
 	entt::entity Serialiser::DeserialiseEntity(YAML::detail::iterator_value& entity, entt::registry& registry, UUID& uuid)
 	{
@@ -518,6 +519,11 @@ namespace Borealis
 						if (fieldData["Type"].as<std::string>() == "GameObject")
 						{
 							uint64_t data = fieldData["Data"].as<uint64_t>();
+
+							if (sEntityList.find(data) == sEntityList.end())
+							{
+								continue;
+							}
 							MonoObject* field = nullptr;
 							InitGameObject(field, data, fieldData["Type"].as<std::string>());
 							scriptInstance->SetFieldValue(fieldName, field);
@@ -527,6 +533,10 @@ namespace Borealis
 						if (fieldData["Type"].as<std::string>() == "MonoBehaviour")
 						{
 							uint64_t data = fieldData["Data"].as<uint64_t>();
+							if (sEntityList.find(data) == sEntityList.end())
+							{
+								continue;
+							}
 							scriptQueue.push({ scriptInstance, data, fieldName });
 							continue;
 						}
@@ -636,9 +646,22 @@ namespace Borealis
 							continue;
 						}
 
-						if (scriptInstance->GetScriptClass()->mFields[fieldName].isAssetField() || scriptInstance->GetScriptClass()->mFields[fieldName].isNativeComponent())
+						if (scriptInstance->GetScriptClass()->mFields[fieldName].isAssetField())
 						{
 							uint64_t data = fieldData["Data"].as<uint64_t>();
+							MonoObject* field = nullptr;
+							InitGameObject(field, data, fieldData["Type"].as<std::string>());
+							scriptInstance->SetFieldValue(fieldName, field);
+							continue;
+						}
+
+						if (scriptInstance->GetScriptClass()->mFields[fieldName].isNativeComponent())
+						{
+							uint64_t data = fieldData["Data"].as<uint64_t>();
+							if (sEntityList.find(data) == sEntityList.end())
+							{
+								continue;
+							}
 							MonoObject* field = nullptr;
 							InitGameObject(field, data, fieldData["Type"].as<std::string>());
 							scriptInstance->SetFieldValue(fieldName, field);
@@ -671,6 +694,17 @@ namespace Borealis
 		// Deserialise scene info such as viewport sizes
 		mScene->ResizeViewport(1920, 1080);
 		auto entities = data["Entities"];
+
+
+		if (entities)
+		{
+			for (auto entity : entities)
+			{
+				uint64_t uuid = entity["EntityID"].as<uint64_t>(); // UUID
+				sEntityList.insert(uuid);
+			}
+		}
+
 		if (entities)
 		{
 			for (auto entity : entities)
@@ -689,6 +723,8 @@ namespace Borealis
 				scriptQueue.pop();
 			}
 		}
+
+		sEntityList.clear();
 
 		// Delete invalid children
 		for (auto[id, entity] : mScene->mEntityMap)

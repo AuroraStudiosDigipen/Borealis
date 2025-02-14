@@ -274,6 +274,18 @@ namespace Borealis
 			return true;
 		}
 
+		if (propType == rttr::type::get<std::vector<UUID>>())
+		{
+			out << YAML::Key << propName.to_string() << YAML::BeginMap;
+			std::vector<UUID> uuidList = propValue.get_value<std::vector<UUID>>();
+			for (auto id : uuidList)
+			{
+				out << YAML::Key << "UUID" << YAML::Value << id;
+			}
+			out << YAML::EndMap;
+			return true;
+		}
+
 		if (propType == rttr::type::get<std::unordered_set<std::string>>())
 		{
 			std::unordered_set<std::string> strings = propValue.get_value<std::unordered_set<std::string>>();

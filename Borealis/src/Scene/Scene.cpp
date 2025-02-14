@@ -886,6 +886,11 @@ namespace Borealis
 
 		return {(entt::entity)-1, this};
 	}
+
+	bool Scene::EntityExists(UUID uuid)
+	{
+		return mEntityMap.find(uuid) != mEntityMap.end();
+	}
 	void Scene::DestroyEntity(Entity entity)
 	{		
 		mEntityMap.erase(entity.GetUUID());

@@ -19,8 +19,35 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace Borealis
 {
+    static void UpdateDuplicate(std::unordered_map<UUID, int>& map, std::vector<UUID>& vec,
+        std::unordered_map<int, std::vector<UUID>> dup)
+    {
+        std::vector<UUID> newVec;
 
-    void HierarchyLayerManager::LoadEntitiesIntoLayerManager(const Ref<Scene>& scene)
+        for (int i = 0; i < vec.size(); i++)
+        {
+            newVec.push_back(vec[i]);
+            if (dup.contains(i))
+            {
+                for (auto& uuid : dup[i])
+                {
+					newVec.push_back(uuid);
+				}
+            }
+        }
+
+        map.clear();
+        vec = std::move(newVec);
+
+        for (int i = 0; i < vec.size(); i++)
+        {
+			map[vec[i]] = i + 1;
+            SceneManager::GetActiveScene()->GetEntityByUUID(vec[i]).GetComponent<TagComponent>().mHierarchyLayer = i + 1;
+
+		}
+    }
+
+    void HierarchyLayerManager::LoadEntitiesIntoLayerManager(const Ref<Scene>& scene, bool onLoad)
     {
         if (!scene) return; // Safety check
 		//std::cout << "Loading entities into layer manager" << std::endl;
@@ -31,7 +58,8 @@ namespace Borealis
 
         std::vector<UUID> zeroLayerEntities; // Store entities with layer 0
         int maxLayer = 0; // Track the highest assigned layer
-
+        std::unordered_set<int> setOfValidLayer;
+        std::unordered_map<int, std::vector<UUID>> duplicateLayer2IDVector;
         // First pass: Process entities with layer > 0
         auto view = scene->GetRegistry().view<IDComponent, TagComponent>();
         for (auto entityHandle : view)
@@ -46,6 +74,16 @@ namespace Borealis
 
                 if (tagComp.mHierarchyLayer > 0)
                 {
+                    if (setOfValidLayer.contains(tagComp.mHierarchyLayer))
+                    {
+						duplicateLayer2IDVector[tagComp.mHierarchyLayer].push_back(idComp.ID);
+                        continue;
+					}
+                    else
+                    {
+						setOfValidLayer.insert(tagComp.mHierarchyLayer);
+					}
+
                     mEntityLayerMap[idComp.ID] = tagComp.mHierarchyLayer;
                     mLayeredEntities.push_back(idComp.ID);
                     maxLayer = std::max(maxLayer, tagComp.mHierarchyLayer); // Update max layer
@@ -60,6 +98,14 @@ namespace Borealis
         // Sort non-zero layers first
         SortLayers();
 
+        if (onLoad)
+        {
+            UpdateDuplicate(mEntityLayerMap, mLayeredEntities, duplicateLayer2IDVector);
+            if (!mLayeredEntities.empty())
+            {
+                maxLayer = mEntityLayerMap[mLayeredEntities.back()];
+            }
+        }
         // Second pass: Assign new layers to entities that had layer 0
         for (const auto& uuid : zeroLayerEntities)
         {

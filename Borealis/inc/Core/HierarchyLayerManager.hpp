@@ -38,7 +38,7 @@ namespace Borealis
 		HierarchyLayerManager& operator=(const HierarchyLayerManager&) = delete;
 		
 		//Loading of Map
-		void LoadEntitiesIntoLayerManager(const Ref<Scene>& scene);
+		void LoadEntitiesIntoLayerManager(const Ref<Scene>& scene, bool onLoad = false);
 
 		// Methods to manage layers
 		void AddEntity(const UUID& uuid, int layer);

@@ -123,6 +123,7 @@ namespace Borealis {
 		mEditorScene = SceneManager::GetActiveScene();
 
 		SCPanel.SetContext(SceneManager::GetActiveScene());
+		SCPanel.mEditorScene = &mEditorScene;
 
 		mEditorCamera = EditorCamera(60.0f, 1.778f, 0.3f, 1000.0f);
 		ScriptingSystem::InitCoreAssembly();
@@ -1168,6 +1169,9 @@ namespace Borealis {
 			{
 				SceneManager::GetActiveScene()->GetRegistry().get<CameraComponent>(mRuntimeCamera).Camera.SetViewportSize((uint32_t)mRuntimeSize.x, (uint32_t)mRuntimeSize.y);
 			}
+			BOREALIS_CORE_INFO(mEditorScene->GetName());
+			BOREALIS_CORE_INFO(SceneManager::GetActiveScene()->GetName());
+
 		}
 	}
 
@@ -1187,6 +1191,8 @@ namespace Borealis {
 			AddScene(fileName, filepath);
 			EditorSerialiser serialiser(nullptr);
 			SceneManager::SetActiveScene(fileName, serialiser);
+			BOREALIS_CORE_INFO(mEditorScene->GetName());
+			BOREALIS_CORE_INFO(SceneManager::GetActiveScene()->GetName());
 
 			DeserialiseEditorScene();
 		}

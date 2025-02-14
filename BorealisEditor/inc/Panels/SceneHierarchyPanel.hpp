@@ -166,7 +166,7 @@ namespace Borealis {
 			}
 			return false;
 		}
-
+		Ref<Scene>* mEditorScene;
 
 	private:
 

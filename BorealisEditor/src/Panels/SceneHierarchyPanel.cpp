@@ -1399,9 +1399,9 @@ namespace Borealis
 							if (ImGui::MenuItem("Load Scene"))
 							{
 								EditorSerialiser serialiser(mContext);
-								SceneManager::SaveActiveScene(serialiser);
 								SceneManager::SetActiveScene(name, serialiser);
 								mContext = SceneManager::GetActiveScene();
+								*mEditorScene = SceneManager::GetActiveScene();
 								mSelectedEntity = {};
 								ClearSelectedEntities();
 							}

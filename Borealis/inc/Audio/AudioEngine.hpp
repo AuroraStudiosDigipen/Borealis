@@ -286,6 +286,8 @@ namespace Borealis
         *************************************************************************/
         static void ApplyFadeOut(int channelId, float fadeOutTime);
 
+        static float dbToVolume2(float sliderValue);
+
     private:
         static std::map<int, float> mGroupVolumes; /*!< Map of group IDs and their volume levels */
         static std::map<int, std::vector<int>> mGroupChannels; /*!< Map of group IDs and the channels assigned to them */

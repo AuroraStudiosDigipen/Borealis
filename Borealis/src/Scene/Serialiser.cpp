@@ -52,7 +52,7 @@ namespace Borealis
 
 	void Serialiser::SerializeEntity(YAML::Emitter& out, Entity& entity)
 	{
-		out << YAML::BeginMap;
+		out << YAML::Flow << YAML::BeginMap;
 		out << YAML::Key << "EntityID" << YAML::Value << entity.GetComponent<IDComponent>().ID;
 		if (entity.HasComponent<TagComponent>())
 		{

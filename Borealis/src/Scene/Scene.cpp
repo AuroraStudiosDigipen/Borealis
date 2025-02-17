@@ -893,7 +893,6 @@ namespace Borealis
 	}
 	void Scene::DestroyEntity(Entity entity)
 	{		
-		mEntityMap.erase(entity.GetUUID());
 		if (hasRuntimeStarted)
 		{
 			if (entity.HasComponent<CharacterControllerComponent>())
@@ -921,6 +920,15 @@ namespace Borealis
 				entity.GetComponent<CylinderColliderComponent>().rigidBody = nullptr;
 			}
 		}
+
+		auto copyContainer = entity.GetComponent<TransformComponent>().ChildrenID;
+		for (auto& child : copyContainer)
+		{
+			auto childEntity = GetEntityByUUID(child);
+			DestroyEntity(childEntity);
+		}
+		entity.GetComponent<TransformComponent>().ResetParent(entity);
+		mEntityMap.erase(entity.GetUUID());
 		mRegistry.destroy(entity);
 	}
 

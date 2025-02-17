@@ -364,6 +364,33 @@ namespace Borealis
         return powf(10.0f, dB / 20.0f);  // Correct dB to linear conversion
     }
 
+    float AudioEngine::dbToVolume2(float sliderValue)
+    {
+        // Clamp sliderValue between 0 and 1
+        sliderValue = glm::clamp(sliderValue, 0.0f, 1.0f);
+
+        // Apply a curve to make volume changes more gradual
+        float curvedValue = powf(sliderValue, 0.5f); // sqrt to slow down the drop-off
+
+        // Convert the curved slider to a dB range (-80 dB to 0 dB)
+        float minDB = -80.0f;  // Minimum volume
+        float maxDB = 0.0f;    // Maximum volume
+        float dB = minDB + curvedValue * (maxDB - minDB);
+
+        // Convert dB to linear volume
+        float volume = powf(10.0f, dB / 20.0f);
+
+        // Prevent invalid volumes
+        if (std::isnan(volume) || std::isinf(volume))
+        {
+            volume = 0.0001f;
+        }
+
+        return volume;
+    }
+
+
+
 
     float AudioEngine::VolumeTodb(float volume)
     {
@@ -377,7 +404,7 @@ namespace Borealis
 
     void AudioEngine::SetMasterVolume(float fVolumedB)
     {
-        float volume = dbToVolume(fVolumedB);
+        float volume = dbToVolume2(fVolumedB);
 
         FMOD::ChannelGroup* masterGroup = nullptr;
         if (ErrorCheck(sgpImplementation->mpSystem->getMasterChannelGroup(&masterGroup)) == 0 && masterGroup)
@@ -406,7 +433,7 @@ namespace Borealis
 
     void AudioEngine::SetGroupVolume(const std::string& groupName, float fVolumedB)
     {
-        float volume = dbToVolume(fVolumedB);
+        float volume = dbToVolume2(fVolumedB);
 
         auto it = sgpImplementation->mChannelGroups.find(groupName);
         if (it != sgpImplementation->mChannelGroups.end())

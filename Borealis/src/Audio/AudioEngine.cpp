@@ -69,7 +69,7 @@ namespace Borealis
     {
         if (result != FMOD_OK)
         {
-            std::cout << "FMOD ERROR " << result << std::endl;
+            std::cerr << "FMOD ERROR " << result << std::endl;
             return 1;
         }
         return 0;
@@ -269,14 +269,6 @@ namespace Borealis
 
             sgpImplementation->mChannels[nChannelId] = pChannel;
         }
-
-        std::cout << "Channel " << nChannelId << " is now playing." << std::endl;
-        std::cout << "Currently active channels: ";
-        for (const auto& channelPair : sgpImplementation->mChannels) {
-            std::cout << channelPair.first << " ";
-        }
-        std::cout << std::endl;
-
         return nChannelId;
     }
 
@@ -442,9 +434,6 @@ namespace Borealis
 
             float appliedVolume = 0.0f;
             it->second->getVolume(&appliedVolume);
-            std::cout << "Set Group Volume for " << groupName
-                << " Volume (dB): " << fVolumedB
-                << ", Linear Scale: " << appliedVolume << std::endl;
         }
         else
         {
@@ -473,7 +462,6 @@ namespace Borealis
         ErrorCheck(sgpImplementation->mpSystem->playSound(sound, nullptr, true, &channel));
         int chIndex = -1;
         channel->getIndex(&chIndex);
-        std::cout << "Play BGM index : " << chIndex << '\n';
 
         // Play the sound with pausing enabled initially
 
@@ -525,7 +513,6 @@ namespace Borealis
 
         int chIndex = -1;
         channel->getIndex(&chIndex);
-        std::cout << "PlayOneShot audio index : " << chIndex << '\n';
 
         if (channel) 
         {

@@ -29,7 +29,7 @@ namespace Borealis
             newVec.push_back(vec[i]);
             if (dup.contains(SceneManager::GetActiveScene()->GetEntityByUUID(vec[i]).GetComponent<TagComponent>().mHierarchyLayer))
             {
-                for (auto& uuid : dup[i])
+                for (auto& uuid : dup[SceneManager::GetActiveScene()->GetEntityByUUID(vec[i]).GetComponent<TagComponent>().mHierarchyLayer])
                 {
 					newVec.push_back(uuid);
 				}

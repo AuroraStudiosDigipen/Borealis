@@ -31,6 +31,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <AI/BehaviourTree/BTreeFactory.hpp>
 #include <Core/LayerList.hpp>
 
+
 namespace Borealis
 {
 	Scene::Scene(std::string name, std::string path) : mName(name), mScenePath(path)
@@ -131,6 +132,7 @@ namespace Borealis
 			}
 		}
 	}
+	static std::unordered_set<UUID> UnstartedUUIDList;
 
 	void Scene::UpdateRuntime(float dt)
 	{
@@ -155,6 +157,35 @@ namespace Borealis
 
 			// Update for scripts -> make it more effecient by doing event-based and
 			// overridden-based rather than running every script every loop.
+
+			static std::unordered_set<UUID> removalList;
+			for (auto id : UnstartedUUIDList)
+			{
+				auto entity = GetEntityByUUID(id);
+				if (entity.IsValid() && entity.IsActive())
+				{
+					if (entity.HasComponent<ScriptComponent>())
+					{
+						auto& scriptComponent = entity.GetComponent<ScriptComponent>();
+						for (auto& [name, script] : scriptComponent.mScripts)
+						{
+							script->Start();
+						}
+					}
+					removalList.insert(id);
+				}
+				if (!entity.IsValid()) // deleted entity
+				{
+					removalList.insert(id);
+				}
+			}
+
+			for (auto id : removalList)
+			{
+				UnstartedUUIDList.erase(id);
+			}
+			removalList.clear();
+
 			auto view = mRegistry.view<ScriptComponent>();
 			for (auto entity : view)
 			{
@@ -1221,11 +1252,12 @@ namespace Borealis
 		return newScene;
 	}
 
+
 	void Scene::RuntimeStart()
 	{
 		hasRuntimeStarted = true;
 		PhysicsSystem::Init();
-
+		UnstartedUUIDList.clear();
 		auto boxGroup = mRegistry.group<>(entt::get<TransformComponent, BoxColliderComponent>);
 		for (auto entity : boxGroup)
 		{
@@ -1368,6 +1400,11 @@ namespace Borealis
 		for (auto entity : scriptGroup)
 		{
 			Entity brEntity{ entity, this };
+			if (!brEntity.IsActive())
+			{
+				UnstartedUUIDList.insert(brEntity.GetUUID());
+				continue;
+			}
 			auto& scriptComponent = scriptGroup.get<ScriptComponent>(entity);
 			for (auto& [name, script] : scriptComponent.mScripts)
 			{

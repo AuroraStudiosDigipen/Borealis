@@ -175,6 +175,8 @@ namespace Borealis
 		*************************************************************************/
 		std::unordered_map<TextureMaps, Ref<Texture2D>> GetTextureMaps() const { return mTextureMaps; }
 
+		void RemoveTextureMap(TextureMaps map) { mTextureMaps.erase(map); }
+
 		/*!***********************************************************************
 			\brief
 				Gets the texture map colors of the material

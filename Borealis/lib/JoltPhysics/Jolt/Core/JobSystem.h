@@ -12,6 +12,7 @@
 #include <Jolt/Core/Atomics.h>
 
 JPH_NAMESPACE_BEGIN
+#undef AddJob
 
 /// A class that allows units of work (Jobs) to be scheduled across multiple threads.
 /// It allows dependencies between the jobs so that the jobs form a graph.

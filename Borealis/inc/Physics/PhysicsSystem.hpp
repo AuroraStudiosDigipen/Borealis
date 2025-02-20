@@ -151,6 +151,10 @@ namespace Borealis
 		static bool DebugDrawGet(); 
 
 		static void DebugDrawSet(bool value);
+
+		static void StartJobQueue();
+		static void PushJob(std::string name, std::function<void()> function, uint32_t dependenciesNum = 0);
+		static void EndJobQueue();
 	};
 
 }

@@ -1428,7 +1428,7 @@ namespace Borealis
 		}
 
 		auto particleSystemGroup = mRegistry.group<>(entt::get<TransformComponent, ParticleSystemComponent>);
-		for (auto entity : behaviourTreeGroup)
+		for (auto entity : particleSystemGroup)
 		{
 			auto [transform, psystem] = particleSystemGroup.get<TransformComponent, ParticleSystemComponent>(entity);
 			psystem.Init();

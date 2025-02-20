@@ -184,5 +184,164 @@ namespace Borealis
 			 scriptClass->InvokeMethod(scriptInstance->GetInstance(), method, nullptr);
 	 }
 
+	 void ParticleSystemComponent::Init()
+	 {
+		 mParticlesCount = 0;
+		 Accumulator = 0.f;
+		 Timer = 0.f;
+		 mParticles.resize(maxParticles);
+		 mDeadParticles.resize(maxParticles);
+	 }
+
+	 void ParticleSystemComponent::Update(TransformComponent& transfrom, float dt)
+	 {
+		 Timer += dt;
+
+		 if (Timer >= duration)
+		 {
+			 if (looping)
+				 Timer = 0.f;
+			 else
+				 return;
+		 }
+
+		 Accumulator += dt * rateOverTime;
+		 while (mParticlesCount < maxParticles && Accumulator >= 1.f)
+		 {
+			 Accumulator -= 1.f;
+			 if (mDeadParticlesCount > 0)
+			 {
+				 SpawnParticle(transfrom, *mDeadParticles[mDeadParticlesCount - 1]);
+				 mDeadParticlesCount--;
+				 mParticlesCount++;
+			 }
+			 else
+			 {
+				 SpawnParticle(transfrom, mParticles[mParticlesCount]);
+				 mParticlesCount++;
+			 }
+		 }
+
+		 for (Particle& particle : mParticles)
+		 {
+			 if (!particle.isActive) continue;
+			 particle.life += dt;
+
+			 if (particle.life >= startLifeTime)
+			 {
+				 particle.isActive = false;
+				 mDeadParticles[mDeadParticlesCount] = &particle;
+				 mDeadParticlesCount++;
+				 mParticlesCount--;
+				 continue;
+			 }
+
+			 particle.position += particle.startVelocity * dt;
+
+			 if (endColorBool)
+			 {
+				 float t = particle.life / startLifeTime; // Normalized lifetime (0 to 1)
+				 particle.currentColor = particle.startColor + t * (endColor - particle.startColor);
+			 }
+		 }
+	 }
+
+	 std::vector<Particle> const& ParticleSystemComponent::GetParticles()
+	 {
+		 return mParticles;
+	 }
+
+	 uint32_t ParticleSystemComponent::GetParticlesCount()
+	 {
+		 return mParticlesCount;
+	 }
+
+	 Ref<Texture2D> ParticleSystemComponent::GetDefaultParticleTexture()
+	 {
+		 if (!mDefaultParticle)
+		 {
+			 mDefaultParticle = Texture2D::GetDefaultTexture();
+		 }
+		 return mDefaultParticle;
+	 }
+
+	 float RandomRange(float min, float max) {
+		 return min + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (max - min)));
+	 }
+
+	 void ParticleSystemComponent::SpawnParticle(TransformComponent& transform, Particle& particle)
+	 {
+		 particle.isActive = true;
+
+		 // Get emitter world position
+		 glm::vec3 emitterPos = transform.GetGlobalTranslate();
+
+		 // Convert emitter rotation (Euler to Quaternion)
+		 glm::vec3 rotation = transform.GetGlobalRotation();
+		 glm::quat orientation = glm::quat(rotation);
+
+		 // Generate a random position in a 2D disc (radius = mRadius)
+		 float randomAngle = static_cast<float>(rand()) / RAND_MAX * glm::two_pi<float>();
+		 float randomRadius = radius * glm::sqrt(static_cast<float>(rand()) / RAND_MAX); // Even distribution in a circle
+
+		 glm::vec3 spawnOffset = glm::vec3(
+			 randomRadius * glm::cos(randomAngle),
+			 0.0f,  // Keep it on the base (Y = 0)
+			 randomRadius * glm::sin(randomAngle)
+		 );
+
+		 // Offset the particle spawn position
+		 particle.position = emitterPos + (orientation * spawnOffset);
+
+		 // Generate a random direction within the cone
+		 float coneAngle = glm::radians(angle);
+
+		 float u = static_cast<float>(rand()) / RAND_MAX;
+		 float v = static_cast<float>(rand()) / RAND_MAX;
+
+		 float theta = v * 2.0f * glm::pi<float>(); // Random around the circle
+		 float phi = glm::acos(1.0f - u * (1.0f - glm::cos(coneAngle))); // Spread within the cone
+
+		 glm::vec3 direction = glm::vec3(
+			 glm::sin(phi) * glm::cos(theta),
+			 glm::cos(phi), // Y-axis is up
+			 glm::sin(phi) * glm::sin(theta)
+		 );
+
+		 // Align direction with emitter rotation
+		 glm::vec3 finalDirection = glm::normalize(orientation * direction);
+
+		 // Apply velocity
+		 particle.startVelocity = startSpeed * finalDirection;
+
+		 // Random start color (if enabled)
+		 if (randomStartColor)
+		 {
+			 float colorLerp = static_cast<float>(rand()) / RAND_MAX;
+			 particle.startColor = glm::mix(startColor, startColor2, colorLerp);
+		 }
+		 else
+		 {
+			 particle.startColor = startColor;
+		 }
+
+		 // Random start size (if enabled)
+		 if (randomStartSize)
+		 {
+			 float sizeLerp = static_cast<float>(rand()) / RAND_MAX;
+			 particle.startSize = glm::mix(startSize, startSize2, sizeLerp);
+		 }
+		 else
+		 {
+			 particle.startSize = startSize;
+		 }
+
+		 // Set rotation
+		 particle.startRotation = glm::quat(startRotation);
+
+		 // Reset life counter
+		 particle.life = 0.0f;
+	 }
+
 }
 

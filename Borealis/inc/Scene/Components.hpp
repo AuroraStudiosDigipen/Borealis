@@ -28,7 +28,6 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/Material.hpp>
 #include <Graphics/Font.hpp>
 #include <Graphics/Framebuffer.hpp>
-#include <Graphics/ParticleSystem.hpp>
 #include <AI/BehaviourTree/BehaviourTree.hpp>
 #include <AI/BehaviourTree/BTreeFactory.hpp>
 #include <Core/UUID.hpp>
@@ -496,6 +495,18 @@ namespace Borealis
 		CanvasRendererComponent(const CanvasRendererComponent&) = default;
 	};
 
+	struct Particle
+	{
+		bool		isActive = false;
+		float		life = 0.f;
+		glm::vec3	position = glm::vec3{ 5.f };
+		glm::vec3	startVelocity = glm::vec3{ 5.f };
+		glm::vec3	startSize = glm::vec3{ 1.f }; //if not 3d, use .x for size
+		glm::quat	startRotation = glm::vec3{ 0.f }; // if not 3d, use .x for rotation
+		glm::vec4	startColor = glm::vec4{ 1.f };
+		glm::vec4	currentColor = glm::vec4{ 1.f };
+	};
+
 	struct ParticleSystemComponent
 	{
 		float		duration = 5.f;
@@ -522,15 +533,30 @@ namespace Borealis
 		float		radius = 1.f;
 		float		radiusThickness = 0.f; //0-1 based on radius
 		bool		billboard = true;
-		bool		isEdited = false;
-
 		Ref<Texture2D> texture = nullptr;
-		Ref<ParticleSystem> particleSystem = nullptr;
-		
+
+		//Private
+		float		Timer = 0.f;
+		float		Accumulator = 0.f;
+		uint32_t	mParticlesCount = 0;
+		std::vector<Particle> mParticles;
+		uint32_t mDeadParticlesCount = 0;
+		std::vector<Particle*> mDeadParticles;
+
+		void Init();
+		void Update(TransformComponent& transfrom, float dt);
+		std::vector<Particle> const& GetParticles();
+		uint32_t GetParticlesCount();
+
+		static Ref<Texture2D> GetDefaultParticleTexture();
 		//Add variables for over time
 
 		ParticleSystemComponent() = default;
 		ParticleSystemComponent(const ParticleSystemComponent&) = default;
+
+	private:
+		inline static Ref<Texture2D> mDefaultParticle = nullptr;
+		void SpawnParticle(TransformComponent& transfrom, Particle& particle);
 	};
 
 	struct ButtonComponent

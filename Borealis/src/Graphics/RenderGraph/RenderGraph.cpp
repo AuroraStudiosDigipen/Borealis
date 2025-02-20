@@ -1928,29 +1928,25 @@ namespace Borealis
 				continue;
 			}
 
-			Ref<ParticleSystem> particleSystem = brEntity.GetComponent<ParticleSystemComponent>().particleSystem;
-
-			if (!particleSystem)
-			{
-				particleSystem = MakeRef<ParticleSystem>();
-				particleSystem->Init(brEntity.GetComponent<ParticleSystemComponent>());
-
-				if(brEntity.GetComponent<ParticleSystemComponent>().texture == nullptr)
-					brEntity.GetComponent<ParticleSystemComponent>().texture = Texture2D::GetDefaultTexture();
-			}
+			auto particleSystem = brEntity.GetComponent<ParticleSystemComponent>();
 			
-			std::vector<Particle> const& particles = particleSystem->GetParticles();
-			uint32_t particlesCount = particleSystem->GetParticlesCount();
+			std::vector<Particle> const& particles = particleSystem.GetParticles();
+			uint32_t particlesCount = particleSystem.GetParticlesCount();
 			for (Particle const& particle : particles)
 			{
 				if (!particle.isActive)
 				{
 					continue;
 				}
+
 				glm::mat4 transfrom = glm::translate(glm::mat4(1.0f), particle.position) *
 					glm::toMat4(particle.startRotation) *
 					glm::scale(glm::mat4(1.0f), particle.startSize);
-				Renderer2D::DrawQuad(transfrom, brEntity.GetComponent<ParticleSystemComponent>().texture, particle.startSize[0], particle.currentColor, -1, true);
+
+				if (particleSystem.texture)
+					Renderer2D::DrawQuad(transfrom, particleSystem.texture, particle.startSize[0], particle.currentColor, -1, true);
+				else
+					Renderer2D::DrawQuad(transfrom, ParticleSystemComponent::GetDefaultParticleTexture(), particle.startSize[0], particle.currentColor, -1, true);
 			}
 		}
 

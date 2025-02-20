@@ -709,17 +709,7 @@ namespace Borealis
 					continue;
 				}
 				auto [transform, particleSystemComponent] = group.get<TransformComponent, ParticleSystemComponent>(entity);
-
-				if (!particleSystemComponent.particleSystem)
-				{
-					particleSystemComponent.particleSystem = MakeRef<ParticleSystem>();
-					particleSystemComponent.particleSystem->Init(particleSystemComponent);
-
-					//if(particleSystemComponent.texture == nullptr)
-						//particleSystemComponent.texture = Texture2D::GetDefaultTexture();
-				}
-
-				particleSystemComponent.particleSystem->Update(particleSystemComponent, transform, dt);
+				particleSystemComponent.Update(transform, dt);
 			}
 		}
 	}
@@ -1437,6 +1427,12 @@ namespace Borealis
 			}
 		}
 
+		auto particleSystemGroup = mRegistry.group<>(entt::get<TransformComponent, ParticleSystemComponent>);
+		for (auto entity : behaviourTreeGroup)
+		{
+			auto [transform, psystem] = particleSystemGroup.get<TransformComponent, ParticleSystemComponent>(entity);
+			psystem.Init();
+		}
 	}
 
 	void Scene::RuntimeEnd()

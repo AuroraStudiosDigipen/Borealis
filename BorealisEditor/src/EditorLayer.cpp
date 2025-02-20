@@ -178,6 +178,8 @@ namespace Borealis {
 			mEditorCamera.UpdateFn(dt);
 		}
 
+		SceneManager::GetActiveScene()->UpdateRuntime(dt); //update physics, scripts and audio
+
 		Renderer2D::ResetStats();
 		{
 			PROFILE_SCOPE("Renderer::Prep");
@@ -382,7 +384,6 @@ namespace Borealis {
 
 		mHoveredEntity = { (entt::entity)entityID , SceneManager::GetActiveScene().get() };
 
-		SceneManager::GetActiveScene()->UpdateRuntime(dt); //update physics, scripts and audio
 	}
 
 	void EditorLayer::EventFn(Event& e)

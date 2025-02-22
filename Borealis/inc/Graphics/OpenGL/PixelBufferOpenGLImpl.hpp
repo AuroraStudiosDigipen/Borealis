@@ -30,18 +30,24 @@ namespace Borealis
 
 		int ReadPixel(int x, int y) override;
 
-		void Bind() override;
+		void BindForRead() override;
+		void BindForWrite() override;
 
 		void Unbind() override;
 
 		void Resize(uint32_t width, uint32_t height) override;
 
+		void SwapBuffers() override;
+
 		const PixelBufferProperties& GetProperties() const override;
 
 		void Recreate();
+
+		int GetActiveBuffer();
 	private:
 		PixelBufferProperties mProps;
-		uint32_t mRendererID;
+		uint32_t mRendererID[2];
+		bool mActiveBuffer;
 	};
 }
 

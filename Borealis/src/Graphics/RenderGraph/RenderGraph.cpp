@@ -187,12 +187,17 @@ namespace Borealis
 
 	void PixelBufferSource::Bind()
 	{
-		buffer->Bind();
+		buffer->BindForWrite();
 	}
 
 	void PixelBufferSource::Unbind()
 	{
 		buffer->Unbind();
+	}
+
+	void PixelBufferSource::SwapBuffer()
+	{
+		buffer->SwapBuffers();
 	}
 
 	void PixelBufferSource::Resize(uint32_t width, uint32_t height)
@@ -691,6 +696,7 @@ namespace Borealis
 		accumulaionTarget->buffer->BindTexture(2, 1);
 		revealage_shader->Set("accumAlphaTex", 1);
 		Renderer3D::DrawQuad();
+		renderTarget->Unbind();
 
 		RenderCommand::SetDepthMask(true);
 		RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLess);
@@ -1203,7 +1209,7 @@ namespace Borealis
 				}
 
 				RenderCommand::EnableFrontFaceCull();
-				Renderer3D::End();
+				Renderer3D::End(true);
 				RenderCommand::EnableBackFaceCull();
 
 				shadowMap->Unbind();
@@ -1320,16 +1326,15 @@ namespace Borealis
 			pixelBuffer->Unbind();
 
 			renderTarget->Unbind();
+
+			pixelBuffer->SwapBuffer();
 		}
 
 		if(viewPortHovered->mRef)
 		{
 			if (SceneManager::GetActiveScene()->GetPixelBuffer()->ReadPixel(mouse->mRefX, mouse->mRefY) != -1)
 			{
-				//int id_ent = mViewportFrameBuffer->ReadPixel(1, mouseX, mouseY);
 				entityID->mRef = SceneManager::GetActiveScene()->GetPixelBuffer()->ReadPixel(mouse->mRefX, mouse->mRefY);
-				//BOREALIS_CORE_INFO("picking id {}", mHoveredEntity.GetName());
-				//BOREALIS_CORE_INFO("Name : {}", mHoveredEntity.GetName());
 			}
 			else
 			{

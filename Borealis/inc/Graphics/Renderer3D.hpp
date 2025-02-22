@@ -54,7 +54,7 @@ namespace Borealis
 
 		static void Begin(glm::mat4 viewProj, Ref<Shader> shader = nullptr);
 
-		static void End();
+		static void End(bool posOnly = false);
 
 		static void RenderTransparentObjects(Ref<TextureCubeMap> const& cubeMap);
 

@@ -59,11 +59,14 @@ namespace Borealis
 		virtual void ReadTexture(uint32_t index) = 0;
 
 		virtual int ReadPixel(int x, int y) = 0;
-		virtual void Bind() = 0;
+		virtual void BindForRead() = 0;
+		virtual void BindForWrite() = 0;
 		
 		virtual void Unbind() = 0;
 
 		virtual void Resize(uint32_t width, uint32_t height) = 0;
+
+		virtual void SwapBuffers() = 0;
 
 		virtual const PixelBufferProperties& GetProperties() const = 0;
 

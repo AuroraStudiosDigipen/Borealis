@@ -193,6 +193,14 @@ namespace Borealis
 		AnimatorComponent(const AnimatorComponent&) = default;
 	};
 
+	struct Animator2DComponent
+	{
+		bool isActive = false;
+
+		Animator2DComponent() = default;
+		Animator2DComponent(const Animator2DComponent&) = default;
+	};
+
 	// Move into appropraite file another time
 	class PhysicMaterial
 	{

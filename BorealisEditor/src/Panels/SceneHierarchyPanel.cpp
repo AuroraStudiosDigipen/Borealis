@@ -2406,6 +2406,7 @@ namespace Borealis
 			isEdited = SearchBar<AudioListenerComponent	>(search_text, entity, "Audio Listener", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<SkinnedMeshRendererComponent	>(search_text, entity, "Skinned Mesh Renderer", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<AnimatorComponent	>(search_text, entity, "Animator", search_buffer) ? true : isEdited;
+			isEdited = SearchBar<Animator2DComponent	>(search_text, entity, "2D Animator", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<OutLineComponent	>(search_text, entity, "Outline", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<CanvasComponent	>(search_text, entity, "Canvas", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<CanvasRendererComponent	>(search_text, entity, "Canvas Renderer", search_buffer) ? true : isEdited;
@@ -2456,6 +2457,7 @@ namespace Borealis
 		isEdited = DrawComponentLayout<AudioListenerComponent>("Audio Listener", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<SkinnedMeshRendererComponent>("Skinned Mesh Renderer", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<AnimatorComponent>("Animator", entity) ? true : isEdited;
+		isEdited = DrawComponentLayout<Animator2DComponent>("2D Animator", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<OutLineComponent>("Outline", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<CanvasComponent>("Canvas", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<CanvasRendererComponent>("Canvas Renderer", entity) ? true : isEdited;

@@ -166,6 +166,11 @@ namespace Borealis
             .property("Loop", &AnimatorComponent::loop)
             .property("Speed", &AnimatorComponent::speed);
 
+        registration::class_<Animator2DComponent>("2D Animator Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("Active", &Animator2DComponent::isActive);
+
         registration::enumeration<RigidBodyType>("Rigidbody Collider Type")
             (
                 value("Box", RigidBodyType::Box),
@@ -496,6 +501,7 @@ void Borealis::ComponentRegistry::SetPropertyInternal(const std::string& propert
     RegisterSetPropertyFunction(MeshRendererComponent);
     RegisterSetPropertyFunction(SkinnedMeshRendererComponent);
     RegisterSetPropertyFunction(AnimatorComponent);
+    RegisterSetPropertyFunction(Animator2DComponent);
     RegisterSetPropertyFunction(BoxColliderComponent);
     RegisterSetPropertyFunction(CapsuleColliderComponent);
     RegisterSetPropertyFunction(CylinderColliderComponent);
@@ -513,6 +519,7 @@ void Borealis::ComponentRegistry::SetPropertyInternal(const std::string& propert
     RegisterCopyPropertyFunction(MeshRendererComponent);
     RegisterCopyPropertyFunction(SkinnedMeshRendererComponent);
     RegisterCopyPropertyFunction(AnimatorComponent);
+    RegisterCopyPropertyFunction(Animator2DComponent);
     RegisterCopyPropertyFunction(BoxColliderComponent);
     RegisterCopyPropertyFunction(CapsuleColliderComponent);
     RegisterCopyPropertyFunction(CylinderColliderComponent);

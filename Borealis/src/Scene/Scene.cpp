@@ -1125,6 +1125,7 @@ namespace Borealis
 		CopyComponent<MeshRendererComponent>(newEntity,entity);
 		CopyComponent<SkinnedMeshRendererComponent>(newEntity,entity);
 		CopyComponent<AnimatorComponent>(newEntity,entity);
+		CopyComponent<Animator2DComponent>(newEntity, entity);
 		CopyComponent<BoxColliderComponent>(newEntity,entity);
 		CopyComponent<SphereColliderComponent>(newEntity, entity);
 		CopyComponent<CapsuleColliderComponent>(newEntity,entity);
@@ -1321,6 +1322,7 @@ namespace Borealis
 		CopyComponent<MeshRendererComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<SkinnedMeshRendererComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<AnimatorComponent>(newRegistry, originalRegistry, UUIDtoENTT);
+		CopyComponent<Animator2DComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<BoxColliderComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<SphereColliderComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<CapsuleColliderComponent>(newRegistry, originalRegistry, UUIDtoENTT);
@@ -1769,6 +1771,11 @@ namespace Borealis
 	}
 	template<>
 	void Scene::OnComponentAdded<AnimatorComponent>(Entity entity, AnimatorComponent& component)
+	{
+
+	}
+	template<>
+	void Scene::OnComponentAdded<Animator2DComponent>(Entity entity, Animator2DComponent& component)
 	{
 
 	}

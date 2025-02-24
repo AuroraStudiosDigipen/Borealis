@@ -99,6 +99,11 @@ namespace Borealis
 			SerializeComponent(out, entity.GetComponent<AnimatorComponent>());
 		}
 
+		if (entity.HasComponent<Animator2DComponent>())
+		{
+			SerializeComponent(out, entity.GetComponent<Animator2DComponent>());
+		}
+
 		if (entity.HasComponent<RigidbodyComponent>())
 		{
 			SerializeComponent(out, entity.GetComponent<RigidbodyComponent>());
@@ -434,6 +439,7 @@ namespace Borealis
 		DeserialiseComponent<TextComponent>(entity, BorealisEntity);
 		DeserialiseComponent<SkinnedMeshRendererComponent>(entity, BorealisEntity);
 		DeserialiseComponent<AnimatorComponent>(entity, BorealisEntity);
+		DeserialiseComponent<Animator2DComponent>(entity, BorealisEntity);
 		DeserialiseComponent<OutLineComponent>(entity, BorealisEntity);
 		DeserialiseComponent<CanvasComponent>(entity, BorealisEntity);
 		DeserialiseComponent<CanvasRendererComponent>(entity, BorealisEntity);

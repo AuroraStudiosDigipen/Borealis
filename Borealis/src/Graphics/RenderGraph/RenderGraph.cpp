@@ -1506,10 +1506,8 @@ namespace Borealis
 			}
 		}
 
-		if(!cubeMap)
-		{
+
 			cubeMap = TextureCubeMap::GetDefaultCubeMap();
-		}
 
 		glm::mat4 view = glm::mat4(glm::mat3(viewMatrix));
 

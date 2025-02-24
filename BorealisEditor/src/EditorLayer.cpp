@@ -645,14 +645,13 @@ namespace Borealis {
 
 				}
 
-				CubemapPanel::RenderCubemapSetting();
-
 			ImGui::End(); // Of Settings
 
 			SCPanel.ImGuiRender();
 			CBPanel.ImGuiRender();
 			CSPanel.ImGuiRender();
 			AMPanel.ImGuiRender();
+			SRPanel.ImGuiRender();
 			
 			BTNEPanel.ImGuiRender();
 

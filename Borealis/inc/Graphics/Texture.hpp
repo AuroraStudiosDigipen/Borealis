@@ -146,6 +146,9 @@ namespace Borealis
 		static Ref<TextureCubeMap> Load(AssetMetaData const& assetMetaData);
 
 		static Ref<TextureCubeMap> GetDefaultCubeMap();
+
+		static void SetDefaultCubeMap(AssetMetaData const& assetMetaData);
+
 		static Ref<TextureCubeMap> GetDefaultCubeMap2();
 
 	private:

@@ -23,7 +23,7 @@ namespace Borealis
 {
 	static const uint32_t s_MaxPixelbufferSize = 16384;
 
-	OpenGLPixelBuffer::OpenGLPixelBuffer(PixelBufferProperties const& props) : mProps(props), mRendererID(0)
+	OpenGLPixelBuffer::OpenGLPixelBuffer(PixelBufferProperties const& props) : mProps(props), mRendererID()
 	{
 		Recreate();
 	}
@@ -47,7 +47,7 @@ namespace Borealis
 			return -1; // Return an invalid ID if out of bounds
 		}
 
-		glBindBuffer(GL_PIXEL_PACK_BUFFER, mRendererID);
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, GetActiveBuffer());
 
 		GLint* ptr = (GLint*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
 		GLint entityID = -1;
@@ -62,9 +62,14 @@ namespace Borealis
 		return entityID;
 	}
 
-	void OpenGLPixelBuffer::Bind()
+	void OpenGLPixelBuffer::BindForRead()
 	{
-		glBindBuffer(GL_PIXEL_PACK_BUFFER, mRendererID);
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, GetActiveBuffer());
+	}
+
+	void OpenGLPixelBuffer::BindForWrite()
+	{
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, GetActiveBuffer());
 	}
 
 	void OpenGLPixelBuffer::Unbind()
@@ -84,6 +89,11 @@ namespace Borealis
 		Recreate();
 	}
 
+	void OpenGLPixelBuffer::SwapBuffers()
+	{
+		mActiveBuffer = !mActiveBuffer;
+	}
+
 	const PixelBufferProperties& OpenGLPixelBuffer::GetProperties() const
 	{
 		return mProps;
@@ -91,11 +101,20 @@ namespace Borealis
 
 	void OpenGLPixelBuffer::Recreate()
 	{
-		glGenBuffers(1, &mRendererID);
-		glBindBuffer(GL_PIXEL_PACK_BUFFER, mRendererID);
+		glGenBuffers(2, &mRendererID[0]);
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, mRendererID[0]);
 		glBufferData(GL_PIXEL_PACK_BUFFER, mProps.Width * mProps.Height * sizeof(GLint), nullptr, GL_DYNAMIC_READ); //see if there's difference between GL_STREAM_READ and GL_DYNAMIC_READ
+		
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, mRendererID[1]);
+		glBufferData(GL_PIXEL_PACK_BUFFER, mProps.Width * mProps.Height * sizeof(GLint), nullptr, GL_DYNAMIC_READ);
+		
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 		BOREALIS_CORE_ASSERT(glGetError() == GL_NO_ERROR, "Pixel Buffer Creation Failed");
+	}
+	int OpenGLPixelBuffer::GetActiveBuffer()
+	{
+		if (mActiveBuffer) return mRendererID[0];
+		return mRendererID[1];
 	}
 }
 

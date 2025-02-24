@@ -31,6 +31,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <AI/BehaviourTree/BTreeFactory.hpp>
 #include <Core/LayerList.hpp>
 
+
 namespace Borealis
 {
 	Scene::Scene(std::string name, std::string path) : mName(name), mScenePath(path)
@@ -131,6 +132,7 @@ namespace Borealis
 			}
 		}
 	}
+	static std::unordered_set<UUID> UnstartedUUIDList;
 
 	void Scene::UpdateRuntime(float dt)
 	{
@@ -155,6 +157,35 @@ namespace Borealis
 
 			// Update for scripts -> make it more effecient by doing event-based and
 			// overridden-based rather than running every script every loop.
+
+			static std::unordered_set<UUID> removalList;
+			for (auto id : UnstartedUUIDList)
+			{
+				auto entity = GetEntityByUUID(id);
+				if (entity.IsValid() && entity.IsActive())
+				{
+					if (entity.HasComponent<ScriptComponent>())
+					{
+						auto& scriptComponent = entity.GetComponent<ScriptComponent>();
+						for (auto& [name, script] : scriptComponent.mScripts)
+						{
+							script->Start();
+						}
+					}
+					removalList.insert(id);
+				}
+				if (!entity.IsValid()) // deleted entity
+				{
+					removalList.insert(id);
+				}
+			}
+
+			for (auto id : removalList)
+			{
+				UnstartedUUIDList.erase(id);
+			}
+			removalList.clear();
+
 			auto view = mRegistry.view<ScriptComponent>();
 			for (auto entity : view)
 			{
@@ -255,12 +286,16 @@ namespace Borealis
 					thread.join();
 				}*/
 
-
 				auto boxGroup = mRegistry.group<>(entt::get<TransformComponent, BoxColliderComponent, RigidbodyComponent>);
-				
+
+				auto characterGroup = mRegistry.group<>(entt::get<TransformComponent, CharacterControllerComponent>);
+				auto sphereGroup = mRegistry.group<>(entt::get<TransformComponent, SphereColliderComponent, RigidbodyComponent>);
+				auto cylinderGroup = mRegistry.group<>(entt::get<TransformComponent, CylinderColliderComponent, RigidbodyComponent>);
+				auto capsuleGroup = mRegistry.group<>(entt::get<TransformComponent, CapsuleColliderComponent, RigidbodyComponent>);
+
 				for (int i = 0; i < timeStep; i++)
 				{
-					auto characterGroup = mRegistry.group<>(entt::get<TransformComponent, CharacterControllerComponent>);
+					PhysicsSystem::StartJobQueue();
 					for (auto entity : characterGroup)
 					{
 						Entity brEntity{ entity, this };
@@ -268,12 +303,22 @@ namespace Borealis
 						{
 							continue;
 						}
-						auto [transform, character] = characterGroup.get<TransformComponent, CharacterControllerComponent>(entity);
-						PhysicsSystem::PushCharacterTransform(character, transform.Translate, transform.Rotation);
-						PhysicsSystem::HandleInput(fixedTimeStep, character);
+
+						auto jobFunction = [this, entity, characterGroup, fixedTimeStep]()
+							{
+								auto [transform, character] = characterGroup.get<TransformComponent, CharacterControllerComponent>(entity);
+								PhysicsSystem::PushCharacterTransform(character, transform.Translate, transform.Rotation);
+								PhysicsSystem::HandleInput(fixedTimeStep, character);
+							};
+
+						// Push the job into the job queue
+						std::string jobName = "PushCharacterTransform_" + (std::to_string(brEntity.GetUUID())); // Create a unique job name
+						PhysicsSystem::PushJob(jobName, jobFunction);  // No dependencies in this case
+
 					}
+					PhysicsSystem::EndJobQueue();
 
-
+					PhysicsSystem::StartJobQueue();
 					for (auto entity : characterGroup)
 					{
 						Entity brEntity{ entity, this };
@@ -284,7 +329,9 @@ namespace Borealis
 						auto [transform, character] = characterGroup.get<TransformComponent, CharacterControllerComponent>(entity);
 						PhysicsSystem::PrePhysicsUpdate(fixedTimeStep, character.controller);
 					}
+					PhysicsSystem::EndJobQueue();
 
+					PhysicsSystem::StartJobQueue();
 					for (auto entity : characterGroup)
 					{
 						Entity brEntity{ entity, this };
@@ -292,10 +339,20 @@ namespace Borealis
 						{
 							continue;
 						}
-						auto [transform, character] = characterGroup.get<TransformComponent, CharacterControllerComponent>(entity);
-						PhysicsSystem::PullCharacterTransform(character, transform.Translate, transform.Rotation);
-					}
 
+						auto jobFunction = [this, entity, characterGroup]()
+							{
+								auto [transform, character] = characterGroup.get<TransformComponent, CharacterControllerComponent>(entity);
+								PhysicsSystem::PullCharacterTransform(character, transform.Translate, transform.Rotation);
+							};
+
+						// Push the job into the job queue
+						std::string jobName = "PullCharacterTransform_" + (std::to_string(brEntity.GetUUID())); // Create a unique job name
+						PhysicsSystem::PushJob(jobName, jobFunction);  // No dependencies in this case
+					}
+					PhysicsSystem::EndJobQueue();
+
+					PhysicsSystem::StartJobQueue();
 					for (auto entity : boxGroup)
 					{
 						Entity brEntity{ entity, this };
@@ -303,11 +360,20 @@ namespace Borealis
 						{
 							continue;
 						}
-						auto [transform, box, rigidbody] = boxGroup.get<TransformComponent, BoxColliderComponent, RigidbodyComponent>(entity);
-						PhysicsSystem::PushTransform(box, transform, box.rigidBody);
+
+						auto jobFunction = [this, entity, boxGroup]()
+							{
+								auto [transform, box, rigidbody] = boxGroup.get<TransformComponent, BoxColliderComponent, RigidbodyComponent>(entity);
+								PhysicsSystem::PushTransform(box, transform, box.rigidBody);
+							};
+
+						// Push the job into the job queue
+						std::string jobName = "PushBoxTransform_" + (std::to_string(brEntity.GetUUID())); // Create a unique job name
+						PhysicsSystem::PushJob(jobName, jobFunction);  // No dependencies in this case
+
+						
 					}
 
-					auto sphereGroup = mRegistry.group<>(entt::get<TransformComponent, SphereColliderComponent, RigidbodyComponent>);
 					for (auto entity : sphereGroup)
 					{
 						Entity brEntity{ entity, this };
@@ -315,11 +381,18 @@ namespace Borealis
 						{
 							continue;
 						}
-						auto [transform, sphere, rigidbody] = sphereGroup.get<TransformComponent, SphereColliderComponent, RigidbodyComponent>(entity);
-						PhysicsSystem::PushTransform(sphere, transform, sphere.rigidBody);
+
+						auto jobFunction = [this, entity, sphereGroup]()
+							{
+								auto [transform, sphere, rigidbody] = sphereGroup.get<TransformComponent, SphereColliderComponent, RigidbodyComponent>(entity);
+								PhysicsSystem::PushTransform(sphere, transform, sphere.rigidBody);
+							};
+
+						// Push the job into the job queue
+						std::string jobName = "PushSphereTransform_" + (std::to_string(brEntity.GetUUID())); // Create a unique job name
+						PhysicsSystem::PushJob(jobName, jobFunction);  // No dependencies in this case
 					}
 
-					auto capsuleGroup = mRegistry.group<>(entt::get<TransformComponent, CapsuleColliderComponent, RigidbodyComponent>);
 					for (auto entity : capsuleGroup)
 					{
 						Entity brEntity{ entity, this };
@@ -327,11 +400,19 @@ namespace Borealis
 						{
 							continue;
 						}
-						auto [transform, capsule, rigidbody] = capsuleGroup.get<TransformComponent, CapsuleColliderComponent, RigidbodyComponent>(entity);
-						PhysicsSystem::PushTransform(capsule, transform, capsule.rigidBody);
+
+						auto jobFunction = [this, entity, capsuleGroup]()
+							{
+								auto [transform, capsule, rigidbody] = capsuleGroup.get<TransformComponent, CapsuleColliderComponent, RigidbodyComponent>(entity);
+								PhysicsSystem::PushTransform(capsule, transform, capsule.rigidBody);
+							};
+
+						// Push the job into the job queue
+						std::string jobName = "PushCapsuleTransform_" + (std::to_string(brEntity.GetUUID())); // Create a unique job name
+						PhysicsSystem::PushJob(jobName, jobFunction);  // No dependencies in this case
+
 					}
 
-					auto cylinderGroup = mRegistry.group<>(entt::get<TransformComponent, CylinderColliderComponent, RigidbodyComponent>);
 					for (auto entity : cylinderGroup)
 					{
 						Entity brEntity{ entity, this };
@@ -339,15 +420,25 @@ namespace Borealis
 						{
 							continue;
 						}
-						auto [transform, cylinder, rigidbody] = cylinderGroup.get<TransformComponent, CylinderColliderComponent, RigidbodyComponent>(entity);
-						PhysicsSystem::PushTransform(cylinder, transform, cylinder.rigidBody);
+
+						auto jobFunction = [this, entity, cylinderGroup]()
+							{
+								auto [transform, cylinder, rigidbody] = cylinderGroup.get<TransformComponent, CylinderColliderComponent, RigidbodyComponent>(entity);
+								PhysicsSystem::PushTransform(cylinder, transform, cylinder.rigidBody);
+							};
+
+						// Push the job into the job queue
+						std::string jobName = "PushCylinderTransform_" + (std::to_string(brEntity.GetUUID())); // Create a unique job name
+						PhysicsSystem::PushJob(jobName, jobFunction);  // No dependencies in this case
+
 					}
+					PhysicsSystem::EndJobQueue();
 
 
 					PhysicsSystem::Update(fixedTimeStep);
 
 					// Set entity values to Jolt transform.
-
+					PhysicsSystem::StartJobQueue();
 					for (auto entity : boxGroup)
 					{
 						Entity brEntity{ entity, this };
@@ -355,8 +446,16 @@ namespace Borealis
 						{
 							continue;
 						}
-						auto [transform, box, rigidbody] = boxGroup.get<TransformComponent, BoxColliderComponent, RigidbodyComponent>(entity);
-						PhysicsSystem::PullTransform(box, transform);
+
+						auto jobFunction = [this, entity, boxGroup]()
+							{
+								auto [transform, box, rigidbody] = boxGroup.get<TransformComponent, BoxColliderComponent, RigidbodyComponent>(entity);
+								PhysicsSystem::PullTransform(box, transform);
+							};
+
+						// Push the job into the job queue
+						std::string jobName = "PullBoxTransform_" + (std::to_string(brEntity.GetUUID())); // Create a unique job name
+						PhysicsSystem::PushJob(jobName, jobFunction);  // No dependencies in this case
 					}
 
 					for (auto entity : capsuleGroup)
@@ -366,8 +465,16 @@ namespace Borealis
 						{
 							continue;
 						}
-						auto [transform, capsule, rigidbody] = capsuleGroup.get<TransformComponent, CapsuleColliderComponent, RigidbodyComponent>(entity);
-						PhysicsSystem::PullTransform(capsule, transform);
+
+						auto jobFunction = [this, entity, capsuleGroup]()
+							{
+								auto [transform, capsule, rigidbody] = capsuleGroup.get<TransformComponent, CapsuleColliderComponent, RigidbodyComponent>(entity);
+								PhysicsSystem::PullTransform(capsule, transform);
+							};
+
+						// Push the job into the job queue
+						std::string jobName = "PullCapsuleTransform_" + (std::to_string(brEntity.GetUUID())); // Create a unique job name
+						PhysicsSystem::PushJob(jobName, jobFunction);  // No dependencies in this case
 					}
 					for (auto entity : sphereGroup)
 					{
@@ -376,9 +483,40 @@ namespace Borealis
 						{
 							continue;
 						}
-						auto [transform, sphere, rigidbody] = sphereGroup.get<TransformComponent, SphereColliderComponent, RigidbodyComponent>(entity);
-						PhysicsSystem::PullTransform(sphere, transform);
+
+						auto jobFunction = [this, entity, sphereGroup]()
+							{
+								auto [transform, sphere, rigidbody] = sphereGroup.get<TransformComponent, SphereColliderComponent, RigidbodyComponent>(entity);
+								PhysicsSystem::PullTransform(sphere, transform);
+							};
+
+						// Push the job into the job queue
+						std::string jobName = "PullSphereTransform_" + (std::to_string(brEntity.GetUUID())); // Create a unique job name
+						PhysicsSystem::PushJob(jobName, jobFunction);  // No dependencies in this case
+
 					}
+
+					for (auto entity : cylinderGroup)
+					{
+						Entity brEntity{ entity, this };
+						if (!brEntity.IsActive())
+						{
+							continue;
+						}
+
+						auto jobFunction = [this, entity, cylinderGroup]()
+							{
+								auto [transform, cylinder, rigidbody] = cylinderGroup.get<TransformComponent,CylinderColliderComponent, RigidbodyComponent>(entity);
+								PhysicsSystem::PullTransform(cylinder, transform);
+							};
+
+						// Push the job into the job queue
+						std::string jobName = "PullCylinderTransform_" + (std::to_string(brEntity.GetUUID())); // Create a unique job name
+						PhysicsSystem::PushJob(jobName, jobFunction);  // No dependencies in this case
+
+					}
+
+					PhysicsSystem::EndJobQueue();
 
 					while (!PhysicsSystem::GetCollisionEnterQueue().empty())
 					{
@@ -678,17 +816,7 @@ namespace Borealis
 					continue;
 				}
 				auto [transform, particleSystemComponent] = group.get<TransformComponent, ParticleSystemComponent>(entity);
-
-				if (!particleSystemComponent.particleSystem)
-				{
-					particleSystemComponent.particleSystem = MakeRef<ParticleSystem>();
-					particleSystemComponent.particleSystem->Init(particleSystemComponent);
-
-					//if(particleSystemComponent.texture == nullptr)
-						//particleSystemComponent.texture = Texture2D::GetDefaultTexture();
-				}
-
-				particleSystemComponent.particleSystem->Update(particleSystemComponent, transform, dt);
+				particleSystemComponent.Update(transform, dt);
 			}
 		}
 	}
@@ -886,9 +1014,13 @@ namespace Borealis
 
 		return {(entt::entity)-1, this};
 	}
+
+	bool Scene::EntityExists(UUID uuid)
+	{
+		return mEntityMap.find(uuid) != mEntityMap.end();
+	}
 	void Scene::DestroyEntity(Entity entity)
 	{		
-		mEntityMap.erase(entity.GetUUID());
 		if (hasRuntimeStarted)
 		{
 			if (entity.HasComponent<CharacterControllerComponent>())
@@ -916,6 +1048,15 @@ namespace Borealis
 				entity.GetComponent<CylinderColliderComponent>().rigidBody = nullptr;
 			}
 		}
+
+		auto copyContainer = entity.GetComponent<TransformComponent>().ChildrenID;
+		for (auto& child : copyContainer)
+		{
+			auto childEntity = GetEntityByUUID(child);
+			DestroyEntity(childEntity);
+		}
+		entity.GetComponent<TransformComponent>().ResetParent(entity);
+		mEntityMap.erase(entity.GetUUID());
 		mRegistry.destroy(entity);
 	}
 
@@ -1007,7 +1148,7 @@ namespace Borealis
 		{
 			auto parent = GetEntityByUUID(tc.ParentID);
 			auto& parentTC = parent.GetComponent<TransformComponent>();
-			parentTC.ChildrenID.insert(newEntity.GetComponent<IDComponent>().ID);
+			parentTC.ChildrenID.push_back(newEntity.GetComponent<IDComponent>().ID);
 		}
 	}
 
@@ -1208,12 +1349,15 @@ namespace Borealis
 		return newScene;
 	}
 
+
 	void Scene::RuntimeStart()
 	{
 		hasRuntimeStarted = true;
 		PhysicsSystem::Init();
-
+		UnstartedUUIDList.clear();
 		auto boxGroup = mRegistry.group<>(entt::get<TransformComponent, BoxColliderComponent>);
+
+		PhysicsSystem::StartJobQueue();
 		for (auto entity : boxGroup)
 		{
 			Entity brEntity{ entity, this };
@@ -1221,18 +1365,27 @@ namespace Borealis
 			{
 				continue;
 			}
-			auto [transform, box] = boxGroup.get<TransformComponent, BoxColliderComponent>(entity);
-			auto entityID = mRegistry.get<IDComponent>(entity).ID;
-			if (mRegistry.storage<RigidbodyComponent>().contains(entity))
-			{
-				PhysicsSystem::addBody(transform, &mRegistry.get<RigidbodyComponent>(entity), box, entityID);
-				box.rigidBody = &mRegistry.get<RigidbodyComponent>(entity);
-			}
-			else if (!mRegistry.storage<CharacterControllerComponent>().contains(entity))
-			{
-				PhysicsSystem::addBody(transform, nullptr, box, entityID);
-			}
+			auto jobFunction = [this, entity, boxGroup]()
+				{
+					auto [transform, box] = boxGroup.get<TransformComponent, BoxColliderComponent>(entity);
+					auto entityID = mRegistry.get<IDComponent>(entity).ID;
+
+					if (mRegistry.storage<RigidbodyComponent>().contains(entity))
+					{
+						PhysicsSystem::addBody(transform, &mRegistry.get<RigidbodyComponent>(entity), box, entityID);
+						box.rigidBody = &mRegistry.get<RigidbodyComponent>(entity);
+					}
+					else if (!mRegistry.storage<CharacterControllerComponent>().contains(entity))
+					{
+						PhysicsSystem::addBody(transform, nullptr, box, entityID);
+					}
+				};
+
+			// Push the job into the job queue
+			std::string jobName = "AddBoxBody_" + (std::to_string(brEntity.GetUUID())); // Create a unique job name
+			PhysicsSystem::PushJob(jobName, jobFunction);  // No dependencies in this case
 		}
+
 
 		auto sphereGroup = mRegistry.group<>(entt::get<TransformComponent, SphereColliderComponent>);
 		for (auto entity : sphereGroup)
@@ -1242,17 +1395,25 @@ namespace Borealis
 			{
 				continue;
 			}
-			auto [transform, sphere] = sphereGroup.get<TransformComponent, SphereColliderComponent>(entity);
-			auto entityID = mRegistry.get<IDComponent>(entity).ID;
-			if (mRegistry.storage<RigidbodyComponent>().contains(entity))
-			{
-				PhysicsSystem::addBody(transform, &mRegistry.get<RigidbodyComponent>(entity), sphere, entityID);
-				sphere.rigidBody = &mRegistry.get<RigidbodyComponent>(entity);
-			}
-			else
-			{
-				PhysicsSystem::addBody(transform, nullptr, sphere, entityID);
-			}
+
+			auto jobFunction = [this, entity, sphereGroup]()
+				{
+					auto [transform, sphere] = sphereGroup.get<TransformComponent, SphereColliderComponent>(entity);
+					auto entityID = mRegistry.get<IDComponent>(entity).ID;
+					if (mRegistry.storage<RigidbodyComponent>().contains(entity))
+					{
+						PhysicsSystem::addBody(transform, &mRegistry.get<RigidbodyComponent>(entity), sphere, entityID);
+						sphere.rigidBody = &mRegistry.get<RigidbodyComponent>(entity);
+					}
+					else
+					{
+						PhysicsSystem::addBody(transform, nullptr, sphere, entityID);
+					}
+				};
+
+			// Push the job into the job queue
+			std::string jobName = "AddSphereBody_" + (std::to_string(brEntity.GetUUID())); // Create a unique job name
+			PhysicsSystem::PushJob(jobName, jobFunction);  // No dependencies in this case
 		}
 
 		auto capsuleGroup = mRegistry.group<>(entt::get<TransformComponent, CapsuleColliderComponent>);
@@ -1263,17 +1424,26 @@ namespace Borealis
 			{
 				continue;
 			}
-			auto [transform, capsule] = capsuleGroup.get<TransformComponent, CapsuleColliderComponent>(entity);
-			auto entityID = mRegistry.get<IDComponent>(entity).ID;
-			if (mRegistry.storage<RigidbodyComponent>().contains(entity))
-			{
-				PhysicsSystem::addBody(transform, &mRegistry.get<RigidbodyComponent>(entity), capsule, entityID);
-				capsule.rigidBody = &mRegistry.get<RigidbodyComponent>(entity);
-			}
-			else
-			{
-				PhysicsSystem::addBody(transform, nullptr, capsule, entityID);
-			}
+		
+
+			auto jobFunction = [this, entity, capsuleGroup]()
+				{
+					auto [transform, capsule] = capsuleGroup.get<TransformComponent, CapsuleColliderComponent>(entity);
+					auto entityID = mRegistry.get<IDComponent>(entity).ID;
+					if (mRegistry.storage<RigidbodyComponent>().contains(entity))
+					{
+						PhysicsSystem::addBody(transform, &mRegistry.get<RigidbodyComponent>(entity), capsule, entityID);
+						capsule.rigidBody = &mRegistry.get<RigidbodyComponent>(entity);
+					}
+					else
+					{
+						PhysicsSystem::addBody(transform, nullptr, capsule, entityID);
+					}
+				};
+
+			// Push the job into the job queue
+			std::string jobName = "AddCapsuleBody_" + (std::to_string(brEntity.GetUUID())); // Create a unique job name
+			PhysicsSystem::PushJob(jobName, jobFunction);  // No dependencies in this case
 		}
 
 		auto cylinderGroup = mRegistry.group<>(entt::get<TransformComponent, CylinderColliderComponent>);
@@ -1284,18 +1454,27 @@ namespace Borealis
 			{
 				continue;
 			}
-			auto [transform, capsule] = cylinderGroup.get<TransformComponent, CylinderColliderComponent>(entity);
-			auto entityID = mRegistry.get<IDComponent>(entity).ID;
-			if (mRegistry.storage<RigidbodyComponent>().contains(entity))
-			{
-				PhysicsSystem::addBody(transform, &mRegistry.get<RigidbodyComponent>(entity), capsule, entityID);
-				capsule.rigidBody = &mRegistry.get<RigidbodyComponent>(entity);
-			}
-			else
-			{
-				PhysicsSystem::addBody(transform, nullptr, capsule, entityID);
-			}
+
+			auto jobFunction = [this, entity, cylinderGroup]()
+				{
+					auto [transform, cylinder] = cylinderGroup.get<TransformComponent, CylinderColliderComponent>(entity);
+					auto entityID = mRegistry.get<IDComponent>(entity).ID;
+					if (mRegistry.storage<RigidbodyComponent>().contains(entity))
+					{
+						PhysicsSystem::addBody(transform, &mRegistry.get<RigidbodyComponent>(entity), cylinder, entityID);
+						cylinder.rigidBody = &mRegistry.get<RigidbodyComponent>(entity);
+					}
+					else
+					{
+						PhysicsSystem::addBody(transform, nullptr, cylinder, entityID);
+					}
+				};
+
+			// Push the job into the job queue
+			std::string jobName = "AddCylinderBody_" + (std::to_string(brEntity.GetUUID())); // Create a unique job name
+			PhysicsSystem::PushJob(jobName, jobFunction);  // No dependencies in this case
 		}
+
 
 
 		auto CapsulecharacterGroup = mRegistry.group<>(entt::get<TransformComponent, CharacterControllerComponent, CapsuleColliderComponent>);
@@ -1306,8 +1485,21 @@ namespace Borealis
 			{
 				continue;
 			}
-			auto entityID = mRegistry.get<IDComponent>(entity).ID;
-			PhysicsSystem::addCharacter(brEntity.GetComponent<CharacterControllerComponent>(), brEntity.GetComponent<TransformComponent>(), brEntity.GetComponent<CapsuleColliderComponent>(), entityID);
+
+			auto jobFunction = [this, entity, brEntity]()
+				{
+					Entity copiedEntity
+					{
+						entity, this
+					};
+					auto entityID = mRegistry.get<IDComponent>(entity).ID;
+					PhysicsSystem::addCharacter(copiedEntity.GetComponent<CharacterControllerComponent>(), copiedEntity.GetComponent<TransformComponent>(), copiedEntity.GetComponent<CapsuleColliderComponent>(), entityID);
+				};
+
+			// Push the job into the job queue
+			std::string jobName = "AddCapsuleCharacter" + (std::to_string(brEntity.GetUUID())); // Create a unique job name
+			PhysicsSystem::PushJob(jobName, jobFunction);  // No dependencies in this case
+
 		}
 
 		auto BoxcharacterGroup = mRegistry.group<>(entt::get<TransformComponent, CharacterControllerComponent, BoxColliderComponent>);
@@ -1318,9 +1510,22 @@ namespace Borealis
 			{
 				continue;
 			}
-			auto entityID = mRegistry.get<IDComponent>(entity).ID;
-			PhysicsSystem::addCharacter(brEntity.GetComponent<CharacterControllerComponent>(), brEntity.GetComponent<TransformComponent>(), brEntity.GetComponent<BoxColliderComponent>(), entityID);
+
+			auto jobFunction = [this, entity, brEntity]()
+				{
+					Entity copiedEntity
+					{
+						entity, this
+					};
+					auto entityID = mRegistry.get<IDComponent>(entity).ID;
+					PhysicsSystem::addCharacter(copiedEntity.GetComponent<CharacterControllerComponent>(), copiedEntity.GetComponent<TransformComponent>(), copiedEntity.GetComponent<BoxColliderComponent>(), entityID);
+				};
+
+			// Push the job into the job queue
+			std::string jobName = "AddBoxCharacter" + (std::to_string(brEntity.GetUUID())); // Create a unique job name
+			PhysicsSystem::PushJob(jobName, jobFunction);  // No dependencies in this case
 		}
+
 		auto SpherecharacterGroup = mRegistry.group<>(entt::get<TransformComponent, CharacterControllerComponent, SphereColliderComponent>);
 		for (auto entity : SpherecharacterGroup)
 		{
@@ -1329,9 +1534,47 @@ namespace Borealis
 			{
 				continue;
 			}
-			auto entityID = mRegistry.get<IDComponent>(entity).ID;
-			PhysicsSystem::addCharacter(brEntity.GetComponent<CharacterControllerComponent>(), brEntity.GetComponent<TransformComponent>(), brEntity.GetComponent<SphereColliderComponent>(), entityID);
+
+			auto jobFunction = [this, entity, brEntity]()
+				{
+					Entity copiedEntity
+					{
+						entity, this
+					};
+					auto entityID = mRegistry.get<IDComponent>(entity).ID;
+					PhysicsSystem::addCharacter(copiedEntity.GetComponent<CharacterControllerComponent>(), copiedEntity.GetComponent<TransformComponent>(), copiedEntity.GetComponent<SphereColliderComponent>(), entityID);
+				};
+
+			// Push the job into the job queue
+			std::string jobName = "AddSphereCharacter" + (std::to_string(brEntity.GetUUID())); // Create a unique job name
 		}
+
+		auto CylindercharacterGroup = mRegistry.group<>(entt::get<TransformComponent, CharacterControllerComponent, CylinderColliderComponent>);
+		for (auto entity : CylindercharacterGroup)
+		{
+			Entity brEntity{ entity, this };
+			if (!brEntity.IsActive())
+			{
+				continue;
+			}
+
+			auto jobFunction = [this, entity, brEntity]()
+				{
+					Entity copiedEntity
+					{
+						entity, this
+					};
+					auto entityID = mRegistry.get<IDComponent>(entity).ID;
+					PhysicsSystem::addCharacter(copiedEntity.GetComponent<CharacterControllerComponent>(), copiedEntity.GetComponent<TransformComponent>(), copiedEntity.GetComponent<CylinderColliderComponent>(), entityID);
+				};
+
+			// Push the job into the job queue
+			std::string jobName = "AddCylinderCharacter" + (std::to_string(brEntity.GetUUID())); // Create a unique job name
+		}
+
+		PhysicsSystem::EndJobQueue();
+
+
 
 		auto IDView = mRegistry.view<IDComponent>();
 		for (auto entity : IDView)
@@ -1355,6 +1598,11 @@ namespace Borealis
 		for (auto entity : scriptGroup)
 		{
 			Entity brEntity{ entity, this };
+			if (!brEntity.IsActive())
+			{
+				UnstartedUUIDList.insert(brEntity.GetUUID());
+				continue;
+			}
 			auto& scriptComponent = scriptGroup.get<ScriptComponent>(entity);
 			for (auto& [name, script] : scriptComponent.mScripts)
 			{
@@ -1387,6 +1635,12 @@ namespace Borealis
 			}
 		}
 
+		auto particleSystemGroup = mRegistry.group<>(entt::get<TransformComponent, ParticleSystemComponent>);
+		for (auto entity : particleSystemGroup)
+		{
+			auto [transform, psystem] = particleSystemGroup.get<TransformComponent, ParticleSystemComponent>(entity);
+			psystem.Init();
+		}
 	}
 
 	void Scene::RuntimeEnd()

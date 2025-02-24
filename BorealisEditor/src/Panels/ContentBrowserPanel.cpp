@@ -373,9 +373,9 @@ namespace Borealis
 		//WORK IN PROGRESS
 		//Dragged Prefab
 		// Content Browser panel drop target for creating prefabs
-		if (ImGui::BeginDrapDropTargetWindow("DragCreatePrefab"))
+		if (ImGui::BeginDrapDropTargetWindow("DragDropEntityItem"))
 		{
-			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragCreatePrefab"))
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropEntityItem"))
 			{
 				UUID droppedEntityID = *(const UUID*)payload->Data; // Retrieve the dragged entity ID
 
@@ -396,8 +396,9 @@ namespace Borealis
 				AssetManager::InsertMetaData(MetaFileSerializer::CreateAssetMetaFile(dir, prefab->GetUUID()));
 				AssetImporter::InsertAssetHandle(dir, prefab->GetUUID());
 
+
 				// You might want to add some feedback or a log message here to indicate success
-				std::cout << "Prefab created at: " << mCurrDir.string() << std::endl;
+				//std::cout << "Prefab created at: " << mCurrDir.string() << std::endl;
 			}
 			ImGui::EndDragDropTarget();
 		}

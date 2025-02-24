@@ -57,6 +57,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 
 JPH_SUPPRESS_WARNINGS
+#undef AddJob
 
 using namespace std;
 using namespace JPH;
@@ -65,6 +66,8 @@ using namespace JPH::literals;
 static std::mutex persistMutex;
 static std::mutex enterMutex;
 static std::mutex exitMutex;
+static std::mutex bodyMutex;
+static std::mutex characterMutex;
 
 // Callback for traces, connect this to your own trace function if you have one
 static void TraceImpl(const char* inFMT, ...)
@@ -265,6 +268,7 @@ namespace Borealis
 		JPH::TempAllocatorImpl* temp_allocator;
 		JPH::JobSystemThreadPool* job_system;
 		JPH::BodyInterface* body_interface;
+		JPH::JobSystem::Barrier* barrier;
 		MyDebugRenderer* debug_renderer;
 		BodyManager::DrawSettings draw_settings;
 		BPLayerInterfaceImpl* broad_phase_layer_interface;
@@ -577,6 +581,22 @@ namespace Borealis
 		shouldDebugDraw = value;
 	}
 
+	void PhysicsSystem::StartJobQueue()
+	{
+		sPhysicsData.barrier = sPhysicsData.job_system->CreateBarrier();
+	}
+
+	void PhysicsSystem::PushJob(std::string name, std::function<void()> function, uint32_t dependenciesNum)
+	{
+		sPhysicsData.barrier->AddJob(sPhysicsData.job_system->CreateJob(name.c_str(), JPH::Color::sRed, function, dependenciesNum));
+	}
+
+	void PhysicsSystem::EndJobQueue()
+	{
+		sPhysicsData.job_system->WaitForJobs(sPhysicsData.barrier);
+		sPhysicsData.job_system->DestroyBarrier(sPhysicsData.barrier);
+	}
+
 	void PhysicsSystem::Update(float dt)
 	{
 		sPhysicsData.mSystem->Update(dt, 1, sPhysicsData.temp_allocator, sPhysicsData.job_system);
@@ -840,9 +860,12 @@ namespace Borealis
 		settings.mInnerBodyLayer = BrEntity.GetComponent<TagComponent>().mLayer.toUint16();
 		settings.SetEmbedded();
 
+		std::lock_guard<std::mutex>lock(characterMutex);
 		character.controller = new CharacterVirtual(&settings, RVec3(transform.Translate.x, transform.Translate.y,transform.Translate.z), Quat::sIdentity(), sPhysicsData.mSystem);
 		bodyIDMapUUID[reinterpret_cast<CharacterVirtual*>(character.controller)->GetInnerBodyID().GetIndexAndSequenceNumber()] = entityID;
 		bodySensorMap[reinterpret_cast<CharacterVirtual*>(character.controller)->GetInnerBodyID().GetIndexAndSequenceNumber()] = false;
+
+		BOREALIS_CORE_WARN(entityID);
 	}
 
 
@@ -1009,7 +1032,7 @@ namespace Borealis
 	{
 		direction = glm::normalize(direction);
 		direction *= maxDistance; //set distance of ray
-		RRayCast ray { Vec3(origin.x, origin.y, origin.z), Vec3(direction.x, direction.y, direction.z) };
+		RRayCast ray{ Vec3(origin.x, origin.y, origin.z), Vec3(direction.x, direction.y, direction.z) };
 		auto& narrowPhaseQuery = sPhysicsData.mSystem->GetNarrowPhaseQuery();
 		RayCastResult result;
 		//result.mFraction = maxDistance;
@@ -1018,6 +1041,11 @@ namespace Borealis
 			return narrowPhaseQuery.CastRay(ray, result);
 		}
 		return narrowPhaseQuery.CastRay(ray, result, {}, ObjectLayerFilterImpl(LayerMask));
+		if (PhysicsSystem::shouldDebugDraw)
+		{
+			Renderer2D::DrawLine(origin, origin + direction * result.mFraction, glm::vec4(1, 0, 0, 1));
+
+		}
 	}
 
 
@@ -1051,6 +1079,11 @@ namespace Borealis
 		}
 		hitInfo->point = origin + direction * hitInfo->distance;
 
+		if (PhysicsSystem::shouldDebugDraw)
+		{
+			Renderer2D::DrawLine(origin, origin + direction * result.mFraction, glm::vec4(1, 0, 0, 1));
+
+		}
 		return output;
 	}
 
@@ -1248,7 +1281,7 @@ namespace Borealis
 			body_settings.mObjectLayer = tagComponent.mLayer.toUint16();
 			body_settings.mAllowDynamicOrKinematic = true;
 			body_settings.mFriction = rigidbody->friction;
-			body_settings.mRestitution = rigidbody->bounciness;
+			body_settings.mRestitution = 0.f;
 		}
 		else
 		{
@@ -1269,6 +1302,7 @@ namespace Borealis
 		// Store the BodyID in the RigidBodyComponent
 		collider.bodyID = body->GetID().GetIndexAndSequenceNumber();
 
+		std::lock_guard<std::mutex>lock(bodyMutex);
 
 		if (collider.isTrigger)
 		{

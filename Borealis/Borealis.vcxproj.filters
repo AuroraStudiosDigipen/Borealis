@@ -223,6 +223,9 @@
     <ClInclude Include="inc\Core\EventSystem.hpp">
       <Filter>inc\Core</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Core\HierarchyLayerManager.hpp">
+      <Filter>inc\Core</Filter>
+    </ClInclude>
     <ClInclude Include="inc\Core\InputSystem.hpp">
       <Filter>inc\Core</Filter>
     </ClInclude>
@@ -350,9 +353,6 @@
       <Filter>inc\Graphics\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="inc\Graphics\OrthographicCamera.hpp">
-      <Filter>inc\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\Graphics\ParticleSystem.hpp">
       <Filter>inc\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="inc\Graphics\PixelBuffer.hpp">
@@ -2049,6 +2049,9 @@
     <ClCompile Include="src\Core\BitSet32.cpp">
       <Filter>src\Core</Filter>
     </ClCompile>
+    <ClCompile Include="src\Core\HierarchyLayerManager.cpp">
+      <Filter>src\Core</Filter>
+    </ClCompile>
     <ClCompile Include="src\Core\InputSystem.cpp">
       <Filter>src\Core</Filter>
     </ClCompile>
@@ -2161,9 +2164,6 @@
       <Filter>src\Graphics\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\OrthographicCamera.cpp">
-      <Filter>src\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\ParticleSystem.cpp">
       <Filter>src\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\PixelBuffer.cpp">

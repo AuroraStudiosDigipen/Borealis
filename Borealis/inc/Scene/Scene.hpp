@@ -105,6 +105,8 @@ namespace Borealis
 		*************************************************************************/
 		Entity GetEntityByUUID(UUID uuid);
 
+		bool EntityExists(UUID uuid);
+
 		/*!***********************************************************************
 			\brief
 				Deletes an entity from the scene

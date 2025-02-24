@@ -88,7 +88,7 @@ namespace Borealis
 		return a.entityID < b.entityID; // Fallback for stable sorting
 	}
 
-	void Renderer3D::End()
+	void Renderer3D::End(bool posOnly)
 	{
 		std::sort(drawQueue.begin(), drawQueue.end(), DrawCallComparator);
 
@@ -132,7 +132,7 @@ namespace Borealis
 
 			if (std::holds_alternative<Ref<Model>>(drawCall.model))
 			{
-				std::get<Ref<Model>>(drawCall.model)->Draw(drawCall.transform, drawCall.shaderID, drawCall.entityID);
+				std::get<Ref<Model>>(drawCall.model)->Draw(drawCall.transform, drawCall.shaderID, drawCall.entityID, posOnly);
 			}
 			else
 			{
@@ -149,7 +149,7 @@ namespace Borealis
 		drawQueue.clear();
 	}
 
-	void Renderer3D::RenderTransparentObjects(Ref<Shader> const& transparencyShader)
+	void Renderer3D::RenderTransparentObjects(Ref<TextureCubeMap> const& cubeMap)
 	{
 		std::sort(drawQueueTransparent.begin(), drawQueueTransparent.end(), DrawCallComparator);
 
@@ -190,6 +190,10 @@ namespace Borealis
 				textureMap.at(Material::Metallic)->Bind(textureUnit);
 				textureUnit++;
 			}
+
+			//cubeMap->Bind(7);
+			//drawCall.shaderID->Set("u_cubeMap", 7);
+			//textureUnit++;
 
 			if (std::holds_alternative<Ref<Model>>(drawCall.model))
 			{

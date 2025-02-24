@@ -123,6 +123,7 @@ namespace Borealis {
 		mEditorScene = SceneManager::GetActiveScene();
 
 		SCPanel.SetContext(SceneManager::GetActiveScene());
+		SCPanel.mEditorScene = &mEditorScene;
 
 		mEditorCamera = EditorCamera(60.0f, 1.778f, 0.3f, 1000.0f);
 		ScriptingSystem::InitCoreAssembly();
@@ -176,6 +177,8 @@ namespace Borealis {
 			mCamera.UpdateFn(dt);
 			mEditorCamera.UpdateFn(dt);
 		}
+
+		SceneManager::GetActiveScene()->UpdateRuntime(dt); //update physics, scripts and audio
 
 		Renderer2D::ResetStats();
 		{
@@ -265,23 +268,23 @@ namespace Borealis {
 					.AddSinkLinkage("renderTarget", "UIWorldPass.renderTarget");
 				fconfig.AddPass(particleSystemPass);
 
-				RenderPassConfig UIPass(RenderPassType::UIPass, "UIPass");
-				UIPass.AddSinkLinkage("renderTarget", "ParticleSystem.renderTarget");
-				UIPass.AddSinkLinkage("camera", "RunTimeCamera");
-				fconfig.AddPass(UIPass);
-
 				RenderPassConfig RunTimeHighlight(RenderPassType::HighlightPass, "RunTimeHighlight");
 				RunTimeHighlight.AddSinkLinkage("camera", "RunTimeCamera");
-				RunTimeHighlight.AddSinkLinkage("renderTarget", "UIPass.renderTarget");
+				RunTimeHighlight.AddSinkLinkage("renderTarget", "ParticleSystem.renderTarget");
 				fconfig.AddPass(RunTimeHighlight);
+
+				RenderPassConfig UIPass(RenderPassType::UIPass, "UIPass");
+				UIPass.AddSinkLinkage("renderTarget", "RunTimeHighlight.renderTarget");
+				UIPass.AddSinkLinkage("camera", "RunTimeCamera");
+				fconfig.AddPass(UIPass);
 			}
 
 			//forward rendering editor
 			{
-				//RenderPassConfig editorSkyBoxPass(RenderPassType::SkyboxPass, "editorSkyBox");
-				//editorSkyBoxPass.AddSinkLinkage("renderTarget", "EditorBuffer");
-				//editorSkyBoxPass.AddSinkLinkage("camera", "EditorCamera");
-				//fconfig.AddPass(editorSkyBoxPass);
+				RenderPassConfig editorSkyBoxPass(RenderPassType::SkyboxPass, "editorSkyBox");
+				editorSkyBoxPass.AddSinkLinkage("renderTarget", "EditorBuffer");
+				editorSkyBoxPass.AddSinkLinkage("camera", "EditorCamera");
+				fconfig.AddPass(editorSkyBoxPass);
 
 				RenderPassConfig editorShadowPass(RenderPassType::Shadow, "editorShadowPass");
 				editorShadowPass.AddSinkLinkage("shadowMap", "ShadowMapBuffer")
@@ -381,7 +384,6 @@ namespace Borealis {
 
 		mHoveredEntity = { (entt::entity)entityID , SceneManager::GetActiveScene().get() };
 
-		SceneManager::GetActiveScene()->UpdateRuntime(dt); //update physics, scripts and audio
 	}
 
 	void EditorLayer::EventFn(Event& e)
@@ -490,26 +492,6 @@ namespace Borealis {
 
 					if (ImGui::MenuItem("Open Project...","Ctrl+O")) {
 						LoadProject();
-
-						//Testing load all the prefab children
-						for (auto& item : SceneManager::GetActiveScene()->GetRegistry().view<entt::entity>()) {
-
-							Entity entity{ item, SceneManager::GetActiveScene().get() }; // Use GetActiveScene() here
-							if (entity.HasComponent<PrefabComponent>()) {
-								// Retrieve the PrefabComponent
-								auto& prefabComp = entity.GetComponent<PrefabComponent>();
-
-								// Get the parent UUID from the PrefabComponent
-								UUID parentUUID = prefabComp.mParentID;
-
-								// Find the associated prefab by its UUID
-								auto prefab = PrefabManager::GetPrefab(parentUUID);  // Use existing function GetPrefab
-								if (prefab) {
-									// Add the entity as a child to the found prefab
-									prefab->AddChild(MakeRef<Entity>(entity));
-								}
-							}
-						}
 					}
 
 					if (ImGui::MenuItem("Save Project...","Ctrl+S")) {
@@ -663,19 +645,20 @@ namespace Borealis {
 
 				}
 
-				CubemapPanel::RenderCubemapSetting();
-
 			ImGui::End(); // Of Settings
 
 			SCPanel.ImGuiRender();
 			CBPanel.ImGuiRender();
 			CSPanel.ImGuiRender();
 			AMPanel.ImGuiRender();
+			SRPanel.ImGuiRender();
 			
 			BTNEPanel.ImGuiRender();
 
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0,0 });
+
 			ImGui::Begin("Viewport");
+
 
 				mViewportFocused = ImGui::IsWindowFocused();
 				mViewportHovered = ImGui::IsWindowHovered();
@@ -758,6 +741,7 @@ namespace Borealis {
 				mViewportBounds[1] = { maxBound.x, maxBound.y };
 
 				// Gizmo here:
+
 				Entity selectedEntity = SCPanel.GetSelectedEntity();
 				if (selectedEntity && mGizmoType != -1)
 				{
@@ -816,8 +800,100 @@ namespace Borealis {
 								tc.Scale = scale;
 							}
 						}
-					
 				}
+				
+				std::vector<Entity> selectedEntities = SCPanel.GetSelectedEntities();
+				if (!selectedEntities.empty() && mGizmoType != -1 && SCPanel.IsMultiSelect())
+				{
+					ImGuizmo::SetOrthographic(false);
+					ImGuizmo::SetDrawlist();
+					float windowWidth = (float)ImGui::GetWindowWidth();
+					float windowHeight = (float)ImGui::GetWindowHeight();
+					ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowWidth, windowHeight);
+
+					const glm::mat4& cameraView = mEditorCamera.GetViewMatrix();
+					const glm::mat4& cameraProjection = mEditorCamera.GetProjectionMatrix();
+
+					// Calculate the average transform position to place the gizmo at the center
+					glm::vec3 averageTranslation(0.0f);
+					glm::quat averageRotation(1.0f, 0.0f, 0.0f, 0.0f);
+					glm::vec3 averageScale(0.0f);
+
+					for (auto& entity : selectedEntities)
+					{
+						auto& tc = entity.GetComponent<TransformComponent>();
+						averageTranslation += tc.Translate;
+						averageScale += tc.Scale;
+
+						// Accumulate rotations as quaternions
+						glm::quat rotationQuat = glm::quat(glm::radians(tc.Rotation));
+						averageRotation = glm::normalize(averageRotation * rotationQuat);
+					}
+
+					averageTranslation /= static_cast<float>(selectedEntities.size());
+					averageScale /= static_cast<float>(selectedEntities.size());
+					glm::mat4 gizmoTransform = glm::translate(glm::mat4(1.0f), averageTranslation) *
+						glm::mat4_cast(averageRotation) *
+						glm::scale(glm::mat4(1.0f), averageScale);
+
+					bool snap = InputSystem::IsKeyPressed(Key::LeftShift);
+					float snapValue = 0.5f;
+					if (mGizmoType == ImGuizmo::OPERATION::ROTATE)
+						snapValue = 45.0f;
+
+					float snapValues[3] = { snapValue, snapValue, snapValue };
+
+					ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
+						(ImGuizmo::OPERATION)mGizmoType, ImGuizmo::MODE::LOCAL,
+						glm::value_ptr(gizmoTransform), nullptr, snap ? snapValues : nullptr);
+
+					if (!(InputSystem::IsKeyPressed(Key::LeftAlt) || InputSystem::IsKeyPressed(Key::RightAlt)))
+					{
+						if (ImGuizmo::IsUsing())
+						{
+							// Decompose the new gizmo transform
+							glm::vec3 gizmoTranslation, gizmoRotation, gizmoScale;
+							ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(gizmoTransform),
+								glm::value_ptr(gizmoTranslation),
+								glm::value_ptr(gizmoRotation),
+								glm::value_ptr(gizmoScale));
+
+							// Update each entity's transform based on the delta from the gizmo's center
+							for (auto& entity : selectedEntities)
+							{
+								auto& tc = entity.GetComponent<TransformComponent>();
+
+								if (tc.ParentID != 0)
+								{
+									// Handle parent-child relationships
+									Entity parent = SceneManager::GetActiveScene()->GetEntityByUUID(tc.ParentID);
+									TransformComponent& parentTC = parent.GetComponent<TransformComponent>();
+									glm::mat4 parentInverse = glm::inverse(parentTC.GetGlobalTransform());
+
+									// Compute the relative transform
+									glm::mat4 childRelativeTransform = parentInverse * gizmoTransform;
+									ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(childRelativeTransform),
+										glm::value_ptr(tc.Translate),
+										glm::value_ptr(tc.Rotation),
+										glm::value_ptr(tc.Scale));
+								}
+								else
+								{
+									// Apply global transform adjustments for entities without a parent
+									glm::vec3 deltaTranslation = gizmoTranslation - averageTranslation;
+									glm::vec3 deltaScale = gizmoScale / averageScale;
+									glm::vec3 deltaRotation = gizmoRotation - glm::degrees(glm::eulerAngles(glm::quat(glm::radians(tc.Rotation))));
+
+									tc.Translate += deltaTranslation;
+									tc.Scale *= deltaScale;
+									tc.Rotation += deltaRotation;
+								}
+							}
+						}
+					}
+				}
+
+
 			ImGui::End(); // Of Viewport
 			
 
@@ -879,15 +955,29 @@ namespace Borealis {
 				{
 					if (mHoveredEntity.IsValid())
 					{
-						SCPanel.SetSelectedEntity(mHoveredEntity);
-						mSelectedEntities.clear();
-						mSelectedEntities.push_back((uint32_t)mHoveredEntity);
+						//If use clicks on control and press, it should add to mEntities(group selection)
+						if (InputSystem::IsKeyPressed(Key::LeftControl))
+						{
+							SCPanel.SetSelectedEntity({}); //Clear selectedEntity
+							SCPanel.PushSelectedEntity(mHoveredEntity);
+							SCPanel.EnableMultiSelect();
+						}
+						else
+						{
+							SCPanel.SetSelectedEntity(mHoveredEntity);
+							SCPanel.ClearSelectedEntities();
+							//mSelectedEntities.clear();
+							//mSelectedEntities.push_back((uint32_t)mHoveredEntity);
+						}
+
 					}
 				}
 				else if (mViewportHovered && !ImGuizmo::IsOver())
 				{
 					SCPanel.SetSelectedEntity({});
-					mSelectedEntities.clear();
+					SCPanel.ClearSelectedEntities();
+					SCPanel.DisableMultiSelect();
+					//mSelectedEntities.clear();
 				}
 			}
 		}
@@ -1021,6 +1111,7 @@ namespace Borealis {
 		{
 			if (SCPanel.GetSelectedEntity())
 			{
+				HierarchyLayerManager::GetInstance().RemoveEntity(SCPanel.GetSelectedEntity().GetUUID());
 				SceneManager::GetActiveScene()->DestroyEntity(SCPanel.GetSelectedEntity());
 				SCPanel.SetSelectedEntity({});
 			}
@@ -1080,6 +1171,9 @@ namespace Borealis {
 			{
 				SceneManager::GetActiveScene()->GetRegistry().get<CameraComponent>(mRuntimeCamera).Camera.SetViewportSize((uint32_t)mRuntimeSize.x, (uint32_t)mRuntimeSize.y);
 			}
+			BOREALIS_CORE_INFO(mEditorScene->GetName());
+			BOREALIS_CORE_INFO(SceneManager::GetActiveScene()->GetName());
+
 		}
 	}
 
@@ -1099,8 +1193,28 @@ namespace Borealis {
 			AddScene(fileName, filepath);
 			EditorSerialiser serialiser(nullptr);
 			SceneManager::SetActiveScene(fileName, serialiser);
+			BOREALIS_CORE_INFO(mEditorScene->GetName());
+			BOREALIS_CORE_INFO(SceneManager::GetActiveScene()->GetName());
 
 			DeserialiseEditorScene();
+		}
+		for (auto& item : SceneManager::GetActiveScene()->GetRegistry().view<entt::entity>()) {
+			Entity entity{ item, SceneManager::GetActiveScene().get() }; // Use GetActiveScene() here
+			if (entity.HasComponent<PrefabComponent>()) {
+				// Retrieve the PrefabComponent
+				auto& prefabComp = entity.GetComponent<PrefabComponent>();
+
+				// Get the parent UUID from the PrefabComponent
+				UUID parentUUID = prefabComp.mParentID;
+
+				// Find the associated prefab by its UUID
+				auto prefab = PrefabManager::GetPrefab(parentUUID);  // Use existing function GetPrefab
+				if (prefab) {
+					// Add the entity as a child to the found prefab
+					prefab->AddChild(MakeRef<Entity>(entity));
+					std::cout << "Added entity as child to prefab" << std::endl;
+				}
+			}
 		}
 
 	}

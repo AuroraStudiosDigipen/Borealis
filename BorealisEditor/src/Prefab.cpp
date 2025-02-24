@@ -210,7 +210,6 @@ namespace Borealis {
         }
     }
 
-
     void Prefab::PrintComponentList()
     {
 	    // Retrieve the list of component names

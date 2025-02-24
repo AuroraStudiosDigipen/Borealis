@@ -115,6 +115,11 @@ namespace Borealis
 
         mName = data["Name"].as<std::string>();
 
+        if (data["Transparent"])
+        {
+            isTransparent = data["Transparent"].as<bool>();
+        }
+
         auto textureMaps = data["TextureMaps"];
         for (auto it = textureMaps.begin(); it != textureMaps.end(); ++it) {
             TextureMaps key = StringToTextureMaps(it->first.as<std::string>());
@@ -167,6 +172,8 @@ namespace Borealis
 
         out << YAML::BeginMap;
         out << YAML::Key << "Name" << YAML::Value << mName;
+
+        out << YAML::Key << "Transparent" << YAML::Value << isTransparent;
 
         // Serialize Texture Maps
         out << YAML::Key << "TextureMaps" << YAML::Value << YAML::BeginMap;

@@ -1064,65 +1064,6 @@ namespace Borealis
 	}
 
 	template<> //temp until idk
-	static bool DrawComponentLayout<ParticleSystemComponent>(const std::string& name, Entity entity, bool allowDelete)
-	{
-		bool isEdited = false;
-		if (entity.HasComponent<ParticleSystemComponent>())
-		{
-			ImGui::Spacing();
-			auto& component = entity.GetComponent<ParticleSystemComponent>();
-
-			bool deleteComponent = false;
-			bool open;
-
-			if (allowDelete)
-			{
-				auto ContentRegionAvailable = ImGui::GetContentRegionAvail();
-				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4,4 });
-				float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
-				ImGui::Separator();
-				open = ImGui::CollapsingHeader(name.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
-				ImGui::PopStyleVar();
-				ImGui::SameLine(ContentRegionAvailable.x - lineHeight * 0.5f); // Align to right (Button)
-				if (ImGui::Button(("+##" + name).c_str(), ImVec2{ lineHeight,lineHeight }))
-				{
-					ImGui::OpenPopup(("ComponentSettingsPopup##" + name).c_str());
-				}
-
-
-				if (ImGui::BeginPopup(("ComponentSettingsPopup##" + name).c_str()))
-				{
-					if (ImGui::MenuItem("Remove Component"))
-					{
-						deleteComponent = true;
-						isEdited = true;
-					}
-
-					ImGui::EndPopup();
-				}
-			}
-			else
-			{
-				open = ImGui::CollapsingHeader(name.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap);
-			}
-
-			if (open)
-			{
-				ImGui::Spacing();
-				isEdited = DrawComponent(component, entity) ? true : isEdited;
-			}
-
-			if (deleteComponent)
-			{
-				entity.RemoveComponent<ParticleSystemComponent>();
-			}
-
-			component.isEdited = isEdited;
-		}
-		return isEdited;
-	}
-
-	template<> //temp until idk
 	static bool DrawComponentLayout<LightComponent>(const std::string& name, Entity entity, bool allowDelete)
 	{
 		bool isEdited = false;
@@ -1246,10 +1187,97 @@ namespace Borealis
 	{
 		mContext = scene;
 		mSelectedEntity = {};
+		ClearSelectedEntities();
+		
+		// Load all entities into the HierarchyLayerManager
+		HierarchyLayerManager::GetInstance().LoadEntitiesIntoLayerManager(scene);
+
+		//Testing load all the prefab children
+		for (auto& item : SceneManager::GetActiveScene()->GetRegistry().view<entt::entity>()) {
+			Entity entity{ item, SceneManager::GetActiveScene().get() }; // Use GetActiveScene() here
+			if (entity.HasComponent<PrefabComponent>()) {
+				// Retrieve the PrefabComponent
+				auto& prefabComp = entity.GetComponent<PrefabComponent>();
+
+				// Get the parent UUID from the PrefabComponent
+				UUID parentUUID = prefabComp.mParentID;
+
+				// Find the associated prefab by its UUID
+				auto prefab = PrefabManager::GetPrefab(parentUUID);  // Use existing function GetPrefab
+				if (prefab) {
+					// Add the entity as a child to the found prefab
+					prefab->AddChild(MakeRef<Entity>(entity));
+				}
+			}
+		}
 	}
 	void SceneHierarchyPanel::ImGuiRender()
 	{
 		ImGui::Begin("Scene Hierarchy");
+
+		// Create the search bar
+		static char searchBuffer[128] = "";
+		ImGui::InputText("Search", searchBuffer, IM_ARRAYSIZE(searchBuffer));
+		std::string searchQuery = searchBuffer;
+
+		// Move Up Button
+		if (ImGui::Button("Move Up"))
+		{
+			if (mSelectedEntity) // Ensure an entity is selected
+			{
+				if (mSelectedEntity.GetComponent<TransformComponent>().ParentID != 0)
+				{
+					auto& tc = mSelectedEntity.GetComponent<TransformComponent>();
+					int currID = tc.GetHierarchyLayer(mSelectedEntity);
+					auto parent = SceneManager::GetActiveScene()->GetEntityByUUID(tc.ParentID);
+					auto& parentTC = parent.GetComponent<TransformComponent>();
+					if (currID - 1 != 0)
+					{
+						std::swap(parentTC.ChildrenID[currID-1], parentTC.ChildrenID[currID - 2]);
+					}
+				}
+				else
+					HierarchyLayerManager::GetInstance().MoveEntityUp(mSelectedEntity.GetUUID());
+			}
+		}
+
+		ImGui::SameLine();
+
+		// Move Down Button
+		if (ImGui::Button("Move Down"))
+		{
+			if (mSelectedEntity) // Ensure an entity is selected
+			{
+				if (mSelectedEntity.GetComponent<TransformComponent>().ParentID != 0)
+				{
+					auto& tc = mSelectedEntity.GetComponent<TransformComponent>();
+					int currID = tc.GetHierarchyLayer(mSelectedEntity);
+					auto parent = SceneManager::GetActiveScene()->GetEntityByUUID(tc.ParentID);
+					auto& parentTC = parent.GetComponent<TransformComponent>();
+					if (currID != parentTC.ChildrenID.size())
+					{
+						std::swap(parentTC.ChildrenID[currID-1], parentTC.ChildrenID[currID]);
+					}
+				}
+				else
+					HierarchyLayerManager::GetInstance().MoveEntityDown(mSelectedEntity.GetUUID());
+			}
+		}
+
+		// Display the layer number of the selected entity
+		if (mSelectedEntity)
+		{
+			const auto& layerMap = HierarchyLayerManager::GetInstance().GetEntityLayerMap();
+			auto it = layerMap.find(mSelectedEntity.GetUUID());
+			auto& tc = mSelectedEntity.GetComponent<TransformComponent>();
+			ImGui::Text("Layer No: %d", tc.GetHierarchyLayer(mSelectedEntity));
+
+		}
+		else
+		{
+			// No entity selected
+			ImGui::Text("Layer No: None");
+		}
 
 		if (Project::GetProjectPath() != "")
 		{
@@ -1259,18 +1287,40 @@ namespace Borealis
 			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.1f, 0.1f, 0.1f, 0.4f));
 			for (auto& [name, path] : SceneManager::GetSceneLibrary())
 			{
-
 				if (SceneManager::GetActiveScene()->GetName() == name)
 				{
 					ImGui::PopStyleColor();
 					ImGui::MenuItem(name.c_str());
 					ImGui::PopFont();
-					for (auto& item : mContext->mRegistry.view<entt::entity>())
-					{
+					// Track entity changes
+					static std::unordered_set<UUID> lastEntitySet;
+					std::unordered_set<UUID> currentEntitySet;
 
-						Entity entity{ item, mContext.get() };
-						auto transform = entity.GetComponent<TransformComponent>();
-						if (transform.ParentID == 0)
+					auto& sceneRegistry = SceneManager::GetActiveScene()->GetRegistry();
+					for (auto& item : sceneRegistry.view<IDComponent>())
+					{
+						Entity entity{ item, SceneManager::GetActiveScene().get() };
+						UUID entityID = entity.GetComponent<IDComponent>().ID;
+						currentEntitySet.insert(entityID);
+					}
+
+					// Compare lastEntitySet and currentEntitySet
+					if (currentEntitySet != lastEntitySet)
+					{
+						HierarchyLayerManager::GetInstance().LoadEntitiesIntoLayerManager(SceneManager::GetActiveScene());
+						lastEntitySet = currentEntitySet;  // Update lastEntitySet
+					}
+
+					// Draw entities in correct layer order
+					const auto& orderedEntities = HierarchyLayerManager::GetInstance().GetEntitiesInLayerOrder();
+					for (const auto& uuid : orderedEntities)
+					{
+						Entity entity = SceneManager::GetActiveScene()->GetEntityByUUID(uuid);
+
+						// Retrieve the node name or tag
+						std::string nodeName = entity.GetComponent<TagComponent>().Name;
+
+						if (entity.IsValid() && entity.HasComponent<TransformComponent>() && entity.GetComponent<TransformComponent>().ParentID == 0 && (searchQuery.empty() || FuzzyMatch(searchQuery, nodeName)))
 						{
 							DrawEntityNode(entity);
 						}
@@ -1290,32 +1340,11 @@ namespace Borealis
 							if (ImGui::MenuItem("Load Scene"))
 							{
 								EditorSerialiser serialiser(mContext);
-								SceneManager::SaveActiveScene(serialiser);
 								SceneManager::SetActiveScene(name, serialiser);
 								mContext = SceneManager::GetActiveScene();
+								*mEditorScene = SceneManager::GetActiveScene();
 								mSelectedEntity = {};
-
-								//Testing load all the prefab children
-								//PrefabManager::ClearAllPrefabChildren(); //Might not be needed
-								for (auto& item : mContext->mRegistry.view<entt::entity>())
-								{
-
-									Entity entity{ item, mContext.get() };
-									if (entity.HasComponent<PrefabComponent>()) {
-										// Retrieve the PrefabComponent
-										auto& prefabComp = entity.GetComponent<PrefabComponent>();
-
-										// Get the parent UUID from the PrefabComponent
-										UUID parentUUID = prefabComp.mParentID;
-
-										// Find the associated prefab by its UUID
-										auto prefab = PrefabManager::GetPrefab(parentUUID);  // Use existing function GetPrefab
-										if (prefab) {
-											// Add the entity as a child to the found prefab
-											prefab->AddChild(MakeRef<Entity>(entity));
-										}
-									}
-								}
+								ClearSelectedEntities();
 							}
 						}
 						ImGui::EndPopup();
@@ -1330,11 +1359,10 @@ namespace Borealis
 			ImGui::PopStyleColor();
 		}
 
-		
-
-		if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered()) // Deselect
+		if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered() && !InputSystem::IsKeyPressed(Key::LeftControl)) // Deselect
 		{
 			mSelectedEntity = {};
+			ClearSelectedEntities();
 		}
 
 		// Right click on blank space	
@@ -1360,7 +1388,6 @@ namespace Borealis
 			}
 			ImGui::EndDragDropTarget();
 		}
-
 
 		ImGui::End();
 
@@ -1412,27 +1439,33 @@ namespace Borealis
 				}
 				case AssetType::Prefab:
 				{
-					//When click on prefab, get the UUID, and use the UUID to get the prefab that is in the prefab registry
-					//Update the prefab within the prefab registry.
+					// When clicking on a prefab, get the UUID, and use the UUID to get the prefab in the prefab registry
 					MaterialEditor::SetMaterial(0);
 					Ref<Prefab> selectedPrefab = PrefabManager::GetPrefab(ContentBrowserPanel::sSelectedAsset);
 					Entity prefabEntity(selectedPrefab->GetPrefabID(), PrefabManager::GetScenePtr());
 
-					//Deselect the entity
+					// Deselect the entity
 					mSelectedEntity = {};
 
-					//Draw prefabEntity
-					if(DrawComponents(prefabEntity))
+					// Draw prefabEntity and check for changes
+					if (DrawComponents(prefabEntity))
 					{
+						// Update all instances of the prefab
 						selectedPrefab->UpdateAllInstances();
+
+						// Get the prefab file path
+						AssetMetaData const& metadata = AssetManager::GetMetaData(ContentBrowserPanel::sSelectedAsset);
+						std::filesystem::path dir = metadata.SourcePath;
+						std::string dirString = dir.string(); // Convert to std::string
+
+						// Serialize the updated prefab
+						Serialiser serialiser(SceneManager::GetActiveScene());
+						serialiser.SerialisePrefab(dirString.c_str(), prefabEntity);
 					}
-	
-					//std::filesystem::path dir = metadata.SourcePath;
-					//std::string dirString = dir.string(); // Convert to std::string
-					//Serialiser::SerialisePrefab(dirString.c_str(), mSelectedPrefab);
 
 					break;
 				}
+
 				default:
 				{
 					MaterialEditor::SetMaterial(0);
@@ -1491,11 +1524,31 @@ namespace Borealis
 		{
 			if (ImGui::IsItemHovered())
 			{
-				mSelectedEntity = entity;
+				//When it is single select mode, it will just select the entity
+				// When i am holding control and click, it will add to multi select	
+				//When it is in multi select mode, if click without holding control, it will not add to multi select
+				if (!IsMultiSelect())
+				{
+					if (InputSystem::IsKeyPressed(Key::LeftControl))
+					{	
+						EnableMultiSelect();
+						PushSelectedEntity(entity);
+					}
+					else
+					{
+						mSelectedEntity = entity;
+					}
+				}
+				else
+				{
+					if (InputSystem::IsKeyPressed(Key::LeftControl))
+					{
+						PushSelectedEntity(entity);
+					}
+				}
 			}
 		}
 		
-
 		bool entityDeleted = false;
 		if (ImGui::BeginPopupContextItem())
 		{
@@ -1539,6 +1592,7 @@ namespace Borealis
 
 		if(entityDeleted)
 		{
+			HierarchyLayerManager::GetInstance().RemoveEntity(mSelectedEntity.GetUUID());
 			mContext->DestroyEntity(mSelectedEntity);
 			mSelectedEntity = {};
 		}
@@ -1559,7 +1613,9 @@ namespace Borealis
 					
 					if (std::is_same<T, CameraComponent>::value)
 					{
-						mSelectedEntity.GetComponent<TransformComponent>().Translate.z = 350.f;
+						mSelectedEntity.GetComponent<TransformComponent>().Translate.z = 0.f;
+						mSelectedEntity.GetComponent<TransformComponent>().Scale.x = 100.f;
+						mSelectedEntity.GetComponent<TransformComponent>().Scale.y = 100.f;
 						mSelectedEntity.GetComponent<CameraComponent>().Camera.SetCameraType(SceneCamera::CameraType::Perspective);
 					}
 
@@ -1733,7 +1789,10 @@ namespace Borealis
 					auto currentEntityID = field.GetGameObjectID(Data);
 					if (currentEntityID != 0)
 					{
-						currentEntityName = SceneManager::GetActiveScene()->GetEntityByUUID(currentEntityID).GetName();
+						if (SceneManager::GetActiveScene()->EntityExists(currentEntityID))
+							currentEntityName = SceneManager::GetActiveScene()->GetEntityByUUID(currentEntityID).GetName();
+						else
+							currentEntityName = std::to_string(currentEntityID);
 					}
 				}
 	
@@ -2460,6 +2519,7 @@ namespace Borealis
 					if (ImGui::DragFloat("Far", &orthographicFar))
 					{
 						cameraComponent.Camera.SetOrthoFar(orthographicFar);
+					}
 					}
 
 					ImGui::Checkbox("Fixed Aspect Ratio", &cameraComponent.FixedAspectRatio);

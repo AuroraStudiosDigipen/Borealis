@@ -131,6 +131,8 @@ namespace Borealis
 
 		void ToggleFullScreen();
 
+		void SetFullScreen(bool on);
+
 	private:
 		/*!***********************************************************************
 			\brief

@@ -18,6 +18,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include <Graphics/OpenGL/TextureOpenGLImpl.hpp>
 
+#define M_PI 3.14159265359
+
 namespace Borealis
 {
 	void BoundingSphere::Transform(glm::mat4 const& transform)
@@ -428,59 +430,76 @@ namespace Borealis
 		shader->Unbind();
 	}
 
-	void Mesh::DrawCubeMap()
-	{
-		static unsigned int CubeMapVAO = 0, CubeMapVBO = 0, CubeMapEBO = 0;
-		if (CubeMapVAO == 0)
-		{
-			const GLfloat cubeVertices[] =
-			{
-				// Positions        
-				-1.f, -1.f, -1.f,
-				 1.f, -1.f, -1.f,
-				 1.f,  1.f, -1.f,
-				-1.f,  1.f, -1.f,
+	void GenerateSphereMesh(unsigned int& VAO, unsigned int& VBO, unsigned int& EBO, unsigned int& indexCount, float radius = 1.0f, unsigned int sectors = 36, unsigned int stacks = 18) {
+		std::vector<float> vertices;
+		std::vector<unsigned int> indices;
 
-				-1.f, -1.f,  1.f,
-				 1.f, -1.f,  1.f,
-				 1.f,  1.f,  1.f,
-				-1.f,  1.f,  1.f
-			};
+		// Generate vertices
+		for (unsigned int i = 0; i <= stacks; ++i) {
+			float phi = M_PI * (-0.5f + static_cast<float>(i) / stacks); // Vertical angle
+			float z = radius * sin(phi);
+			float ringRadius = cos(phi);
 
-			const GLuint cubeIndices[] =
-			{
-				0, 1, 2, 2, 3, 0, // Front face
-				4, 5, 6, 6, 7, 4, // Back face
-				4, 5, 1, 1, 0, 4, // Bottom face
-				3, 2, 6, 6, 7, 3, // Top face
-				4, 0, 3, 3, 7, 4, // Left face
-				5, 1, 2, 2, 6, 5  // Right face
-			};
+			for (unsigned int j = 0; j <= sectors; ++j) {
+				float theta = 2.0f * M_PI * static_cast<float>(j) / sectors; // Horizontal angle
+				float x = ringRadius * cos(theta);
+				float y = ringRadius * sin(theta);
 
-			glGenVertexArrays(1, &CubeMapVAO);
-			glGenBuffers(1, &CubeMapVBO);
-			glGenBuffers(1, &CubeMapEBO);
-
-			glBindVertexArray(CubeMapVAO);
-			glBindBuffer(GL_ARRAY_BUFFER, CubeMapVBO);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
-
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, CubeMapEBO);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cubeIndices), cubeIndices, GL_STATIC_DRAW);
-
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0); // Vertex positions
-			glEnableVertexAttribArray(0);
+				vertices.push_back(x * radius);
+				vertices.push_back(y * radius);
+				vertices.push_back(z);
+			}
 		}
 
-		glBindVertexArray(CubeMapVAO);
-		glBindBuffer(GL_ARRAY_BUFFER, CubeMapVBO);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, CubeMapEBO);
+		// Generate indices
+		for (unsigned int i = 0; i < stacks; ++i) {
+			for (unsigned int j = 0; j < sectors; ++j) {
+				unsigned int first = i * (sectors + 1) + j;
+				unsigned int second = first + sectors + 1;
 
-		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+				indices.push_back(first);
+				indices.push_back(second);
+				indices.push_back(first + 1);
+
+				indices.push_back(second);
+				indices.push_back(second + 1);
+				indices.push_back(first + 1);
+			}
+		}
+
+		// Create VAO, VBO, and EBO
+		glGenVertexArrays(1, &VAO);
+		glGenBuffers(1, &VBO);
+		glGenBuffers(1, &EBO);
+
+		glBindVertexArray(VAO);
+
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
+
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
 
 		glBindVertexArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+		indexCount = indices.size();
+	}
+
+	void Mesh::DrawCubeMap()
+	{
+		static unsigned int SphereMapVAO = 0, SphereMapVBO = 0, SphereMapEBO = 0;
+		static unsigned int SphereMapIndexCount = 0;
+
+		if (SphereMapVAO == 0) {
+			GenerateSphereMesh(SphereMapVAO, SphereMapVBO, SphereMapEBO, SphereMapIndexCount, 1.0f, 36, 18);
+		}
+
+		glBindVertexArray(SphereMapVAO);
+		glDrawElements(GL_TRIANGLES, SphereMapIndexCount, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
 	}
 
 	void Mesh::DrawSphere(glm::vec3 center, float radius, glm::vec4 color, bool wireframe, Ref<Shader> shader, SphereSides side)

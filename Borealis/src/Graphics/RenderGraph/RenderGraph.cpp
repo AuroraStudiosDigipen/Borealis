@@ -187,12 +187,17 @@ namespace Borealis
 
 	void PixelBufferSource::Bind()
 	{
-		buffer->Bind();
+		buffer->BindForWrite();
 	}
 
 	void PixelBufferSource::Unbind()
 	{
 		buffer->Unbind();
+	}
+
+	void PixelBufferSource::SwapBuffer()
+	{
+		buffer->SwapBuffers();
 	}
 
 	void PixelBufferSource::Resize(uint32_t width, uint32_t height)
@@ -438,8 +443,6 @@ namespace Borealis
 				{
 					lightComponent.position = buffer;
 					lightComponent.isEdited = true;
-
-					std::cout << "graph Light x {}" << lightComponent.position.x << '\n';
 				}
 
 				buffer = transform.GetGlobalRotation();
@@ -495,6 +498,13 @@ namespace Borealis
 		Ref<RenderTargetSource> accumulaionTarget = nullptr;
 		Ref<PixelBufferSource> pixelBuffer = nullptr;
 		glm::vec3 camPos{};
+
+		static Ref<TextureCubeMap> cubeMap = nullptr;
+
+		if (!cubeMap)
+		{
+			cubeMap = TextureCubeMap::GetDefaultCubeMap2();
+		}
 
 		for (auto sink : sinkList)
 		{
@@ -562,7 +572,7 @@ namespace Borealis
 					materialShader = meshRenderer.Material->GetShader();
 					Renderer3D::Begin(viewProjMatrix, materialShader);
 					SetShadowAndLight(shadowMap, materialShader, registryPtr, camera, editor);
-					Renderer3D::SetLights(sData->LightsUBO);
+					//Renderer3D::SetLights(sData->LightsUBO);
 				}
 
 				Renderer3D::DrawMesh(transform.GetGlobalTransform(), meshFilter, meshRenderer, materialShader, (int)entity);
@@ -671,7 +681,7 @@ namespace Borealis
 		accumulaionTarget->Bind();
 		accumulaionTarget->buffer->ClearAttachment(0, {0.f,0.f,0.f,0.f});
 		accumulaionTarget->buffer->ClearAttachment(2, glm::vec4(1.f));
-		Renderer3D::RenderTransparentObjects(material_shader_transparency);
+		Renderer3D::RenderTransparentObjects(cubeMap);
 		accumulaionTarget->Unbind();
 
 		//Composite
@@ -686,6 +696,7 @@ namespace Borealis
 		accumulaionTarget->buffer->BindTexture(2, 1);
 		revealage_shader->Set("accumAlphaTex", 1);
 		Renderer3D::DrawQuad();
+		renderTarget->Unbind();
 
 		RenderCommand::SetDepthMask(true);
 		RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLess);
@@ -1198,7 +1209,7 @@ namespace Borealis
 				}
 
 				RenderCommand::EnableFrontFaceCull();
-				Renderer3D::End();
+				Renderer3D::End(true);
 				RenderCommand::EnableBackFaceCull();
 
 				shadowMap->Unbind();
@@ -1315,16 +1326,15 @@ namespace Borealis
 			pixelBuffer->Unbind();
 
 			renderTarget->Unbind();
+
+			pixelBuffer->SwapBuffer();
 		}
 
 		if(viewPortHovered->mRef)
 		{
 			if (SceneManager::GetActiveScene()->GetPixelBuffer()->ReadPixel(mouse->mRefX, mouse->mRefY) != -1)
 			{
-				//int id_ent = mViewportFrameBuffer->ReadPixel(1, mouseX, mouseY);
 				entityID->mRef = SceneManager::GetActiveScene()->GetPixelBuffer()->ReadPixel(mouse->mRefX, mouse->mRefY);
-				//BOREALIS_CORE_INFO("picking id {}", mHoveredEntity.GetName());
-				//BOREALIS_CORE_INFO("Name : {}", mHoveredEntity.GetName());
 			}
 			else
 			{
@@ -1496,17 +1506,15 @@ namespace Borealis
 			}
 		}
 
-		if(!cubeMap)
-		{
+
 			cubeMap = TextureCubeMap::GetDefaultCubeMap();
-		}
 
 		glm::mat4 view = glm::mat4(glm::mat3(viewMatrix));
 
 		RenderCommand::DisableDepthTest();
 		shader->Bind();
-		cubeMap->Bind(0);
-		shader->Set("u_Skybox", 0);
+		cubeMap->Bind(7);
+		shader->Set("u_Skybox", 7);
 		shader->Set("u_ViewProjection", projMatrix * view);
 		renderTarget->Bind();
 		Renderer3D::DrawCubeMap();
@@ -1923,29 +1931,25 @@ namespace Borealis
 				continue;
 			}
 
-			Ref<ParticleSystem> particleSystem = brEntity.GetComponent<ParticleSystemComponent>().particleSystem;
-
-			if (!particleSystem)
-			{
-				particleSystem = MakeRef<ParticleSystem>();
-				particleSystem->Init(brEntity.GetComponent<ParticleSystemComponent>());
-
-				if(brEntity.GetComponent<ParticleSystemComponent>().texture == nullptr)
-					brEntity.GetComponent<ParticleSystemComponent>().texture = Texture2D::GetDefaultTexture();
-			}
+			auto particleSystem = brEntity.GetComponent<ParticleSystemComponent>();
 			
-			std::vector<Particle> const& particles = particleSystem->GetParticles();
-			uint32_t particlesCount = particleSystem->GetParticlesCount();
+			std::vector<Particle> const& particles = particleSystem.GetParticles();
+			uint32_t particlesCount = particleSystem.GetParticlesCount();
 			for (Particle const& particle : particles)
 			{
 				if (!particle.isActive)
 				{
 					continue;
 				}
+
 				glm::mat4 transfrom = glm::translate(glm::mat4(1.0f), particle.position) *
 					glm::toMat4(particle.startRotation) *
 					glm::scale(glm::mat4(1.0f), particle.startSize);
-				Renderer2D::DrawQuad(transfrom, brEntity.GetComponent<ParticleSystemComponent>().texture, particle.startSize[0], particle.currentColor, -1, true);
+
+				if (particleSystem.texture)
+					Renderer2D::DrawQuad(transfrom, particleSystem.texture, particle.startSize[0], particle.currentColor, -1, true);
+				else
+					Renderer2D::DrawQuad(transfrom, ParticleSystemComponent::GetDefaultParticleTexture(), particle.startSize[0], particle.currentColor, -1, true);
 			}
 		}
 

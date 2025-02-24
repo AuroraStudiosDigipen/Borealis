@@ -85,6 +85,11 @@ namespace BorealisRuntime
 			Borealis::SceneManager::GetActiveScene()->GetRunTimeFB()->Resize((uint32_t)windowWidth, (uint32_t)windowHeight);
 		}
 
+		float normalizedMouseX = Borealis::InputSystem::GetMouseX() / (float)windowWidth - 0.5f;
+		float normalizedMouseY = Borealis::InputSystem::GetMouseY() / (float)windowHeight - 0.5f;
+		Borealis::ButtonSystem::SetMousePos({ normalizedMouseX, normalizedMouseY });
+		Borealis::SceneManager::GetActiveScene()->UpdateRuntime(dt);
+
 		Borealis::Renderer2D::ResetStats();
 
 		Borealis::SceneManager::GetActiveScene()->GetRunTimeFB()->Bind();
@@ -149,11 +154,6 @@ namespace BorealisRuntime
 			Borealis::SceneManager::GetActiveScene()->SetRenderGraphConfig(fconfig);
 			Borealis::SceneManager::GetActiveScene()->UpdateRenderer(dt);
 		}
-
-		float normalizedMouseX = Borealis::InputSystem::GetMouseX() / (float)windowWidth - 0.5f;
-		float normalizedMouseY = Borealis::InputSystem::GetMouseY() / (float)windowHeight - 0.5f;
-		Borealis::ButtonSystem::SetMousePos({normalizedMouseX, normalizedMouseY});
-		Borealis::SceneManager::GetActiveScene()->UpdateRuntime(dt);
 
 		if (Borealis::SceneManager::ToNextScene)
 		{

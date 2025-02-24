@@ -28,6 +28,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scripting/ScriptField.hpp>
 #include <Scripting/ScriptingSystem.hpp>
 #include <Scripting/ScriptingUtils.hpp>
+#include <Core/HierarchyLayerManager.hpp>
 namespace Borealis
 {
 
@@ -51,7 +52,7 @@ namespace Borealis
 
 	void Serialiser::SerializeEntity(YAML::Emitter& out, Entity& entity)
 	{
-		out << YAML::BeginMap;
+		out << YAML::Flow << YAML::BeginMap;
 		out << YAML::Key << "EntityID" << YAML::Value << entity.GetComponent<IDComponent>().ID;
 		if (entity.HasComponent<TagComponent>())
 		{
@@ -374,6 +375,12 @@ namespace Borealis
 		SerialiseAbstractItems(out, entity);
 
 		out << YAML::EndMap;
+
+		for (auto child : entity.GetComponent<TransformComponent>().ChildrenID)
+		{
+			auto childEntity = mScene->GetEntityByUUID(child);
+			SerializeEntity(out, childEntity);
+		}
 	}
 
 	bool Serialiser::SerialiseScene(const std::string& filepath)
@@ -383,14 +390,10 @@ namespace Borealis
 			<< YAML::Key << "Scene" << YAML::Value << mScene->GetName()
 		    << YAML::Key <<"Entities"	<<	YAML::Value << YAML::BeginSeq;
 
-		auto view = mScene->mRegistry.view<entt::entity>();
-		for (auto enttEntity : view)
+		auto view = HierarchyLayerManager::GetInstance().GetEntitiesInLayerOrder();
+		for (auto id : view)
 		{
-			Entity entity { enttEntity, mScene.get() };
-			if (!entity)
-			{
-				return false;
-			}
+			auto entity = mScene->GetEntityByUUID(id);
 			SerializeEntity(out, entity);
 
 		}
@@ -407,6 +410,7 @@ namespace Borealis
 		return true;
 	}
 
+	static std::unordered_set<UUID> sEntityList;
 
 	entt::entity Serialiser::DeserialiseEntity(YAML::detail::iterator_value& entity, entt::registry& registry, UUID& uuid)
 	{
@@ -442,41 +446,9 @@ namespace Borealis
 		DeserialiseComponent<ButtonComponent>(entity, BorealisEntity);
 		DeserialiseAbstractItems(entity, BorealisEntity);
 		TagList::AddEntity(BorealisEntity.GetComponent<TagComponent>().Tag, uuid);
-		//auto behaviourTreeComponent = entity["BehaviourTreeComponent"];
-		/*
-			extract the name of tree and root node, then iteritivly build the tree, then call the clone method by createfromname function
-			behaviourNode["name"]
-		*/
-		//if (behaviourTreeComponent)
-		//{
-		//	//BOREALIS_CORE_TRACE("Parsed YAML: {}", behaviourTreeComponent);//used for debugging to see what is being read
-		//	auto& btc = BorealisEntity.AddComponent<BehaviourTreeComponent>();
-		//	Ref<BehaviourTree> tempTree = MakeRef<BehaviourTree>();
-
-		//	// Access the BehaviourTree node first
-		//	auto behaviourTree = behaviourTreeComponent["BehaviourTree"];
-
-		//	// Get the root node name and depth
-		//	std::string treeName = behaviourTree["Tree Name"].as<std::string>();
-		//	tempTree->SetBehaviourTreeName(treeName);
-		//	std::string rootName = behaviourTree["name"].as<std::string>();
-		//	int rootDepth = behaviourTree["depth"].as<int>();
-
-		//	// Create root node using NodeFactory
-		//	Ref<BehaviourNode> rootNode = Borealis::NodeFactory::CreateNodeByName(rootName);
-
-		//	// Set the root node of the tree
-		//	tempTree->SetRootNode(rootNode); //sets depth to 0 by default
-		//	BOREALIS_CORE_TRACE("Deserialising BT {}", treeName);
-
-		//	// If the root node has children, parse them recursively
-		//	if (behaviourTree["children"]) {
-		//		for (auto childNode : behaviourTree["children"]) {
-		//			ParseTree(childNode, rootNode, *tempTree, rootDepth);
-		//		}
-		//	}
-		//	btc.mBehaviourTrees->
-		//}
+		if (BorealisEntity.HasComponent<ParticleSystemComponent>()) {
+			BorealisEntity.GetComponent<ParticleSystemComponent>().Init();
+		}
 
 		auto scriptComponent = entity["ScriptComponent"];
 		if (scriptComponent)
@@ -515,6 +487,11 @@ namespace Borealis
 						if (fieldData["Type"].as<std::string>() == "GameObject")
 						{
 							uint64_t data = fieldData["Data"].as<uint64_t>();
+
+							if (sEntityList.find(data) == sEntityList.end())
+							{
+								continue;
+							}
 							MonoObject* field = nullptr;
 							InitGameObject(field, data, fieldData["Type"].as<std::string>());
 							scriptInstance->SetFieldValue(fieldName, field);
@@ -524,6 +501,10 @@ namespace Borealis
 						if (fieldData["Type"].as<std::string>() == "MonoBehaviour")
 						{
 							uint64_t data = fieldData["Data"].as<uint64_t>();
+							if (sEntityList.find(data) == sEntityList.end())
+							{
+								continue;
+							}
 							scriptQueue.push({ scriptInstance, data, fieldName });
 							continue;
 						}
@@ -633,9 +614,22 @@ namespace Borealis
 							continue;
 						}
 
-						if (scriptInstance->GetScriptClass()->mFields[fieldName].isAssetField() || scriptInstance->GetScriptClass()->mFields[fieldName].isNativeComponent())
+						if (scriptInstance->GetScriptClass()->mFields[fieldName].isAssetField())
 						{
 							uint64_t data = fieldData["Data"].as<uint64_t>();
+							MonoObject* field = nullptr;
+							InitGameObject(field, data, fieldData["Type"].as<std::string>());
+							scriptInstance->SetFieldValue(fieldName, field);
+							continue;
+						}
+
+						if (scriptInstance->GetScriptClass()->mFields[fieldName].isNativeComponent())
+						{
+							uint64_t data = fieldData["Data"].as<uint64_t>();
+							if (sEntityList.find(data) == sEntityList.end())
+							{
+								continue;
+							}
 							MonoObject* field = nullptr;
 							InitGameObject(field, data, fieldData["Type"].as<std::string>());
 							scriptInstance->SetFieldValue(fieldName, field);
@@ -668,6 +662,17 @@ namespace Borealis
 		// Deserialise scene info such as viewport sizes
 		mScene->ResizeViewport(1920, 1080);
 		auto entities = data["Entities"];
+
+
+		if (entities)
+		{
+			for (auto entity : entities)
+			{
+				uint64_t uuid = entity["EntityID"].as<uint64_t>(); // UUID
+				sEntityList.insert(uuid);
+			}
+		}
+
 		if (entities)
 		{
 			for (auto entity : entities)
@@ -684,6 +689,29 @@ namespace Borealis
 				auto script = scriptComponent.mScripts.find(scriptData.scriptInstance->GetScriptClass()->mFields[scriptData.scriptFieldName].mFieldClassName());
 				scriptData.scriptInstance->SetFieldValue(scriptData.scriptFieldName, script->second->GetInstance());
 				scriptQueue.pop();
+			}
+		}
+
+		sEntityList.clear();
+
+		// Delete invalid children
+		for (auto[id, entity] : mScene->mEntityMap)
+		{
+			auto& transform = mScene->GetRegistry().get<TransformComponent>(entity);
+			std::vector<int> removeID;
+			int i = 0;
+			for (auto childID : transform.ChildrenID)
+			{
+				if (!mScene->mEntityMap.contains(childID))
+				{
+					removeID.push_back(i);
+				}
+				i++;
+			}
+
+			for (auto iterator = removeID.rbegin(); iterator < removeID.rend(); iterator++)
+			{
+				transform.ChildrenID.erase(transform.ChildrenID.begin() + *iterator);
 			}
 		}
 

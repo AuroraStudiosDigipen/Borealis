@@ -310,6 +310,7 @@ namespace Borealis
             .property("Name", &TagComponent::Name)
             .property("Layer", &TagComponent::mLayer)
             .property("Tag", &TagComponent::Tag)
+            .property("Hierarchy Layer", &TagComponent::mHierarchyLayer);
             (metadata("Tag", true));
 
         registration::class_<TransformComponent>("Transform Component")

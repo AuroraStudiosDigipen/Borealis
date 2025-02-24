@@ -142,6 +142,8 @@ namespace Borealis
 		void ReadTexture(uint32_t index);
 		void Bind() override;
 		void Unbind() override;
+
+		void SwapBuffer();
 		void Resize(uint32_t width, uint32_t height);
 		Ref<PixelBuffer> buffer;
 		uint32_t Width, Height;

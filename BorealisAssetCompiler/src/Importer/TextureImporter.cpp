@@ -225,6 +225,11 @@ namespace BorealisAssetCompiler
         if (!gli::save(cubemap, cache.string())) {
             throw std::runtime_error("Failed to save cubemap to file");
         }
+
+        std::filesystem::path finalCachePath = cachePath;
+        finalCachePath.replace_extension("");
+
+        std::filesystem::rename(cache, finalCachePath);
     }
 
     void TextureImporter::SaveDDSFile(const std::string& filePath, int width, int height, const std::vector<uint8_t>& compressedData, DDSHeader header)

@@ -88,7 +88,7 @@ namespace Borealis
 		return a.entityID < b.entityID; // Fallback for stable sorting
 	}
 
-	void Renderer3D::End()
+	void Renderer3D::End(bool posOnly)
 	{
 		std::sort(drawQueue.begin(), drawQueue.end(), DrawCallComparator);
 
@@ -132,7 +132,7 @@ namespace Borealis
 
 			if (std::holds_alternative<Ref<Model>>(drawCall.model))
 			{
-				std::get<Ref<Model>>(drawCall.model)->Draw(drawCall.transform, drawCall.shaderID, drawCall.entityID);
+				std::get<Ref<Model>>(drawCall.model)->Draw(drawCall.transform, drawCall.shaderID, drawCall.entityID, posOnly);
 			}
 			else
 			{

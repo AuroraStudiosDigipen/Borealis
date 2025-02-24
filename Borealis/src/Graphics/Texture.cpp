@@ -118,6 +118,12 @@ namespace Borealis
 		}
 		return mDefaultCubeMap;
 	}
+
+	void TextureCubeMap::SetDefaultCubeMap(AssetMetaData const& assetMetaData)
+	{
+		mDefaultCubeMap = Load(assetMetaData);
+	}
+
 	Ref<TextureCubeMap> TextureCubeMap::GetDefaultCubeMap2()
 	{
 		if (!mDefaultCubeMap)

@@ -205,7 +205,7 @@ namespace Borealis
 		float mOrthoFar = 1000.0f;
 
 		float mPerspFOV = glm::radians(45.0f);
-		float mPerspNear = 20.f;
+		float mPerspNear = 0.1f;
 		float mPerspFar = 1000.0f;
 
 		float mAspectRatio = 1.78f;

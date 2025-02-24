@@ -50,7 +50,7 @@ namespace Borealis
 		TextureType type = TextureType::_DEFAULT;
 		TextureShape shape = TextureShape::_2D;
 		bool sRGB = true;
-		bool generateMipMaps = false;
+		bool generateMipMaps = true;
 		TextureWrap wrapMode = TextureWrap::_REPEAT;
 		TextureFilter filterMode = TextureFilter::_LINEAR;
 	};

@@ -645,19 +645,20 @@ namespace Borealis {
 
 				}
 
-				CubemapPanel::RenderCubemapSetting();
-
 			ImGui::End(); // Of Settings
 
 			SCPanel.ImGuiRender();
 			CBPanel.ImGuiRender();
 			CSPanel.ImGuiRender();
 			AMPanel.ImGuiRender();
+			SRPanel.ImGuiRender();
 			
 			BTNEPanel.ImGuiRender();
 
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0,0 });
+
 			ImGui::Begin("Viewport");
+
 
 				mViewportFocused = ImGui::IsWindowFocused();
 				mViewportHovered = ImGui::IsWindowHovered();

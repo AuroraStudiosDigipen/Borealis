@@ -1613,7 +1613,9 @@ namespace Borealis
 					
 					if (std::is_same<T, CameraComponent>::value)
 					{
-						mSelectedEntity.GetComponent<TransformComponent>().Translate.z = 350.f;
+						mSelectedEntity.GetComponent<TransformComponent>().Translate.z = 0.f;
+						mSelectedEntity.GetComponent<TransformComponent>().Scale.x = 100.f;
+						mSelectedEntity.GetComponent<TransformComponent>().Scale.y = 100.f;
 						mSelectedEntity.GetComponent<CameraComponent>().Camera.SetCameraType(SceneCamera::CameraType::Perspective);
 					}
 

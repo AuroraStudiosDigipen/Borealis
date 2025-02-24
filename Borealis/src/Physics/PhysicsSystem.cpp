@@ -1032,7 +1032,7 @@ namespace Borealis
 	{
 		direction = glm::normalize(direction);
 		direction *= maxDistance; //set distance of ray
-		RRayCast ray { Vec3(origin.x, origin.y, origin.z), Vec3(direction.x, direction.y, direction.z) };
+		RRayCast ray{ Vec3(origin.x, origin.y, origin.z), Vec3(direction.x, direction.y, direction.z) };
 		auto& narrowPhaseQuery = sPhysicsData.mSystem->GetNarrowPhaseQuery();
 		RayCastResult result;
 		//result.mFraction = maxDistance;
@@ -1041,6 +1041,11 @@ namespace Borealis
 			return narrowPhaseQuery.CastRay(ray, result);
 		}
 		return narrowPhaseQuery.CastRay(ray, result, {}, ObjectLayerFilterImpl(LayerMask));
+		if (PhysicsSystem::shouldDebugDraw)
+		{
+			Renderer2D::DrawLine(origin, origin + direction * result.mFraction, glm::vec4(1, 0, 0, 1));
+
+		}
 	}
 
 
@@ -1074,6 +1079,11 @@ namespace Borealis
 		}
 		hitInfo->point = origin + direction * hitInfo->distance;
 
+		if (PhysicsSystem::shouldDebugDraw)
+		{
+			Renderer2D::DrawLine(origin, origin + direction * result.mFraction, glm::vec4(1, 0, 0, 1));
+
+		}
 		return output;
 	}
 
@@ -1271,7 +1281,7 @@ namespace Borealis
 			body_settings.mObjectLayer = tagComponent.mLayer.toUint16();
 			body_settings.mAllowDynamicOrKinematic = true;
 			body_settings.mFriction = rigidbody->friction;
-			body_settings.mRestitution = rigidbody->bounciness;
+			body_settings.mRestitution = 0.f;
 		}
 		else
 		{

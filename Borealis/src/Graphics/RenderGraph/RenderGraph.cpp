@@ -1720,7 +1720,7 @@ namespace Borealis
 
 		Ref<FrameBuffer> uiFBO = nullptr;
 
-		viewProjMatrix = glm::ortho(0.0f, (float)renderTarget->Width, (float)renderTarget->Height, 0.0f, -100.0f, 100.0f);
+		viewProjMatrix = glm::ortho(0.0f, (float)renderTarget->Width, (float)renderTarget->Height, 0.0f, -1.0f, 1.0f);
 		sData->cameraData.ViewProjection = viewProjMatrix;
 		sData->CameraUBO->SetData(&sData->cameraData, sizeof(sData->cameraData));
 		Renderer2D::Begin(viewProjMatrix);
@@ -1749,7 +1749,10 @@ namespace Borealis
 					canvas.canvasSize.y = renderTarget->Height * canvas.scaleFactor;
 
 					glm::mat4 canvasTransform = glm::translate(glm::mat4(1.f), glm::vec3{});
-					canvasTransform = glm::scale(canvasTransform, glm::vec3(canvas.canvasSize.x, canvas.canvasSize.y, 1.f));
+					if(canvas.applyCanvasScale)
+					{
+						canvasTransform = glm::scale(canvasTransform, glm::vec3(canvas.canvasSize.x, canvas.canvasSize.y, 1.f));
+					}
 					transform.SetGlobalTransform(canvasTransform);
 				}
 
@@ -1780,7 +1783,10 @@ namespace Borealis
 
 				{
 					glm::mat4 canvasTransform = glm::translate(glm::mat4(1.f), currTransfrom);
-					canvasTransform = glm::scale(canvasTransform, glm::vec3(canvas.canvasSize.x, canvas.canvasSize.y, 1.f));
+					if(canvas.applyCanvasScale)
+					{
+						canvasTransform = glm::scale(canvasTransform, glm::vec3(canvas.canvasSize.x, canvas.canvasSize.y, 1.f));
+					}
 					transform.SetGlobalTransform(canvasTransform);
 				}
 			}
@@ -1867,7 +1873,10 @@ namespace Borealis
 
 				SpriteRendererComponent sprite;
 				sprite.Colour = { 0.f,0.f,100.f, 0.2f };
-				transform.SetGlobalTransform(canvasTransform);
+				if(canvas.applyCanvasScale)
+				{
+					transform.SetGlobalTransform(canvasTransform);
+				}
 				Renderer2D::DrawSprite(canvasTransform, sprite, (int)entity);
 			}
 		}

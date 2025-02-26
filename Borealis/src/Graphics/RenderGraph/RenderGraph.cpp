@@ -1956,9 +1956,9 @@ namespace Borealis
 					glm::scale(glm::mat4(1.0f), particle.startSize);
 
 				if (particleSystem.texture)
-					Renderer2D::DrawQuad(transfrom, particleSystem.texture, particle.startSize[0], particle.currentColor, -1, true);
+					Renderer2D::DrawQuad(transfrom, particleSystem.texture, particle.startSize[0] * -1, particle.currentColor, -1, true);
 				else
-					Renderer2D::DrawQuad(transfrom, ParticleSystemComponent::GetDefaultParticleTexture(), particle.startSize[0], particle.currentColor, -1, true);
+					Renderer2D::DrawQuad(transfrom, ParticleSystemComponent::GetDefaultParticleTexture(), particle.startSize[0] * -1, particle.currentColor, -1, true);
 			}
 		}
 

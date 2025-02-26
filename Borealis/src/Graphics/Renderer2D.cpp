@@ -414,7 +414,7 @@ namespace Borealis
 		PROFILE_FUNCTION();
 		if (sprite.Texture)
 		{
-			DrawQuad(transform, sprite.Texture, sprite.TilingFactor, sprite.Colour, entityID);
+			DrawQuad(transform, sprite.Texture, sprite.TilingFactor, sprite.Colour, entityID, false, sprite.useTextureAspectRatio);
 		}
 		else
 			DrawQuad(transform, sprite.Colour, entityID);
@@ -908,7 +908,7 @@ namespace Borealis
 		DrawQuad(transform, texture, tilingFactor);
 	}
 
-	void Renderer2D::DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const float& tilingFactor, const glm::vec4& tint, int entityID, bool billBoard)
+	void Renderer2D::DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const float& tilingFactor, const glm::vec4& tint, int entityID, bool billBoard, bool useTextureAR)
 	{
 		PROFILE_FUNCTION();
 
@@ -946,10 +946,20 @@ namespace Borealis
 			{0.0f, 0.0f} 
 		};
 
+		float aspectRatio = static_cast<float>(texture->GetWidth()) / static_cast<float>(texture->GetHeight());
+
+		glm::vec4 scaledVertices[4];
+		for (int i = 0; i < 4; i++) {
+			scaledVertices[i] = sData->VertexPos[i];
+			scaledVertices[i].x *= aspectRatio;
+		}
+
 		for (int i = 0; i < 4; i++)
 		{
 			if (billBoard)
 				sData->QuadBufferPtr->Position = transform * glm::vec4(0.f, 0.f, 0.f, 1.f);
+			else if(useTextureAR)
+				sData->QuadBufferPtr->Position = transform * scaledVertices[i];
 			else
 				sData->QuadBufferPtr->Position = transform * sData->VertexPos[i];
 			sData->QuadBufferPtr->Colour = tint;

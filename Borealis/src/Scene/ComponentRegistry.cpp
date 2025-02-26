@@ -226,7 +226,8 @@ namespace Borealis
             .property("Colour", &SpriteRendererComponent::Colour)
             (metadata("Colour", true))
             .property("Texture", &SpriteRendererComponent::Texture)
-            .property("Tiling Factor", &SpriteRendererComponent::TilingFactor);
+            .property("Tiling Factor", &SpriteRendererComponent::TilingFactor)
+            .property("Use Texture Aspect Ratio", &SpriteRendererComponent::useTextureAspectRatio);
 
         registration::class_<OutLineComponent>("Outline Component")
             (metadata("Component", true))

@@ -182,6 +182,7 @@ uniform vec3 u_ViewPos;
 
 uniform sampler2D u_ShadowMap;
 uniform sampler2DArray u_CascadeShadowMap;
+uniform sampler2DArray u_CascadeShadowMapDynamic;
 uniform bool shadowPass = false;
 uniform bool u_HasShadow = false;
 uniform mat4 u_LightSpaceMatrices[4];
@@ -339,11 +340,12 @@ float GetCascadeShadowFactor(vec3 lightDir, vec3 normal)
     }
 
 	float depth = texture(u_CascadeShadowMap, vec3(UVCoord, layer)).x;
+    float depth2 = texture(u_CascadeShadowMapDynamic, vec3(UVCoord, layer)).x;
 
 	float diffuseFactor = dot(normal, -lightDir);
 	float bias = 0.0025;//mix(0.0025f, 0.00f, diffuseFactor);
 
-	if(depth + bias < z)
+	if((depth + bias < z) || (depth2 + bias < z))
 	{
 		return 0.5;
 	}

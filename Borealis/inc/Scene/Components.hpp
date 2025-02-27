@@ -176,6 +176,7 @@ namespace Borealis
 	{
 		Ref<SkinnedModel> SkinnnedModel = nullptr;
 		Ref<Material>	  Material = nullptr;
+		uint32_t		  AnimationIndex = 0;
 
 		SkinnedMeshRendererComponent() = default;
 		SkinnedMeshRendererComponent(const SkinnedMeshRendererComponent&) = default;

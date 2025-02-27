@@ -48,9 +48,9 @@ namespace Borealis
 			{
 				Light::SetUBO(*mLights[i], mLightsUBO[i]);
 			}
-			LightsUBO->SetData(mLightsUBO.data(), mLightsUBO.size() * sizeof(LightUBO));
+			LightsUBO->SetData(mLightsUBO.data(), (uint32_t)(mLightsUBO.size() * sizeof(LightUBO)));
 			int lightsCount = static_cast<int>(mLights.size());
-			LightsUBO->SetData(&lightsCount, sizeof(int), mLightsUBO.size() * sizeof(LightUBO));
+			LightsUBO->SetData(&lightsCount, sizeof(int), (uint32_t)(mLightsUBO.size() * sizeof(LightUBO)));
 		//}
 	}
 }

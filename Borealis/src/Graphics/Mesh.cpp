@@ -159,38 +159,6 @@ namespace Borealis
 
 		// Unbind VAO
 		glBindVertexArray(0);
-
-		//glGenVertexArrays(1, &VAO);
-		//glGenBuffers(1, &VBO);
-		//glGenBuffers(1, &EBO);
-
-		//glBindVertexArray(VAO);
-		//glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-		//glBufferData(GL_ARRAY_BUFFER, mVertices.size() * sizeof(Vertex), &mVertices[0], GL_STATIC_DRAW);
-
-		//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-		//glBufferData(GL_ELEMENT_ARRAY_BUFFER, mIndices.size() * sizeof(unsigned int),
-		//	&mIndices[0], GL_STATIC_DRAW);
-
-		//// vertex positions
-		//glEnableVertexAttribArray(0);
-		//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-		//// vertex normals
-		//glEnableVertexAttribArray(1);
-		//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
-		//// vertex texture coords
-		//glEnableVertexAttribArray(2);
-		//glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
-		//// Tangents
-		//glEnableVertexAttribArray(3);
-		//glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Tangent));
-		//// Bitangents
-		//glEnableVertexAttribArray(4);
-		//glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Bitangent));
-
-		//// Unbind VAO
-		//glBindVertexArray(0);
 	}
 
 	void Mesh::Draw(const glm::mat4& transform, Ref<Shader> shader, int entityID, bool posOnly)
@@ -436,12 +404,12 @@ namespace Borealis
 
 		// Generate vertices
 		for (unsigned int i = 0; i <= stacks; ++i) {
-			float phi = M_PI * (-0.5f + static_cast<float>(i) / stacks); // Vertical angle
+			float phi = (float)M_PI * (-0.5f + static_cast<float>(i) / stacks); // Vertical angle
 			float z = radius * sin(phi);
 			float ringRadius = cos(phi);
 
 			for (unsigned int j = 0; j <= sectors; ++j) {
-				float theta = 2.0f * M_PI * static_cast<float>(j) / sectors; // Horizontal angle
+				float theta = 2.0f * (float)M_PI * static_cast<float>(j) / sectors; // Horizontal angle
 				float x = ringRadius * cos(theta);
 				float y = ringRadius * sin(theta);
 
@@ -485,7 +453,7 @@ namespace Borealis
 
 		glBindVertexArray(0);
 
-		indexCount = indices.size();
+		indexCount = (unsigned int)indices.size();
 	}
 
 	void Mesh::DrawCubeMap()

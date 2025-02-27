@@ -369,6 +369,8 @@ namespace Borealis
 	{
 	public:
 		void Init();
+
+		void Update();
 		void AddPass(Ref<RenderPass> pass);
 		void Execute(float dt);
 

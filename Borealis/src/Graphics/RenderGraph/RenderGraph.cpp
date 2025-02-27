@@ -51,6 +51,8 @@ namespace Borealis
 
 	Ref<FrameBuffer> mCascadeShadowMapBuffer = nullptr;
 	Ref<FrameBuffer> mCascadeShadowMapBufferEditor = nullptr;
+	Ref<FrameBuffer> mCascadeShadowMapBufferDynamic = nullptr;
+	Ref<FrameBuffer> mCascadeShadowMapBufferDynamicEditor = nullptr;
 
 	struct RenderData
 	{
@@ -427,6 +429,7 @@ namespace Borealis
 			shader->Set("u_HasShadow", false);
 			shader->Set("u_ShadowMap", 0);
 			shader->Set("u_CascadeShadowMap", 1);
+			shader->Set("u_CascadeShadowMapDynamic", 2);
 			entt::basic_group group = registryPtr->group<>(entt::get<TransformComponent, LightComponent>);
 			for (auto& entity : group)
 			{
@@ -468,15 +471,19 @@ namespace Borealis
 					}
 					else if (lightComponent.type == LightComponent::Type::Directional)
 					{
-						if (!editor && mCascadeShadowMapBuffer)
+						if (!editor && mCascadeShadowMapBuffer && mCascadeShadowMapBufferDynamic)
 						{
 							mCascadeShadowMapBuffer->BindDepthBuffer(1, true);
+							mCascadeShadowMapBufferDynamic->BindDepthBuffer(2, true);
 							shader->Set("u_CascadeShadowMap", 1);
+							shader->Set("u_CascadeShadowMapDynamic", 2);
 						}
-						else if (editor && mCascadeShadowMapBufferEditor)
+						else if (editor && mCascadeShadowMapBufferEditor && mCascadeShadowMapBufferDynamicEditor)
 						{
 							mCascadeShadowMapBufferEditor->BindDepthBuffer(1, true);
+							mCascadeShadowMapBufferDynamicEditor->BindDepthBuffer(2, true);
 							shader->Set("u_CascadeShadowMap", 1);
+							shader->Set("u_CascadeShadowMapDynamic", 2);
 						}
 					}
 				}
@@ -643,7 +650,7 @@ namespace Borealis
 
 				//Renderer3D::SetLights(materialShader);
 				Renderer3D::DrawSkinnedMesh(transform.GetGlobalTransform(), skinnedMesh, materialShader, (int)entity, animationCount-1);
-
+				skinnedMesh.AnimationIndex = animationCount - 1;
 				if (animationCount >= 5)
 				{
 					renderTarget->Bind();
@@ -768,7 +775,7 @@ namespace Borealis
 				}
 
 				auto [transform, text] = group.get<TransformComponent, TextComponent>(entity);
-				Renderer2D::DrawString(text.text, text.font, transform.GetGlobalTransform(), (int)entity, text.fontSize, text.colour, text.align == TextComponent::TextAlign::Left ? false : true);
+				Renderer2D::DrawString(text.text, text.font, transform.GetGlobalTransform(), (int)entity, (float)text.fontSize, text.colour, text.align == TextComponent::TextAlign::Left ? false : true);
 			}
 		}
 
@@ -802,7 +809,7 @@ namespace Borealis
 			{
 				TextComponent const& text = parent.GetComponent<TextComponent>();
 
-				Renderer2D::DrawString(text.text, text.font, transform, (int)parent, text.fontSize, text.colour, text.align == TextComponent::TextAlign::Left? false:true);
+				Renderer2D::DrawString(text.text, text.font, transform, (int)parent, (float)text.fontSize, text.colour, text.align == TextComponent::TextAlign::Left? false:true);
 			}
 		}
 
@@ -829,7 +836,7 @@ namespace Borealis
 			if (parent.HasComponent<TextComponent>())
 			{
 				const TextComponent& text = parent.GetComponent<TextComponent>();
-				Renderer2D::DrawString(text.text, text.font, transform, (int)parent, text.fontSize, text.colour, text.align == TextComponent::TextAlign::Left ? false : true);
+				Renderer2D::DrawString(text.text, text.font, transform, (int)parent, (float)text.fontSize, text.colour, text.align == TextComponent::TextAlign::Left ? false : true);
 			}
 		}
 
@@ -1055,7 +1062,7 @@ namespace Borealis
 
 	ShadowPass::ShadowPass(std::string name) : EntityPass(name)
 	{
-		shader = material_shader;//switch out
+		shader = material_shader;
 	}
 
 	void ShadowPass::Execute(float dt)
@@ -1097,6 +1104,7 @@ namespace Borealis
 			glm::mat4 lightViewProj{};
 			static bool editorChange = false;
 			bool directionalLight = false;
+			bool skipStaticShadows = false;
 			entt::basic_group group = registryPtr->group<>(entt::get<TransformComponent, LightComponent>);
 			for (auto& entity : group)
 			{
@@ -1125,39 +1133,36 @@ namespace Borealis
 				static glm::vec3 tempLightDir{};
 				static glm::vec3 tempPos{}, tempPosEditor{};
 
-				//if(false/*TURN ON FOR PERFORMANCE*/)
-				//{
-					if (tempLightDir != lightComponent.direction) lightChange = true;
+				if (tempLightDir != lightComponent.direction) lightChange = true;
 
-					if (!editor)
+				if (!editor)
+				{
+					if (glm::distance(tempPos, cameraPosition) > 0.05f) cameraChange = true;
+				}
+				else
+				{
+					if (glm::distance(tempPosEditor, cameraPosition) > 0.05f) cameraChange = true;
+				}
+
+				if (lightChange || cameraChange)
+				{
+					tempLightDir = lightComponent.direction;
+
+					if (editor)
 					{
-						if (glm::distance(tempPos, cameraPosition) > 0.05f) cameraChange = true;
+						tempPosEditor = cameraPosition;
 					}
 					else
 					{
-						if (glm::distance(tempPosEditor, cameraPosition) > 0.05f) cameraChange = true;
+						tempPos = cameraPosition;
+						editorChange = false;
 					}
-
-					if (lightChange || cameraChange)
-					{
-						tempLightDir = lightComponent.direction;
-
-						if (editor)
-						{
-							tempPosEditor = cameraPosition;
-						}
-						else
-						{
-							tempPos = cameraPosition;
-							editorChange = false;
-						}
-					}
-					else
-					{
-						if (editorChange)
-							return;
-					}
-				//}
+				}
+				else
+				{
+					if (editorChange)
+						skipStaticShadows = true;
+				}
 
 				if (lightComponent.type == LightComponent::Type::Directional)
 				{
@@ -1198,13 +1203,10 @@ namespace Borealis
 
 						if (CullBoundingSphere(frustum, modelBoundingSphere))
 						{
-							//BOREALIS_CORE_INFO("Culling entity {}", (int)entity);
 							continue;
 						}
 
-						RenderCommand::EnableFrontFaceCull();
 						Renderer3D::DrawMesh(transform.GetGlobalTransform(), meshFilter, meshRenderer, shader, (int)entity);
-						RenderCommand::EnableBackFaceCull();
 					}
 				}
 
@@ -1216,50 +1218,105 @@ namespace Borealis
 			}
 
 			Ref<FrameBuffer> CSMBuffer = nullptr;
+			Ref<FrameBuffer> CSMBufferDynamic = nullptr;
 			if (editor)
 			{
 				editorChange = true;
 				CSMBuffer = mCascadeShadowMapBufferEditor;
+				CSMBufferDynamic = mCascadeShadowMapBufferDynamicEditor;
 			}
 			else
 			{
 				CSMBuffer = mCascadeShadowMapBuffer;
+				CSMBufferDynamic = mCascadeShadowMapBufferDynamic;
 			}
 
 			if(directionalLight && S_SIMPLEMESH)
 			{
-				CSMBuffer->Bind();
+				if(!skipStaticShadows)
+				{
+					CSMBuffer->Bind();
+					RenderCommand::Clear();
+
+					auto group = registryPtr->group<>(entt::get<TransformComponent, MeshFilterComponent, MeshRendererComponent>);
+					for (auto& entity : group)
+					{
+						Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
+						if (!brEntity.IsActive())
+						{
+							continue;
+						}
+						auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
+						if (!meshFilter.Model || !meshRenderer.Material || !meshRenderer.active) continue;
+
+						if (!meshRenderer.castShadow) continue;
+
+						BoundingSphere modelBoundingSphere = meshFilter.Model->mBoundingSphere;
+						modelBoundingSphere.Transform(transform.GetGlobalTransform());
+
+
+						if (CullBoundingSphere(frustum, modelBoundingSphere))
+						{
+							//BOREALIS_CORE_INFO("Culling entity {}", (int)entity);
+							continue;
+						}
+						cascade_shadow_shader->Bind();
+						cascade_shadow_shader->Set("u_HasAnimation", false);
+						RenderCommand::EnableFrontFaceCull();
+						Renderer3D::DrawHighlightedMesh(transform.GetGlobalTransform(), meshFilter, cascade_shadow_shader);
+						RenderCommand::EnableBackFaceCull();
+					}
+
+					CSMBuffer->Unbind();
+				}
+
+				//Dynamic
+				CSMBufferDynamic->Bind();
 				RenderCommand::Clear();
 
-				auto group = registryPtr->group<>(entt::get<TransformComponent, MeshFilterComponent, MeshRendererComponent>);
-				for (auto& entity : group)
+				auto dynamicgroup = registryPtr->group<>(entt::get<TransformComponent, SkinnedMeshRendererComponent>);
+				for (auto& entity : dynamicgroup)
 				{
 					Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
 					if (!brEntity.IsActive())
 					{
 						continue;
 					}
-					auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
-					if (!meshFilter.Model || !meshRenderer.Material || !meshRenderer.active) continue;
+					auto [transform, skinMeshFilter] = dynamicgroup.get<TransformComponent, SkinnedMeshRendererComponent>(entity);
+					if (!skinMeshFilter.SkinnnedModel || !skinMeshFilter.Material) continue;
 
-					if (!meshRenderer.castShadow) continue;
+					//if (!skinMeshFilter.castShadow) continue;
 
-					BoundingSphere modelBoundingSphere = meshFilter.Model->mBoundingSphere;
-					modelBoundingSphere.Transform(transform.GetGlobalTransform());
+					//BoundingSphere modelBoundingSphere = skinMeshFilter.SkinnnedModel->mBoundingSphere;
+					//modelBoundingSphere.Transform(transform.GetGlobalTransform());
 
 
-					if (CullBoundingSphere(frustum, modelBoundingSphere))
+					//if (CullBoundingSphere(frustum, modelBoundingSphere))
+					//{
+					//	//BOREALIS_CORE_INFO("Culling entity {}", (int)entity);
+					//	continue;
+					//}
+
+					if (registryPtr->storage<AnimatorComponent>().contains(entity))
 					{
-						//BOREALIS_CORE_INFO("Culling entity {}", (int)entity);
-						continue;
-					}
+						AnimatorComponent& animatorComponent = registryPtr->get<AnimatorComponent>(entity);
 
+						if (animatorComponent.animation)
+						{
+							if (skinMeshFilter.SkinnnedModel->mAnimation)
+							{
+								cascade_shadow_shader->Bind();
+								cascade_shadow_shader->Set("u_HasAnimation", true);
+								cascade_shadow_shader->Set("u_AnimationIndex", (int)skinMeshFilter.AnimationIndex);
+							}
+						}
+					}
+					
 					RenderCommand::EnableFrontFaceCull();
-					Renderer3D::DrawHighlightedMesh(transform.GetGlobalTransform(), meshFilter, cascade_shadow_shader);
+					Renderer3D::DrawHighlightedMesh(transform.GetGlobalTransform(), skinMeshFilter, cascade_shadow_shader);
 					RenderCommand::EnableBackFaceCull();
 				}
-
-				CSMBuffer->Unbind();
+				CSMBufferDynamic->Unbind();
 			}
 		}
 
@@ -2012,7 +2069,10 @@ namespace Borealis
 			revealage_shader = Shader::Create("engineResources/Shaders/Renderer3D_Revealage.glsl");
 
 		if (!cascade_shadow_shader)
+		{
 			cascade_shadow_shader = Shader::Create("engineResources/Shaders/Renderer3D_CascadeShadow.glsl");
+			UniformBufferObject::BindToShader(cascade_shadow_shader->GetID(), "AnimationUBO", ANIMATION_BIND);
+		}
 
 		if (!common_shader)
 			common_shader = Shader::Create("engineResources/Shaders/Renderer3D_Common.glsl");
@@ -2035,6 +2095,20 @@ namespace Borealis
 			FrameBufferProperties propsShadowMapBuffer{ 2024, 2024, false };
 			propsShadowMapBuffer.Attachments = { FramebufferTextureFormat::DepthArray };
 			mCascadeShadowMapBufferEditor = FrameBuffer::Create(propsShadowMapBuffer);
+		}
+
+		if (!mCascadeShadowMapBufferDynamic)
+		{
+			FrameBufferProperties propsShadowMapBuffer{ 2024, 2024, false };
+			propsShadowMapBuffer.Attachments = { FramebufferTextureFormat::DepthArray };
+			mCascadeShadowMapBufferDynamic = FrameBuffer::Create(propsShadowMapBuffer);
+		}
+
+		if (!mCascadeShadowMapBufferDynamicEditor)
+		{
+			FrameBufferProperties propsShadowMapBuffer{ 2024, 2024, false };
+			propsShadowMapBuffer.Attachments = { FramebufferTextureFormat::DepthArray };
+			mCascadeShadowMapBufferDynamicEditor = FrameBuffer::Create(propsShadowMapBuffer);
 		}
 
 		if(!sData)
@@ -2074,6 +2148,11 @@ namespace Borealis
 	{
 		renderPassList.clear();
 		globalSource.clear();
+	}
+
+	void RenderGraph::Update()
+	{
+		//set light ubo
 	}
 
 	void RenderGraph::AddPass(Ref<RenderPass> pass)

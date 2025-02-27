@@ -493,7 +493,7 @@ namespace Borealis
 		}
 	}
 	
-	void Render3D::Execute(float dt)
+	void Render3D::Execute()
 	{
 		PROFILE_FUNCTION();
 		glm::mat4 viewProjMatrix{};
@@ -592,7 +592,6 @@ namespace Borealis
 			//Add uniforms to drawInfo, pass it to drawqueue
 			//Add lights and animations to UBO
 			auto group = registryPtr->group<>(entt::get<TransformComponent, SkinnedMeshRendererComponent>);
-			int animationCount = 0;
 			for (auto& entity : group)
 			{
 				Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
@@ -608,33 +607,33 @@ namespace Borealis
 				Ref<Shader> materialShader = skinnedMesh.Material->GetShader();
 
 				//SetShadowAndLight(shadowMap, materialShader, registryPtr, camera, editor);
-				if (registryPtr->storage<AnimatorComponent>().contains(entity))
-				{
-					AnimatorComponent& animatorComponent = registryPtr->get<AnimatorComponent>(entity);
+				//if (registryPtr->storage<AnimatorComponent>().contains(entity))
+				//{
+				//	AnimatorComponent& animatorComponent = registryPtr->get<AnimatorComponent>(entity);
 
-					if (animatorComponent.animation && (!animatorComponent.animator.HasAnimation() || animatorComponent.currentAnimationHandle != animatorComponent.animation->mAssetHandle))
-					{
-						animatorComponent.currentAnimationHandle = animatorComponent.animation->mAssetHandle;
-						animatorComponent.animator.PlayAnimation(animatorComponent.animation);
-						skinnedMesh.SkinnnedModel->AssignAnimation(animatorComponent.animation);
-					}
+				//	if (animatorComponent.animation && (!animatorComponent.animator.HasAnimation() || animatorComponent.currentAnimationHandle != animatorComponent.animation->mAssetHandle))
+				//	{
+				//		animatorComponent.currentAnimationHandle = animatorComponent.animation->mAssetHandle;
+				//		animatorComponent.animator.PlayAnimation(animatorComponent.animation);
+				//		skinnedMesh.SkinnnedModel->AssignAnimation(animatorComponent.animation);
+				//	}
 
-					if (animatorComponent.animation)
-					{
-						animatorComponent.animator.SetLoop(animatorComponent.loop);
-						animatorComponent.animator.SetSpeed(animatorComponent.speed);
+				//	if (animatorComponent.animation)
+				//	{
+				//		animatorComponent.animator.SetLoop(animatorComponent.loop);
+				//		animatorComponent.animator.SetSpeed(animatorComponent.speed);
 
-						animatorComponent.animator.UpdateAnimation(dt);
+				//		animatorComponent.animator.UpdateAnimation(dt);
 
-						if (skinnedMesh.SkinnnedModel->mAnimation)
-						{
-							auto const& transforms =  animatorComponent.animator.GetFinalBoneMatrices();
+				//		if (skinnedMesh.SkinnnedModel->mAnimation)
+				//		{
+				//			auto const& transforms =  animatorComponent.animator.GetFinalBoneMatrices();
 
-							sData->AnimationUBO->SetData(transforms.data(), 128 * sizeof(glm::mat4), 128 * sizeof(glm::mat4) * animationCount);
-							animationCount++;
-						}
-					}
-				}
+				//			sData->AnimationUBO->SetData(transforms.data(), 128 * sizeof(glm::mat4), 128 * sizeof(glm::mat4) * animationCount);
+				//			animationCount++;
+				//		}
+				//	}
+				//}
 
 				//Frustum frustum = ComputeFrustum(projMatrix * viewMatrix);
 				//BoundingSphere modelBoundingSphere = skinnedMesh.SKinnedModel->mBoundingSphere;
@@ -649,14 +648,13 @@ namespace Borealis
 				//Renderer3D::SetLights(shader);
 
 				//Renderer3D::SetLights(materialShader);
-				Renderer3D::DrawSkinnedMesh(transform.GetGlobalTransform(), skinnedMesh, materialShader, (int)entity, animationCount-1);
-				skinnedMesh.AnimationIndex = animationCount - 1;
-				if (animationCount >= 5)
+				Renderer3D::DrawSkinnedMesh(transform.GetGlobalTransform(), skinnedMesh, materialShader, (int)entity, skinnedMesh.AnimationIndex);
+
+				if (skinnedMesh.AnimationIndex > 5)
 				{
 					renderTarget->Bind();
 					Renderer3D::End();
 					renderTarget->Unbind();
-					animationCount = 0;
 				}
 			}
 		}
@@ -710,7 +708,7 @@ namespace Borealis
 		RenderCommand::EnableDepthTest();
 	}
 
-	void Render2D::Execute(float dt)
+	void Render2D::Execute()
 	{
 		PROFILE_FUNCTION();
 		Ref<RenderTargetSource> renderTarget = nullptr;
@@ -848,7 +846,7 @@ namespace Borealis
 		}
 	}
 
-	void UIWorldPass::Execute(float dt)
+	void UIWorldPass::Execute()
 	{
 		PROFILE_FUNCTION();
 		Ref<RenderTargetSource> renderTarget = nullptr;
@@ -903,7 +901,7 @@ namespace Borealis
 		shader = s_shader;
 	}
 
-	void GeometryPass::Execute(float dt)
+	void GeometryPass::Execute()
 	{
 		PROFILE_FUNCTION();
 		if (shader) shader->Bind();
@@ -974,7 +972,7 @@ namespace Borealis
 		shader = s_shader;
 	}
 
-	void LightingPass::Execute(float dt)
+	void LightingPass::Execute()
 	{
 		PROFILE_FUNCTION();
 		if (shader) shader->Bind();
@@ -1065,7 +1063,7 @@ namespace Borealis
 		shader = material_shader;
 	}
 
-	void ShadowPass::Execute(float dt)
+	void ShadowPass::Execute()
 	{
 		PROFILE_FUNCTION();
 
@@ -1328,7 +1326,7 @@ namespace Borealis
 	{
 	}
 
-	void ObjectPickingPass::Execute(float dt)
+	void ObjectPickingPass::Execute()
 	{
 		PROFILE_FUNCTION();
 		Ref<PixelBufferSource> pixelBuffer = nullptr;
@@ -1405,7 +1403,7 @@ namespace Borealis
 		shader = common_shader;
 	}
 
-	void EditorHighlightPass::Execute(float dt)
+	void EditorHighlightPass::Execute()
 	{
 		PROFILE_FUNCTION();
 		Ref<RenderTargetSource> renderTarget = nullptr;
@@ -1537,7 +1535,7 @@ namespace Borealis
 		shader = cube_map_shader;
 	}
 
-	void SkyboxPass::Execute(float dt)
+	void SkyboxPass::Execute()
 	{
 		static Ref<TextureCubeMap> cubeMap = nullptr;
 
@@ -1586,7 +1584,7 @@ namespace Borealis
 		shader = quad_shader;
 	}
 
-	void RenderToTarget::Execute(float dt)
+	void RenderToTarget::Execute()
 	{
 		Ref<RenderTargetSource> renderTarget = nullptr;
 
@@ -1627,7 +1625,7 @@ namespace Borealis
 		shader = common_shader;
 	}
 
-	void HighlightPass::Execute(float dt)
+	void HighlightPass::Execute()
 	{
 		PROFILE_FUNCTION();
 		Ref<RenderTargetSource> renderTarget = nullptr;
@@ -1753,7 +1751,7 @@ namespace Borealis
 		shader = quad_shader;
 	}
 
-	void UIPass::Execute(float dt)
+	void UIPass::Execute()
 	{
 		PROFILE_FUNCTION();
 		Ref<RenderTargetSource> renderTarget = nullptr;
@@ -1882,7 +1880,7 @@ namespace Borealis
 
 	}
 
-	void EditorUIPass::Execute(float dt)
+	void EditorUIPass::Execute()
 	{
 		PROFILE_FUNCTION();
 		Ref<RenderTargetSource> renderTarget = nullptr;
@@ -1952,7 +1950,7 @@ namespace Borealis
 
 	}
 
-	void ParticleSystemPass::Execute(float dt)
+	void ParticleSystemPass::Execute()
 	{
 		Ref<RenderTargetSource> renderTarget = nullptr;
 		Ref<RenderTargetSource> accumulaionTarget = nullptr;
@@ -2150,9 +2148,68 @@ namespace Borealis
 		globalSource.clear();
 	}
 
-	void RenderGraph::Update()
+	void RenderGraph::Update(float dt)
 	{
 		//set light ubo
+
+		entt::basic_group group = registryPtr->group<>(entt::get<TransformComponent, SkinnedMeshRendererComponent>);
+		int animationCount = 0;
+		for (auto& entity : group)
+		{
+			Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
+			if (!brEntity.IsActive())
+			{
+				continue;
+			}
+
+			auto [transform, skinnedMesh] = group.get<TransformComponent, SkinnedMeshRendererComponent>(entity);
+
+			if (!skinnedMesh.SkinnnedModel || !skinnedMesh.Material) continue;
+
+			if (registryPtr->storage<AnimatorComponent>().contains(entity))
+			{
+				AnimatorComponent& animatorComponent = registryPtr->get<AnimatorComponent>(entity);
+
+				if (animatorComponent.animation && (!animatorComponent.animator.HasAnimation() || animatorComponent.currentAnimationHandle != animatorComponent.animation->mAssetHandle))
+				{
+					animatorComponent.currentAnimationHandle = animatorComponent.animation->mAssetHandle;
+					animatorComponent.animator.PlayAnimation(animatorComponent.animation);
+					skinnedMesh.SkinnnedModel->AssignAnimation(animatorComponent.animation);
+				}
+
+				if (animatorComponent.animation)
+				{
+					animatorComponent.animator.SetLoop(animatorComponent.loop);
+					animatorComponent.animator.SetSpeed(animatorComponent.speed);
+
+					animatorComponent.animator.UpdateAnimation(dt);
+
+					if (skinnedMesh.SkinnnedModel->mAnimation)
+					{
+						auto const& transforms = animatorComponent.animator.GetFinalBoneMatrices();
+
+						sData->AnimationUBO->SetData(transforms.data(), 128 * sizeof(glm::mat4), 128 * sizeof(glm::mat4) * animationCount);
+						animationCount++;
+						skinnedMesh.AnimationIndex = animationCount - 1;
+					}
+				}
+			}
+		}
+
+		//particles
+		{
+			entt::basic_group group = registryPtr->group<>(entt::get<TransformComponent, ParticleSystemComponent>);
+			for (auto& entity : group)
+			{
+				auto entityBR = Entity{ entity, SceneManager::GetActiveScene().get() };
+				if (!entityBR.IsActive())
+				{
+					continue;
+				}
+				auto [transform, particleSystemComponent] = group.get<TransformComponent, ParticleSystemComponent>(entity);
+				particleSystemComponent.Update(transform, dt);
+			}
+		}
 	}
 
 	void RenderGraph::AddPass(Ref<RenderPass> pass)
@@ -2160,7 +2217,7 @@ namespace Borealis
 		renderPassList.push_back(pass);
 	}
 
-	void RenderGraph::Execute(float dt)
+	void RenderGraph::Execute()
 	{
 		for (auto pass : renderPassList) 
 		{
@@ -2179,7 +2236,7 @@ namespace Borealis
 				}
 			}
 			if (skipPass) continue;
-			pass->Execute(dt);
+			pass->Execute();
 		}
 
 		Renderer2D::ClearDrawQueue();

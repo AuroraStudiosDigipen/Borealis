@@ -100,6 +100,9 @@ namespace Borealis {
 
 	static bool particlesForEditor = true;
 
+	static bool editorView = true;
+	static bool runtimeView = true;
+
 	void EditorLayer::Init()
 	{
 
@@ -234,6 +237,7 @@ namespace Borealis {
 			fconfig.AddGlobalSource(MakeRef<IntListSource>(selectedEntities));
 
 			//forward rendering
+			if(runtimeView)
 			{
 				RenderPassConfig SkyBoxPass(RenderPassType::SkyboxPass, "SkyBox");
 				SkyBoxPass.AddSinkLinkage("renderTarget", "RunTimeBuffer");
@@ -280,6 +284,7 @@ namespace Borealis {
 			}
 
 			//forward rendering editor
+			if(editorView)
 			{
 				RenderPassConfig editorSkyBoxPass(RenderPassType::SkyboxPass, "editorSkyBox");
 				editorSkyBoxPass.AddSinkLinkage("renderTarget", "EditorBuffer");
@@ -657,7 +662,10 @@ namespace Borealis {
 
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0,0 });
 
-			ImGui::Begin("Viewport");
+			if (ImGui::Begin("Viewport"))
+				editorView = true;
+			else
+				editorView = false;
 
 
 				mViewportFocused = ImGui::IsWindowFocused();
@@ -897,7 +905,11 @@ namespace Borealis {
 			ImGui::End(); // Of Viewport
 			
 
-			ImGui::Begin("Runtime");
+			if (ImGui::Begin("Runtime"))
+				runtimeView = true;
+			else
+				runtimeView = false;
+
 			{
 				if (hasRuntimeCamera)
 				{

@@ -804,21 +804,6 @@ namespace Borealis
 				}
 			}
 		}
-
-		//particles
-		{
-			entt::basic_group group = mRegistry.group<>(entt::get<TransformComponent, ParticleSystemComponent>);
-			for (auto& entity : group)
-			{
-				auto entityBR = Entity{ entity, this };
-				if (!entityBR.IsActive())
-				{
-					continue;
-				}
-				auto [transform, particleSystemComponent] = group.get<TransformComponent, ParticleSystemComponent>(entity);
-				particleSystemComponent.Update(transform, dt);
-			}
-		}
 	}
 
 	//move down ltr
@@ -932,9 +917,6 @@ namespace Borealis
 					mainCamera = &camera.Camera;
 					mainCameratransform = transform.GetGlobalTransform();;
 
-					//mainCameratransform = glm::translate(mainCameratransform, glm::vec3{0.f,0.01f,0.f});
-					//transform.SetGlobalTransform(brEntity, mainCameratransform);
-
 					break;
 				}
 			}
@@ -981,7 +963,9 @@ namespace Borealis
 
 		mRenderGraph.SetFinalSink("BackBuffer", "Render2D.renderTarget"); //do i need it for immediate mode?
 
-		mRenderGraph.Execute(dt);
+		mRenderGraph.Update(dt);
+
+		mRenderGraph.Execute();
 
 	}
 

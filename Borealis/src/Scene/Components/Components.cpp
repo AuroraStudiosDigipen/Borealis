@@ -343,6 +343,8 @@ namespace Borealis
 			 particle.startColor = startColor;
 		 }
 
+		 particle.currentColor = startColor;
+
 		 if (randomStartSize)
 		 {
 			 float sizeLerp = static_cast<float>(rand()) / RAND_MAX;

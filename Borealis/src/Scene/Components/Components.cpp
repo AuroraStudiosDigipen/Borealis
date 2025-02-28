@@ -283,43 +283,56 @@ namespace Borealis
 
 		 // Convert emitter rotation (Euler to Quaternion)
 		 glm::vec3 rotation = transform.GetGlobalRotation();
+		 rotation = glm::radians(rotation);
 		 glm::quat orientation = glm::quat(rotation);
 
-		 // Generate a random position in a 2D disc (radius = mRadius)
-		 float randomAngle = static_cast<float>(rand()) / RAND_MAX * glm::two_pi<float>();
-		 float randomRadius = radius * glm::sqrt(static_cast<float>(rand()) / RAND_MAX); // Even distribution in a circle
+		 if (emitterShape == EmitterShape::Cone)
+		 {
+			 float randomAngle = static_cast<float>(rand()) / RAND_MAX * glm::two_pi<float>();
+			 float randomRadius = radius * glm::sqrt(static_cast<float>(rand()) / RAND_MAX);
+			 glm::vec3 spawnOffset = glm::vec3(
+				 randomRadius * glm::cos(randomAngle),
+				 0.0f,
+				 randomRadius * glm::sin(randomAngle)
+			 );
+			 particle.position = emitterPos + (orientation * spawnOffset);
 
-		 glm::vec3 spawnOffset = glm::vec3(
-			 randomRadius * glm::cos(randomAngle),
-			 0.0f,  // Keep it on the base (Y = 0)
-			 randomRadius * glm::sin(randomAngle)
-		 );
+			 float coneAngle = glm::radians(angle);
+			 float u = static_cast<float>(rand()) / RAND_MAX;
+			 float v = static_cast<float>(rand()) / RAND_MAX;
+			 float theta = v * 2.0f * glm::pi<float>();
+			 float phi = glm::acos(1.0f - u * (1.0f - glm::cos(coneAngle)));
+			 glm::vec3 direction = glm::vec3(
+				 glm::sin(phi) * glm::cos(theta),
+				 glm::cos(phi),
+				 glm::sin(phi) * glm::sin(theta)
+			 );
+			 glm::vec3 finalDirection = glm::normalize(orientation * direction);
 
-		 // Offset the particle spawn position
-		 particle.position = emitterPos + (orientation * spawnOffset);
+			 particle.startVelocity = startSpeed * finalDirection;
+		 }
+		 else if (emitterShape == EmitterShape::Quad)
+		 {
+			 float randX = static_cast<float>(rand()) / RAND_MAX;
+			 float randZ = static_cast<float>(rand()) / RAND_MAX;
+			 float halfWidth = transform.GetGlobalScale().x * 0.5f;
+			 float halfHeight = transform.GetGlobalScale().y * 0.5f;
 
-		 // Generate a random direction within the cone
-		 float coneAngle = glm::radians(angle);
+			 glm::vec3 spawnOffset = glm::vec3(
+				 (randX - 0.5f) * transform.GetGlobalScale().x,
+				 0.0f,                    
+				 (randZ - 0.5f) * transform.GetGlobalScale().y
+			 );
 
-		 float u = static_cast<float>(rand()) / RAND_MAX;
-		 float v = static_cast<float>(rand()) / RAND_MAX;
+			 particle.position = emitterPos + (orientation * spawnOffset);
 
-		 float theta = v * 2.0f * glm::pi<float>(); // Random around the circle
-		 float phi = glm::acos(1.0f - u * (1.0f - glm::cos(coneAngle))); // Spread within the cone
+			 glm::vec3 quadNormal = orientation * glm::vec3(0.0f, 1.0f, 0.0f); 
 
-		 glm::vec3 direction = glm::vec3(
-			 glm::sin(phi) * glm::cos(theta),
-			 glm::cos(phi), // Y-axis is up
-			 glm::sin(phi) * glm::sin(theta)
-		 );
+			 glm::vec3 finalDirection = glm::normalize(quadNormal);
 
-		 // Align direction with emitter rotation
-		 glm::vec3 finalDirection = glm::normalize(orientation * direction);
+			 particle.startVelocity = startSpeed * finalDirection;
+		 }
 
-		 // Apply velocity
-		 particle.startVelocity = startSpeed * finalDirection;
-
-		 // Random start color (if enabled)
 		 if (randomStartColor)
 		 {
 			 float colorLerp = static_cast<float>(rand()) / RAND_MAX;
@@ -330,7 +343,6 @@ namespace Borealis
 			 particle.startColor = startColor;
 		 }
 
-		 // Random start size (if enabled)
 		 if (randomStartSize)
 		 {
 			 float sizeLerp = static_cast<float>(rand()) / RAND_MAX;
@@ -341,10 +353,16 @@ namespace Borealis
 			 particle.startSize = startSize;
 		 }
 
-		 // Set rotation
-		 particle.startRotation = glm::quat(startRotation);
+		 if (randomStartRotation)
+		 {
+			 float sizeLerp = static_cast<float>(rand()) / RAND_MAX;
+			 particle.startRotation = glm::mix(glm::quat(glm::radians(startRotation)), glm::quat(glm::radians(startRotation2)), sizeLerp);
+		 }
+		 else
+		 {
+			 particle.startRotation = glm::quat(glm::radians(startRotation));
+		 }
 
-		 // Reset life counter
 		 particle.life = 0.0f;
 	 }
 

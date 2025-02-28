@@ -509,33 +509,50 @@ namespace Borealis
 		glm::vec4	currentColor = glm::vec4{ 1.f };
 	};
 
+	enum class EmitterShape : int
+	{
+		Cone,
+		Quad
+	};
+
 	struct ParticleSystemComponent
 	{
-		float		duration = 5.f;
-		bool		looping = true;
-		float		startDelay = 0.f;
-		float		startLifeTime = 5.f;
-		float		startSpeed = 5.f;
-		bool		_3DStartSizeBool = false;
-		bool		randomStartSize = false;
-		glm::vec3	startSize = glm::vec3{ 1.f }; //if not 3d, use .x for size
-		glm::vec3	startSize2 = glm::vec3{ 1.f }; //if not 3d, use .x for size
-		bool		_3DStartRotationBool = false;
-		glm::vec3	startRotation = glm::vec3{ 0.f }; // if not 3d, use .x for rotation
-		bool		randomStartColor = false;
-		glm::vec4	startColor = glm::vec4{ 1.f };
-		glm::vec4	startColor2 = glm::vec4{ 1.f };
-		bool		endColorBool;
-		glm::vec4	endColor = glm::vec4{ 1.f };
-		float		gravityModifer = 0.f;
-		float		simulationSpeed = 1.f;
-		uint32_t	maxParticles = 1000;
-		float		rateOverTime = 10.f;
-		float		angle = 25.f;
-		float		radius = 1.f;
-		float		radiusThickness = 0.f; //0-1 based on radius
-		bool		billboard = true;
-		Ref<Texture2D> texture = nullptr;
+		float			duration = 5.f;
+		bool			looping = true;
+		float			startDelay = 0.f;
+		float			startLifeTime = 5.f;
+		float			startSpeed = 5.f;
+		bool			_3DStartSizeBool = false;
+		bool			randomStartSize = false;
+		glm::vec3		startSize = glm::vec3{ 1.f }; //if not 3d, use .x for size
+		glm::vec3		startSize2 = glm::vec3{ 1.f }; //if not 3d, use .x for size
+		bool			_3DStartRotationBool = false;
+		bool			randomStartRotation = false;
+		glm::vec3		startRotation = glm::vec3{ 0.f }; // if not 3d, use .x for rotation
+		glm::vec3		startRotation2 = glm::vec3{ 0.f }; // if not 3d, use .x for rotation
+		bool			randomStartColor = false;
+		glm::vec4		startColor = glm::vec4{ 1.f };
+		glm::vec4		startColor2 = glm::vec4{ 1.f };
+		bool			endColorBool;
+		glm::vec4		endColor = glm::vec4{ 1.f };
+		float			gravityModifer = 0.f;
+		float			simulationSpeed = 1.f;
+		uint32_t		maxParticles = 1000;
+		float			rateOverTime = 10.f;
+
+		EmitterShape	emitterShape = EmitterShape::Cone;
+
+		//cone
+		float			angle = 25.f;
+		float			radius = 1.f;
+		float			radiusThickness = 0.f; //0-1 based on radius
+
+		//quad
+		glm::vec3		scale = glm::vec3{ 1.f };
+		glm::vec3		rotation = glm::vec3{ 0.f };
+
+		bool			billboard = true;
+		Ref<Texture2D>	texture = nullptr;
 
 		//Private
 		float		Timer = 0.f;

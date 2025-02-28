@@ -553,7 +553,7 @@ namespace Borealis
 		static Ref<Texture2D> GetDefaultParticleTexture();
 		//Add variables for over time
 
-		ParticleSystemComponent() = default;
+		ParticleSystemComponent();
 		ParticleSystemComponent(const ParticleSystemComponent&) = default;
 
 	private:

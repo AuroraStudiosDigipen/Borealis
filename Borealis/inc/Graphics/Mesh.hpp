@@ -110,6 +110,7 @@ namespace Borealis
 
 		static void DrawQuad();
 
+
 		static void DrawCube(glm::vec3 translation, glm::vec3 minExtent, glm::vec3 maxExtent, glm::vec4 color, bool wireframe, Ref<Shader> shader);
 
 		static void DrawCubeMap();
@@ -127,6 +128,9 @@ namespace Borealis
 
 		static void DrawCapsule(glm::vec3 center, float radius, float height, glm::vec4 color, bool wireframe, Ref<Shader> shader);
 
+		static void DrawQuad(const glm::mat4& transform, glm::vec4 color, bool wireframe, Ref<Shader> shader);
+
+		static void DrawCone(float height, float baseThickness, float angle, const glm::mat4& transform, glm::vec4 color, bool wireframe, Ref<Shader> shader);
 		/*!***********************************************************************
 			\brief
 				Getters and setters

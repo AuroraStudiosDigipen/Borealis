@@ -139,7 +139,7 @@ namespace Borealis
 
 		static void toggleProfiler();
 
-		inline static bool g_EnableProfiler;
+		inline static bool g_EnableProfiler = false;
 
 	private:
 		// Disable copying

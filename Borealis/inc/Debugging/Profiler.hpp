@@ -13,7 +13,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
  /******************************************************************************/
 
 
-#define ENGINE_PROFILE 1
+#define ENGINE_PROFILE 0
 
 #ifndef PROFILER_HPP
 #define PROFILER_HPP

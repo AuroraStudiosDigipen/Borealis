@@ -492,7 +492,7 @@ namespace Borealis
 			indices.push_back(topIndex);
 		}
 
-		GLuint ConeVAO = 0, ConeVBO = 0, ConeEBO = 0;
+		static GLuint ConeVAO = 0, ConeVBO = 0, ConeEBO = 0;
 		if (ConeVAO == 0)
 		{
 			glGenVertexArrays(1, &ConeVAO);
@@ -540,6 +540,7 @@ namespace Borealis
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
 		shader->Unbind();
 	}
 

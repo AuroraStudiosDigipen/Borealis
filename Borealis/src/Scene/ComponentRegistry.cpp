@@ -226,7 +226,8 @@ namespace Borealis
             .property("Colour", &SpriteRendererComponent::Colour)
             (metadata("Colour", true))
             .property("Texture", &SpriteRendererComponent::Texture)
-            .property("Tiling Factor", &SpriteRendererComponent::TilingFactor);
+            .property("Tiling Factor", &SpriteRendererComponent::TilingFactor)
+            .property("Use Texture Aspect Ratio", &SpriteRendererComponent::useTextureAspectRatio);
 
         registration::class_<OutLineComponent>("Outline Component")
             (metadata("Component", true))
@@ -255,6 +256,11 @@ namespace Borealis
             .constructor<>()
             .property("Allow Passthrough", &CanvasRendererComponent::allowPassthrough);
 
+        registration::enumeration<EmitterShape>("Emitter Shape")
+            (
+                value("Cone", EmitterShape::Cone),
+                value("Quad", EmitterShape::Quad)
+                );
 
         registration::class_<ParticleSystemComponent>("Particle System Component")
             (metadata("Component", true))
@@ -269,7 +275,9 @@ namespace Borealis
             .property("Start size", &ParticleSystemComponent::startSize)
             .property("Start size 2", &ParticleSystemComponent::startSize2)
             .property("3D Start Rotation", &ParticleSystemComponent::_3DStartRotationBool)
+            .property("Random Start Rotation", &ParticleSystemComponent::randomStartRotation)
             .property("Start Rotation", &ParticleSystemComponent::startRotation)
+            .property("Start Rotation 2", &ParticleSystemComponent::startRotation2)
             .property("Random Start Color", &ParticleSystemComponent::randomStartColor)
             .property("Start Color", &ParticleSystemComponent::startColor)
             (metadata("Colour", true))            
@@ -281,9 +289,17 @@ namespace Borealis
             .property("Gravity Modifier", &ParticleSystemComponent::gravityModifer)
             .property("Max Particles", &ParticleSystemComponent::maxParticles)
             .property("Rate Over Time", &ParticleSystemComponent::rateOverTime)
+            .property("Shape", &ParticleSystemComponent::emitterShape)
             .property("Angle", &ParticleSystemComponent::angle)
+            (metadata("Dependency", "Shape"), metadata("Visible for", "Cone"))
             .property("Radius", &ParticleSystemComponent::radius)
+            (metadata("Dependency", "Shape"), metadata("Visible for", "Cone"))
             .property("Radius Thickness", &ParticleSystemComponent::radiusThickness)
+            (metadata("Dependency", "Shape"), metadata("Visible for", "Cone"))
+            .property("Scale", &ParticleSystemComponent::scale)
+            (metadata("Dependency", "Shape"), metadata("Visible for", "Quad"))
+            .property("Rotation", &ParticleSystemComponent::rotation)
+            (metadata("Dependency", "Shape"), metadata("Visible for", "Quad"))
             .property("Billboard", &ParticleSystemComponent::billboard)
             .property("Texture", &ParticleSystemComponent::texture);
 

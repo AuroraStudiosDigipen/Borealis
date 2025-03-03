@@ -318,6 +318,200 @@ namespace Borealis
 		glEnable(GL_DEPTH_TEST);
 	}
 
+	void Mesh::DrawQuad(const glm::mat4& transform, glm::vec4 color, bool wireframe, Ref<Shader> shader)
+	{
+		PROFILE_FUNCTION();
+
+		static unsigned int QuadVAO = 0, QuadVBO = 0, QuadEBO = 0;
+
+		// Initialize the Quad VAO, VBO, and EBO if not already created
+		if (QuadVAO == 0)
+		{
+			const GLfloat quadVertices[] =
+			{
+				// Positions        
+				-0.5f, -0.5f, 0.0f, // Bottom-left
+				 0.5f, -0.5f, 0.0f, // Bottom-right
+				 0.5f,  0.5f, 0.0f, // Top-right
+				-0.5f,  0.5f, 0.0f  // Top-left
+			};
+
+			// Define indices for the edges of the quad (no diagonal line)
+			const GLuint quadEdgeIndices[] =
+			{
+				0, 1, // Bottom edge
+				1, 2, // Right edge
+				2, 3, // Top edge
+				3, 0  // Left edge
+			};
+
+			glGenVertexArrays(1, &QuadVAO);
+			glGenBuffers(1, &QuadVBO);
+			glGenBuffers(1, &QuadEBO);
+
+			glBindVertexArray(QuadVAO);
+
+			// Bind and upload vertex data
+			glBindBuffer(GL_ARRAY_BUFFER, QuadVBO);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+
+			// Bind and upload index data
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, QuadEBO);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(quadEdgeIndices), quadEdgeIndices, GL_STATIC_DRAW);
+
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0); // Vertex positions
+			glEnableVertexAttribArray(0);
+
+			glBindVertexArray(0);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		}
+
+		// Bind the Quad VAO
+		glBindVertexArray(QuadVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, QuadVBO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, QuadEBO);
+
+		// Bind the shader
+		shader->Bind();
+
+		// Pass the model matrix and color to the shader
+		shader->Set("u_ModelTransform", transform);
+		shader->Set("u_Color", color);
+
+		// Toggle wireframe mode if requested
+		if (wireframe) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		}
+		else {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		}
+
+		// Draw the quad
+		if (wireframe) {
+			// Draw only the edges (no diagonal line)
+			glDrawElements(GL_LINES, 8, GL_UNSIGNED_INT, 0);
+		}
+		else {
+			// Draw the quad as two triangles
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		}
+
+		// Reset wireframe mode
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+		// Unbind everything
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		shader->Unbind();
+	}
+
+	void Mesh::DrawCone(float height, float radius, float angle, const glm::mat4& transform, glm::vec4 color, bool wireframe, Ref<Shader> shader)
+	{
+		PROFILE_FUNCTION();
+
+		float radians = glm::radians(angle);
+		float radiusIncrease = height * glm::tan(radians);
+
+		const int numSegments = 32;
+
+		std::vector<glm::vec3> bottomVertices;
+		for (int i = 0; i < numSegments; ++i)
+		{
+			float theta = static_cast<float>(i) / numSegments * glm::two_pi<float>();
+			bottomVertices.push_back(glm::vec3(radius * glm::cos(theta), radius * glm::sin(theta), 0.0f));
+		}
+
+		std::vector<glm::vec3> topVertices;
+		for (int i = 0; i < numSegments; ++i)
+		{
+			float theta = static_cast<float>(i) / numSegments * glm::two_pi<float>();
+			topVertices.push_back(glm::vec3((radius + radiusIncrease) * glm::cos(theta),
+				(radius + radiusIncrease) * glm::sin(theta),
+				-height)); 
+		}
+
+		std::vector<glm::vec3> vertices;
+		vertices.reserve(bottomVertices.size() + topVertices.size());
+		vertices.insert(vertices.end(), bottomVertices.begin(), bottomVertices.end());
+		vertices.insert(vertices.end(), topVertices.begin(), topVertices.end());
+
+		std::vector<GLuint> indices;
+		indices.reserve(numSegments * 2 + 8);
+
+		for (int i = 0; i < numSegments; ++i)
+		{
+			indices.push_back(i);
+			indices.push_back((i + 1) % numSegments);
+		}
+
+		for (int i = 0; i < numSegments; ++i)
+		{
+			indices.push_back(numSegments + i);
+			indices.push_back(numSegments + ((i + 1) % numSegments));
+		}
+
+		for (int i = 0; i < 4; ++i)
+		{
+			int bottomIndex = i * (numSegments / 4);
+			int topIndex = numSegments + bottomIndex;
+			indices.push_back(bottomIndex);
+			indices.push_back(topIndex);
+		}
+
+		static GLuint ConeVAO = 0, ConeVBO = 0, ConeEBO = 0;
+		if (ConeVAO == 0)
+		{
+			glGenVertexArrays(1, &ConeVAO);
+			glGenBuffers(1, &ConeVBO);
+			glGenBuffers(1, &ConeEBO);
+
+			glBindVertexArray(ConeVAO);
+
+			glBindBuffer(GL_ARRAY_BUFFER, ConeVBO);
+			glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), vertices.data(), GL_STATIC_DRAW);
+
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ConeEBO);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), indices.data(), GL_STATIC_DRAW);
+
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0); // Vertex positions
+			glEnableVertexAttribArray(0);
+
+			glBindVertexArray(0);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		}
+
+		glBindVertexArray(ConeVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, ConeVBO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ConeEBO);
+
+		shader->Bind();
+
+		shader->Set("u_ModelTransform", transform);
+		shader->Set("u_Color", color);
+
+		if (wireframe)
+		{
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		}
+		else
+		{
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		}
+
+		glDrawElements(GL_LINES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, 0);
+
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+		shader->Unbind();
+	}
+
 	void Mesh::DrawCube(glm::vec3 translation, glm::vec3 minExtent, glm::vec3 maxExtent, glm::vec4 color, bool wireframe, Ref<Shader> shader)
 	{
 		PROFILE_FUNCTION();

@@ -99,6 +99,7 @@ namespace Borealis {
 
 
 	static bool particlesForEditor = true;
+	static bool particlesWireFrame = true;
 
 	static bool editorView = true;
 	static bool runtimeView = true;
@@ -236,6 +237,9 @@ namespace Borealis {
 			IntListSource selectedEntities("SelectedEntities", mSelectedEntities);
 			fconfig.AddGlobalSource(MakeRef<IntListSource>(selectedEntities));
 
+			BoolSource particlesWireFrameSource("particlesWireFrame", particlesWireFrame);
+			fconfig.AddGlobalSource(MakeRef<BoolSource>(particlesWireFrameSource));
+
 			//forward rendering
 			if(runtimeView)
 			{
@@ -269,7 +273,8 @@ namespace Borealis {
 				RenderPassConfig particleSystemPass(RenderPassType::ParticleSystemPass, "ParticleSystem");
 				particleSystemPass.AddSinkLinkage("camera", "EditorCamera")
 					.AddSinkLinkage("accumulaionTarget", "accumulaionBuffer")
-					.AddSinkLinkage("renderTarget", "UIWorldPass.renderTarget");
+					.AddSinkLinkage("renderTarget", "UIWorldPass.renderTarget")
+					.AddSinkLinkage("camera", "RunTimeCamera");
 				fconfig.AddPass(particleSystemPass);
 
 				RenderPassConfig RunTimeHighlight(RenderPassType::HighlightPass, "RunTimeHighlight");
@@ -340,8 +345,10 @@ namespace Borealis {
 				{
 					RenderPassConfig particleSystemPass(RenderPassType::ParticleSystemPass, "ParticleSystemEditor");
 					particleSystemPass.AddSinkLinkage("camera", "EditorCamera")
+						.AddSinkLinkage("particlesWireFrame", "particlesWireFrame")
 						.AddSinkLinkage("accumulaionTarget", "accumulaionBuffer")
-						.AddSinkLinkage("renderTarget", "Highlight.renderTarget");
+						.AddSinkLinkage("renderTarget", "Highlight.renderTarget")
+						.AddSinkLinkage("camera", "EditorCamera");
 					fconfig.AddPass(particleSystemPass);
 				}
 
@@ -1580,6 +1587,7 @@ namespace Borealis {
 		}
 		ImGui::SameLine();
 		ImGui::Checkbox("Toggle editor particles", &particlesForEditor);
+		ImGui::Checkbox("Toggle particles wireframe", &particlesWireFrame);
 
 		ImGui::End();
 

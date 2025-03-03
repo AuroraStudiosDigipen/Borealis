@@ -283,6 +283,11 @@ namespace Borealis
 		Mesh::DrawQuad();
 	}
 
+	void Renderer3D::DrawQuad(const glm::mat4& transform, glm::vec4 color, bool wireframe)
+	{
+		Mesh::DrawQuad(transform, color, wireframe, s3dData->mCommonShader);
+	}
+
 	void Renderer3D::DrawCubeMap()
 	{
 		Mesh::DrawCubeMap();
@@ -313,6 +318,11 @@ namespace Borealis
 	void Renderer3D::DrawCapsule(glm::vec3 center, float radius, float height, glm::vec4 color, bool wireframe)
 	{
 		Mesh::DrawCapsule(center, radius, height, color, wireframe, s3dData->mCommonShader);
+	}
+
+	void Renderer3D::DrawCone(float height, float baseThickness, float angle, const glm::mat4& transform, glm::vec4 color, bool wireframe)
+	{
+		Mesh::DrawCone(height, baseThickness, angle, transform, color, wireframe, s3dData->mCommonShader);
 	}
 
 	void Renderer3D::SetGlobalWireFrameMode(bool wireFrameMode)

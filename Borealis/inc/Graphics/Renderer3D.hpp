@@ -84,6 +84,7 @@ namespace Borealis
 		static void DrawSkinnedMesh(const glm::mat4& transform, const SkinnedMeshRendererComponent & skinnedMeshRenderer, Ref<Shader> shader, int entityID = -1, int animationIndex = -1);
 
 		static void DrawQuad();
+		static void DrawQuad(const glm::mat4& transform, glm::vec4 color, bool wireframe = true);
 
 		static void DrawCubeMap();
 		
@@ -96,6 +97,8 @@ namespace Borealis
 		static void DrawCylinder(glm::vec3 center, float radius, float height, glm::vec4 color, bool wireframe = false);
 
 		static void DrawCapsule(glm::vec3 center, float radius, float height, glm::vec4 color, bool wireframe = false);
+
+		static void DrawCone(float height, float baseThickness, float angle, const glm::mat4& transform, glm::vec4 color, bool wireframe = true);
 	
 		static void SetGlobalWireFrameMode(bool wireFrameMode);
 		static bool GetGlobalWireFrameMode();

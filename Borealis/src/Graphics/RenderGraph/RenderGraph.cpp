@@ -1954,6 +1954,8 @@ namespace Borealis
 	{
 		Ref<RenderTargetSource> renderTarget = nullptr;
 		Ref<RenderTargetSource> accumulaionTarget = nullptr;
+		bool editor = false;
+		bool showWireFrame = false;
 
 		for (auto sink : sinkList)
 		{
@@ -1969,6 +1971,16 @@ namespace Borealis
 					accumulaionTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
 					accumulaionTarget->buffer->ClearAttachment(1, -1);
 				}
+			}
+
+			if (sink->source->sourceType == RenderSourceType::Camera)
+			{
+				editor = std::dynamic_pointer_cast<CameraSource>(sink->source)->editor;
+			}
+
+			if (sink->source->sourceType == RenderSourceType::Bool)
+			{
+				showWireFrame = std::dynamic_pointer_cast<BoolSource>(sink->source)->mRef;
 			}
 		}
 
@@ -2010,10 +2022,61 @@ namespace Borealis
 					glm::toMat4(particle.startRotation) *
 					glm::scale(glm::mat4(1.0f), particle.startSize);
 
+				float tileFactor = 1.f;
+				if (particleSystem.billboard) 
+				{
+					tileFactor = particle.startSize[0] * -1;
+				}
+
 				if (particleSystem.texture)
-					Renderer2D::DrawQuad(transfrom, particleSystem.texture, particle.startSize[0], particle.currentColor, -1, true);
+					Renderer2D::DrawQuad(transfrom, particleSystem.texture, tileFactor, particle.currentColor, -1, particleSystem.billboard);
 				else
-					Renderer2D::DrawQuad(transfrom, ParticleSystemComponent::GetDefaultParticleTexture(), particle.startSize[0], particle.currentColor, -1, true);
+					Renderer2D::DrawQuad(transfrom, ParticleSystemComponent::GetDefaultParticleTexture(), tileFactor, particle.currentColor, -1, particleSystem.billboard);
+			}
+
+			if (!showWireFrame || !editor) continue;
+			if (particleSystem.emitterShape == EmitterShape::Quad)
+			{
+				glm::mat4 quadTransform = glm::mat4(1.0f);
+
+				glm::vec3 translation = brEntity.GetComponent<TransformComponent>().GetGlobalTranslate();
+				glm::vec3 scale = brEntity.GetComponent<TransformComponent>().GetGlobalScale();
+
+				glm::quat globalRotation = glm::radians(brEntity.GetComponent<TransformComponent>().GetGlobalRotation());
+
+				glm::quat additionalRotation = glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+				glm::quat finalRotation = globalRotation * additionalRotation; 
+
+				glm::mat4 coneTransform = glm::mat4(1.0f);
+				quadTransform = glm::translate(quadTransform, translation);	
+				quadTransform = quadTransform * glm::mat4_cast(finalRotation); 
+				quadTransform = glm::scale(quadTransform, scale);			
+
+				RenderCommand::SetLineThickness(3.f);
+				Renderer3D::DrawQuad(quadTransform, { 1.f, 1.f, 1.f, 1.f });
+			}
+			else if (showWireFrame && editor && particleSystem.emitterShape == EmitterShape::Cone)
+			{
+				TransformComponent& transform = brEntity.GetComponent<TransformComponent>();
+
+				glm::vec3 translation = transform.GetGlobalTranslate();
+				glm::quat globalRotation = glm::radians(transform.GetGlobalRotation());
+
+				glm::quat additionalRotation = glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+				glm::quat finalRotation = globalRotation * additionalRotation;
+
+				glm::mat4 coneTransform = glm::mat4(1.0f);
+				coneTransform = glm::translate(coneTransform, translation);	
+				coneTransform = coneTransform * glm::mat4_cast(finalRotation); 
+				coneTransform = glm::scale(coneTransform, glm::vec3(1.0f));	
+
+				Renderer3D::DrawCone(
+					particleSystem.startSpeed,
+					particleSystem.radius, 
+					particleSystem.angle,  
+					coneTransform,         
+					{ 1.f, 1.f, 1.f, 1.f } 
+				);
 			}
 		}
 

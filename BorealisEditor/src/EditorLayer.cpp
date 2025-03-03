@@ -320,8 +320,23 @@ namespace Borealis {
 				UIEditorWorldPass.AddSinkLinkage("camera", "EditorCamera");
 				fconfig.AddPass(UIEditorWorldPass);
 
+				if (particlesForEditor)
+				{
+					RenderPassConfig particleSystemPass(RenderPassType::ParticleSystemPass, "ParticleSystemEditor");
+					particleSystemPass.AddSinkLinkage("camera", "EditorCamera")
+						.AddSinkLinkage("particlesWireFrame", "particlesWireFrame")
+						.AddSinkLinkage("accumulaionTarget", "accumulaionBuffer")
+						.AddSinkLinkage("renderTarget", "editorUIWorldPass.renderTarget")
+						.AddSinkLinkage("camera", "EditorCamera");
+					fconfig.AddPass(particleSystemPass);
+				}
+
+				RenderPassConfig bloomPass(RenderPassType::BloomPass, "EditorBloomPass");
+				bloomPass.AddSinkLinkage("renderTarget", "ParticleSystemEditor.renderTarget");
+				fconfig.AddPass(bloomPass);
+
 				RenderPassConfig editorUIPass(RenderPassType::EditorUIPass, "EditorUI");
-				editorUIPass.AddSinkLinkage("renderTarget", "editorUIWorldPass.renderTarget")
+				editorUIPass.AddSinkLinkage("renderTarget", "EditorBloomPass.renderTarget")
 					.AddSinkLinkage("camera", "EditorCamera")
 					.AddSinkLinkage("runTimeRenderTarget", "RunTimeBuffer");
 				fconfig.AddPass(editorUIPass);
@@ -341,32 +356,10 @@ namespace Borealis {
 				//	.AddSinkLinkage("EntityIDSource", "ObjectPicking.EntityIDSource");
 				//fconfig.AddPass(editorHighlightPass);
 
-				if(particlesForEditor)
-				{
-					RenderPassConfig particleSystemPass(RenderPassType::ParticleSystemPass, "ParticleSystemEditor");
-					particleSystemPass.AddSinkLinkage("camera", "EditorCamera")
-						.AddSinkLinkage("particlesWireFrame", "particlesWireFrame")
-						.AddSinkLinkage("accumulaionTarget", "accumulaionBuffer")
-						.AddSinkLinkage("renderTarget", "Highlight.renderTarget")
-						.AddSinkLinkage("camera", "EditorCamera");
-					fconfig.AddPass(particleSystemPass);
-				}
-
-				/*
-				* hdr pass
-				* bloom pass
-				*	Prefilter pass
-				*	downsample pass x ?
-				*	upsample and combine x ?
-				*	final composite
-
-				*/
-
 				RenderPassConfig highlightPass(RenderPassType::HighlightPass, "Highlight");
 				highlightPass.AddSinkLinkage("camera", "EditorCamera")
-					.AddSinkLinkage("renderTarget", "ObjectPicking.renderTarget");
+					.AddSinkLinkage("renderTarget", "ParticleSystemEditor.renderTarget");
 				fconfig.AddPass(highlightPass);
-
 			}
 
 			//deferred rendering
@@ -674,7 +667,7 @@ namespace Borealis {
 			CBPanel.ImGuiRender();
 			CSPanel.ImGuiRender();
 			AMPanel.ImGuiRender();
-			SRPanel.ImGuiRender();
+			SRPanel.ImGuiRender(SceneManager::GetActiveScene()->GetBloomConfig());
 			
 			BTNEPanel.ImGuiRender();
 

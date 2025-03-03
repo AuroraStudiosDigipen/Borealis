@@ -47,12 +47,23 @@ namespace Borealis
 	Ref<Shader> common_shader = nullptr;
 	Ref<Shader> quad_shader = nullptr;
 	Ref<Shader> cube_map_shader = nullptr;
+	Ref<Shader> bloom_shader = nullptr;
 
 
 	Ref<FrameBuffer> mCascadeShadowMapBuffer = nullptr;
 	Ref<FrameBuffer> mCascadeShadowMapBufferEditor = nullptr;
 	Ref<FrameBuffer> mCascadeShadowMapBufferDynamic = nullptr;
 	Ref<FrameBuffer> mCascadeShadowMapBufferDynamicEditor = nullptr;
+
+	//bloom
+	Ref<FrameBuffer> thresholdBuffer = nullptr;
+	Ref<FrameBuffer> downSample_0 = nullptr;
+	Ref<FrameBuffer> downSample_1 = nullptr;
+	Ref<FrameBuffer> downSample_2 = nullptr;	
+	Ref<FrameBuffer> upSample_0 = nullptr;
+	Ref<FrameBuffer> upSample_1 = nullptr;
+	Ref<FrameBuffer> upSample_2 = nullptr;
+	Ref<FrameBuffer> compositeBuffer = nullptr;
 
 	struct RenderData
 	{
@@ -67,6 +78,8 @@ namespace Borealis
 		Ref<UniformBufferObject> AnimationUBO;
 
 		Ref<UniformBufferObject> LightsUBO;
+
+		Ref<UniformBufferObject> BloomUBO;
 	};
 
 	static std::unique_ptr<RenderData> sData;
@@ -1579,6 +1592,149 @@ namespace Borealis
 		RenderCommand::EnableDepthTest();
 	}
 
+	BloomPass::BloomPass(std::string name) : RenderPass(name)
+	{
+		shader = bloom_shader;
+	}
+
+	void BloomPass::Execute()
+	{
+		//prefilter
+		//render target->Bind texture
+		//shader->Bind()
+		//shader->Set(..)
+		//DrawQuad()
+		//
+		//std::swap(render target, bloomTarget);
+
+		Ref<RenderTargetSource> renderTarget = nullptr;
+
+		for (auto sink : sinkList)
+		{
+			if (sink->source->sourceType == RenderSourceType::RenderTargetColor)
+			{
+				if (sink->sinkName == "renderTarget")
+				{
+					renderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
+				}
+			}
+		}
+
+		//threshold pass
+		renderTarget->buffer->BindTexture(0, 0);
+		shader->Bind();
+		shader->Set("u_Step", 0);
+		shader->Set("u_SceneTexture", 0);
+		thresholdBuffer->Bind();
+		if (thresholdBuffer->GetProperties().Width != renderTarget->Width/2 || thresholdBuffer->GetProperties().Height != renderTarget->Height/2)
+		{
+			thresholdBuffer->Resize(renderTarget->Width/2, renderTarget->Height/2);
+			downSample_0->Resize(renderTarget->Width/4, renderTarget->Height/4);
+			downSample_1->Resize(renderTarget->Width/8, renderTarget->Height/8);
+			downSample_2->Resize(renderTarget->Width/16, renderTarget->Height/16);			
+			
+			upSample_0->Resize(renderTarget->Width/8, renderTarget->Height/8);
+			upSample_1->Resize(renderTarget->Width/4, renderTarget->Height/4);
+			upSample_2->Resize(renderTarget->Width, renderTarget->Height);
+			compositeBuffer->Resize(renderTarget->Width, renderTarget->Height);
+		}
+		RenderCommand::Clear();
+		Renderer3D::DrawQuad();
+		thresholdBuffer->Unbind();
+		shader->Unbind();
+		
+		//downsample
+		downSample_0->Bind();
+		RenderCommand::Clear();
+		thresholdBuffer->BindTexture(0, 0);
+		shader->Bind();
+		shader->Set("u_Step", 1);
+		shader->Set("u_SceneTexture", 0);
+		shader->Set("u_TexelSize", glm::vec2(1.f/(float)thresholdBuffer->GetProperties().Width, 1.f/(float)thresholdBuffer->GetProperties().Height));
+		Renderer3D::DrawQuad();
+		downSample_0->Unbind();
+		shader->Unbind();
+
+		downSample_1->Bind();
+		RenderCommand::Clear();
+		downSample_0->BindTexture(0, 0);
+		shader->Bind();
+		shader->Set("u_Step", 1);
+		shader->Set("u_SceneTexture", 0);
+		shader->Set("u_TexelSize", glm::vec2(1.f / (float)downSample_0->GetProperties().Width, 1.f / (float)downSample_0->GetProperties().Height));
+		Renderer3D::DrawQuad();
+		downSample_1->Unbind();
+		shader->Unbind();
+
+		downSample_2->Bind();
+		RenderCommand::Clear();
+		downSample_1->BindTexture(0, 0);
+		shader->Bind();
+		shader->Set("u_Step", 1);
+		shader->Set("u_SceneTexture", 0);
+		shader->Set("u_TexelSize", glm::vec2(1.f / (float)downSample_1->GetProperties().Width, 1.f / (float)downSample_1->GetProperties().Height));
+		Renderer3D::DrawQuad();
+		downSample_2->Unbind();
+		shader->Unbind();
+
+		//upsample and combine
+		upSample_0->Bind();
+		RenderCommand::Clear();
+		downSample_2->BindTexture(0, 0);
+		shader->Bind();
+		shader->Set("u_Step", 2);
+		shader->Set("u_SceneTexture", 0); 
+		shader->Set("u_BloomTexture", 0); 
+		Renderer3D::DrawQuad();
+		upSample_0->Unbind();
+		shader->Unbind();
+
+		upSample_1->Bind();
+		RenderCommand::Clear();
+		upSample_0->BindTexture(0, 0);
+		downSample_1->BindTexture(0, 1);
+		shader->Bind();
+		shader->Set("u_Step", 2);
+		shader->Set("u_SceneTexture", 0);
+		shader->Set("u_BloomTexture", 1);
+		Renderer3D::DrawQuad();
+		upSample_1->Unbind();
+		shader->Unbind();
+
+		upSample_2->Bind();
+		RenderCommand::Clear();
+		upSample_1->BindTexture(0, 0);
+		upSample_0->BindTexture(0, 1);
+		shader->Bind();
+		shader->Set("u_Step", 2);
+		shader->Set("u_SceneTexture", 0);
+		shader->Set("u_BloomTexture", 1);
+		Renderer3D::DrawQuad();
+		upSample_2->Unbind();
+		shader->Unbind();
+
+		compositeBuffer->Bind();
+		RenderCommand::Clear();
+		renderTarget->buffer->BindTexture(0, 0);
+		upSample_2->BindTexture(0, 1);
+		shader->Bind();
+		shader->Set("u_Step", 3);
+		shader->Set("u_SceneTexture", 0);
+		shader->Set("u_BloomTexture", 1);		
+		Renderer3D::DrawQuad();
+		compositeBuffer->Unbind();
+		shader->Unbind();
+
+		renderTarget->Bind();
+		compositeBuffer->BindTexture(0, 0);
+		shader->Bind();
+		shader->Set("u_Step", 4);
+		shader->Set("u_SceneTexture", 0);
+		Renderer3D::DrawQuad();
+		renderTarget->Unbind();
+		shader->Unbind();
+	}
+
 	RenderToTarget::RenderToTarget(std::string name) : RenderPass(name)
 	{
 		shader = quad_shader;
@@ -2144,6 +2300,12 @@ namespace Borealis
 		if (!cube_map_shader)
 			cube_map_shader = Shader::Create("engineResources/Shaders/Renderer3D_CubeMap.glsl");
 
+		if (!bloom_shader)
+		{
+			bloom_shader = Shader::Create("engineResources/Shaders/Renderer3D_Bloom.glsl");
+			UniformBufferObject::BindToShader(bloom_shader->GetID(), "BloomUBO", BLOOM_BIND);
+		}
+
 		if (!mCascadeShadowMapBuffer)
 		{
 			FrameBufferProperties propsShadowMapBuffer{ 2024, 2024, false };
@@ -2172,6 +2334,22 @@ namespace Borealis
 			mCascadeShadowMapBufferDynamicEditor = FrameBuffer::Create(propsShadowMapBuffer);
 		}
 
+		if (!thresholdBuffer)
+		{
+			FrameBufferProperties propsThresholdBuffer{ 1280, 720, false };
+			propsThresholdBuffer.Attachments = { FramebufferTextureFormat::RGBA16F };
+			thresholdBuffer = FrameBuffer::Create(propsThresholdBuffer);			
+			
+			downSample_0 = FrameBuffer::Create(propsThresholdBuffer);
+			downSample_1 = FrameBuffer::Create(propsThresholdBuffer);
+			downSample_2 = FrameBuffer::Create(propsThresholdBuffer);			
+			
+			upSample_0 = FrameBuffer::Create(propsThresholdBuffer);
+			upSample_1 = FrameBuffer::Create(propsThresholdBuffer);
+			upSample_2 = FrameBuffer::Create(propsThresholdBuffer);
+			compositeBuffer = FrameBuffer::Create(propsThresholdBuffer);
+		}
+
 		if(!sData)
 		{
 			sData = std::make_unique<RenderData>();
@@ -2180,6 +2358,8 @@ namespace Borealis
 			sData->AnimationUBO = UniformBufferObject::Create(sizeof(glm::mat4) * 128 * 5, ANIMATION_BIND);
 
 			sData->LightsUBO = UniformBufferObject::Create(sizeof(LightUBO) * 32 + sizeof(int), LIGHTING_BIND);
+
+			sData->BloomUBO = UniformBufferObject::Create(sizeof(RenderGraph::BloomConfig), BLOOM_BIND);
 		}
 	}
 
@@ -2273,6 +2453,8 @@ namespace Borealis
 				particleSystemComponent.Update(transform, dt);
 			}
 		}
+
+		sData->BloomUBO->SetData(&bloomConfig, sizeof(bloomConfig));
 	}
 
 	void RenderGraph::AddPass(Ref<RenderPass> pass)
@@ -2337,6 +2519,7 @@ namespace Borealis
 			case RenderPassType::EditorHighlightPass:
 			case RenderPassType::SkyboxPass:
 			case RenderPassType::RenderToTarget:
+			case RenderPassType::BloomPass:
 				AddRenderPassConfig(passesConfig);
 				break;
 			default:
@@ -2382,6 +2565,9 @@ namespace Borealis
 			break;
 		case RenderPassType::SkyboxPass:
 			renderPass = MakeRef<SkyboxPass>(renderPassConfig.mPassName);
+			break;
+		case RenderPassType::BloomPass:
+			renderPass = MakeRef<BloomPass>(renderPassConfig.mPassName);
 			break;
 		case RenderPassType::RenderToTarget:
 			renderPass = MakeRef<RenderToTarget>(renderPassConfig.mPassName);

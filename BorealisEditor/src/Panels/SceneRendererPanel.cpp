@@ -28,7 +28,7 @@ namespace Borealis
 
 	}
 
-	void SceneRenderPanel::ImGuiRender()
+	void SceneRenderPanel::ImGuiRender(RenderGraph::BloomConfig & bloomConfig)
 	{
 		ImGui::Begin("Scene Render");
 
@@ -47,6 +47,23 @@ namespace Borealis
 			}
 			ImGui::EndDragDropTarget();
 		}
+
+		// Bloom control sliders:
+		ImGui::Text("Bloom Options");
+		if (ImGui::SliderFloat("Threshold", &bloomConfig.threshold, 0.0f, 10.0f, "%.1f"))
+		{
+			// Optionally round to the nearest 0.1
+			bloomConfig.threshold = round(bloomConfig.threshold * 10.0f) / 10.0f;
+		}
+		if (ImGui::SliderFloat("Knee", &bloomConfig.knee, 0.0f, 10.0f, "%.1f"))
+		{
+			bloomConfig.knee = round(bloomConfig.knee * 10.0f) / 10.0f;
+		}
+		if (ImGui::SliderFloat("Bloom Scale", &bloomConfig.bloomScale, 0.0f, 10.0f, "%.1f"))
+		{
+			bloomConfig.bloomScale = round(bloomConfig.bloomScale * 10.0f) / 10.0f;
+		}
+
 
 		ImGui::End();
 	}

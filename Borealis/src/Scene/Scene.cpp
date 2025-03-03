@@ -840,6 +840,11 @@ namespace Borealis
 		mRenderGraph.Init();
 	}
 
+	RenderGraph::BloomConfig& Scene::GetBloomConfig()
+	{
+		return mRenderGraph.bloomConfig;
+	}
+
 	void Scene::CreateBuffers()
 	{
 		//move to rendergraph

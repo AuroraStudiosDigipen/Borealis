@@ -128,6 +128,32 @@ namespace Borealis
 		}
 	}
 
+	uint32_t OpenGLFrameBuffer::DetachTextureAttachment(uint32_t index)
+	{
+		//glBindFramebuffer(GL_FRAMEBUFFER, mRendererID);
+		//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
+
+		//if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		//	BOREALIS_CORE_ASSERT("Framebuffer incomplete");
+		//}
+
+		uint32_t id = mColorAttachments[index];
+		//mColorAttachments[index] = 0;
+		return mColorAttachments[index];
+	}
+
+	void OpenGLFrameBuffer::AttachTextureAttachment(uint32_t textureID, uint32_t index)
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, mRendererID);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureID, 0);
+
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+			BOREALIS_CORE_ASSERT("Framebuffer incomplete");
+		}
+
+		mColorAttachments[index] = textureID;
+	}
+
 	void OpenGLFrameBuffer::Recreate()
 	{
 		if (mRendererID)

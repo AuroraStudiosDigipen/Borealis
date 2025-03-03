@@ -197,7 +197,8 @@ namespace Borealis
 		ParticleSystemPass,
 		SkyboxPass,
 		RenderToTarget,
-		UIWorldPass
+		UIWorldPass,
+		BloomPass
 	};
 
 	class RenderPass 
@@ -238,6 +239,14 @@ namespace Borealis
 	{
 	public:
 		SkyboxPass(std::string name);
+
+		void Execute() override;
+	};
+
+	class BloomPass : public RenderPass
+	{
+	public:
+		BloomPass(std::string name);
 
 		void Execute() override;
 	};
@@ -395,6 +404,15 @@ namespace Borealis
 		RenderGraphConfig mRenderGraphConfig;
 
 		entt::registry* registryPtr;
+
+		struct BloomConfig
+		{
+			float threshold = 1.f;
+			float knee = 0.5f;
+			float bloomScale = 1.f;
+		};
+
+		BloomConfig bloomConfig{};
 	};
 }
 

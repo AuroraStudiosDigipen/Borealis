@@ -358,6 +358,15 @@ namespace Borealis
             .property("On Click Class", &ButtonComponent::onClickClass)
             .property("On Hover Class", &ButtonComponent::onHoverClass)
             .property("On Release Class", &ButtonComponent::onReleaseClass);
+
+        registration::class_<UIAnimatorComponent>("UI Animator Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("Loop", &UIAnimatorComponent::loop)
+            .property("Speed", &UIAnimatorComponent::speed)
+            .property("Spitesheet", &UIAnimatorComponent::texture)
+    		.property("Num Rows", &UIAnimatorComponent::numRow)
+    		.property("Num Col", &UIAnimatorComponent::numCol);
     }
 
     enum dataTypes

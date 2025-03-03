@@ -804,6 +804,11 @@ namespace Borealis
 
 				Renderer2D::DrawString(text.text, text.font, transform, (int)parent, text.fontSize, text.colour, text.align == TextComponent::TextAlign::Left? false:true);
 			}
+
+			if (parent.HasComponent<UIAnimatorComponent>())
+			{
+				
+			}
 		}
 
 		for (UUID childID : parent.GetComponent<TransformComponent>().ChildrenID)
@@ -830,6 +835,13 @@ namespace Borealis
 			{
 				const TextComponent& text = parent.GetComponent<TextComponent>();
 				Renderer2D::DrawString(text.text, text.font, transform, (int)parent, text.fontSize, text.colour, text.align == TextComponent::TextAlign::Left ? false : true);
+			}
+
+			if (parent.HasComponent<UIAnimatorComponent>())
+			{
+				const UIAnimatorComponent& uiAnimator = parent.GetComponent<UIAnimatorComponent>();
+				//get current sprite coord offset
+				Renderer2D::DrawAnimatedSprite(transform, {0,0}, uiAnimator.texture, {0,0}, (int)parent);
 			}
 		}
 

@@ -194,6 +194,22 @@ namespace Borealis
 		AnimatorComponent(const AnimatorComponent&) = default;
 	};
 
+	struct UIAnimatorComponent
+	{
+		//Ref<Animation2D> animation = nullptr;
+		//Animator2D animator{};
+		bool loop = true;
+		float speed = 1.f;
+		Ref<Texture2D> texture;
+		int numRow = 1;
+		int numCol = 1;
+		float tilingFactor = 1.0f;
+		bool useTextureAspectRatio = false;
+
+		UIAnimatorComponent() = default;
+		UIAnimatorComponent(const UIAnimatorComponent&) = default;
+	};
+
 	// Move into appropraite file another time
 	class PhysicMaterial
 	{

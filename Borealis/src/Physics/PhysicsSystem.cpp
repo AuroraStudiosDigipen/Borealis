@@ -628,6 +628,16 @@ namespace Borealis
 		return bodySensorMap[bodyID];
 	}
 
+	void PhysicsSystem::SetActive(unsigned int bodyID)
+	{
+		sPhysicsData.body_interface->ActivateBody((BodyID)bodyID);
+	}
+
+	void PhysicsSystem::SetInactive(unsigned int bodyID)
+	{
+		sPhysicsData.body_interface->DeactivateBody((BodyID)bodyID);
+	}
+
 	std::pair<glm::vec3, glm::vec3> PhysicsSystem::calculateBoundingVolume(const Model& model)
 	{
 		glm::vec3 minExtent{}, maxExtent{};

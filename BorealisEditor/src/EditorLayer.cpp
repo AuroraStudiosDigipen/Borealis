@@ -336,11 +336,6 @@ namespace Borealis {
 				//	.AddSinkLinkage("EntityIDSource", "ObjectPicking.EntityIDSource");
 				//fconfig.AddPass(editorHighlightPass);
 
-				RenderPassConfig highlightPass(RenderPassType::HighlightPass, "Highlight");
-				highlightPass.AddSinkLinkage("camera", "EditorCamera")
-					.AddSinkLinkage("renderTarget", "ObjectPicking.renderTarget");
-				fconfig.AddPass(highlightPass);
-
 				if(particlesForEditor)
 				{
 					RenderPassConfig particleSystemPass(RenderPassType::ParticleSystemPass, "ParticleSystemEditor");
@@ -349,6 +344,22 @@ namespace Borealis {
 						.AddSinkLinkage("renderTarget", "Highlight.renderTarget");
 					fconfig.AddPass(particleSystemPass);
 				}
+
+				/*
+				* hdr pass
+				* bloom pass
+				*	Prefilter pass
+				*	downsample pass x ?
+				*	upsample and combine x ?
+				*	final composite
+
+				*/
+
+				RenderPassConfig highlightPass(RenderPassType::HighlightPass, "Highlight");
+				highlightPass.AddSinkLinkage("camera", "EditorCamera")
+					.AddSinkLinkage("renderTarget", "ObjectPicking.renderTarget");
+				fconfig.AddPass(highlightPass);
+
 			}
 
 			//deferred rendering

@@ -545,7 +545,9 @@ void Render3DPass()
 	vec3 ambient = vec3(0.1f) * GetAlbedoColor().rgb;
 
 	vec3 finalColor = color.rgb;
-    finalColor = finalColor / (finalColor + vec3(1.0));
+    float exposure = 0.1f;
+    finalColor = vec3(1.f) - exp(-finalColor * exposure);
+    //finalColor = finalColor / (finalColor + vec3(1.0));
     finalColor = pow(finalColor, vec3(1.0/2.2)); 
 
     if(u_Transparent)

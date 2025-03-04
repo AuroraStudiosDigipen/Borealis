@@ -2014,6 +2014,12 @@
     <ClInclude Include="lib\xproperty\include\xproperty\xproperty_config.hpp">
       <Filter>lib\xproperty\include\xproperty</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Graphics\Animation\UIAnimation.hpp">
+      <Filter>inc\Graphics\Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Graphics\Animation\UIAnimator.hpp">
+      <Filter>inc\Graphics\Animation</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lib\imGuizmo\imGuizmo.cpp">
@@ -2270,6 +2276,12 @@
     </ClCompile>
     <ClCompile Include="src\Scripting\ScriptingUtils.cpp">
       <Filter>src\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Animation\UIAnimation.cpp">
+      <Filter>src\Graphics\Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Animation\UIAnimator.cpp">
+      <Filter>src\Graphics\Animation</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -35,6 +35,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Audio/Audio.hpp>
 #include <Audio/AudioGroup.hpp>
 
+#include "Graphics/Animation/UIAnimation.hpp"
+#include "Graphics/Animation/UIAnimator.hpp"
 #include "Graphics/UI/Button.hpp"
 
 
@@ -196,17 +198,23 @@ namespace Borealis
 
 	struct UIAnimatorComponent
 	{
-		//Ref<Animation2D> animation = nullptr;
-		//Animator2D animator{};
+		Ref<UIAnimation> animation = nullptr;
+		UIAnimator animator{};
+
 		bool loop = true;
 		float speed = 1.f;
 		Ref<Texture2D> texture;
 		int numRow = 1;
 		int numCol = 1;
+		float duration = 1;
+
 		float tilingFactor = 1.0f;
 		bool useTextureAspectRatio = false;
 
-		UIAnimatorComponent() = default;
+		UIAnimatorComponent()
+		{
+			animation = MakeRef<UIAnimation>(texture, duration, numRow, numCol);
+		}
 		UIAnimatorComponent(const UIAnimatorComponent&) = default;
 	};
 

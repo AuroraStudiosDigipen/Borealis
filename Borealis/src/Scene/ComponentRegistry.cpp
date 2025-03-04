@@ -364,9 +364,10 @@ namespace Borealis
             .constructor<>()
             .property("Loop", &UIAnimatorComponent::loop)
             .property("Speed", &UIAnimatorComponent::speed)
-            .property("Spitesheet", &UIAnimatorComponent::texture)
+            .property("Duration", &UIAnimatorComponent::duration)
+            .property("Spritesheet", &UIAnimatorComponent::texture)
     		.property("Num Rows", &UIAnimatorComponent::numRow)
-    		.property("Num Col", &UIAnimatorComponent::numCol);
+    		.property("Num Columns", &UIAnimatorComponent::numCol);
     }
 
     enum dataTypes

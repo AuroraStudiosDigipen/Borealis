@@ -786,7 +786,7 @@ namespace Borealis
 		shader = s_shader;
 	}
 
-	void RenderCanvasRecursive(Entity parent, const glm::mat4& canvasTransform)
+	void RenderCanvasRecursive(Entity parent, const glm::mat4& canvasTransform, float dt)
 	{
 		if (!parent.HasComponent<TransformComponent>()) return;
 		glm::mat4 globalTansform = parent.GetComponent<TransformComponent>().GetGlobalTransform();//(glm::mat4)parent.GetComponent<TransformComponent>();
@@ -807,7 +807,24 @@ namespace Borealis
 
 			if (parent.HasComponent<UIAnimatorComponent>())
 			{
-				
+				UIAnimatorComponent& uiAnimator = parent.GetComponent<UIAnimatorComponent>();
+
+				uiAnimator.animator.UpdateAnimation(dt);
+
+				//get current sprite coord offset
+				const auto& sprites = uiAnimator.animation->GetSprites();
+				int currentFrame = uiAnimator.animator.GetCurrentSpriteIndex();
+				glm::vec2 spriteOffset = sprites[currentFrame].offset;
+
+				Renderer2D::DrawAnimatedSprite(transform,
+					uiAnimator.animation->GetSpriteSize(),
+					uiAnimator.texture,
+					spriteOffset,
+					(int)parent,
+					uiAnimator.tilingFactor,
+					glm::vec4(1.0f),
+					false,
+					uiAnimator.useTextureAspectRatio);
 			}
 		}
 
@@ -815,11 +832,11 @@ namespace Borealis
 		{
 			Entity child = SceneManager::GetActiveScene()->GetEntityByUUID(childID);
 			if (child.HasComponent<TagComponent>() && child.IsActive())
-				RenderCanvasRecursive(child, canvasTransform);
+				RenderCanvasRecursive(child, canvasTransform, dt);
 		}
 	}
 
-	void RenderCanvasRecursiveWorld(Entity parent)
+	void RenderCanvasRecursiveWorld(Entity parent, float dt)
 	{
 		if (!parent.HasComponent<TransformComponent>()) return;
 		glm::mat4 transform = parent.GetComponent<TransformComponent>().GetGlobalTransform();
@@ -839,9 +856,24 @@ namespace Borealis
 
 			if (parent.HasComponent<UIAnimatorComponent>())
 			{
-				const UIAnimatorComponent& uiAnimator = parent.GetComponent<UIAnimatorComponent>();
+				UIAnimatorComponent& uiAnimator = parent.GetComponent<UIAnimatorComponent>();
+
+				uiAnimator.animator.UpdateAnimation(dt);
+
 				//get current sprite coord offset
-				Renderer2D::DrawAnimatedSprite(transform, {0,0}, uiAnimator.texture, {0,0}, (int)parent);
+				const auto& sprites = uiAnimator.animation->GetSprites();
+				int currentFrame = uiAnimator.animator.GetCurrentSpriteIndex();
+				glm::vec2 spriteOffset = sprites[currentFrame].offset;
+
+				Renderer2D::DrawAnimatedSprite(transform,
+					uiAnimator.animation->GetSpriteSize(),
+					uiAnimator.texture,
+					spriteOffset,
+					(int)parent,
+					uiAnimator.tilingFactor,
+					glm::vec4(1.0f),
+					false,
+					uiAnimator.useTextureAspectRatio);
 			}
 		}
 
@@ -849,7 +881,7 @@ namespace Borealis
 		{
 			Entity child = SceneManager::GetActiveScene()->GetEntityByUUID(childID);
 			if (child.HasComponent<TagComponent>() && child.IsActive())
-				RenderCanvasRecursiveWorld(child);
+				RenderCanvasRecursiveWorld(child, dt);
 		}
 	}
 
@@ -895,7 +927,7 @@ namespace Borealis
 
 				glm::mat4 canvasTransform = transform.GetGlobalTransform();
 
-				RenderCanvasRecursiveWorld(brEntity);
+				RenderCanvasRecursiveWorld(brEntity, dt);
 			}
 		}
 
@@ -1790,7 +1822,7 @@ namespace Borealis
 				glm::mat4 canvasTransform = glm::translate(glm::mat4(1.0f), canvasPosition) *
 					glm::scale(glm::mat4(1.0f), glm::vec3(scaleFactor, -scaleFactor, 1.f));
 
-				RenderCanvasRecursive(brEntity, canvasTransform);
+				RenderCanvasRecursive(brEntity, canvasTransform, dt);
 				UIexist = true;
 
 				{

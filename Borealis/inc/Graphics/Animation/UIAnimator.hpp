@@ -16,6 +16,7 @@ namespace Borealis
 		void SetLoop(bool loop) { mLoop = loop; }
 		void SetSpeed(float speed) { mSpeed = speed; }
 		int GetCurrentSpriteIndex() const { return mCurrentSpriteIndex; }
+		Ref<UIAnimation> GetCurrentAnimation() const { return currentAnimation; }
 
 	private:
 		bool mLoop;

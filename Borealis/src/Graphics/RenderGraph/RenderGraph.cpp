@@ -809,22 +809,35 @@ namespace Borealis
 			{
 				UIAnimatorComponent& uiAnimator = parent.GetComponent<UIAnimatorComponent>();
 
-				uiAnimator.animator.UpdateAnimation(dt);
+				if (!uiAnimator.texture) return;
 
-				//get current sprite coord offset
-				const auto& sprites = uiAnimator.animation->GetSprites();
-				int currentFrame = uiAnimator.animator.GetCurrentSpriteIndex();
-				glm::vec2 spriteOffset = sprites[currentFrame].offset;
+				if (!uiAnimator.animation && !uiAnimator.animator.GetCurrentAnimation())
+				{
+					uiAnimator.animation = MakeRef<UIAnimation>(uiAnimator.texture, uiAnimator.duration, uiAnimator.numRow, uiAnimator.numCol, uiAnimator.numSprites);
+					uiAnimator.animation->LoadAnimation();
+					uiAnimator.animator.PlayAnimation(uiAnimator.animation);
+				}
 
-				Renderer2D::DrawAnimatedSprite(transform,
-					uiAnimator.animation->GetSpriteSize(),
-					uiAnimator.texture,
-					spriteOffset,
-					(int)parent,
-					uiAnimator.tilingFactor,
-					glm::vec4(1.0f),
-					false,
-					uiAnimator.useTextureAspectRatio);
+				if (uiAnimator.animation)
+				{
+					uiAnimator.animator.SetLoop(uiAnimator.loop);
+					uiAnimator.animator.SetSpeed(uiAnimator.speed);
+					uiAnimator.animator.UpdateAnimation(dt);
+					//get current sprite coord offset
+					const auto& sprites = uiAnimator.animation->GetSprites();
+					int currentFrame = uiAnimator.animator.GetCurrentSpriteIndex();
+					glm::vec2 spriteOffset = sprites[currentFrame].offset;
+
+					Renderer2D::DrawAnimatedSprite(transform,
+						uiAnimator.animation->GetSpriteSize(),
+						uiAnimator.texture,
+						spriteOffset,
+						(int)parent,
+						uiAnimator.tilingFactor,
+						glm::vec4(1.0f),
+						false,
+						uiAnimator.useTextureAspectRatio);
+				}
 			}
 		}
 
@@ -858,22 +871,35 @@ namespace Borealis
 			{
 				UIAnimatorComponent& uiAnimator = parent.GetComponent<UIAnimatorComponent>();
 
-				uiAnimator.animator.UpdateAnimation(dt);
+				if (!uiAnimator.texture) return;
 
-				//get current sprite coord offset
-				const auto& sprites = uiAnimator.animation->GetSprites();
-				int currentFrame = uiAnimator.animator.GetCurrentSpriteIndex();
-				glm::vec2 spriteOffset = sprites[currentFrame].offset;
+				if (!uiAnimator.animation && !uiAnimator.animator.GetCurrentAnimation())
+				{
+					uiAnimator.animation = MakeRef<UIAnimation>(uiAnimator.texture, uiAnimator.duration, uiAnimator.numRow, uiAnimator.numCol, uiAnimator.numSprites);
+					uiAnimator.animation->LoadAnimation();
+					uiAnimator.animator.PlayAnimation(uiAnimator.animation);
+				}
 
-				Renderer2D::DrawAnimatedSprite(transform,
-					uiAnimator.animation->GetSpriteSize(),
-					uiAnimator.texture,
-					spriteOffset,
-					(int)parent,
-					uiAnimator.tilingFactor,
-					glm::vec4(1.0f),
-					false,
-					uiAnimator.useTextureAspectRatio);
+				if (uiAnimator.animation)
+				{
+					uiAnimator.animator.SetLoop(uiAnimator.loop);
+					uiAnimator.animator.SetSpeed(uiAnimator.speed);
+					uiAnimator.animator.UpdateAnimation(dt);
+					//get current sprite coord offset
+					const auto& sprites = uiAnimator.animation->GetSprites();
+					int currentFrame = uiAnimator.animator.GetCurrentSpriteIndex();
+					glm::vec2 spriteOffset = sprites[currentFrame].offset;
+
+					Renderer2D::DrawAnimatedSprite(transform,
+						uiAnimator.animation->GetSpriteSize(),
+						uiAnimator.texture,
+						spriteOffset,
+						(int)parent,
+						uiAnimator.tilingFactor,
+						glm::vec4(1.0f),
+						false,
+						uiAnimator.useTextureAspectRatio);
+				}
 			}
 		}
 

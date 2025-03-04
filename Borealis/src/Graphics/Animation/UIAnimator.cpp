@@ -3,13 +3,14 @@
 
 namespace Borealis
 {
-	UIAnimator::UIAnimator() : mCurrentTime(0.0f), mCurrentSpriteIndex(0) {}
+	UIAnimator::UIAnimator() : mCurrentTime(0.f), mCurrentSpriteIndex(0), currentAnimation(nullptr) {}
 
 	void UIAnimator::UpdateAnimation(float dt)
 	{
+        if (!currentAnimation) return;
+
         int numSprites = currentAnimation->GetSprites().size();
-        if (numSprites == 0)
-            return;
+        if (!numSprites) return;
 
         float animDuration = currentAnimation->GetDuration();
         mCurrentTime += dt * mSpeed;
@@ -24,4 +25,12 @@ namespace Borealis
         if (mCurrentSpriteIndex >= numSprites)
             mCurrentSpriteIndex = numSprites - 1;
 	}
+
+    void UIAnimator::PlayAnimation(Ref<UIAnimation> animation)
+    {
+		currentAnimation = animation;
+        mCurrentTime = 0.f;
+        mCurrentSpriteIndex = 0;
+    }
+
 }

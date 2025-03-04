@@ -203,18 +203,16 @@ namespace Borealis
 
 		bool loop = true;
 		float speed = 1.f;
-		Ref<Texture2D> texture;
+		Ref<Texture2D> texture = nullptr;
 		int numRow = 1;
 		int numCol = 1;
+		int numSprites = 1;
 		float duration = 1;
 
 		float tilingFactor = 1.0f;
 		bool useTextureAspectRatio = false;
 
-		UIAnimatorComponent()
-		{
-			animation = MakeRef<UIAnimation>(texture, duration, numRow, numCol);
-		}
+		UIAnimatorComponent() = default;
 		UIAnimatorComponent(const UIAnimatorComponent&) = default;
 	};
 

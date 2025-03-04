@@ -15,7 +15,9 @@ namespace Borealis
 	class UIAnimation
 	{
 	public:
-		UIAnimation(Ref<Texture2D> spritesheet, float duration, int numRow, int numCol);
+		UIAnimation(Ref<Texture2D> spritesheet, float duration, int numRow, int numCol, int numSprites);
+
+		void LoadAnimation();
 
 		glm::vec2 GetSpriteSize() { return spriteSize; }
 		std::vector<Sprite>& GetSprites() { return sprites; }
@@ -26,6 +28,9 @@ namespace Borealis
 		std::vector<Sprite> sprites;
 		float mDuration;
 		glm::vec2 spriteSize;
+		int mNumRow;
+		int mNumCol;
+		int mNumSprites;
 	};
 }
 

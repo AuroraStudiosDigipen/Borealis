@@ -630,13 +630,14 @@ namespace Borealis
 
 	void PhysicsSystem::SetActive(unsigned int bodyID)
 	{
-		sPhysicsData.body_interface->SetPosition((BodyID)bodyID, Vec3Arg(0.f, -50.f, 0.f), EActivation::DontActivate);
-
+		if(!sPhysicsData.body_interface->IsAdded((BodyID)bodyID))
+		sPhysicsData.body_interface->AddBody((BodyID)bodyID, EActivation::Activate);
 	}
 
 	void PhysicsSystem::SetInactive(unsigned int bodyID)
 	{
-		sPhysicsData.body_interface->SetPosition((BodyID)bodyID, Vec3Arg(0.f, -50.f, 0.f), EActivation::DontActivate);
+		if(sPhysicsData.body_interface->IsAdded((BodyID)bodyID))
+		sPhysicsData.body_interface->RemoveBody((BodyID)bodyID);
 	}
 
 	std::pair<glm::vec3, glm::vec3> PhysicsSystem::calculateBoundingVolume(const Model& model)

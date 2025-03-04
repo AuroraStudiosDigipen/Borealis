@@ -191,6 +191,8 @@
     <ClInclude Include="inc\Debugging\Profiler.hpp" />
     <ClInclude Include="inc\Events\EventInput.hpp" />
     <ClInclude Include="inc\Events\EventWindow.hpp" />
+    <ClInclude Include="inc\Graphics\Animation\UIAnimation.hpp" />
+    <ClInclude Include="inc\Graphics\Animation\UIAnimator.hpp" />
     <ClInclude Include="inc\Graphics\Animation\Animation.hpp" />
     <ClInclude Include="inc\Graphics\Animation\Animator.hpp" />
     <ClInclude Include="inc\Graphics\Animation\Bone.hpp" />
@@ -803,6 +805,8 @@
     <ClCompile Include="src\Debugging\Profiler.cpp" />
     <ClCompile Include="src\Events\EventInput.cpp" />
     <ClCompile Include="src\Events\EventWindow.cpp" />
+    <ClCompile Include="src\Graphics\Animation\UIAnimation.cpp" />
+    <ClCompile Include="src\Graphics\Animation\UIAnimator.cpp" />
     <ClCompile Include="src\Graphics\Animation\Animation.cpp" />
     <ClCompile Include="src\Graphics\Animation\Animator.cpp" />
     <ClCompile Include="src\Graphics\Animation\Bone.cpp" />

@@ -976,6 +976,76 @@ namespace Borealis
 		sData->mStats.QuadCount++;
 	}
 
+	void Renderer2D::DrawAnimatedSprite(const glm::mat4& transform, const glm::vec2& spriteSize, const Ref<Texture2D>& texture, const glm::vec2& spriteOffset, int entityID, const float& tilingFactor, const glm::vec4& tint, bool billBoard, bool useTextureAR)
+	{
+		PROFILE_FUNCTION();
+
+		if (sData->QuadIndexCount + 6 >= Renderer2DData::MaxIndices)
+			FlushReset();
+
+		uint32_t textureUnit = 0;
+
+		for (uint32_t i = 1; i < sData->TextureSlotIndex; i++)
+		{
+			if (*sData->TextureSlots[i].get() == *texture.get())
+			{
+				textureUnit = i;
+				break;
+			}
+		}
+
+		if (textureUnit == 0)
+		{
+			if (sData->TextureSlotIndex + 1 == sData->MaxTextureSlots)
+			{
+				FlushReset();
+			}
+			textureUnit = sData->TextureSlotIndex;
+			sData->TextureSlots[textureUnit] = texture;
+			sData->TextureSlotIndex++;
+		}
+
+		//constexpr glm::vec2 texCoords[] = { {0.0f,0.0f},{1.0f,0.0f},{1.0f,1.0f},{0.0f,1.0f} };
+
+		constexpr glm::vec2 texCoords[] = {
+			{0.0f, 1.0f},
+			{1.0f, 1.0f},
+			{1.0f, 0.0f},
+			{0.0f, 0.0f}
+		};
+
+		float aspectRatio = static_cast<float>(texture->GetWidth()) / static_cast<float>(texture->GetHeight());
+
+		glm::vec4 scaledVertices[4];
+		for (int i = 0; i < 4; i++) {
+			scaledVertices[i] = sData->VertexPos[i];
+			scaledVertices[i].x *= aspectRatio;
+		}
+
+		for (int i = 0; i < 4; i++)
+		{
+			if (billBoard)
+				sData->QuadBufferPtr->Position = transform * glm::vec4(0.f, 0.f, 0.f, 1.f);
+			else if (useTextureAR)
+				sData->QuadBufferPtr->Position = transform * scaledVertices[i];
+			else
+				sData->QuadBufferPtr->Position = transform * sData->VertexPos[i];
+			sData->QuadBufferPtr->Colour = tint;
+			//sData->QuadBufferPtr->TexCoord = texCoords[i];
+			glm::vec2 finalTexCoord = spriteOffset + (texCoords[i] * spriteSize);
+			sData->QuadBufferPtr->TexCoord = finalTexCoord;
+			sData->QuadBufferPtr->TexIndex = textureUnit;
+			sData->QuadBufferPtr->TilingFactor = tilingFactor;
+			sData->QuadBufferPtr->EntityID = entityID;
+			sData->QuadBufferPtr->BillBoarding = (billBoard) ? 1 : 0;
+			sData->QuadBufferPtr++;
+		}
+
+		sData->QuadIndexCount += 6;
+
+		sData->mStats.QuadCount++;
+	}
+
 	void Renderer2D::DrawHighlightedQuad(const glm::mat4& transform, Ref<Shader> shader)
 	{
 		shader->Bind();

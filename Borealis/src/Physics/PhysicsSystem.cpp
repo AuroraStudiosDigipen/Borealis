@@ -1333,6 +1333,7 @@ namespace Borealis
 	{
 		if (collider.rigidBody)
 		{
+			if(sPhysicsData.body_interface->IsAdded(BodyID(collider.bodyID)))
 			sPhysicsData.body_interface->RemoveBody(JPH::BodyID(collider.bodyID));
 			sPhysicsData.body_interface->DestroyBody(JPH::BodyID(collider.bodyID));
 			bodyIDMapUUID.erase(collider.bodyID);

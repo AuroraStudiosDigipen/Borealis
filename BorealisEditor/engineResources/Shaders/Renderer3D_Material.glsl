@@ -178,15 +178,6 @@ in vec4 v_LightPos;
 
 uniform mat4 u_View;
 uniform vec3 u_ViewPos;
-
-layout(std140) uniform SceneRenderUBO
-{
-    float u_Threshold;
-    float u_Knee;
-    float u_SampleScale;
-
-    float exposure;
-};
 			
 
 uniform sampler2D u_ShadowMap;
@@ -198,7 +189,7 @@ uniform mat4 u_LightSpaceMatrices[4];
 uniform float u_CascadePlaneDistances[4];
 uniform int cascadeCount;
 
-//uniform samplerCube u_cubeMap;
+uniform samplerCube u_cubeMap;
 
 uniform int materialIndex;
 uniform sampler2D albedoMap;
@@ -406,16 +397,16 @@ vec3 ComputeDirectionalLight(Light light, vec3 normal, vec3 viewDir)
         color += ((kD * GetAlbedoColor().xyz / PI + specular) * radiance * NdotL);
     }
 
-    // if(u_Transparent)
-    // {
-    //     vec3 reflectionDir = reflect(-viewDir, normal);
-    //     vec3 refractionDir = refract(-viewDir, normal, airIOR / glassIOR);
-    //     vec3 reflectionColor = texture(u_cubeMap, normalize(reflectionDir)).rgb;
-    //     vec3 refractionColor = texture(u_cubeMap, normalize(refractionDir)).rgb;
-    //     float fresnelFactor = pow(1.0 - max(dot(normal, viewDir), 0.0), 5.0);
-    //     vec3 envGlass = mix(refractionColor, reflectionColor, fresnelFactor);
-    //     color += envGlass;
-    // }
+    if(u_Transparent)
+    {
+        vec3 reflectionDir = reflect(-viewDir, normal);
+        vec3 refractionDir = refract(-viewDir, normal, airIOR / glassIOR);
+        vec3 reflectionColor = texture(u_cubeMap, normalize(reflectionDir)).rgb;
+        vec3 refractionColor = texture(u_cubeMap, normalize(refractionDir)).rgb;
+        float fresnelFactor = pow(1.0 - max(dot(normal, viewDir), 0.0), 5.0);
+        vec3 envGlass = mix(refractionColor, reflectionColor, fresnelFactor);
+        color += envGlass;
+    }
 
     return color;
 }
@@ -554,8 +545,7 @@ void Render3DPass()
 	vec3 ambient = vec3(0.1f) * GetAlbedoColor().rgb;
 
 	vec3 finalColor = color.rgb;
-    // finalColor = vec3(1.f) - exp(-finalColor * exposure);
-    // //finalColor = finalColor / (finalColor + vec3(1.0));
+    // finalColor = finalColor / (finalColor + vec3(1.0));
     // finalColor = pow(finalColor, vec3(1.0/2.2)); 
 
     if(u_Transparent)

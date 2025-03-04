@@ -50,7 +50,6 @@ namespace Borealis
 		UniformBufferObject::BindToShader(s3dData->mModelShader->GetID(), "MaterialUBO", MATERIAL_ARRAY_BIND);
 		UniformBufferObject::BindToShader(s3dData->mModelShader->GetID(), "LightsUBO", LIGHTING_BIND);
 		UniformBufferObject::BindToShader(s3dData->mModelShader->GetID(), "AnimationUBO", ANIMATION_BIND);
-		UniformBufferObject::BindToShader(s3dData->mModelShader->GetID(), "SceneRenderUBO", SCENE_RENDER_BIND);
 	}
 
 	void Renderer3D::Begin(const EditorCamera& camera)

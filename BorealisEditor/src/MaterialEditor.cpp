@@ -98,6 +98,18 @@ namespace Borealis
 		}
 	}
 
+    static const std::map<Material::TextureMaps, int> colorMaps =
+    {
+        {Material::Albedo, 0},
+        {Material::Specular, 1},
+        {Material::Emission, 2}
+    };
+
+    static const std::map<Material::TextureMaps, int> floatMaps =
+    {
+        {Material::Metallic, 0}
+    };
+
     void MaterialEditor::RenderProperties(Ref<Material> const& material)
     {
         if (!material) return;
@@ -112,6 +124,7 @@ namespace Borealis
 
         bool isModified = false;
 
+
         ImGui::Checkbox("Is Transparent", &material->isTransparent);
 
         for (int i = Material::Albedo; i <= Material::Emission; ++i)
@@ -119,171 +132,64 @@ namespace Borealis
             std::string label = Material::TextureMapToString(static_cast<Material::TextureMaps>(i));
             ImGui::Text(label.c_str());
 
-            ImGui::SameLine(100);
+            ImGui::SameLine(125);
+            auto matMap = (Material::TextureMaps)i;
 
-            switch (i)
+
+            auto TextureMaps = material->GetTextureMaps();
+            if (TextureMaps.contains(matMap))
             {
-            case Material::Albedo:
-            {
-                ImGui::Button("Texture");
-                if (ImGui::BeginDragDropTarget())
+                auto mapData = TextureMaps[matMap];
+                ImGui::InputText("##Texture", AssetManager::GetMetaData(mapData->mAssetHandle).name.data(), AssetManager::GetMetaData(mapData->mAssetHandle).name.size(), ImGuiInputTextFlags_ReadOnly);
+                if (ImGui::BeginPopupContextItem(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverExistingPopup))
                 {
-                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropImageItem"))
+                    if (ImGui::MenuItem("Remove Texture"))
                     {
-                        AssetHandle data = *(const uint64_t*)payload->Data;
-                        material->SetTextureMap(Material::Albedo, AssetManager::GetAsset<Texture2D>(data));
-                        isModified = true;
+                        material->RemoveTextureMap(matMap);
                     }
-                    ImGui::EndDragDropTarget();
+                    ImGui::EndPopup();
                 }
-
-                ImGui::SameLine();
-                glm::vec4 albedoColor = material->GetTextureMapColor()[Material::Albedo];
-                if (ImGui::ColorEdit4("##Albedo", glm::value_ptr(albedoColor)))
+            }
+            else
+            {
+                ImGui::InputText("##Texture", (char[])"", 1, ImGuiInputTextFlags_ReadOnly);
+            }
+            if (ImGui::BeginDragDropTarget())
+            {
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropImageItem"))
                 {
-                    material->SetTextureMapColor(Material::Albedo, albedoColor);
+                    AssetHandle data = *(const uint64_t*)payload->Data;
+                    material->SetTextureMap(matMap, AssetManager::GetAsset<Texture2D>(data));
                     isModified = true;
                 }
-
-                break;
+                ImGui::EndDragDropTarget();
             }
-            case Material::Specular:
-            {
-                ImGui::Button("Texture");
-                if (ImGui::BeginDragDropTarget())
-                {
-                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropImageItem"))
-                    {
-                        AssetHandle data = *(const uint64_t*)payload->Data;
-                        material->SetTextureMap(Material::Specular, AssetManager::GetAsset<Texture2D>(data));
-                        isModified = true;
-                    }
-                    ImGui::EndDragDropTarget();
-                }
 
-                ImGui::SameLine();
-                glm::vec4 specularColor = material->GetTextureMapColor()[Material::Specular];
-                if (ImGui::ColorEdit4("##Specular", glm::value_ptr(specularColor)))
+            ImGui::NewLine();
+            ImGui::SameLine(125);
+
+            if (colorMaps.contains(matMap))
+            {
+                glm::vec4 albedoColor = material->GetTextureMapColor()[matMap];
+                if (ImGui::ColorEdit4(("##" + label).c_str(), glm::value_ptr(albedoColor)))
                 {
-                    material->SetTextureMapColor(Material::Specular, specularColor);
+                    material->SetTextureMapColor((Material::TextureMaps)i, albedoColor);
                     isModified = true;
                 }
-
-                break;
             }
-            case Material::Metallic:
+            else if(floatMaps.contains(matMap))
             {
-                ImGui::Button("Texture");
-                if (ImGui::BeginDragDropTarget())
+                float floatValue = material->GetTextureMapFloats()[matMap];
+                if (DrawFloatSlider("##", &floatValue))
                 {
-                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropImageItem"))
-                    {
-                        AssetHandle data = *(const uint64_t*)payload->Data;
-                        material->SetTextureMap(Material::Metallic, AssetManager::GetAsset<Texture2D>(data));
-                        isModified = true;
-                    }
-                    ImGui::EndDragDropTarget();
-                }
-
-                ImGui::SameLine();
-                static float metallicValue = material->GetTextureMapFloats()[Material::Metallic];
-                if (DrawFloatSlider("Metallic", &metallicValue))
-                {
-                    material->SetTextureMapFloat(Material::Metallic, metallicValue);
+                    material->SetTextureMapFloat(matMap, floatValue);
                     isModified = true;
                 }
-
-                break;
             }
-            case Material::NormalMap:
-            {
-                ImGui::Button("Texture");
-                if (ImGui::BeginDragDropTarget())
-                {
-                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropImageItem"))
-                    {
-                        AssetHandle data = *(const uint64_t*)payload->Data;
-                        material->SetTextureMap(Material::NormalMap, AssetManager::GetAsset<Texture2D>(data));
-                        isModified = true;
-                    }
-                    ImGui::EndDragDropTarget();
-                }
-                break;
-            }
-            case Material::HeightMap:
-            {
-                ImGui::Button("Texture");
-                if (ImGui::BeginDragDropTarget())
-                {
-                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropImageItem"))
-                    {
-                        AssetHandle data = *(const uint64_t*)payload->Data;
-                        material->SetTextureMap(Material::HeightMap, AssetManager::GetAsset<Texture2D>(data));
-                        isModified = true;
-                    }
-                    ImGui::EndDragDropTarget();
-                }
-                break;
-            }
-            case Material::Occlusion:
-            {
-                ImGui::Button("Texture");
-                if (ImGui::BeginDragDropTarget())
-                {
-                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropImageItem"))
-                    {
-                        AssetHandle data = *(const uint64_t*)payload->Data;
-                        material->SetTextureMap(Material::Occlusion, AssetManager::GetAsset<Texture2D>(data));
-                        isModified = true;
-                    }
-                    ImGui::EndDragDropTarget();
-                }
-                break;
-            }
-            case Material::DetailMask:
-            {
-                ImGui::Button("Texture");
-                if (ImGui::BeginDragDropTarget())
-                {
-                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropImageItem"))
-                    {
-                        AssetHandle data = *(const uint64_t*)payload->Data;
-                        material->SetTextureMap(Material::DetailMask, AssetManager::GetAsset<Texture2D>(data));
-                        isModified = true;
-                    }
-                    ImGui::EndDragDropTarget();
-                }
-                break;
-            }
-            case Material::Emission:
-            {
-                ImGui::Button("Texture");
-                if (ImGui::BeginDragDropTarget())
-                {
-                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropImageItem"))
-                    {
-                        AssetHandle data = *(const uint64_t*)payload->Data;
-                        material->SetTextureMap(Material::Emission, AssetManager::GetAsset<Texture2D>(data));
-                        isModified = true;
-                    }
-                    ImGui::EndDragDropTarget();
-                }
-
-                ImGui::SameLine();
-                glm::vec4 emissionColor = material->GetTextureMapColor()[Material::Emission];
-                if (ImGui::ColorEdit4("##Emission", glm::value_ptr(emissionColor)))
-                {
-                    material->SetTextureMapColor(Material::Emission, emissionColor);
-                    isModified = true;
-                }
-
-                break;
-            }
-            default:
-                break;
-            }
+           
 
             ImGui::Spacing();
+            ImGui::Separator();
         }
 
         for (int i = Material::Tiling; i <= Material::Shininess; ++i)
@@ -298,7 +204,7 @@ namespace Borealis
             case Material::Tiling:
             {
                 glm::vec2 tilingValue = material->GetPropertiesVec2()[Material::Tiling];
-                if (DrawVec2Control("Tiling", tilingValue))
+                if(DrawVec2Control("Tiling", tilingValue))
                 {
                     material->SetPropertyVec2(Material::Tiling, tilingValue);
                     isModified = true;
@@ -308,7 +214,7 @@ namespace Borealis
             case Material::Offset:
             {
                 glm::vec2 offsetValue = material->GetPropertiesVec2()[Material::Offset];
-                if (DrawVec2Control("Offset", offsetValue))
+                if(DrawVec2Control("Offset", offsetValue))
                 {
                     material->SetPropertyVec2(Material::Offset, offsetValue);
                     isModified = true;
@@ -318,7 +224,7 @@ namespace Borealis
             case Material::Smoothness:
             {
                 float smoothnessValue = material->GetPropertiesFloats()[Material::Smoothness];
-                if (DrawFloatSlider("Smoothness", &smoothnessValue))
+                if(DrawFloatSlider("Smoothness", &smoothnessValue))
                 {
                     material->SetPropertyFloat(Material::Smoothness, smoothnessValue);
                     isModified = true;
@@ -328,7 +234,7 @@ namespace Borealis
             case Material::Shininess:
             {
                 float shininessValue = material->GetPropertiesFloats()[Material::Shininess];
-                if (DrawFloatSlider("Shininess", &shininessValue, 0.f, 128.f))
+                if(DrawFloatSlider("Shininess", &shininessValue, 0.f, 128.f))
                 {
                     material->SetPropertyFloat(Material::Shininess, shininessValue);
                     isModified = true;
@@ -345,131 +251,6 @@ namespace Borealis
         material->isModified = isModified;
 
         ImGui::Separator();
-        //if (!material) return;
-
-        ///*static char materialName[128];
-        //strncpy(materialName, material->GetName().c_str(), sizeof(materialName));
-        //materialName[sizeof(materialName) - 1] = 0;
-
-        //if (ImGui::InputText("Material Name", materialName, IM_ARRAYSIZE(materialName))) {
-        //    material->SetName(std::string(materialName));
-        //}*/
-
-        //bool isModified = false;
-
-        //ImGui::Checkbox("Is Transparent", &material->isTransparent);
-
-        //for (int i = Material::Albedo; i <= Material::Emission; ++i)
-        //{
-        //    std::string label = Material::TextureMapToString(static_cast<Material::TextureMaps>(i));
-        //    ImGui::Text(label.c_str());
-
-        //    ImGui::SameLine(125);
-        //    auto matMap = (Material::TextureMaps)i;
-
-
-        //    auto TextureMaps = material->GetTextureMaps();
-        //    if (TextureMaps.contains(matMap))
-        //    {
-        //        auto mapData = TextureMaps[matMap];
-        //        ImGui::InputText("##Texture", AssetManager::GetMetaData(mapData->mAssetHandle).name.data(), AssetManager::GetMetaData(mapData->mAssetHandle).name.size(), ImGuiInputTextFlags_ReadOnly);
-        //        if (ImGui::BeginPopupContextItem(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverExistingPopup))
-        //        {
-        //            if (ImGui::MenuItem("Remove Texture"))
-        //            {
-        //                material->RemoveTextureMap(matMap);
-        //            }
-        //            ImGui::EndPopup();
-        //        }
-        //    }
-        //    else
-        //    {
-        //        ImGui::InputText("##Texture", (char[])"", 1, ImGuiInputTextFlags_ReadOnly);
-        //    }
-        //    if (ImGui::BeginDragDropTarget())
-        //    {
-        //        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropImageItem"))
-        //        {
-        //            AssetHandle data = *(const uint64_t*)payload->Data;
-        //            material->SetTextureMap(matMap, AssetManager::GetAsset<Texture2D>(data));
-        //            isModified = true;
-        //        }
-        //        ImGui::EndDragDropTarget();
-        //    }
-
-        //    ImGui::NewLine();
-        //    ImGui::SameLine(125);
-        //    glm::vec4 albedoColor = material->GetTextureMapColor()[matMap];
-        //    if (ImGui::ColorEdit4(("##" + label).c_str(), glm::value_ptr(albedoColor)))
-        //    {
-        //        material->SetTextureMapColor((Material::TextureMaps)i, albedoColor);
-        //        isModified = true;
-        //    }
-
-
-        //    ImGui::Spacing();
-        //    ImGui::Separator();
-        //}
-
-        //for (int i = Material::Tiling; i <= Material::Shininess; ++i)
-        //{
-        //    std::string label = Material::PropsToString(static_cast<Material::Props>(i));
-        //    ImGui::Text(label.c_str());
-
-        //    ImGui::SameLine(100);
-
-        //    switch (i)
-        //    {
-        //    case Material::Tiling:
-        //    {
-        //        glm::vec2 tilingValue = material->GetPropertiesVec2()[Material::Tiling];
-        //        if(DrawVec2Control("Tiling", tilingValue))
-        //        {
-        //            material->SetPropertyVec2(Material::Tiling, tilingValue);
-        //            isModified = true;
-        //        }
-        //        break;
-        //    }
-        //    case Material::Offset:
-        //    {
-        //        glm::vec2 offsetValue = material->GetPropertiesVec2()[Material::Offset];
-        //        if(DrawVec2Control("Offset", offsetValue))
-        //        {
-        //            material->SetPropertyVec2(Material::Offset, offsetValue);
-        //            isModified = true;
-        //        }
-        //        break;
-        //    }
-        //    case Material::Smoothness:
-        //    {
-        //        float smoothnessValue = material->GetPropertiesFloats()[Material::Smoothness];
-        //        if(DrawFloatSlider("Smoothness", &smoothnessValue))
-        //        {
-        //            material->SetPropertyFloat(Material::Smoothness, smoothnessValue);
-        //            isModified = true;
-        //        }
-        //        break;
-        //    }
-        //    case Material::Shininess:
-        //    {
-        //        float shininessValue = material->GetPropertiesFloats()[Material::Shininess];
-        //        if(DrawFloatSlider("Shininess", &shininessValue, 0.f, 128.f))
-        //        {
-        //            material->SetPropertyFloat(Material::Shininess, shininessValue);
-        //            isModified = true;
-        //        }
-        //        break;
-        //    }
-        //    default:
-        //        break;
-        //    }
-
-        //    ImGui::Spacing();
-        //}
-
-        //material->isModified = isModified;
-
-        //ImGui::Separator();
     }
 
     void MaterialEditor::SetMaterial(AssetHandle materialHandle)

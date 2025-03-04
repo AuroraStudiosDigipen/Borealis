@@ -365,10 +365,10 @@ namespace Borealis
             .property("Loop", &UIAnimatorComponent::loop)
             .property("Speed", &UIAnimatorComponent::speed)
             .property("Duration", &UIAnimatorComponent::duration)
-            .property("Spritesheet", &UIAnimatorComponent::texture)
             .property("Num Rows", &UIAnimatorComponent::numRow)
             .property("Num Columns", &UIAnimatorComponent::numCol)
-            .property("Num Sprites", &UIAnimatorComponent::numSprites);
+            .property("Num Sprites", &UIAnimatorComponent::numSprites)
+            .property("Spritesheet", &UIAnimatorComponent::texture);
     }
 
     enum dataTypes

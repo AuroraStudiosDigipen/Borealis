@@ -793,7 +793,7 @@ namespace Borealis
 		if (parent.HasComponent<CanvasRendererComponent>())
 		{
 			glm::mat4 transform = canvasTransform * globalTansform;
-			if (parent.HasComponent<SpriteRendererComponent>())
+			if (parent.HasComponent<SpriteRendererComponent>() && !parent.HasComponent<UIAnimatorComponent>())
 			{
 				Renderer2D::DrawSprite(transform, parent.GetComponent<SpriteRendererComponent>(), (int)parent);
 			}
@@ -810,6 +810,12 @@ namespace Borealis
 				UIAnimatorComponent& uiAnimator = parent.GetComponent<UIAnimatorComponent>();
 
 				if (!uiAnimator.texture) return;
+
+				glm::vec4 color{ glm::vec4(1.0f) };
+				if (parent.HasComponent<SpriteRendererComponent>())
+				{
+					color = parent.GetComponent<SpriteRendererComponent>().Colour;
+				}
 
 				if (!uiAnimator.animation && !uiAnimator.animator.GetCurrentAnimation())
 				{
@@ -834,7 +840,7 @@ namespace Borealis
 						spriteOffset,
 						(int)parent,
 						uiAnimator.tilingFactor,
-						glm::vec4(1.0f),
+						color,
 						false,
 						uiAnimator.useTextureAspectRatio);
 				}
@@ -856,14 +862,15 @@ namespace Borealis
 
 		if (parent.HasComponent<CanvasRendererComponent>())
 		{
-			if (parent.HasComponent<SpriteRendererComponent>())
+			if (parent.HasComponent<SpriteRendererComponent>() && !parent.HasComponent<UIAnimatorComponent>())
 			{
 				Renderer2D::DrawSprite(transform, parent.GetComponent<SpriteRendererComponent>(), (int)parent);
 			}
 
 			if (parent.HasComponent<TextComponent>())
 			{
-				const TextComponent& text = parent.GetComponent<TextComponent>();
+				TextComponent const& text = parent.GetComponent<TextComponent>();
+
 				Renderer2D::DrawString(text.text, text.font, transform, (int)parent, text.fontSize, text.colour, text.align == TextComponent::TextAlign::Left ? false : true);
 			}
 
@@ -872,6 +879,12 @@ namespace Borealis
 				UIAnimatorComponent& uiAnimator = parent.GetComponent<UIAnimatorComponent>();
 
 				if (!uiAnimator.texture) return;
+
+				glm::vec4 color{ glm::vec4(1.0f) };
+				if (parent.HasComponent<SpriteRendererComponent>())
+				{
+					color = parent.GetComponent<SpriteRendererComponent>().Colour;
+				}
 
 				if (!uiAnimator.animation && !uiAnimator.animator.GetCurrentAnimation())
 				{
@@ -896,7 +909,7 @@ namespace Borealis
 						spriteOffset,
 						(int)parent,
 						uiAnimator.tilingFactor,
-						glm::vec4(1.0f),
+						color,
 						false,
 						uiAnimator.useTextureAspectRatio);
 				}

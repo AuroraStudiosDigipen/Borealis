@@ -121,7 +121,7 @@ namespace Borealis
 			\param[in] entity
 				The entity to delete
 		*************************************************************************/
-		void DuplicateEntity(Entity entity);
+		UUID DuplicateEntity(Entity entity);
 
 		/*!***********************************************************************
 			\brief

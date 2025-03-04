@@ -1116,7 +1116,7 @@ namespace Borealis
 		name+= " (clone)";
 		Entity newEntity = CreateEntity(name);
 		CopyComponent<TagComponent>(newEntity, entity);
-		newEntity.GetName() = name;
+		newEntity.GetComponent<TagComponent>().Name = name;
 		CopyComponent<TransformComponent>(newEntity, entity);
 		CopyComponent<SpriteRendererComponent>(newEntity, entity);
 		CopyComponent<CameraComponent>(newEntity, entity);

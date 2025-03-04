@@ -1110,7 +1110,7 @@ namespace Borealis
 
 	}
 
-	void Scene::DuplicateEntity(Entity entity)
+	UUID Scene::DuplicateEntity(Entity entity)
 	{
 		std::string name = entity.GetName();
 		name+= " (clone)";
@@ -1151,6 +1151,17 @@ namespace Borealis
 			auto& parentTC = parent.GetComponent<TransformComponent>();
 			parentTC.ChildrenID.push_back(newEntity.GetComponent<IDComponent>().ID);
 		}
+		tc.ChildrenID.clear();
+		for (auto id : entity.GetComponent<TransformComponent>().ChildrenID)
+		{
+			auto OGChildEntity = GetEntityByUUID(id);
+			auto newChildID = DuplicateEntity(OGChildEntity);
+			tc.ChildrenID.push_back(newChildID);
+			GetEntityByUUID(OGChildEntity.GetComponent<TransformComponent>().ParentID).GetComponent<TransformComponent>().ChildrenID.pop_back();
+			GetEntityByUUID(newChildID).GetComponent<TransformComponent>().ParentID = newEntity.GetUUID();
+		}
+
+		return newEntity.GetUUID();
 	}
 
 	void Scene::ResizeViewport(const uint32_t& width, const uint32_t& height)

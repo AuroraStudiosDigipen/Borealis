@@ -36,6 +36,7 @@ namespace Borealis
 			UniformBufferObject::BindToShader(s_material3dShader->GetID(), "MaterialUBO", MATERIAL_ARRAY_BIND);
 			UniformBufferObject::BindToShader(s_material3dShader->GetID(), "LightsUBO", LIGHTING_BIND);
 			UniformBufferObject::BindToShader(s_material3dShader->GetID(), "AnimationUBO", ANIMATION_BIND);
+			UniformBufferObject::BindToShader(s_material3dShader->GetID(), "SceneRenderUBO", SCENE_RENDER_BIND);
 
 			BOREALIS_CORE_INFO("Animation UBO size : {} bytes", UniformBufferObjectOpenGLImpl::GetBlockSize(s_material3dShader->GetID(), "AnimationUBO"));
 		}

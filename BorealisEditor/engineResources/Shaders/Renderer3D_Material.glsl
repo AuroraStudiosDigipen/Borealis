@@ -197,6 +197,14 @@ uniform sampler2D specularMap;
 uniform sampler2D metallicMap;
 uniform sampler2D normalMap;
 
+layout(std140) uniform SceneRenderUBO
+{
+    float u_Threshold;
+    float u_Knee;
+    float u_SampleScale;
+    float exposure;
+};
+
 const float airIOR   = 1.0;
 const float glassIOR = 1.5;
 
@@ -238,7 +246,28 @@ float GetRoughness()
 
 vec3 GetEmission()
 {
-	return vec3(0.f);//materials[materialIndex].hasEmissionMap ? texture(materials[materialIndex].emissionMap, GetTexCoord()).rgb : materials[materialIndex].emissionColor.rgb;
+    return materials[materialIndex].emissionColor.rgb;
+	//return vec3(0.f);//materials[materialIndex].hasEmissionMap ? texture(materials[materialIndex].emissionMap, GetTexCoord()).rgb : materials[materialIndex].emissionColor.rgb;
+}
+
+float NewDistributionGGX(float NdotH, float a) 
+{
+    float a2 = a * a;
+    float f = (NdotH * a2 - NdotH) * NdotH + 1.0;
+    return a2 / (PI * f * f);
+}
+  
+float NewGeometrySmith(float NdotV, float NdotL, float a) 
+{
+    float a2 = a * a;
+    float GGXV = NdotL * sqrt((NdotV - NdotV * a2) * NdotV + a2);
+    float GGXL = NdotV * sqrt((NdotL - NdotL * a2) * NdotL + a2);
+    return 0.5 / (GGXV + GGXL);
+}
+
+vec3 NewFresnelSchlick(float LdotH, vec3 F0) 
+{
+    return F0 + (vec3(1.0) - F0) * pow(1.0 - LdotH, 5.0);
 }
 
 float DistributionGGX(vec3 N, vec3 H, float roughness)
@@ -355,59 +384,52 @@ float GetCascadeShadowFactor(vec3 lightDir, vec3 normal)
 	}
 }
 
+vec3 ComputeLight(vec3 albedo, float roughness,
+    float metallic, vec3 lightDiffuse,
+    vec3 lightDir,
+    vec3 viewDir, vec3 normal) 
+{
+    vec3 halfVector = normalize(lightDir + viewDir);
+
+    vec3 F0 = vec3(0.04);
+    F0 = mix(F0, albedo, metallic);
+
+    float a = max(roughness * roughness, 0.002025);
+
+    float NdotV = max(dot(normal, viewDir), 1e-4);
+    float NdotL = clamp(dot(normal, lightDir), 0.0, 1.0);
+    float NdotH = clamp(dot(normal, halfVector), 0.0, 1.0);
+    float LdotH = clamp(dot(lightDir, halfVector), 0.0, 1.0);
+
+    float D = NewDistributionGGX(NdotH, a);
+    vec3 F = NewFresnelSchlick(LdotH, F0);
+    float V = NewGeometrySmith(NdotV, NdotL, a);
+
+    vec3 specular = (D * V) * F;
+
+    vec3 diffuseColor = (1.0 - metallic) * albedo;
+    vec3 diffuse = diffuseColor / PI;
+
+    return (diffuse * lightDiffuse + specular) * NdotL + GetEmission();
+}
+
 vec3 ComputeDirectionalLight(Light light, vec3 normal, vec3 viewDir) 
 {
     vec3 lightDir = vec3(0.f);
 
-    lightDir = normalize(-light.direction) + 1e-5;
+    lightDir = normalize(-light.direction);
 
-    float metallic = GetMetallic();
-
-    vec3 halfwayDir = normalize(lightDir + viewDir);
-
-    vec3 radiance = light.diffuse * 10.f;
-
-    float D = DistributionGGX(normal, halfwayDir, GetRoughness());
-    float G = GeometrySmith(normal, viewDir, lightDir, GetRoughness());
-
-    vec3 F0 = vec3(0.04f);
-    F0 = mix(F0, GetAlbedoColor().rgb, metallic);
-
-    vec3 F = fresnelSchlick(max(dot(viewDir, halfwayDir), 0.0), F0);
-
-    float NdotL = max(dot(normal, lightDir), 0.0);
-
-    vec3 specular = (D * G * F) / (4.0 * max(dot(normal, viewDir), 0.0) * NdotL + 1e-5);
-
-    vec3 kS = F;
-    vec3 kD = vec3(1.0) - kS;
-    kD *= 1.0 - metallic;
-    
-    // Apply shadow factor
     float shadowFactor = GetCascadeShadowFactor(lightDir, normal);
 
-    vec3 color = vec3(0.f);
-    
+    vec3 albedo = GetAlbedoColor().rgb;
+    float roughness = GetRoughness();
+    float metallic = GetMetallic();
+    vec3 color = ComputeLight(albedo, roughness, metallic, light.diffuse, lightDir, viewDir, normal);
+
     if(u_HasShadow)
     {
-        color += shadowFactor * ((/*kD **/GetAlbedoColor().xyz / PI + specular) * radiance * NdotL);
+        color += shadowFactor;
     }
-    else
-    {
-        color += ((kD * GetAlbedoColor().xyz / PI + specular) * radiance * NdotL);
-    }
-
-    if(u_Transparent)
-    {
-        vec3 reflectionDir = reflect(-viewDir, normal);
-        vec3 refractionDir = refract(-viewDir, normal, airIOR / glassIOR);
-        vec3 reflectionColor = texture(u_cubeMap, normalize(reflectionDir)).rgb;
-        vec3 refractionColor = texture(u_cubeMap, normalize(refractionDir)).rgb;
-        float fresnelFactor = pow(1.0 - max(dot(normal, viewDir), 0.0), 5.0);
-        vec3 envGlass = mix(refractionColor, reflectionColor, fresnelFactor);
-        color += envGlass;
-    }
-
     return color;
 }
 
@@ -545,6 +567,7 @@ void Render3DPass()
 	vec3 ambient = vec3(0.1f) * GetAlbedoColor().rgb;
 
 	vec3 finalColor = color.rgb;
+    //finalColor = vec3(1.f) - exp(-finalColor * exposure);
     // finalColor = finalColor / (finalColor + vec3(1.0));
     // finalColor = pow(finalColor, vec3(1.0/2.2)); 
 

@@ -44,19 +44,14 @@ void ThresholdFilterPass()
     // color *= smoothstep(u_Threshold - 0.1, u_Threshold + 0.1, brightness); // Soft threshold
     // FragColor = vec4(color, 1.0);
 
-    // vec3 color = texture(u_SceneTexture, v_TexCoord).rgb;
-    // float brightness = max(max(color.r, color.g), color.b);
-    // // Smooth transition using a soft knee
-    // float soft = clamp((brightness - u_Threshold + u_Knee) / u_Knee, 0.0, 1.0);
-    // soft = soft * soft;
-    // // Only allow colors above threshold (with soft blending)
-    // float contribution = max(soft, step(u_Threshold, brightness));
-    // FragColor = vec4(color * contribution, 1.0);
-
     vec3 color = texture(u_SceneTexture, v_TexCoord).rgb;
-    float brightness = dot(color, vec3(0.2126, 0.7152, 0.0722));
-    color *= smoothstep(u_Threshold - 0.1, u_Threshold + 0.1, brightness); // Soft threshold
-    FragColor = vec4(color, 1.0);
+    float brightness = max(max(color.r, color.g), color.b);
+    // Smooth transition using a soft knee
+    float soft = clamp((brightness - u_Threshold + u_Knee) / u_Knee, 0.0, 1.0);
+    soft = soft * soft;
+    // Only allow colors above threshold (with soft blending)
+    float contribution = max(soft, step(u_Threshold, brightness));
+    FragColor = vec4(color * contribution, 1.0);
 }
 
 void DownsamplePass() {

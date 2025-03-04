@@ -1293,7 +1293,8 @@ namespace Borealis
 			body_settings.mObjectLayer = tagComponent.mLayer.toUint16();
 			body_settings.mAllowDynamicOrKinematic = true;
 			body_settings.mFriction = rigidbody->friction;
-			body_settings.mRestitution = 0.f;
+			body_settings.mRestitution = rigidbody->bounciness;
+			body_settings.mGravityFactor = rigidbody->gravityScale;
 		}
 		else
 		{

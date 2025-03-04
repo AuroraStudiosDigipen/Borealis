@@ -208,7 +208,9 @@ namespace Borealis
             
             .property("Friction", &RigidbodyComponent::friction)
             
-            .property("Bounciness", &RigidbodyComponent::bounciness);
+            .property("Bounciness", &RigidbodyComponent::bounciness)
+            
+            .property("Gravity Scale", &RigidbodyComponent::gravityScale);
 
         registration::class_<CharacterControllerComponent>("Character Controller Component")
             (metadata("Component", true))

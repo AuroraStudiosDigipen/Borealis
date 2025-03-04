@@ -268,7 +268,8 @@ namespace Borealis
 	{
 		MovementType movement = MovementType::Static;
 		float friction = 0.5f;
-		float bounciness = 0.0f;
+		float bounciness = 0.5f;
+		float gravityScale = 1.0f;
 		bool dynamicBody = false;
 		// not serialised
 		glm::vec3 offset = { 0.0f, 0.0f, 0.0f };

@@ -203,7 +203,7 @@ namespace Borealis
 
 		void ClearRenderGraph();
 
-		RenderGraph::BloomConfig& GetBloomConfig();
+		RenderGraph::SceneRenderConfig& GetSceneRenderConfig();
 	private:
 
 		/*!***********************************************************************

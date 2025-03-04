@@ -30,7 +30,7 @@ namespace Borealis
         /*!***********************************************************************
         \brief Renders the Audio Mixer Panel in ImGui
         *************************************************************************/
-        void ImGuiRender(RenderGraph::BloomConfig & bloomConfig);
+        void ImGuiRender();
     };
 }
 

@@ -55,6 +55,9 @@ namespace Borealis
 	Ref<FrameBuffer> mCascadeShadowMapBufferDynamic = nullptr;
 	Ref<FrameBuffer> mCascadeShadowMapBufferDynamicEditor = nullptr;
 
+	//correctionBuffer
+	Ref<FrameBuffer> correctionBuffer = nullptr;
+
 	//bloom
 	Ref<FrameBuffer> thresholdBuffer = nullptr;
 	Ref<FrameBuffer> downSample_0 = nullptr;
@@ -79,7 +82,7 @@ namespace Borealis
 
 		Ref<UniformBufferObject> LightsUBO;
 
-		Ref<UniformBufferObject> BloomUBO;
+		Ref<UniformBufferObject> SceneRenderUBO;
 	};
 
 	static std::unique_ptr<RenderData> sData;
@@ -1579,7 +1582,10 @@ namespace Borealis
 
 		glm::mat4 view = glm::mat4(glm::mat3(viewMatrix));
 
-		RenderCommand::DisableDepthTest();
+		RenderCommand::SetDepthMask(false); // Disable writing to the depth buffer
+		RenderCommand::EnableDepthTest();   // Keep depth testing enabled
+		RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLEqual);
+
 		shader->Bind();
 		cubeMap->Bind(7);
 		shader->Set("u_Skybox", 7);
@@ -1589,24 +1595,17 @@ namespace Borealis
 		renderTarget->Unbind();
 		shader->Unbind();
 
-		RenderCommand::EnableDepthTest();
+		RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLess);
+		RenderCommand::SetDepthMask(true);
 	}
 
-	BloomPass::BloomPass(std::string name) : RenderPass(name)
+	CorrectionPass::CorrectionPass(std::string name) : RenderPass(name)
 	{
 		shader = bloom_shader;
 	}
 
-	void BloomPass::Execute()
+	void CorrectionPass::Execute()
 	{
-		//prefilter
-		//render target->Bind texture
-		//shader->Bind()
-		//shader->Set(..)
-		//DrawQuad()
-		//
-		//std::swap(render target, bloomTarget);
-
 		Ref<RenderTargetSource> renderTarget = nullptr;
 
 		for (auto sink : sinkList)
@@ -1620,11 +1619,64 @@ namespace Borealis
 			}
 		}
 
+		if (correctionBuffer->GetProperties().Width != renderTarget->Width || correctionBuffer->GetProperties().Height != renderTarget->Height)
+		{
+			correctionBuffer->Resize(renderTarget->Width, renderTarget->Height);
+		}
+
+		correctionBuffer->Bind();
+		RenderCommand::Clear();
+		renderTarget->buffer->BindTexture(0, 0);
+		shader->Bind();
+		shader->Set("u_Step", 5);
+		shader->Set("u_SceneTexture", 0);
+		Renderer3D::DrawQuad();
+		correctionBuffer->Unbind();
+		shader->Unbind();
+
+		//draw onto render target
+		renderTarget->Bind();
+		correctionBuffer->BindTexture(0, 0);
+		shader->Bind();
+		shader->Set("u_Step", 4);
+		shader->Set("u_SceneTexture", 0);
+		Renderer3D::DrawQuad();
+		renderTarget->Unbind();
+		shader->Unbind();
+	}
+
+	BloomPass::BloomPass(std::string name) : RenderPass(name)
+	{
+		shader = bloom_shader;
+	}
+
+	void BloomPass::Execute()
+	{
+		Ref<RenderTargetSource> renderTarget = nullptr;
+
+		for (auto sink : sinkList)
+		{
+			if (sink->source->sourceType == RenderSourceType::Bool)
+			{
+				if (sink->sinkName == "bloomBool")
+				{
+					if (!std::dynamic_pointer_cast<BoolSource>(sink->source)->mRef) return;
+				}
+			}
+			if (sink->source->sourceType == RenderSourceType::RenderTargetColor)
+			{
+				if (sink->sinkName == "renderTarget")
+				{
+					renderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
+				}
+			}
+		}
+
 		//threshold pass
 		renderTarget->buffer->BindTexture(0, 0);
 		shader->Bind();
 		shader->Set("u_Step", 0);
-		shader->Set("u_SceneTexture", 0);
+		shader->Set("u_SceneTexture", 0);  
 		thresholdBuffer->Bind();
 		if (thresholdBuffer->GetProperties().Width != renderTarget->Width/2 || thresholdBuffer->GetProperties().Height != renderTarget->Height/2)
 		{
@@ -1701,6 +1753,7 @@ namespace Borealis
 		upSample_1->Unbind();
 		shader->Unbind();
 
+		//final bloom
 		upSample_2->Bind();
 		RenderCommand::Clear();
 		upSample_1->BindTexture(0, 0);
@@ -1713,6 +1766,60 @@ namespace Borealis
 		upSample_2->Unbind();
 		shader->Unbind();
 
+		////do after skybox is rendered
+		////composite onto render target
+		//compositeBuffer->Bind();
+		//RenderCommand::Clear();
+		//renderTarget->buffer->BindTexture(0, 0);
+		//upSample_2->BindTexture(0, 1);
+		//shader->Bind();
+		//shader->Set("u_Step", 3);
+		//shader->Set("u_SceneTexture", 0);
+		//shader->Set("u_BloomTexture", 1);
+		//Renderer3D::DrawQuad();
+		//compositeBuffer->Unbind();
+		//shader->Unbind();
+
+		////draw onto render target
+		//renderTarget->Bind();
+		//compositeBuffer->BindTexture(0, 0);
+		//shader->Bind();
+		//shader->Set("u_Step", 4);
+		//shader->Set("u_SceneTexture", 0);
+		//Renderer3D::DrawQuad();
+		//renderTarget->Unbind();
+		//shader->Unbind();
+	}
+
+	BloomCompositePass::BloomCompositePass(std::string name) : RenderPass(name)
+	{
+		shader = bloom_shader;
+	}
+
+	void BloomCompositePass::Execute()
+	{
+		Ref<RenderTargetSource> renderTarget = nullptr;
+
+		for (auto sink : sinkList)
+		{
+			if (sink->source->sourceType == RenderSourceType::Bool)
+			{
+				if (sink->sinkName == "bloomBool")
+				{
+					if (!std::dynamic_pointer_cast<BoolSource>(sink->source)->mRef) return;
+				}
+			}
+			if (sink->source->sourceType == RenderSourceType::RenderTargetColor)
+			{
+				if (sink->sinkName == "renderTarget")
+				{
+					renderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
+				}
+			}
+		}
+
+		//do after skybox is rendered
+		//composite onto render target
 		compositeBuffer->Bind();
 		RenderCommand::Clear();
 		renderTarget->buffer->BindTexture(0, 0);
@@ -1720,11 +1827,12 @@ namespace Borealis
 		shader->Bind();
 		shader->Set("u_Step", 3);
 		shader->Set("u_SceneTexture", 0);
-		shader->Set("u_BloomTexture", 1);		
+		shader->Set("u_BloomTexture", 1);
 		Renderer3D::DrawQuad();
 		compositeBuffer->Unbind();
 		shader->Unbind();
 
+		//draw onto render target
 		renderTarget->Bind();
 		compositeBuffer->BindTexture(0, 0);
 		shader->Bind();
@@ -2303,7 +2411,7 @@ namespace Borealis
 		if (!bloom_shader)
 		{
 			bloom_shader = Shader::Create("engineResources/Shaders/Renderer3D_Bloom.glsl");
-			UniformBufferObject::BindToShader(bloom_shader->GetID(), "BloomUBO", BLOOM_BIND);
+			UniformBufferObject::BindToShader(bloom_shader->GetID(), "SceneRenderUBO", SCENE_RENDER_BIND);
 		}
 
 		if (!mCascadeShadowMapBuffer)
@@ -2334,6 +2442,13 @@ namespace Borealis
 			mCascadeShadowMapBufferDynamicEditor = FrameBuffer::Create(propsShadowMapBuffer);
 		}
 
+		if (!correctionBuffer)
+		{
+			FrameBufferProperties propsCorrectionBuffer{ 1280, 720, false };
+			propsCorrectionBuffer.Attachments = { FramebufferTextureFormat::RGBA16F };
+			correctionBuffer = FrameBuffer::Create(propsCorrectionBuffer);
+		}
+
 		if (!thresholdBuffer)
 		{
 			FrameBufferProperties propsThresholdBuffer{ 1280, 720, false };
@@ -2359,7 +2474,7 @@ namespace Borealis
 
 			sData->LightsUBO = UniformBufferObject::Create(sizeof(LightUBO) * 32 + sizeof(int), LIGHTING_BIND);
 
-			sData->BloomUBO = UniformBufferObject::Create(sizeof(RenderGraph::BloomConfig), BLOOM_BIND);
+			sData->SceneRenderUBO = UniformBufferObject::Create(sizeof(RenderGraph::SceneRenderConfigUBO), SCENE_RENDER_BIND);
 		}
 	}
 
@@ -2454,7 +2569,7 @@ namespace Borealis
 			}
 		}
 
-		sData->BloomUBO->SetData(&bloomConfig, sizeof(bloomConfig));
+		sData->SceneRenderUBO->SetData(&sceneRenderConfig.ubo, sizeof(SceneRenderConfigUBO));
 	}
 
 	void RenderGraph::AddPass(Ref<RenderPass> pass)
@@ -2519,7 +2634,9 @@ namespace Borealis
 			case RenderPassType::EditorHighlightPass:
 			case RenderPassType::SkyboxPass:
 			case RenderPassType::RenderToTarget:
+			case RenderPassType::CorrectionPass:
 			case RenderPassType::BloomPass:
+			case RenderPassType::BloomCompositePass:
 				AddRenderPassConfig(passesConfig);
 				break;
 			default:
@@ -2566,8 +2683,14 @@ namespace Borealis
 		case RenderPassType::SkyboxPass:
 			renderPass = MakeRef<SkyboxPass>(renderPassConfig.mPassName);
 			break;
+		case RenderPassType::CorrectionPass:
+			renderPass = MakeRef<CorrectionPass>(renderPassConfig.mPassName);
+			break;
 		case RenderPassType::BloomPass:
 			renderPass = MakeRef<BloomPass>(renderPassConfig.mPassName);
+			break;
+		case RenderPassType::BloomCompositePass:
+			renderPass = MakeRef<BloomCompositePass>(renderPassConfig.mPassName);
 			break;
 		case RenderPassType::RenderToTarget:
 			renderPass = MakeRef<RenderToTarget>(renderPassConfig.mPassName);

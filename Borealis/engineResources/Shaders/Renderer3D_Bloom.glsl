@@ -26,11 +26,12 @@ uniform sampler2D u_BloomTexture;
 
 // float u_SampleScale = 1.f;
 
-layout(std140) uniform BloomUBO
+layout(std140) uniform SceneRenderUBO
 {
     float u_Threshold;
     float u_Knee;
     float u_SampleScale;
+    float exposure;
 };
 
 uniform vec2 u_TexelSize;
@@ -43,14 +44,19 @@ void ThresholdFilterPass()
     // color *= smoothstep(u_Threshold - 0.1, u_Threshold + 0.1, brightness); // Soft threshold
     // FragColor = vec4(color, 1.0);
 
+    // vec3 color = texture(u_SceneTexture, v_TexCoord).rgb;
+    // float brightness = max(max(color.r, color.g), color.b);
+    // // Smooth transition using a soft knee
+    // float soft = clamp((brightness - u_Threshold + u_Knee) / u_Knee, 0.0, 1.0);
+    // soft = soft * soft;
+    // // Only allow colors above threshold (with soft blending)
+    // float contribution = max(soft, step(u_Threshold, brightness));
+    // FragColor = vec4(color * contribution, 1.0);
+
     vec3 color = texture(u_SceneTexture, v_TexCoord).rgb;
-    float brightness = max(max(color.r, color.g), color.b);
-    // Smooth transition using a soft knee
-    float soft = clamp((brightness - u_Threshold + u_Knee) / u_Knee, 0.0, 1.0);
-    soft = soft * soft;
-    // Only allow colors above threshold (with soft blending)
-    float contribution = max(soft, step(u_Threshold, brightness));
-    FragColor = vec4(color * contribution, 1.0);
+    float brightness = dot(color, vec3(0.2126, 0.7152, 0.0722));
+    color *= smoothstep(u_Threshold - 0.1, u_Threshold + 0.1, brightness); // Soft threshold
+    FragColor = vec4(color, 1.0);
 }
 
 void DownsamplePass() {
@@ -108,8 +114,16 @@ void main()
     {
         CompositePass();
     }
-    else
+    else if(u_Step == 4)
     {
         FragColor = vec4(texture(u_SceneTexture, v_TexCoord).rgb, 1.0);
+    }
+    else
+    {
+        vec3 finalColor = texture(u_SceneTexture, v_TexCoord).rgb;
+        finalColor = vec3(1.f) - exp(-finalColor * exposure);
+        //finalColor = finalColor / (finalColor + vec3(1.0));
+        finalColor = pow(finalColor, vec3(1.0/2.2)); 
+        FragColor = vec4(finalColor, 1.0);
     }
 }

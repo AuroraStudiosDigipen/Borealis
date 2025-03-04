@@ -198,7 +198,9 @@ namespace Borealis
 		SkyboxPass,
 		RenderToTarget,
 		UIWorldPass,
-		BloomPass
+		CorrectionPass,
+		BloomPass,
+		BloomCompositePass
 	};
 
 	class RenderPass 
@@ -243,10 +245,26 @@ namespace Borealis
 		void Execute() override;
 	};
 
+	class CorrectionPass : public RenderPass
+	{
+	public:
+		CorrectionPass(std::string name);
+
+		void Execute() override;
+	};
+
 	class BloomPass : public RenderPass
 	{
 	public:
 		BloomPass(std::string name);
+
+		void Execute() override;
+	};
+
+	class BloomCompositePass : public RenderPass
+	{
+	public:
+		BloomCompositePass(std::string name);
 
 		void Execute() override;
 	};
@@ -405,14 +423,24 @@ namespace Borealis
 
 		entt::registry* registryPtr;
 
-		struct BloomConfig
+		struct SceneRenderConfigUBO
 		{
 			float threshold = 1.f;
 			float knee = 0.5f;
 			float bloomScale = 1.f;
+
+			float exposure = 1.f;
 		};
 
-		BloomConfig bloomConfig{};
+		struct SceneRenderConfig
+		{
+			SceneRenderConfigUBO ubo{};
+
+			//not in ubo
+			bool bloom = true;
+		};
+
+		SceneRenderConfig sceneRenderConfig{};
 	};
 }
 

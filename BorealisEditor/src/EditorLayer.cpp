@@ -240,6 +240,9 @@ namespace Borealis {
 			BoolSource particlesWireFrameSource("particlesWireFrame", particlesWireFrame);
 			fconfig.AddGlobalSource(MakeRef<BoolSource>(particlesWireFrameSource));
 
+			BoolSource bloomBoolSource("bloomBool", SceneManager::GetActiveScene()->GetSceneRenderConfig().bloom);
+			fconfig.AddGlobalSource(MakeRef<BoolSource>(bloomBoolSource));
+
 			//forward rendering
 			if(runtimeView)
 			{
@@ -291,11 +294,6 @@ namespace Borealis {
 			//forward rendering editor
 			if(editorView)
 			{
-				RenderPassConfig editorSkyBoxPass(RenderPassType::SkyboxPass, "editorSkyBox");
-				editorSkyBoxPass.AddSinkLinkage("renderTarget", "EditorBuffer");
-				editorSkyBoxPass.AddSinkLinkage("camera", "EditorCamera");
-				fconfig.AddPass(editorSkyBoxPass);
-
 				RenderPassConfig editorShadowPass(RenderPassType::Shadow, "editorShadowPass");
 				editorShadowPass.AddSinkLinkage("shadowMap", "ShadowMapBuffer")
 					.AddSinkLinkage("camera", "EditorCamera");
@@ -333,6 +331,7 @@ namespace Borealis {
 
 				RenderPassConfig bloomPass(RenderPassType::BloomPass, "EditorBloomPass");
 				bloomPass.AddSinkLinkage("renderTarget", "ParticleSystemEditor.renderTarget");
+				bloomPass.AddSinkLinkage("bloomBool", "bloomBool");
 				fconfig.AddPass(bloomPass);
 
 				RenderPassConfig editorUIPass(RenderPassType::EditorUIPass, "EditorUI");
@@ -360,6 +359,21 @@ namespace Borealis {
 				highlightPass.AddSinkLinkage("camera", "EditorCamera")
 					.AddSinkLinkage("renderTarget", "ParticleSystemEditor.renderTarget");
 				fconfig.AddPass(highlightPass);
+
+				RenderPassConfig editorCorrectionPass(RenderPassType::CorrectionPass, "editorCorrectionPass");
+				editorCorrectionPass.AddSinkLinkage("renderTarget", "Highlight.renderTarget");
+				fconfig.AddPass(editorCorrectionPass);
+
+				RenderPassConfig editorSkyBoxPass(RenderPassType::SkyboxPass, "editorSkyBox");
+				editorSkyBoxPass.AddSinkLinkage("renderTarget", "editorCorrectionPass.renderTarget");
+				editorSkyBoxPass.AddSinkLinkage("camera", "EditorCamera");
+				fconfig.AddPass(editorSkyBoxPass);
+
+				RenderPassConfig editorBloomCompositePass(RenderPassType::BloomCompositePass, "editorBloomComposite");
+				editorBloomCompositePass.AddSinkLinkage("renderTarget", "editorSkyBox.renderTarget");
+				editorBloomCompositePass.AddSinkLinkage("bloomBool", "bloomBool");
+				fconfig.AddPass(editorBloomCompositePass);
+
 			}
 
 			//deferred rendering
@@ -667,7 +681,7 @@ namespace Borealis {
 			CBPanel.ImGuiRender();
 			CSPanel.ImGuiRender();
 			AMPanel.ImGuiRender();
-			SRPanel.ImGuiRender(SceneManager::GetActiveScene()->GetBloomConfig());
+			SRPanel.ImGuiRender();
 			
 			BTNEPanel.ImGuiRender();
 

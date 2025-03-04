@@ -178,6 +178,15 @@ in vec4 v_LightPos;
 
 uniform mat4 u_View;
 uniform vec3 u_ViewPos;
+
+layout(std140) uniform SceneRenderUBO
+{
+    float u_Threshold;
+    float u_Knee;
+    float u_SampleScale;
+
+    float exposure;
+};
 			
 
 uniform sampler2D u_ShadowMap;
@@ -545,10 +554,9 @@ void Render3DPass()
 	vec3 ambient = vec3(0.1f) * GetAlbedoColor().rgb;
 
 	vec3 finalColor = color.rgb;
-    float exposure = 0.1f;
-    finalColor = vec3(1.f) - exp(-finalColor * exposure);
-    //finalColor = finalColor / (finalColor + vec3(1.0));
-    finalColor = pow(finalColor, vec3(1.0/2.2)); 
+    // finalColor = vec3(1.f) - exp(-finalColor * exposure);
+    // //finalColor = finalColor / (finalColor + vec3(1.0));
+    // finalColor = pow(finalColor, vec3(1.0/2.2)); 
 
     if(u_Transparent)
     {

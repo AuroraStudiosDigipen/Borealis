@@ -1570,6 +1570,7 @@ namespace Borealis
 			if (ImGui::MenuItem("Unparent Entity"))
 			{
 				mSelectedEntity.GetComponent<TransformComponent>().ResetParent(mSelectedEntity);
+				HierarchyLayerManager::GetInstance().LoadEntitiesIntoLayerManager(SceneManager::GetActiveScene());
 			}
 			ImGui::EndPopup();
 		}

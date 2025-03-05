@@ -99,6 +99,7 @@ namespace Borealis {
 
 
 	static bool particlesForEditor = true;
+	static bool bloomForEditor = false;
 	static bool particlesWireFrame = true;
 
 	static bool editorView = true;
@@ -246,11 +247,6 @@ namespace Borealis {
 			//forward rendering
 			if(runtimeView)
 			{
-				RenderPassConfig SkyBoxPass(RenderPassType::SkyboxPass, "SkyBox");
-				SkyBoxPass.AddSinkLinkage("renderTarget", "RunTimeBuffer");
-				SkyBoxPass.AddSinkLinkage("camera", "RunTimeCamera");
-				fconfig.AddPass(SkyBoxPass);
-
 				RenderPassConfig shadowPass(RenderPassType::Shadow, "ShadowPass");
 				shadowPass.AddSinkLinkage("shadowMap", "ShadowMapBuffer");
 				shadowPass.AddSinkLinkage("camera", "RunTimeCamera");
@@ -268,17 +264,22 @@ namespace Borealis {
 				Render2D.AddSinkLinkage("camera", "RunTimeCamera");
 				fconfig.AddPass(Render2D);
 
-				RenderPassConfig UIWorldPass(RenderPassType::UIWorldPass, "UIWorldPass");
-				UIWorldPass.AddSinkLinkage("renderTarget", "Render2D.renderTarget");
-				UIWorldPass.AddSinkLinkage("camera", "RunTimeCamera");
-				fconfig.AddPass(UIWorldPass);
-
 				RenderPassConfig particleSystemPass(RenderPassType::ParticleSystemPass, "ParticleSystem");
 				particleSystemPass.AddSinkLinkage("camera", "EditorCamera")
 					.AddSinkLinkage("accumulaionTarget", "accumulaionBuffer")
-					.AddSinkLinkage("renderTarget", "UIWorldPass.renderTarget")
+					.AddSinkLinkage("renderTarget", "Render2D.renderTarget")
 					.AddSinkLinkage("camera", "RunTimeCamera");
 				fconfig.AddPass(particleSystemPass);
+
+				RenderPassConfig bloomPass(RenderPassType::BloomPass, "bloomPass");
+				bloomPass.AddSinkLinkage("renderTarget", "ParticleSystem.renderTarget");
+				bloomPass.AddSinkLinkage("bloomBool", "bloomBool");
+				fconfig.AddPass(bloomPass);
+
+				RenderPassConfig UIWorldPass(RenderPassType::UIWorldPass, "UIWorldPass");
+				UIWorldPass.AddSinkLinkage("renderTarget", "bloomPass.renderTarget");
+				UIWorldPass.AddSinkLinkage("camera", "RunTimeCamera");
+				fconfig.AddPass(UIWorldPass);
 
 				RenderPassConfig RunTimeHighlight(RenderPassType::HighlightPass, "RunTimeHighlight");
 				RunTimeHighlight.AddSinkLinkage("camera", "RunTimeCamera");
@@ -289,6 +290,20 @@ namespace Borealis {
 				UIPass.AddSinkLinkage("renderTarget", "RunTimeHighlight.renderTarget");
 				UIPass.AddSinkLinkage("camera", "RunTimeCamera");
 				fconfig.AddPass(UIPass);
+
+				RenderPassConfig correctionPass(RenderPassType::CorrectionPass, "correctionPass");
+				correctionPass.AddSinkLinkage("renderTarget", "UIPass.renderTarget");
+				fconfig.AddPass(correctionPass);
+
+				RenderPassConfig skyBoxPass(RenderPassType::SkyboxPass, "skyBox");
+				skyBoxPass.AddSinkLinkage("renderTarget", "correctionPass.renderTarget");
+				skyBoxPass.AddSinkLinkage("camera", "EditorCamera");
+				fconfig.AddPass(skyBoxPass);
+
+				RenderPassConfig bloomCompositePass(RenderPassType::BloomCompositePass, "bloomComposite");
+				bloomCompositePass.AddSinkLinkage("renderTarget", "skyBox.renderTarget");
+				bloomCompositePass.AddSinkLinkage("bloomBool", "bloomBool");
+				fconfig.AddPass(bloomCompositePass);
 			}
 
 			//forward rendering editor
@@ -329,10 +344,13 @@ namespace Borealis {
 					fconfig.AddPass(particleSystemPass);
 				}
 
-				RenderPassConfig bloomPass(RenderPassType::BloomPass, "EditorBloomPass");
-				bloomPass.AddSinkLinkage("renderTarget", "ParticleSystemEditor.renderTarget");
-				bloomPass.AddSinkLinkage("bloomBool", "bloomBool");
-				fconfig.AddPass(bloomPass);
+				if(bloomForEditor)
+				{
+					RenderPassConfig bloomPass(RenderPassType::BloomPass, "EditorBloomPass");
+					bloomPass.AddSinkLinkage("renderTarget", "ParticleSystemEditor.renderTarget");
+					bloomPass.AddSinkLinkage("bloomBool", "bloomBool");
+					fconfig.AddPass(bloomPass);
+				}
 
 				RenderPassConfig editorUIPass(RenderPassType::EditorUIPass, "EditorUI");
 				editorUIPass.AddSinkLinkage("renderTarget", "EditorBloomPass.renderTarget")
@@ -369,10 +387,13 @@ namespace Borealis {
 				editorSkyBoxPass.AddSinkLinkage("camera", "EditorCamera");
 				fconfig.AddPass(editorSkyBoxPass);
 
-				RenderPassConfig editorBloomCompositePass(RenderPassType::BloomCompositePass, "editorBloomComposite");
-				editorBloomCompositePass.AddSinkLinkage("renderTarget", "editorSkyBox.renderTarget");
-				editorBloomCompositePass.AddSinkLinkage("bloomBool", "bloomBool");
-				fconfig.AddPass(editorBloomCompositePass);
+				if(bloomForEditor)
+				{
+					RenderPassConfig editorBloomCompositePass(RenderPassType::BloomCompositePass, "editorBloomComposite");
+					editorBloomCompositePass.AddSinkLinkage("renderTarget", "editorSkyBox.renderTarget");
+					editorBloomCompositePass.AddSinkLinkage("bloomBool", "bloomBool");
+					fconfig.AddPass(editorBloomCompositePass);
+				}
 
 			}
 
@@ -1594,7 +1615,11 @@ namespace Borealis {
 		}
 		ImGui::SameLine();
 		ImGui::Checkbox("Toggle editor particles", &particlesForEditor);
+
 		ImGui::Checkbox("Toggle particles wireframe", &particlesWireFrame);
+		ImGui::SameLine();
+		ImGui::Checkbox("Toggle editor bloom", &bloomForEditor);
+
 
 		ImGui::End();
 

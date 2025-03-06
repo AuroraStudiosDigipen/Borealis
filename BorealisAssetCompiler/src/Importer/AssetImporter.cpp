@@ -35,8 +35,6 @@ namespace BorealisAssetCompiler
 
 		std::filesystem::path cachePath = cacheString.append(std::to_string(metaData.Handle));
 
-		std::cout << "In compiler, cache path : " << cachePath.string() << '\n';
-
 		std::filesystem::path directoryPath = cachePath.parent_path();
 
 		//// Create the directories if they don't exist

@@ -59,7 +59,7 @@ namespace Borealis
 			\brief
 				Import Asset through compiler
 		*************************************************************************/
-		bool ImportAsset(AssetMetaData metaData);
+		std::string ImportAsset(AssetMetaData metaData);
 
 		/*!***********************************************************************
 			\brief
@@ -115,7 +115,7 @@ namespace Borealis
 				Create Cache file
 		*************************************************************************/
 
-		void CreateCache(AssetMetaData& metaData);
+		std::string CreateCache(AssetMetaData metaData);
 
 		void StartFileWatch();
 
@@ -126,6 +126,8 @@ namespace Borealis
 		std::filesystem::path mAssetRegistryPath;
 		inline static std::unordered_map<std::size_t, AssetHandle> mPathRegistry;
 		inline static std::list<AssetMetaData> mQueue;
+		inline static std::list<AssetMetaData> mInitialQueue;
+
 	};
 }
 

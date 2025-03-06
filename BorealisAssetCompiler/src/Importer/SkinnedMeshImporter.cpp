@@ -139,7 +139,7 @@ namespace BorealisAssetCompiler
 		const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
 		if (!scene)
 		{
-			std::cout << "\033[1;31m" << "Asset Compile Error: " << importer.GetErrorString() << "\033[0m" << std::endl;
+			std::cout << importer.GetErrorString() << std::endl;
 			return;
 		}
 		if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)

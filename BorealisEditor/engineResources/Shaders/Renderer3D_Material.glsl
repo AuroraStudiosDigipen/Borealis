@@ -15,6 +15,7 @@ uniform mat4 u_ModelTransform;
 layout(std140) uniform Camera
 {
 	mat4 u_ViewProjection;
+    vec4 CameraPos;
 };
 uniform int u_EntityID;
 
@@ -141,6 +142,12 @@ layout(std140) uniform MaterialUBO
     MaterialUBOData materials[128];
 };
 
+layout(std140) uniform Camera
+{
+    mat4 u_ViewProjection;
+    vec4 CameraPos;
+};
+
 struct Light //move to uniform buffer object
 {
 	vec3 position;
@@ -177,8 +184,6 @@ in vec3 v_Bitangent;
 in vec4 v_LightPos;
 
 uniform mat4 u_View;
-uniform vec3 u_ViewPos;
-			
 
 uniform sampler2D u_ShadowMap;
 uniform sampler2DArray u_CascadeShadowMap;
@@ -209,6 +214,37 @@ const float airIOR   = 1.0;
 const float glassIOR = 1.5;
 
 const float PI = 3.14159265359;
+
+float	Round(float num){ return floor(num + .5); }
+vec3	Round3(vec3 ivec){ return floor(ivec + vec3(0.5)); }
+vec2	Rotate(vec2 UV, float amount){
+	vec2 center = vec2(.5) * materials[materialIndex].tiling;
+	UV -= center;	
+	vec2 rot = vec2(cos(amount), sin(amount));
+	return vec2((rot.x * UV.x) + (rot.y * UV.y), (rot.x * UV.y) - (rot.y * UV.x)) + center;
+}
+vec3	Hash2(vec2 UV){
+	return fract(sin(vec3(
+		dot(vec3(UV.x, UV.y, UV.x), vec3(127.09, 311.7, 74.69)), 
+		dot(vec3(UV.y, UV.x, UV.x), vec3(269.5, 183.3, 246.1)), 
+		dot(vec3(UV.x, UV.y, UV.y), vec3(113.5, 271.89, 124.59))
+	)) * 43758.5453);
+}
+float	Lerp(float val1, float val2, float amount){
+	return ( val2 - val1 ) * amount;	
+}
+vec2	Translate(vec2 UV, vec2 amount){ return UV + amount; }
+vec2	Scale(vec2 UV, vec2 amount){ return UV * amount; }
+vec2	Transform(vec2 UV, float rotation, vec2 scale, vec2 translation){
+	return Translate(Scale(Rotate(UV, rotation), scale), translation);
+}	
+vec2	RandomTransform(vec2 UV, vec2 seed){
+	vec3 hash = Hash2(seed);
+	float rot = mix(-3.1415, 3.1415, fract(hash.b*16.));
+	float scl = mix(.8, 1.2, hash.b);
+	return Transform(UV, rot, vec2(scl), hash.xy);
+}
+
 
 vec2 GetTexCoord() 
 {
@@ -246,8 +282,7 @@ float GetRoughness()
 
 vec3 GetEmission()
 {
-    return materials[materialIndex].emissionColor.rgb;
-	//return vec3(0.f);//materials[materialIndex].hasEmissionMap ? texture(materials[materialIndex].emissionMap, GetTexCoord()).rgb : materials[materialIndex].emissionColor.rgb;
+    return  materials[materialIndex].hasSpecularMap ? texture(specularMap, GetTexCoord()).rgb + materials[materialIndex].emissionColor.rgb: materials[materialIndex].emissionColor.rgb;
 }
 
 float NewDistributionGGX(float NdotH, float a) 
@@ -531,7 +566,7 @@ vec3 ComputeSpotLight(Light light, vec3 normal, vec3 viewDir)
 
 void Render3DPass()
 {
-	vec3 viewDir = normalize(u_ViewPos - v_FragPos);
+	vec3 viewDir = normalize(CameraPos.rgb - v_FragPos);
 
 	mat3 TBN = mat3(v_Tangent, v_Bitangent, v_Normal);
 	vec3 normal;
@@ -590,5 +625,84 @@ void main()
 	if(!shadowPass)
 	{
 		Render3DPass();
+
+        //vec4 color = vec4(1.f);
+
+        //3 texture map paths
+        // if(materials[materialIndex].hasAlbedoMap)
+        // {
+        //     color = texture(albedoMap, GetTexCoord());
+        // }
+
+        // if(materials[materialIndex].hasMetallicMap && materials[materialIndex].hasSpecularMap)
+        // {
+        //     vec4 tile2 = texture(specularMap, GetTexCoord());
+        //     vec4 path = texture(metallicMap, v_TexCoord);
+
+        //     vec3 finalColor = vec3(0.f);
+
+        //     //option 1
+        //     float total = path.r + path.g;
+        //     if (total > 0.0) {
+        //         finalColor = (color.rgb * path.r + tile2.rgb * path.g) / total;
+        //     } else {
+        //         finalColor = (color.rgb + tile2.rgb) * 0.5; // Fallback for black path
+        //     }
+
+        //     //option 2
+        //     finalColor = color.rgb * path.r + tile2.rgb * path.g;
+
+        //     color = vec4(finalColor, 1.f);
+        // }
+
+
+        // fragColor = color;
+
+        //non repeating tiles
+        // vec2 base_uv = GetTexCoord();
+        // vec2 uv	= vec2(base_uv);
+        // float hex_size = u_Knee;
+        // uv = vec2(uv.x - ((.5/(1.732 / 2.))*uv.y), (1./(1.732 / 2.))*uv.y) / hex_size;
+        
+        // vec2 coord	= floor(uv);	
+        // vec4 color	= vec4(coord.x, coord.y, 0., 1.);			
+        // color.rgb = ((vec3(color.r - color.g) + vec3(0, 1, 2)) * .3333333) + 5./3.;																
+        // color.rgb = Round3(fract(color.rgb));						
+        
+        // vec4 refcol = vec4(fract(vec2(uv.x, uv.y)), 1, 1);
+        // refcol.rgb = vec3(refcol.g + refcol.r) - 1.;
+        // vec4 abscol = vec4(abs(refcol.rgb), 1);
+        
+        // vec4 refswz = vec4(fract(vec2(uv.y, uv.x)), 1, 1);
+        // vec4 use_col = vec4(fract(vec2(uv.x, uv.y)), 1, 1);
+        
+        // float flip_check = 0.;
+        // if ( ((refcol.r+refcol.g+refcol.b)/3.) > 0. ){
+        //     use_col = vec4(1.-refswz.x, 1.-refswz.y, refswz.b, refswz.a);
+        //     flip_check = 1.;
+        // }
+        
+        // float sharpness = u_Threshold;
+        // abscol.rgb = abs(vec3(abscol.r, use_col.r, use_col.g));
+        // use_col.rgb = vec3(
+        //     pow(dot(abscol.rgb, vec3(color.z, color.x, color.y)), sharpness), 
+        //     pow(dot(abscol.rgb, vec3(color.y, color.z, color.x)), sharpness), 
+        //     pow(dot(abscol.rgb, color.rgb), sharpness)
+        // );
+    
+        // float coldot = dot(use_col.rgb, vec3(1));
+        // use_col /= coldot;
+        
+        // vec2 color_swiz1 = vec2(color.a, color.z);
+        // vec2 color_swiz2 = vec2(color.z, color.x);
+        // vec2 color_swiz3 = vec2(color.x, color.a);
+        
+        // color.rgb *= flip_check;
+        // vec4 ruv1 = texture( albedoMap, RandomTransform(base_uv, color_swiz1 + vec2(color.r) + coord)) * vec4(vec3(use_col.r), 1);
+        // vec4 ruv2 = texture( albedoMap, RandomTransform(base_uv, color_swiz2 + vec2(color.g) + coord)) * vec4(vec3(use_col.g), 1);
+        // vec4 ruv3 = texture( albedoMap, RandomTransform(base_uv, color_swiz3 + vec2(color.b) + coord)) * vec4(vec3(use_col.b), 1);
+        // vec4 rout = ruv1 + ruv2 + ruv3;
+
+        // fragColor = rout;
 	}
 }

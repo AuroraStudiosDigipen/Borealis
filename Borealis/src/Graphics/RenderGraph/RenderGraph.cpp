@@ -595,9 +595,6 @@ namespace Borealis
 					materialShader = meshRenderer.Material->GetShader();
 					Renderer3D::Begin(viewProjMatrix, materialShader);
 					SetShadowAndLight(shadowMap, materialShader, registryPtr, camera, editor);
-					materialShader->Bind();
-					materialShader->Set("u_ViewPos", camPos);
-					materialShader->Unbind();
 					//Renderer3D::SetLights(sData->LightsUBO);
 				}
 
@@ -1906,6 +1903,16 @@ namespace Borealis
 		shader->Unbind();
 	}
 
+	FogPass::FogPass(std::string name) : RenderPass(name)
+	{
+
+	}
+
+	void FogPass::Execute()
+	{
+
+	}
+
 	RenderToTarget::RenderToTarget(std::string name) : RenderPass(name)
 	{
 		shader = quad_shader;
@@ -2743,6 +2750,7 @@ namespace Borealis
 			case RenderPassType::CorrectionPass:
 			case RenderPassType::BloomPass:
 			case RenderPassType::BloomCompositePass:
+			case RenderPassType::FogPass:
 				AddRenderPassConfig(passesConfig);
 				break;
 			default:
@@ -2797,6 +2805,9 @@ namespace Borealis
 			break;
 		case RenderPassType::BloomCompositePass:
 			renderPass = MakeRef<BloomCompositePass>(renderPassConfig.mPassName);
+			break;
+		case RenderPassType::FogPass:
+			renderPass = MakeRef<FogPass>(renderPassConfig.mPassName);
 			break;
 		case RenderPassType::RenderToTarget:
 			renderPass = MakeRef<RenderToTarget>(renderPassConfig.mPassName);

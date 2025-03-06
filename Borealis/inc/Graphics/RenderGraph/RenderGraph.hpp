@@ -200,7 +200,8 @@ namespace Borealis
 		UIWorldPass,
 		CorrectionPass,
 		BloomPass,
-		BloomCompositePass
+		BloomCompositePass,
+		FogPass
 	};
 
 	class RenderPass 
@@ -265,6 +266,14 @@ namespace Borealis
 	{
 	public:
 		BloomCompositePass(std::string name);
+
+		void Execute() override;
+	};
+
+	class FogPass : public RenderPass
+	{
+	public:
+		FogPass(std::string name);
 
 		void Execute() override;
 	};

@@ -595,6 +595,9 @@ namespace Borealis
 					materialShader = meshRenderer.Material->GetShader();
 					Renderer3D::Begin(viewProjMatrix, materialShader);
 					SetShadowAndLight(shadowMap, materialShader, registryPtr, camera, editor);
+					materialShader->Bind();
+					materialShader->Set("u_ViewPos", camPos);
+					materialShader->Unbind();
 					//Renderer3D::SetLights(sData->LightsUBO);
 				}
 

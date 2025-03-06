@@ -807,14 +807,14 @@ namespace Borealis
 		shader = s_shader;
 	}
 
-	void RenderCanvasRecursive(Entity parent, const glm::mat4& canvasTransform)
+	void RenderCanvasRecursive(Entity parent, const glm::mat4& canvasTransform, float dt)
 	{
 		if (!parent.HasComponent<TransformComponent>()) return;
 		glm::mat4 globalTansform = parent.GetComponent<TransformComponent>().GetGlobalTransform();//(glm::mat4)parent.GetComponent<TransformComponent>();
 		if (parent.HasComponent<CanvasRendererComponent>())
 		{
 			glm::mat4 transform = canvasTransform * globalTansform;
-			if (parent.HasComponent<SpriteRendererComponent>())
+			if (parent.HasComponent<SpriteRendererComponent>() && !parent.HasComponent<UIAnimatorComponent>())
 			{
 				Renderer2D::DrawSprite(transform, parent.GetComponent<SpriteRendererComponent>(), (int)parent);
 			}
@@ -825,32 +825,115 @@ namespace Borealis
 
 				Renderer2D::DrawString(text.text, text.font, transform, (int)parent, (float)text.fontSize, text.colour, text.align == TextComponent::TextAlign::Left? false:true);
 			}
+
+			if (parent.HasComponent<UIAnimatorComponent>())
+			{
+				UIAnimatorComponent& uiAnimator = parent.GetComponent<UIAnimatorComponent>();
+
+				if (!uiAnimator.texture) return;
+
+				glm::vec4 color{ glm::vec4(1.0f) };
+				if (parent.HasComponent<SpriteRendererComponent>())
+				{
+					color = parent.GetComponent<SpriteRendererComponent>().Colour;
+				}
+
+				if (!uiAnimator.animation && !uiAnimator.animator.GetCurrentAnimation())
+				{
+					uiAnimator.animation = MakeRef<UIAnimation>(uiAnimator.texture, uiAnimator.duration, uiAnimator.numRow, uiAnimator.numCol, uiAnimator.numSprites);
+					uiAnimator.animation->LoadAnimation();
+					uiAnimator.animator.PlayAnimation(uiAnimator.animation);
+				}
+
+				if (uiAnimator.animation)
+				{
+					uiAnimator.animator.SetLoop(uiAnimator.loop);
+					uiAnimator.animator.SetSpeed(uiAnimator.speed);
+					uiAnimator.animator.UpdateAnimation(dt);
+					//get current sprite coord offset
+					const auto& sprites = uiAnimator.animation->GetSprites();
+					int currentFrame = uiAnimator.animator.GetCurrentSpriteIndex();
+					glm::vec2 spriteOffset = sprites[currentFrame].offset;
+
+					Renderer2D::DrawAnimatedSprite(transform,
+						uiAnimator.animation->GetSpriteSize(),
+						uiAnimator.texture,
+						spriteOffset,
+						(int)parent,
+						uiAnimator.tilingFactor,
+						color,
+						false,
+						uiAnimator.useTextureAspectRatio);
+				}
+			}
 		}
 
 		for (UUID childID : parent.GetComponent<TransformComponent>().ChildrenID)
 		{
 			Entity child = SceneManager::GetActiveScene()->GetEntityByUUID(childID);
 			if (child.HasComponent<TagComponent>() && child.IsActive())
-				RenderCanvasRecursive(child, canvasTransform);
+				RenderCanvasRecursive(child, canvasTransform, dt);
 		}
 	}
 
-	void RenderCanvasRecursiveWorld(Entity parent)
+	void RenderCanvasRecursiveWorld(Entity parent, float dt)
 	{
 		if (!parent.HasComponent<TransformComponent>()) return;
 		glm::mat4 transform = parent.GetComponent<TransformComponent>().GetGlobalTransform();
 
 		if (parent.HasComponent<CanvasRendererComponent>())
 		{
-			if (parent.HasComponent<SpriteRendererComponent>())
+			if (parent.HasComponent<SpriteRendererComponent>() && !parent.HasComponent<UIAnimatorComponent>())
 			{
 				Renderer2D::DrawSprite(transform, parent.GetComponent<SpriteRendererComponent>(), (int)parent);
 			}
 
 			if (parent.HasComponent<TextComponent>())
 			{
-				const TextComponent& text = parent.GetComponent<TextComponent>();
-				Renderer2D::DrawString(text.text, text.font, transform, (int)parent, (float)text.fontSize, text.colour, text.align == TextComponent::TextAlign::Left ? false : true);
+				TextComponent const& text = parent.GetComponent<TextComponent>();
+
+				Renderer2D::DrawString(text.text, text.font, transform, (int)parent, text.fontSize, text.colour, text.align == TextComponent::TextAlign::Left ? false : true);
+			}
+
+			if (parent.HasComponent<UIAnimatorComponent>())
+			{
+				UIAnimatorComponent& uiAnimator = parent.GetComponent<UIAnimatorComponent>();
+
+				if (!uiAnimator.texture) return;
+
+				glm::vec4 color{ glm::vec4(1.0f) };
+				if (parent.HasComponent<SpriteRendererComponent>())
+				{
+					color = parent.GetComponent<SpriteRendererComponent>().Colour;
+				}
+
+				if (!uiAnimator.animation && !uiAnimator.animator.GetCurrentAnimation())
+				{
+					uiAnimator.animation = MakeRef<UIAnimation>(uiAnimator.texture, uiAnimator.duration, uiAnimator.numRow, uiAnimator.numCol, uiAnimator.numSprites);
+					uiAnimator.animation->LoadAnimation();
+					uiAnimator.animator.PlayAnimation(uiAnimator.animation);
+				}
+
+				if (uiAnimator.animation)
+				{
+					uiAnimator.animator.SetLoop(uiAnimator.loop);
+					uiAnimator.animator.SetSpeed(uiAnimator.speed);
+					uiAnimator.animator.UpdateAnimation(dt);
+					//get current sprite coord offset
+					const auto& sprites = uiAnimator.animation->GetSprites();
+					int currentFrame = uiAnimator.animator.GetCurrentSpriteIndex();
+					glm::vec2 spriteOffset = sprites[currentFrame].offset;
+
+					Renderer2D::DrawAnimatedSprite(transform,
+						uiAnimator.animation->GetSpriteSize(),
+						uiAnimator.texture,
+						spriteOffset,
+						(int)parent,
+						uiAnimator.tilingFactor,
+						color,
+						false,
+						uiAnimator.useTextureAspectRatio);
+				}
 			}
 		}
 
@@ -858,7 +941,7 @@ namespace Borealis
 		{
 			Entity child = SceneManager::GetActiveScene()->GetEntityByUUID(childID);
 			if (child.HasComponent<TagComponent>() && child.IsActive())
-				RenderCanvasRecursiveWorld(child);
+				RenderCanvasRecursiveWorld(child, dt);
 		}
 	}
 
@@ -904,7 +987,7 @@ namespace Borealis
 
 				glm::mat4 canvasTransform = transform.GetGlobalTransform();
 
-				RenderCanvasRecursiveWorld(brEntity);
+				RenderCanvasRecursiveWorld(brEntity, dt);
 			}
 		}
 
@@ -2097,7 +2180,7 @@ namespace Borealis
 				glm::mat4 canvasTransform = glm::translate(glm::mat4(1.0f), canvasPosition) *
 					glm::scale(glm::mat4(1.0f), glm::vec3(scaleFactor, -scaleFactor, 1.f));
 
-				RenderCanvasRecursive(brEntity, canvasTransform);
+				RenderCanvasRecursive(brEntity, canvasTransform, dt);
 				UIexist = true;
 
 				{

@@ -1105,7 +1105,7 @@ namespace Borealis
 		name+= " (clone)";
 		Entity newEntity = CreateEntity(name);
 		CopyComponent<TagComponent>(newEntity, entity);
-		newEntity.GetName() = name;
+		newEntity.GetComponent<TagComponent>().Name = name;
 		CopyComponent<TransformComponent>(newEntity, entity);
 		CopyComponent<SpriteRendererComponent>(newEntity, entity);
 		CopyComponent<CameraComponent>(newEntity, entity);
@@ -1132,6 +1132,7 @@ namespace Borealis
 		CopyComponent<CanvasRendererComponent>(newEntity, entity);
 		CopyComponent<ParticleSystemComponent>(newEntity, entity);
 		CopyComponent<ButtonComponent>(newEntity, entity);
+		CopyComponent<UIAnimatorComponent>(newEntity, entity);
 		auto& tc = newEntity.GetComponent<TransformComponent>();
 		if (tc.ParentID)
 		{
@@ -1339,6 +1340,7 @@ namespace Borealis
 		CopyComponent<CanvasRendererComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<ParticleSystemComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<ButtonComponent>(newRegistry, originalRegistry, UUIDtoENTT);
+		CopyComponent<UIAnimatorComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		auto tcView = newRegistry.view<TransformComponent>();
 		for (auto entity : tcView)
 		{
@@ -1976,5 +1978,11 @@ namespace Borealis
 	void Scene::OnComponentAdded<ButtonComponent>(Entity entity, ButtonComponent& component)
 	{
 		
+	}
+
+	template<>
+	void Scene::OnComponentAdded<UIAnimatorComponent>(Entity entity, UIAnimatorComponent& component)
+	{
+
 	}
 }

@@ -202,6 +202,8 @@ namespace Borealis
 		void AddRenderGraphGlobalSource(Ref<RenderSource> globalSource);
 
 		void ClearRenderGraph();
+
+		RenderGraph::SceneRenderConfig& GetSceneRenderConfig();
 	private:
 
 		/*!***********************************************************************

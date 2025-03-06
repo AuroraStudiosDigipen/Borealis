@@ -50,6 +50,7 @@ namespace Borealis
 		UniformBufferObject::BindToShader(s3dData->mModelShader->GetID(), "MaterialUBO", MATERIAL_ARRAY_BIND);
 		UniformBufferObject::BindToShader(s3dData->mModelShader->GetID(), "LightsUBO", LIGHTING_BIND);
 		UniformBufferObject::BindToShader(s3dData->mModelShader->GetID(), "AnimationUBO", ANIMATION_BIND);
+		UniformBufferObject::BindToShader(s3dData->mModelShader->GetID(), "SceneRenderUBO", SCENE_RENDER_BIND);
 	}
 
 	void Renderer3D::Begin(const EditorCamera& camera)
@@ -103,7 +104,7 @@ namespace Borealis
 
 			auto const& textureMap = materialMap[drawCall.materialHash]->GetTextureMaps();
 
-			int textureUnit = 2;
+			int textureUnit = 3;
 
 			if (textureMap.contains(Material::Albedo))
 			{
@@ -256,16 +257,18 @@ namespace Borealis
 		}
 	}
 
+	void Renderer3D::DrawHighlightedMesh(const glm::mat4& transform, const SkinnedMeshRendererComponent& meshFilter, Ref<Shader> shader)
+	{
+		if (meshFilter.SkinnnedModel)
+		{
+			meshFilter.SkinnnedModel->Draw(transform, shader, -1);
+		}
+	}
+
 	void Renderer3D::DrawSkinnedMesh(const glm::mat4& transform, const SkinnedMeshRendererComponent& skinnedMeshRenderer, Ref<Shader> shader, int entityID, int animationIndex)
 	{
 		if (skinnedMeshRenderer.SkinnnedModel)
 		{
-			//if (skinnedMeshRenderer.Material)
-			//{
-			//	skinnedMeshRenderer.Material->SetUniforms(shader);
-			//}
-
-			//skinnedMeshRenderer.SkinnnedModel->Draw(transform, shader, entityID);
 			DrawData drawData;
 			if (skinnedMeshRenderer.SkinnnedModel->mAnimation)
 			{

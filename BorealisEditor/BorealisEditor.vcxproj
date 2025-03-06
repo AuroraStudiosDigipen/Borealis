@@ -197,10 +197,7 @@ IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
     <ClInclude Include="inc\Panels\ContentBrowserPanel.hpp" />
     <ClInclude Include="inc\Panels\CubemapPanel.hpp" />
     <ClInclude Include="inc\Panels\SceneHierarchyPanel.hpp" />
-    <ClInclude Include="inc\Panels\SceneRendererPanel.hpp">
-      <SubType>
-      </SubType>
-    </ClInclude>
+    <ClInclude Include="inc\Panels\SceneRendererPanel.hpp" />
     <ClInclude Include="inc\Prefab.hpp" />
     <ClInclude Include="inc\PrefabComponent.hpp" />
     <ClInclude Include="inc\PrefabManager.hpp" />
@@ -226,10 +223,7 @@ IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
     <ClCompile Include="src\Panels\ContentBrowserPanel.cpp" />
     <ClCompile Include="src\Panels\CubemapPanel.cpp" />
     <ClCompile Include="src\Panels\SceneHierarchyPanel.cpp" />
-    <ClCompile Include="src\Panels\SceneRendererPanel.cpp">
-      <SubType>
-      </SubType>
-    </ClCompile>
+    <ClCompile Include="src\Panels\SceneRendererPanel.cpp" />
     <ClCompile Include="src\Prefab.cpp" />
     <ClCompile Include="src\PrefabManager.cpp" />
     <ClCompile Include="src\RenderGraphEditor\RenderGraphNodeEditor.cpp" />

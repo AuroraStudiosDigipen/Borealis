@@ -15,6 +15,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #ifndef SceneRendererPanel_HPP
 #define SceneRendererPanel_HPP
 
+#include "Graphics/RenderGraph/RenderGraph.hpp"
+
 namespace Borealis
 {
     class SceneRenderPanel

@@ -50,7 +50,27 @@ namespace Borealis
 		shader->Bind();
 
 		shader->Set("u_ModelTransform", transform);
-		shader->Set("u_EntityID", entityID);
+		if (entityID != -1)
+		{
+			shader->Set("u_EntityID", entityID);
+		}
+
+		//if (posOnly)
+		//{
+		//	glEnableVertexAttribArray(0);
+		//	glDisableVertexAttribArray(1);
+		//	glDisableVertexAttribArray(2);
+		//	glDisableVertexAttribArray(3);
+		//	glDisableVertexAttribArray(4);
+		//}
+		//else
+		//{
+		//	glEnableVertexAttribArray(0);
+		//	glEnableVertexAttribArray(1);
+		//	glEnableVertexAttribArray(2);
+		//	glEnableVertexAttribArray(3);
+		//	glEnableVertexAttribArray(4);
+		//}
 
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, (int)mIndices.size(), GL_UNSIGNED_INT, 0);

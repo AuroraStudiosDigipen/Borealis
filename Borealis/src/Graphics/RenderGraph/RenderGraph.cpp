@@ -807,7 +807,7 @@ namespace Borealis
 		shader = s_shader;
 	}
 
-	void RenderCanvasRecursive(Entity parent, const glm::mat4& canvasTransform, float dt)
+	void RenderCanvasRecursive(Entity parent, const glm::mat4& canvasTransform)
 	{
 		if (!parent.HasComponent<TransformComponent>()) return;
 		glm::mat4 globalTansform = parent.GetComponent<TransformComponent>().GetGlobalTransform();//(glm::mat4)parent.GetComponent<TransformComponent>();
@@ -837,20 +837,8 @@ namespace Borealis
 				{
 					color = parent.GetComponent<SpriteRendererComponent>().Colour;
 				}
-
-				if (!uiAnimator.animation && !uiAnimator.animator.GetCurrentAnimation())
-				{
-					uiAnimator.animation = MakeRef<UIAnimation>(uiAnimator.texture, uiAnimator.duration, uiAnimator.numRow, uiAnimator.numCol, uiAnimator.numSprites);
-					uiAnimator.animation->LoadAnimation();
-					uiAnimator.animator.PlayAnimation(uiAnimator.animation);
-				}
-
 				if (uiAnimator.animation)
 				{
-					uiAnimator.animator.SetLoop(uiAnimator.loop);
-					uiAnimator.animator.SetSpeed(uiAnimator.speed);
-					uiAnimator.animator.UpdateAnimation(dt);
-					//get current sprite coord offset
 					const auto& sprites = uiAnimator.animation->GetSprites();
 					int currentFrame = uiAnimator.animator.GetCurrentSpriteIndex();
 					glm::vec2 spriteOffset = sprites[currentFrame].offset;
@@ -872,11 +860,11 @@ namespace Borealis
 		{
 			Entity child = SceneManager::GetActiveScene()->GetEntityByUUID(childID);
 			if (child.HasComponent<TagComponent>() && child.IsActive())
-				RenderCanvasRecursive(child, canvasTransform, dt);
+				RenderCanvasRecursive(child, canvasTransform);
 		}
 	}
 
-	void RenderCanvasRecursiveWorld(Entity parent, float dt)
+	void RenderCanvasRecursiveWorld(Entity parent)
 	{
 		if (!parent.HasComponent<TransformComponent>()) return;
 		glm::mat4 transform = parent.GetComponent<TransformComponent>().GetGlobalTransform();
@@ -890,8 +878,9 @@ namespace Borealis
 
 			if (parent.HasComponent<TextComponent>())
 			{
-				const TextComponent& text = parent.GetComponent<TextComponent>();
-				Renderer2D::DrawString(text.text, text.font, transform, (int)parent, (float)text.fontSize, text.colour, text.align == TextComponent::TextAlign::Left ? false : true);
+				TextComponent const& text = parent.GetComponent<TextComponent>();
+
+				Renderer2D::DrawString(text.text, text.font, transform, (int)parent, text.fontSize, text.colour, text.align == TextComponent::TextAlign::Left ? false : true);
 			}
 
 			if (parent.HasComponent<UIAnimatorComponent>())
@@ -906,19 +895,8 @@ namespace Borealis
 					color = parent.GetComponent<SpriteRendererComponent>().Colour;
 				}
 
-				if (!uiAnimator.animation && !uiAnimator.animator.GetCurrentAnimation())
-				{
-					uiAnimator.animation = MakeRef<UIAnimation>(uiAnimator.texture, uiAnimator.duration, uiAnimator.numRow, uiAnimator.numCol, uiAnimator.numSprites);
-					uiAnimator.animation->LoadAnimation();
-					uiAnimator.animator.PlayAnimation(uiAnimator.animation);
-				}
-
 				if (uiAnimator.animation)
 				{
-					uiAnimator.animator.SetLoop(uiAnimator.loop);
-					uiAnimator.animator.SetSpeed(uiAnimator.speed);
-					uiAnimator.animator.UpdateAnimation(dt);
-					//get current sprite coord offset
 					const auto& sprites = uiAnimator.animation->GetSprites();
 					int currentFrame = uiAnimator.animator.GetCurrentSpriteIndex();
 					glm::vec2 spriteOffset = sprites[currentFrame].offset;
@@ -940,7 +918,7 @@ namespace Borealis
 		{
 			Entity child = SceneManager::GetActiveScene()->GetEntityByUUID(childID);
 			if (child.HasComponent<TagComponent>() && child.IsActive())
-				RenderCanvasRecursiveWorld(child, dt);
+				RenderCanvasRecursiveWorld(child);
 		}
 	}
 
@@ -986,7 +964,7 @@ namespace Borealis
 
 				glm::mat4 canvasTransform = transform.GetGlobalTransform();
 
-				RenderCanvasRecursiveWorld(brEntity, dt);
+				RenderCanvasRecursiveWorld(brEntity);
 			}
 		}
 
@@ -2179,7 +2157,7 @@ namespace Borealis
 				glm::mat4 canvasTransform = glm::translate(glm::mat4(1.0f), canvasPosition) *
 					glm::scale(glm::mat4(1.0f), glm::vec3(scaleFactor, -scaleFactor, 1.f));
 
-				RenderCanvasRecursive(brEntity, canvasTransform, dt);
+				RenderCanvasRecursive(brEntity, canvasTransform);
 				UIexist = true;
 
 				{
@@ -2592,46 +2570,89 @@ namespace Borealis
 	{
 		//set light ubo
 
-		entt::basic_group group = registryPtr->group<>(entt::get<TransformComponent, SkinnedMeshRendererComponent>);
-		int animationCount = 0;
-		for (auto& entity : group)
 		{
-			Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
-			if (!brEntity.IsActive())
+			entt::basic_group group = registryPtr->group<>(entt::get<TransformComponent, SkinnedMeshRendererComponent>);
+			int animationCount = 0;
+			for (auto& entity : group)
 			{
-				continue;
-			}
-
-			auto [transform, skinnedMesh] = group.get<TransformComponent, SkinnedMeshRendererComponent>(entity);
-
-			if (!skinnedMesh.SkinnnedModel || !skinnedMesh.Material) continue;
-
-			if (registryPtr->storage<AnimatorComponent>().contains(entity))
-			{
-				AnimatorComponent& animatorComponent = registryPtr->get<AnimatorComponent>(entity);
-
-				if (animatorComponent.animation && (!animatorComponent.animator.HasAnimation() || animatorComponent.currentAnimationHandle != animatorComponent.animation->mAssetHandle))
+				Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
+				if (!brEntity.IsActive())
 				{
-					animatorComponent.currentAnimationHandle = animatorComponent.animation->mAssetHandle;
-					animatorComponent.animator.PlayAnimation(animatorComponent.animation);
-					skinnedMesh.SkinnnedModel->AssignAnimation(animatorComponent.animation);
+					continue;
 				}
 
-				if (animatorComponent.animation)
+				auto [transform, skinnedMesh] = group.get<TransformComponent, SkinnedMeshRendererComponent>(entity);
+
+				if (!skinnedMesh.SkinnnedModel || !skinnedMesh.Material) continue;
+
+				if (registryPtr->storage<AnimatorComponent>().contains(entity))
 				{
-					animatorComponent.animator.SetLoop(animatorComponent.loop);
-					animatorComponent.animator.SetSpeed(animatorComponent.speed);
+					AnimatorComponent& animatorComponent = registryPtr->get<AnimatorComponent>(entity);
 
-					animatorComponent.animator.UpdateAnimation(dt);
-
-					if (skinnedMesh.SkinnnedModel->mAnimation)
+					if (animatorComponent.animation && (!animatorComponent.animator.HasAnimation() || animatorComponent.currentAnimationHandle != animatorComponent.animation->mAssetHandle))
 					{
-						auto const& transforms = animatorComponent.animator.GetFinalBoneMatrices();
-
-						sData->AnimationUBO->SetData(transforms.data(), 128 * sizeof(glm::mat4), 128 * sizeof(glm::mat4) * animationCount);
-						animationCount++;
-						skinnedMesh.AnimationIndex = animationCount - 1;
+						animatorComponent.currentAnimationHandle = animatorComponent.animation->mAssetHandle;
+						animatorComponent.animator.PlayAnimation(animatorComponent.animation);
+						skinnedMesh.SkinnnedModel->AssignAnimation(animatorComponent.animation);
 					}
+
+					if (animatorComponent.animation)
+					{
+						animatorComponent.animator.SetLoop(animatorComponent.loop);
+						animatorComponent.animator.SetSpeed(animatorComponent.speed);
+
+						animatorComponent.animator.UpdateAnimation(dt);
+
+						if (skinnedMesh.SkinnnedModel->mAnimation)
+						{
+							auto const& transforms = animatorComponent.animator.GetFinalBoneMatrices();
+
+							sData->AnimationUBO->SetData(transforms.data(), 128 * sizeof(glm::mat4), 128 * sizeof(glm::mat4) * animationCount);
+							animationCount++;
+							skinnedMesh.AnimationIndex = animationCount - 1;
+						}
+					}
+				}
+			}
+		}
+
+		//UI animation
+		{
+			entt::basic_group group = registryPtr->group<>(entt::get<TransformComponent,UIAnimatorComponent>);
+			for (auto& entity : group)
+			{
+				Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
+				if (!brEntity.IsActive())
+				{
+					continue;
+				}
+
+				auto [transform, uiAnimator] = group.get<TransformComponent, UIAnimatorComponent>(entity);
+
+				if (!uiAnimator.texture) return;
+
+				glm::vec4 color{ glm::vec4(1.0f) };
+				if (brEntity.HasComponent<SpriteRendererComponent>())
+				{
+					color = brEntity.GetComponent<SpriteRendererComponent>().Colour;
+				}
+
+				if (!uiAnimator.animation && !uiAnimator.animator.GetCurrentAnimation())
+				{
+					uiAnimator.animation = MakeRef<UIAnimation>(uiAnimator.texture, uiAnimator.duration, uiAnimator.numRow, uiAnimator.numCol, uiAnimator.numSprites);
+					uiAnimator.animation->LoadAnimation();
+					uiAnimator.animator.PlayAnimation(uiAnimator.animation);
+				}
+
+				if (uiAnimator.animation)
+				{
+					uiAnimator.animator.SetLoop(uiAnimator.loop);
+					uiAnimator.animator.SetSpeed(uiAnimator.speed);
+					uiAnimator.animator.UpdateAnimation(dt);
+					//get current sprite coord offset
+					const auto& sprites = uiAnimator.animation->GetSprites();
+					int currentFrame = uiAnimator.animator.GetCurrentSpriteIndex();
+					glm::vec2 spriteOffset = sprites[currentFrame].offset;
 				}
 			}
 		}

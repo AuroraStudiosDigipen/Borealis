@@ -39,15 +39,15 @@ namespace BorealisAssetCompiler
 
 		std::filesystem::path directoryPath = cachePath.parent_path();
 
-		// Create the directories if they don't exist
-		//redundant now
-		if (!std::filesystem::exists(directoryPath))
-		{
-			if (!std::filesystem::create_directories(directoryPath))
-			{
-				//Error check
-			}
-		}
+		//// Create the directories if they don't exist
+		////redundant now
+		//if (!std::filesystem::exists(directoryPath))
+		//{
+		//	if (!std::filesystem::create_directories(directoryPath))
+		//	{
+		//		//Error check
+		//	}
+		//}
 
 		switch (metaData.Type)
 		{

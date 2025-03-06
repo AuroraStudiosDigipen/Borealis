@@ -26,11 +26,9 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <assimp/zlib.h>
 #include <Scripting/ScriptingSystem.hpp>
 #include <thread>
-#include <mutex>
-#include <Physics/PhysicsSystem.hpp>
+
 namespace Borealis
 {
-	std::mutex printMutex;
 	std::unique_ptr<filewatch::FileWatch<std::wstring>> fileWatcher = nullptr;
 	void AssetImporter::Update()
 	{
@@ -96,26 +94,6 @@ namespace Borealis
 		//Compare the metadata within registry with actual metadata for error checks
 		std::set<AssetHandle> assetChecker;
 		RegisterAllAssets(projectInfo.AssetsPath, assetRegistry, assetChecker);
-		PhysicsSystem::Init();
-		PhysicsSystem::StartJobQueue();
-		for (auto data : mInitialQueue)
-		{
-			auto jobFunction = [this, data]()
-				{
-					std::string output = CreateCache(data);
-					std::lock_guard<std::mutex> lock(printMutex);
-					BOREALIS_CORE_INFO("Compiled asset: {}", data.SourcePath.string());
-					if (output != "")
-						BOREALIS_CORE_WARN("Errors: {}", output);
-				};
-
-			// Push the job into the job queue
-			std::string jobName = "CompileAsset" + (std::to_string(data.Handle)); // Create a unique job name
-			PhysicsSystem::PushJob(jobName, jobFunction);  // No dependencies in this case
-		}
-		PhysicsSystem::EndJobQueue();
-		PhysicsSystem::Free();
-		mInitialQueue.clear();
 
 		ScriptingSystem::Reload({});
 
@@ -157,24 +135,7 @@ namespace Borealis
 		mPathRegistry.insert({ hash,handle });
 	}
 
-	static std::string executeCommand(const std::string& command) {
-		std::array<char, 128> buffer;
-		std::string result;
-
-		std::unique_ptr<FILE, decltype(&_pclose)> pipe(_popen(command.c_str(), "r"), _pclose);
-		if (!pipe) {
-			throw std::runtime_error("_popen() failed!");
-		}
-
-		while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
-			result += buffer.data();
-		}
-
-		return result;
-	}
-
-
-	std::string AssetImporter::ImportAsset(AssetMetaData metaData)
+	bool AssetImporter::ImportAsset(AssetMetaData metaData)
 	{
 		//check if assets needs to be imported
 
@@ -191,7 +152,9 @@ namespace Borealis
 		BOREALIS_CORE_INFO("{}", command);
 
 		// Execute the command
-		return executeCommand(command);
+		int result = system(command.c_str());
+
+		return false;
 	}
 
 	void AssetImporter::SerializeRegistry()
@@ -218,8 +181,8 @@ namespace Borealis
 		}
 		else
 		{
-			if (!std::filesystem::is_directory(metaData.SourcePath))
-				mInitialQueue.push_back(metaData);
+			if(!std::filesystem::is_directory(metaData.SourcePath))
+				CreateCache(metaData);
 			assetRegistry.at(metaData.Handle) = MetaFileSerializer::GetAssetMetaDataFile(metaData.SourcePath.string() + ".meta");
 		}
 
@@ -323,7 +286,7 @@ namespace Borealis
 	{
 		if (errorType == MetaErrorType::SOURCE_FILE_MODIFIED || errorType == MetaErrorType::CACHE_FILE_NOT_FOUND)
 		{
-			mInitialQueue.push_back(metaData);
+			CreateCache(metaData);
 		}
 
 		//Update meta file
@@ -341,9 +304,8 @@ namespace Borealis
 		std::filesystem::copy(metaData.SourcePath, cachePath, std::filesystem::copy_options::overwrite_existing);
 	}
 
-	std::string AssetImporter::CreateCache(AssetMetaData metaData)
+	void AssetImporter::CreateCache(AssetMetaData& metaData)
 	{
-		std::string output = "";
 		//get source path
 		//create cache with assethandle being the name
 		BOREALIS_CORE_INFO("Create cache");
@@ -353,17 +315,15 @@ namespace Borealis
 		case AssetType::Mesh:
 		case AssetType::Texture2D:
 		case AssetType::Font:
-			output = ImportAsset(metaData);
+			ImportAsset(metaData);
 			//get updated meta file
 			break;
 		default:
 			CopyToCacheFolder(metaData);
 			break;
 		}
-		return output;
-	} 
+	}
 
-	
 	void AssetImporter::StartFileWatch()
 	{
 		filewatch::FileWatch<std::wstring> watchBuffer(

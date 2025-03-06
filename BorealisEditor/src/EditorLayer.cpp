@@ -347,13 +347,13 @@ namespace Borealis {
 				if(bloomForEditor)
 				{
 					RenderPassConfig bloomPass(RenderPassType::BloomPass, "EditorBloomPass");
-					bloomPass.AddSinkLinkage("renderTarget", "ParticleSystemEditor.renderTarget");
+					bloomPass.AddSinkLinkage("renderTarget", "EditorBuffer");
 					bloomPass.AddSinkLinkage("bloomBool", "bloomBool");
 					fconfig.AddPass(bloomPass);
 				}
 
 				RenderPassConfig editorUIPass(RenderPassType::EditorUIPass, "EditorUI");
-				editorUIPass.AddSinkLinkage("renderTarget", "EditorBloomPass.renderTarget")
+				editorUIPass.AddSinkLinkage("renderTarget", "EditorBuffer")
 					.AddSinkLinkage("camera", "EditorCamera")
 					.AddSinkLinkage("runTimeRenderTarget", "RunTimeBuffer");
 				fconfig.AddPass(editorUIPass);
@@ -375,7 +375,7 @@ namespace Borealis {
 
 				RenderPassConfig highlightPass(RenderPassType::HighlightPass, "Highlight");
 				highlightPass.AddSinkLinkage("camera", "EditorCamera")
-					.AddSinkLinkage("renderTarget", "ParticleSystemEditor.renderTarget");
+					.AddSinkLinkage("renderTarget", "ObjectPicking.renderTarget");
 				fconfig.AddPass(highlightPass);
 
 				RenderPassConfig editorCorrectionPass(RenderPassType::CorrectionPass, "editorCorrectionPass");

@@ -410,7 +410,7 @@ vec3 ComputeLight(vec3 albedo, float roughness,
     vec3 diffuseColor = (1.0 - metallic) * albedo;
     vec3 diffuse = diffuseColor / PI;
 
-    return (diffuse * lightDiffuse + specular) * NdotL + GetEmission();
+    return (diffuse * lightDiffuse + specular) * NdotL;
 }
 
 vec3 ComputeDirectionalLight(Light light, vec3 normal, vec3 viewDir) 
@@ -428,7 +428,7 @@ vec3 ComputeDirectionalLight(Light light, vec3 normal, vec3 viewDir)
 
     if(u_HasShadow)
     {
-        color += shadowFactor;
+        color *= shadowFactor;
     }
     return color;
 }
@@ -566,7 +566,7 @@ void Render3DPass()
 
 	vec3 ambient = vec3(0.1f) * GetAlbedoColor().rgb;
 
-	vec3 finalColor = color.rgb;
+	vec3 finalColor = color.rgb + GetEmission();
     //finalColor = vec3(1.f) - exp(-finalColor * exposure);
     // finalColor = finalColor / (finalColor + vec3(1.0));
     // finalColor = pow(finalColor, vec3(1.0/2.2)); 

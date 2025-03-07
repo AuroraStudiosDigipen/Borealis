@@ -52,7 +52,7 @@ namespace Borealis
 		bool sRGB = true;
 		bool generateMipMaps = true;
 		TextureWrap wrapMode = TextureWrap::_REPEAT;
-		TextureFilter filterMode = TextureFilter::_LINEAR;
+		TextureFilter filterMode = TextureFilter::_NEAREST;
 	};
 
 	struct MeshConfig

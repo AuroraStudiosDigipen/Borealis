@@ -156,8 +156,10 @@ namespace Borealis
 		glTexParameteri(Target, GL_TEXTURE_MAX_LEVEL, static_cast<GLint>(Texture.levels() - 1));
 		glTexParameteriv(Target, GL_TEXTURE_SWIZZLE_RGBA, &Format.Swizzles[0]);
 
-		GLuint linearMode{};
 
+
+		GLuint linearMode{};
+		config.filterMode = TextureFilter::_NEAREST;
 		switch (config.filterMode)
 		{
 		case TextureFilter::_LINEAR:

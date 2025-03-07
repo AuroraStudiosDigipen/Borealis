@@ -460,7 +460,7 @@ namespace Borealis
 			indices.push_back(topIndex);
 		}
 
-		static GLuint ConeVAO = 0, ConeVBO = 0, ConeEBO = 0;
+		GLuint ConeVAO = 0, ConeVBO = 0, ConeEBO = 0;
 		if (ConeVAO == 0)
 		{
 			glGenVertexArrays(1, &ConeVAO);
@@ -510,6 +510,10 @@ namespace Borealis
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 		shader->Unbind();
+
+		glDeleteVertexArrays(1, &ConeVAO);
+		glDeleteBuffers(1, &ConeVBO);
+		glDeleteBuffers(1, &ConeEBO);
 	}
 
 	void Mesh::DrawCube(glm::vec3 translation, glm::vec3 minExtent, glm::vec3 maxExtent, glm::vec4 color, bool wireframe, Ref<Shader> shader)

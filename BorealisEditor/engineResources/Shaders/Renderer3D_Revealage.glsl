@@ -16,7 +16,8 @@ void main()
 #version 410 core	
 
 in vec2 v_TexCoord;
-out vec4 FragColor;
+layout(location = 0) out vec4 FragColor;
+layout(location = 1) out int entityIDs;
 
 // uniform sampler2D opaqueTex;
 // uniform sampler2D accumColorTex;
@@ -46,6 +47,7 @@ out vec4 FragColor;
 
 //uniform sampler2D opaqueTex;
 uniform sampler2D accumColorTex;
+uniform usampler2D entityTex;
 uniform sampler2D accumAlphaTex;
 
 // epsilon number
@@ -77,5 +79,6 @@ void main()
 
     vec3 average_color = accumColor.rgb / max(accumColor.a, EPSILON);
 
+    entityIDs = int(texture(entityTex, v_TexCoord).r);
     FragColor = vec4(average_color, 1.0f - accumAlpha);
 }

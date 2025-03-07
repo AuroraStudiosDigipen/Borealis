@@ -93,7 +93,8 @@ namespace Borealis
 		out << YAML::Key << "sRGB" << YAML::Value << textureConfig.sRGB;
 		out << YAML::Key << "MipMaps" << YAML::Value << textureConfig.generateMipMaps;
 		out << YAML::Key << "TextureWrap" << YAML::Value << GetTextureWrapString(textureConfig.wrapMode);
-		out << YAML::Key << "TextureFilter" << YAML::Value << GetTextureFilterString(textureConfig.filterMode);
+		//out << YAML::Key << "TextureFilter" << YAML::Value << GetTextureFilterString(textureConfig.filterMode);
+		out << YAML::Key << "TextureFilter" << YAML::Value << GetTextureFilterString(TextureFilter::_NEAREST);
 	}
 
 	void SerializeMeshConfig(YAML::Emitter& out, MeshConfig const& meshConfig)

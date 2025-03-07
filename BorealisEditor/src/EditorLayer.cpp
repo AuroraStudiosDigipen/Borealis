@@ -100,7 +100,7 @@ namespace Borealis {
 
 	static bool particlesForEditor = true;
 	static bool bloomForEditor = false;
-	static bool particlesWireFrame = true;
+	static bool particlesWireFrame = false;
 
 	static bool editorView = true;
 	static bool runtimeView = true;
@@ -339,7 +339,7 @@ namespace Borealis {
 					particleSystemPass.AddSinkLinkage("camera", "EditorCamera")
 						.AddSinkLinkage("particlesWireFrame", "particlesWireFrame")
 						.AddSinkLinkage("accumulaionTarget", "accumulaionBuffer")
-						.AddSinkLinkage("renderTarget", "editorUIWorldPass.renderTarget")
+						.AddSinkLinkage("renderTarget", "EditorBuffer")
 						.AddSinkLinkage("camera", "EditorCamera");
 					fconfig.AddPass(particleSystemPass);
 				}

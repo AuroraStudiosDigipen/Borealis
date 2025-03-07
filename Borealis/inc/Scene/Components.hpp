@@ -576,6 +576,13 @@ namespace Borealis
 		glm::vec3		rotation = glm::vec3{ 0.f };
 
 		bool			billboard = true;
+
+		//noise
+		bool	useNoise = false;
+		float	noiseStrength = 0.1f;
+		float	noiseFrequency = 1.0f;
+		float	noiseScrollSpeed = 1.0f;
+
 		Ref<Texture2D>	texture = nullptr;
 
 		//Private

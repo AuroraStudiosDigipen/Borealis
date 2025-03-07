@@ -392,6 +392,18 @@ namespace Borealis
 		{
 			std::vector<float> shadowCascadeLevels{ camera->farPlane / 50.0f, camera->farPlane / 25.0f, camera->farPlane / 10.0f, camera->farPlane / 2.0f };
 
+			//std::vector<float> shadowCascadeLevels(4);
+			//float nearP = camera->nearPlane;
+			//float farP = camera->farPlane;
+			//float lambda = 0.9f;
+
+			//for (int i = 0; i < 4; ++i) {
+			//	float fraction = (i + 1) / 4.0f;
+			//	float logSplit = nearP * std::pow(farP / nearP, fraction);
+			//	float linearSplit = nearP + (farP - nearP) * fraction;
+			//	shadowCascadeLevels[i] = lambda * logSplit + (1 - lambda) * linearSplit;
+			//}
+
 			std::array<glm::mat4, 4> lightViewProjMatrices;
 			if (S_MATERIALSHADOW)
 			{
@@ -714,8 +726,10 @@ namespace Borealis
 		revealage_shader->Bind();
 		accumulaionTarget->buffer->BindTexture(0, 0);
 		revealage_shader->Set("accumColorTex", 0);
-		accumulaionTarget->buffer->BindTexture(2, 1);
-		revealage_shader->Set("accumAlphaTex", 1);
+		accumulaionTarget->buffer->BindTexture(1, 1);
+		revealage_shader->Set("entityTex", 1);
+		accumulaionTarget->buffer->BindTexture(2, 2);
+		revealage_shader->Set("accumAlphaTex", 2);
 		Renderer3D::DrawQuad();
 		renderTarget->Unbind();
 

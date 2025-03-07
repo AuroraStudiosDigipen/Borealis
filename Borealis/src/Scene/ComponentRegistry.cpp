@@ -303,6 +303,10 @@ namespace Borealis
             .property("Rotation", &ParticleSystemComponent::rotation)
             (metadata("Dependency", "Shape"), metadata("Visible for", "Quad"))
             .property("Billboard", &ParticleSystemComponent::billboard)
+            .property("Noise", &ParticleSystemComponent::useNoise)
+            .property("Noise Strength", &ParticleSystemComponent::noiseStrength)
+            .property("Noise Frequency", &ParticleSystemComponent::noiseFrequency)
+            .property("Noise Scroll Speed", &ParticleSystemComponent::noiseScrollSpeed)
             .property("Texture", &ParticleSystemComponent::texture);
 
         registration::enumeration<TextComponent::TextAlign>("Text Align")

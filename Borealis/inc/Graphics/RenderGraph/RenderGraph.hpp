@@ -446,7 +446,7 @@ namespace Borealis
 			SceneRenderConfigUBO ubo{};
 
 			//not in ubo
-			bool bloom = true;
+			bool bloom = false;
 		};
 
 		SceneRenderConfig sceneRenderConfig{};

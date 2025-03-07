@@ -18,6 +18,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scene/Components.hpp>
 #include <Core/Utils.hpp>
 
+#include <glm/gtc/noise.hpp>
+
 namespace Borealis
 {
 	glm::mat4 TransformComponent::GetGlobalTransform()
@@ -234,6 +236,22 @@ namespace Borealis
 				 mDeadParticlesCount++;
 				 mParticlesCount--;
 				 continue;
+			 }
+
+			 if (useNoise) {
+				 // Compute noise input based on position and time
+				 glm::vec3 noiseInput = particle.position * noiseFrequency;
+				 noiseInput += glm::vec3(Timer * noiseScrollSpeed);
+
+				 // Sample noise for each axis with offsets to decorrelate
+				 glm::vec3 noise;
+				 noise.x = glm::perlin(noiseInput + glm::vec3(0.0, 0.0, 0.0));
+				 noise.y = glm::perlin(noiseInput + glm::vec3(100.0, 0.0, 0.0));
+				 noise.z = glm::perlin(noiseInput + glm::vec3(200.0, 0.0, 0.0));
+
+				 // Calculate acceleration and update velocity
+				 glm::vec3 acceleration = noise * noiseStrength;
+				 particle.startVelocity += acceleration * dt;
 			 }
 
 			 particle.position += particle.startVelocity * dt;

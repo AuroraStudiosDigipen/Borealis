@@ -129,10 +129,10 @@ struct MaterialUBOData
     float smoothness;
     float shininess;
     float metallic;
-    float roughness;
+    bool nonRepeatingTiles;
 
     bool hasAlbedoMap;
-    bool hasSpecularMap;
+    bool hasEmissionMap;
     bool hasNormalMap;
     bool hasMetallicMap;
 };
@@ -198,7 +198,7 @@ uniform samplerCube u_cubeMap;
 
 uniform int materialIndex;
 uniform sampler2D albedoMap;
-uniform sampler2D specularMap;
+uniform sampler2D emissionMap;
 uniform sampler2D metallicMap;
 uniform sampler2D normalMap;
 
@@ -265,11 +265,6 @@ vec4 GetAlbedoColor()
 	return albedoColor;
 }
 
-vec3 GetSpecular()
-{
-	return materials[materialIndex].hasSpecularMap ? texture(specularMap, GetTexCoord()).rgb : materials[materialIndex].specularColor.rgb;
-}
-
 float GetMetallic() 
 {
 	return materials[materialIndex].hasMetallicMap ? texture(metallicMap, GetTexCoord()).r : materials[materialIndex].metallic;
@@ -282,7 +277,7 @@ float GetRoughness()
 
 vec3 GetEmission()
 {
-    return  materials[materialIndex].hasSpecularMap ? texture(specularMap, GetTexCoord()).rgb + materials[materialIndex].emissionColor.rgb: materials[materialIndex].emissionColor.rgb;
+    return  materials[materialIndex].hasEmissionMap ? texture(emissionMap, GetTexCoord()).rgb + materials[materialIndex].emissionColor.rgb: materials[materialIndex].emissionColor.rgb;
 }
 
 float NewDistributionGGX(float NdotH, float a) 

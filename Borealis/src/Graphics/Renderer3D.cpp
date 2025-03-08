@@ -118,10 +118,10 @@ namespace Borealis
 				textureMap.at(Material::NormalMap)->Bind(textureUnit);
 				textureUnit++;
 			}
-			if (textureMap.contains(Material::Specular))
+			if (textureMap.contains(Material::Emission))
 			{
-				drawCall.shaderID->Set("specularMap", textureUnit);
-				textureMap.at(Material::Specular)->Bind(textureUnit);
+				drawCall.shaderID->Set("emissionMap", textureUnit);
+				textureMap.at(Material::Emission)->Bind(textureUnit);
 				textureUnit++;
 			}
 			if (textureMap.contains(Material::Metallic))
@@ -181,8 +181,8 @@ namespace Borealis
 			}
 			if (textureMap.contains(Material::Specular))
 			{
-				drawCall.shaderID->Set("specularMap", textureUnit);
-				textureMap.at(Material::Specular)->Bind(textureUnit);
+				drawCall.shaderID->Set("emissionMap", textureUnit);
+				textureMap.at(Material::Emission)->Bind(textureUnit);
 				textureUnit++;
 			}
 			if (textureMap.contains(Material::Metallic))
@@ -371,7 +371,7 @@ namespace Borealis
 					}
 					if (textureMap.contains(Material::Specular))
 					{
-						uboData.hasSpecularMap = true;
+						uboData.hasEmissionMap = true;
 					}
 					if (textureMap.contains(Material::Metallic))
 					{
@@ -421,9 +421,9 @@ namespace Borealis
 				{
 					uboData.hasNormalMap = true;
 				}
-				if (textureMap.contains(Material::Specular))
+				if (textureMap.contains(Material::Emission))
 				{
-					uboData.hasSpecularMap = true;
+					uboData.hasEmissionMap = true;
 				}
 				if (textureMap.contains(Material::Metallic))
 				{

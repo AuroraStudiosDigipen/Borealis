@@ -285,12 +285,13 @@ namespace Borealis
 		float smoothness = 0;
 		float shininess = 0;
 		float metallic = 0;
-		float padding1 = 0;
 
-		int hasAlbedoMap = 0;
-		int hasSpecularMap = 0;
-		int hasNormalMap = 0;
-		int hasMetallicMap = 0;
+		int nonRepeatingTiles = false;
+
+		int hasAlbedoMap = false;
+		int hasEmissionMap = false;
+		int hasNormalMap = false;
+		int hasMetallicMap = false;
 	};
 } //namespace Borealis
 #endif

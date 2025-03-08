@@ -1615,4 +1615,26 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		entity.GetComponent<AudioSourceComponent>().Volume = *volume;
 	}
+	
+	void AudioListener_SetListener(uint64_t ID, bool* listener)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(ID);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+
+		if (*listener)
+		{
+			auto group = scene->GetRegistry().group<>(entt::get<TransformComponent, AudioListenerComponent>);
+			for (auto& entity : group)
+			{
+				Entity brEntity{ entity, scene };
+				auto [transform, audioListener] = group.get<TransformComponent, AudioListenerComponent>(entity);
+
+				audioListener.isAudioListener = false;
+			}
+		}
+
+		entity.GetComponent<AudioListenerComponent>().isAudioListener = *listener;
+	}
 }

@@ -230,16 +230,24 @@ namespace Borealis
         // Here you can add your logic for unloading sounds
     }
 
-    void AudioEngine::Set3DListenerAndOrientation(const glm::vec3& vPos, float fVolumedB)
+    void AudioEngine::Set3DListenerAndOrientation(const glm::mat4& transform, float fVolumedB)
     {
+        glm::vec3 vPos = transform[3];
         FMOD_VECTOR fmodPosition = VectorToFmod(vPos);
 
-        // Default orientation: Forward (looking along +Z), Up (pointing along +Y)
-        FMOD_VECTOR fmodForward = { 0.0f, 0.0f, 1.0f };
-        FMOD_VECTOR fmodUp = { 0.0f, 1.0f, 0.0f };
+        glm::vec3 forward = glm::normalize(glm::vec3(transform[2]));
+        glm::vec3 up = glm::normalize(glm::vec3(transform[1]));     
 
-        // Update FMOD Listener Position
-        ErrorCheck(sgpImplementation->mpSystem->set3DListenerAttributes(0, &fmodPosition, nullptr, &fmodForward, &fmodUp));
+        FMOD_VECTOR fmodForward = VectorToFmod(forward);
+        FMOD_VECTOR fmodUp = VectorToFmod(up);
+
+        ErrorCheck(sgpImplementation->mpSystem->set3DListenerAttributes(
+            0,
+            &fmodPosition,
+            nullptr,
+            &fmodForward,
+            &fmodUp
+        ));
     }
 
     int AudioEngine::PlayAudio(AudioSourceComponent& audio, const glm::vec3& vPosition, float fVolumedB, bool bMute, bool bLoop, const std::string& groupName)

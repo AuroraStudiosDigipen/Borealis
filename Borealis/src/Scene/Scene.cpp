@@ -774,7 +774,7 @@ namespace Borealis
 				auto [transform, audioListener] = group.get<TransformComponent, AudioListenerComponent>(entity);
 
 				if (!audioListener.isAudioListener) continue;
-				AudioEngine::Set3DListenerAndOrientation(transform.GetGlobalTranslate());
+				AudioEngine::Set3DListenerAndOrientation(transform.GetGlobalTransform());
 
 				listener += 1;
 				break;

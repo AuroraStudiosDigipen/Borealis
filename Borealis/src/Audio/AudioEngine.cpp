@@ -185,7 +185,7 @@ namespace Borealis
                 ++it;
             }
         }
-    
+
 
 
         ErrorCheck(mpSystem->update());
@@ -230,10 +230,22 @@ namespace Borealis
         // Here you can add your logic for unloading sounds
     }
 
+    void AudioEngine::Set3DListenerAndOrientation(const glm::vec3& vPos, float fVolumedB)
+    {
+        FMOD_VECTOR fmodPosition = VectorToFmod(vPos);
+
+        // Default orientation: Forward (looking along +Z), Up (pointing along +Y)
+        FMOD_VECTOR fmodForward = { 0.0f, 0.0f, 1.0f };
+        FMOD_VECTOR fmodUp = { 0.0f, 1.0f, 0.0f };
+
+        // Update FMOD Listener Position
+        ErrorCheck(sgpImplementation->mpSystem->set3DListenerAttributes(0, &fmodPosition, nullptr, &fmodForward, &fmodUp));
+    }
+
     int AudioEngine::PlayAudio(AudioSourceComponent& audio, const glm::vec3& vPosition, float fVolumedB, bool bMute, bool bLoop, const std::string& groupName)
     {
         int nChannelId = sgpImplementation->mnNextChannelId++;
-        
+
         FMOD::Sound* fmodSound = audio.audio->audioPtr;
         if (!fmodSound) return -1;
 
@@ -308,9 +320,9 @@ namespace Borealis
         // Stop all tracked channels
         for (auto it = sgpImplementation->mChannels.begin(); it != sgpImplementation->mChannels.end(); ++it)
         {
-			FMOD::Channel* pChannel = it->second;
-			pChannel->stop();
-		}
+            FMOD::Channel* pChannel = it->second;
+            pChannel->stop();
+        }
 
         sgpImplementation->mChannels.clear(); // Clear the map as all channels are stopped
 
@@ -448,7 +460,7 @@ namespace Borealis
 
     int AudioEngine::Play(Ref<Audio> audio, const glm::vec3& position, float volumeDB, bool looping, const std::string& groupName)
     {
-        if (!audio || !audio->audioPtr) 
+        if (!audio || !audio->audioPtr)
         {
             std::cerr << "Invalid audio reference" << std::endl;
             return -1;
@@ -465,7 +477,7 @@ namespace Borealis
 
         // Play the sound with pausing enabled initially
 
-        if (channel) 
+        if (channel)
         {
             // Set 3D attributes if the sound is in 3D mode
             FMOD_MODE mode;
@@ -483,7 +495,7 @@ namespace Borealis
 
             // Assign channel to a group
             auto itGroup = sgpImplementation->mChannelGroups.find(groupName);
-            if (itGroup != sgpImplementation->mChannelGroups.end()) 
+            if (itGroup != sgpImplementation->mChannelGroups.end())
             {
                 ErrorCheck(channel->setChannelGroup(itGroup->second));
             }
@@ -497,7 +509,7 @@ namespace Borealis
 
     void AudioEngine::PlayOneShot(Ref<Audio> audio, const glm::vec3& position, float volumeDB, const std::string& groupName)
     {
-        if (!audio || !audio->audioPtr) 
+        if (!audio || !audio->audioPtr)
         {
             std::cerr << "Invalid audio reference" << std::endl;
             return;
@@ -514,12 +526,12 @@ namespace Borealis
         int chIndex = -1;
         channel->getIndex(&chIndex);
 
-        if (channel) 
+        if (channel)
         {
             // Set 3D attributes if the sound is in 3D mode
             FMOD_MODE mode;
             sound->getMode(&mode);
-            if (mode & FMOD_3D) 
+            if (mode & FMOD_3D)
             {
                 FMOD_VECTOR fmodPosition = VectorToFmod(position);
                 FMOD_VECTOR velocity = { 0.0f, 0.0f, 0.0f };
@@ -533,7 +545,7 @@ namespace Borealis
 
             // Assign to group if applicable
             auto itGroup = sgpImplementation->mChannelGroups.find(groupName);
-            if (itGroup != sgpImplementation->mChannelGroups.end()) 
+            if (itGroup != sgpImplementation->mChannelGroups.end())
             {
                 ErrorCheck(channel->setChannelGroup(itGroup->second));
             }

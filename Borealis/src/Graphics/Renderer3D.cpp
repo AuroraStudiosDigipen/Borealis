@@ -349,7 +349,7 @@ namespace Borealis
 					MaterialUBOData uboData;
 
 					uboData.albedoColor = materialRef->GetTextureMapColor()[Material::Albedo];
-					uboData.specularColor = materialRef->GetTextureMapColor()[Material::Specular];
+					//uboData.specularColor = materialRef->GetTextureMapColor()[Material::Specular];
 					uboData.emissionColor = materialRef->GetTextureMapColor()[Material::Emission];
 
 					uboData.tiling = materialRef->GetPropertiesVec2()[Material::Tiling];
@@ -378,6 +378,14 @@ namespace Borealis
 						uboData.hasMetallicMap = true;
 					}
 
+					if (materialRef->mNonRepeatingTiles)
+					{
+						uboData.nonRepeatingTiles = true;
+					}
+
+					uboData.specularColor.x = materialRef->GetPropertiesFloats()[Material::HexSize];
+					uboData.specularColor.y = materialRef->GetPropertiesFloats()[Material::Sharpness];
+
 					materialUBODataMap.insert({ hash, uboData });
 				}
 			}
@@ -401,7 +409,7 @@ namespace Borealis
 				MaterialUBOData& uboData = materialUBODataMap[hash];
 
 				uboData.albedoColor = materialRef->GetTextureMapColor()[Material::Albedo];
-				uboData.specularColor = materialRef->GetTextureMapColor()[Material::Specular];
+				//uboData.specularColor = materialRef->GetTextureMapColor()[Material::Specular];
 				uboData.emissionColor = materialRef->GetTextureMapColor()[Material::Emission];
 
 				uboData.tiling = materialRef->GetPropertiesVec2()[Material::Tiling];
@@ -429,6 +437,18 @@ namespace Borealis
 				{
 					uboData.hasMetallicMap = true;
 				}
+
+				if (materialRef->mNonRepeatingTiles)
+				{
+					uboData.nonRepeatingTiles = true;
+				}
+				else
+				{
+					uboData.nonRepeatingTiles = false;
+				}
+
+				uboData.specularColor.x = materialRef->GetPropertiesFloats()[Material::HexSize];
+				uboData.specularColor.y = materialRef->GetPropertiesFloats()[Material::Sharpness];
 
 				s3dData->mMaterialsUBO->SetData(&materialUBODataMap[hash], sizeof(MaterialUBOData), sizeof(MaterialUBOData) * materialRef->GetIndex());
 				materialRef->isModified = false;

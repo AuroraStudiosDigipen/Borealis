@@ -103,6 +103,8 @@ namespace Borealis
         mPropertiesVec2[Tiling] = { 1.f, 1.f };
         mPropertiesFloat[Smoothness] = 0.01f;
         mPropertiesFloat[Shininess] = 1.f;
+        mPropertiesFloat[HexSize] = 1.f;
+        mPropertiesFloat[Sharpness] = 1.f;
     }
 
     Material::Material(std::filesystem::path path)
@@ -157,6 +159,15 @@ namespace Borealis
             glm::vec2 value = it->second.as<glm::vec2>();
             mPropertiesVec2[key] = value;
         }
+
+        if (data["NonRepeatingTiles"])
+        {
+            mNonRepeatingTiles = data["NonRepeatingTiles"].as<bool>();
+        }
+        else
+        {
+            mNonRepeatingTiles = false;
+        }
     }
 
     Ref<Material> Material::CreateNewMaterial(std::filesystem::path const& path)
@@ -209,6 +220,8 @@ namespace Borealis
             out << YAML::Key << PropsToString(key) << YAML::Value << YAML::Flow << YAML::BeginSeq << value.x << value.y << YAML::EndSeq;
         }
         out << YAML::EndMap;
+
+        out << YAML::Key << "NonRepeatingTiles" << YAML::Value << mNonRepeatingTiles;
 
         out << YAML::EndMap;
 
@@ -366,6 +379,8 @@ namespace Borealis
         case Offset:          return "Offset";
         case Smoothness:      return "Smoothness";
         case Shininess:       return "Shininess";
+        case HexSize:         return "Hex Size";
+        case Sharpness:       return "Sharpness";
         case HasEmission:     return "Has Emission";
         case HasHeightMap:    return "Has Height Map";
         case HasNormalMap:    return "Has Normal Map";
@@ -383,6 +398,8 @@ namespace Borealis
             {"Offset",          Offset},
             {"Smoothness",      Smoothness},
             {"Shininess",       Shininess},
+            {"Hex Size",       HexSize},
+            {"Sharpness",       Sharpness},
             {"Has Emission",     HasEmission},
             {"Has Height Map",    HasHeightMap},
             {"Has Normal Map",    HasNormalMap},

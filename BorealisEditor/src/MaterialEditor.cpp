@@ -45,7 +45,7 @@ namespace Borealis
         ImGui::PopItemWidth();
     }
 
-    bool DrawVec2Control(std::string const& label, glm::vec2& values, float min = 0.0f, float max = 1.0f)
+    bool DrawVec2Control(std::string const& label, glm::vec2& values, float min = 0.0f, float max = 100.0f)
     {
         bool isModified = false;
         std::string labelStrX = "##Vec2X" + label;
@@ -192,7 +192,7 @@ namespace Borealis
             ImGui::Separator();
         }
 
-        for (int i = Material::Tiling; i <= Material::Shininess; ++i)
+        for (int i = Material::Tiling; i <= Material::Sharpness; ++i)
         {
             std::string label = Material::PropsToString(static_cast<Material::Props>(i));
             ImGui::Text(label.c_str());
@@ -241,12 +241,34 @@ namespace Borealis
                 }
                 break;
             }
+            case Material::HexSize:
+            {
+                float hexSize = material->GetPropertiesFloats()[Material::HexSize];
+                if (DrawFloatSlider("Hex Size", &hexSize, 0.f, 128.f))
+                {
+                    material->SetPropertyFloat(Material::HexSize, hexSize);
+                    isModified = true;
+                }
+                break;
+            }
+            case Material::Sharpness:
+            {
+                float sharpness = material->GetPropertiesFloats()[Material::Sharpness];
+                if (DrawFloatSlider("Sharpness", &sharpness, 0.f, 128.f))
+                {
+                    material->SetPropertyFloat(Material::Sharpness, sharpness);
+                    isModified = true;
+                }
+                break;
+            }
             default:
                 break;
             }
 
             ImGui::Spacing();
         }
+
+        ImGui::Checkbox("Non Repeating Tiles", &material->mNonRepeatingTiles);
 
         material->isModified = isModified;
 

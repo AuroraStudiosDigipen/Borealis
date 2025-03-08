@@ -165,6 +165,7 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_SetLooping);
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_GetVolume );
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_SetVolume );
+		BOREALIS_ADD_INTERNAL_CALL(AudioListener_SetListener);
 
 		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_SetNextAnimation);
 		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_GetNextAnimation);
@@ -1616,25 +1617,22 @@ namespace Borealis
 		entity.GetComponent<AudioSourceComponent>().Volume = *volume;
 	}
 	
-	void AudioListener_SetListener(uint64_t ID, bool* listener)
+	void AudioListener_SetListener(uint64_t ID)
 	{
 		Scene* scene = SceneManager::GetActiveScene().get();
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(ID);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 
-		if (*listener)
+		auto group = scene->GetRegistry().group<>(entt::get<TransformComponent, AudioListenerComponent>);
+		for (auto& entity : group)
 		{
-			auto group = scene->GetRegistry().group<>(entt::get<TransformComponent, AudioListenerComponent>);
-			for (auto& entity : group)
-			{
-				Entity brEntity{ entity, scene };
-				auto [transform, audioListener] = group.get<TransformComponent, AudioListenerComponent>(entity);
+			Entity brEntity{ entity, scene };
+			auto [transform, audioListener] = group.get<TransformComponent, AudioListenerComponent>(entity);
 
-				audioListener.isAudioListener = false;
-			}
+			audioListener.isAudioListener = false;
 		}
 
-		entity.GetComponent<AudioListenerComponent>().isAudioListener = *listener;
+		entity.GetComponent<AudioListenerComponent>().isAudioListener = true;
 	}
 }

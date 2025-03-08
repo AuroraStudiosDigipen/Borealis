@@ -354,6 +354,12 @@ namespace Borealis
 
         #endregion
 
+        #region AudioListener
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void AudioListener_SetListener(ulong ID);
+
+        #endregion
+
         #region Animator
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void AnimatorComponent_SetCurrentAnimation(ulong uuid, ulong animation);

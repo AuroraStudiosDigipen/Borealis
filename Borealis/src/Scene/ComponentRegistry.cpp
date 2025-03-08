@@ -208,7 +208,9 @@ namespace Borealis
             
             .property("Friction", &RigidbodyComponent::friction)
             
-            .property("Bounciness", &RigidbodyComponent::bounciness);
+            .property("Bounciness", &RigidbodyComponent::bounciness)
+            
+            .property("Gravity Scale", &RigidbodyComponent::gravityScale);
 
         registration::class_<CharacterControllerComponent>("Character Controller Component")
             (metadata("Component", true))
@@ -358,6 +360,17 @@ namespace Borealis
             .property("On Click Class", &ButtonComponent::onClickClass)
             .property("On Hover Class", &ButtonComponent::onHoverClass)
             .property("On Release Class", &ButtonComponent::onReleaseClass);
+
+        registration::class_<UIAnimatorComponent>("UI Animator Component")
+            (metadata("Component", true))
+            .constructor<>()
+            .property("Loop", &UIAnimatorComponent::loop)
+            .property("Speed", &UIAnimatorComponent::speed)
+            .property("Duration", &UIAnimatorComponent::duration)
+            .property("Num Rows", &UIAnimatorComponent::numRow)
+            .property("Num Columns", &UIAnimatorComponent::numCol)
+            .property("Num Sprites", &UIAnimatorComponent::numSprites)
+            .property("Spritesheet", &UIAnimatorComponent::texture);
     }
 
     enum dataTypes

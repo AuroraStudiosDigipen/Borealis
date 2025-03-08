@@ -78,6 +78,9 @@
     <ClInclude Include="inc\Panels\SceneHierarchyPanel.hpp">
       <Filter>inc\Panels</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Panels\SceneRendererPanel.hpp">
+      <Filter>inc\Panels</Filter>
+    </ClInclude>
     <ClInclude Include="inc\Prefab.hpp">
       <Filter>inc</Filter>
     </ClInclude>
@@ -92,9 +95,6 @@
     </ClInclude>
     <ClInclude Include="inc\ResourceManager.hpp">
       <Filter>inc</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\Panels\SceneRendererPanel.hpp">
-      <Filter>inc\Panels</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -152,6 +152,9 @@
     <ClCompile Include="src\Panels\SceneHierarchyPanel.cpp">
       <Filter>src\Panels</Filter>
     </ClCompile>
+    <ClCompile Include="src\Panels\SceneRendererPanel.cpp">
+      <Filter>src\Panels</Filter>
+    </ClCompile>
     <ClCompile Include="src\Prefab.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -163,9 +166,6 @@
     </ClCompile>
     <ClCompile Include="src\ResourceManager.cpp">
       <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Panels\SceneRendererPanel.cpp">
-      <Filter>src\Panels</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

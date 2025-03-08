@@ -112,6 +112,9 @@ namespace Borealis
 		static UUID BodyIDToUUID(unsigned int bodyID);
 		static bool BodyIDToIsSensor(unsigned int bodyID);
 
+		static void SetActive(unsigned int bodyID);
+		static void SetInactive(unsigned int bodyID);
+
 		static std::queue<CollisionPair>& GetCollisionEnterQueue();
 		static std::queue<CollisionPair>& GetCollisionPersistQueue();
 		static std::queue<CollisionPair>& GetCollisionExitQueue();

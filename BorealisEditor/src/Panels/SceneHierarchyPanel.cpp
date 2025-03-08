@@ -1570,6 +1570,7 @@ namespace Borealis
 			if (ImGui::MenuItem("Unparent Entity"))
 			{
 				mSelectedEntity.GetComponent<TransformComponent>().ResetParent(mSelectedEntity);
+				HierarchyLayerManager::GetInstance().LoadEntitiesIntoLayerManager(SceneManager::GetActiveScene());
 			}
 			ImGui::EndPopup();
 		}
@@ -2411,6 +2412,7 @@ namespace Borealis
 			isEdited = SearchBar<CanvasRendererComponent	>(search_text, entity, "Canvas Renderer", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<ParticleSystemComponent	>(search_text, entity, "Particle System", search_buffer) ? true : isEdited;
 			isEdited = SearchBar<ButtonComponent	>(search_text, entity, "Button", search_buffer) ? true : isEdited;
+			isEdited = SearchBar<UIAnimatorComponent	>(search_text, entity, "UI Animator", search_buffer) ? true : isEdited;
 
 			// scripts
 			for (auto [name, klass] : ScriptingSystem::mScriptClasses)
@@ -2461,6 +2463,7 @@ namespace Borealis
 		isEdited = DrawComponentLayout<CanvasRendererComponent>("Canvas Renderer", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<ParticleSystemComponent>("Particle System", entity) ? true : isEdited;
 		isEdited = DrawComponentLayout<ButtonComponent>("Button", entity) ? true : isEdited;
+		isEdited = DrawComponentLayout<UIAnimatorComponent>("UI Animator", entity) ? true : isEdited;
 
 		/*DrawComponent<CameraComponent>("Camera", mSelectedEntity, [](auto& cameraComponent)
 			{

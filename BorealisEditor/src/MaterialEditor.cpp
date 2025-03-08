@@ -98,6 +98,18 @@ namespace Borealis
 		}
 	}
 
+    static const std::map<Material::TextureMaps, int> colorMaps =
+    {
+        {Material::Albedo, 0},
+        {Material::Specular, 1},
+        {Material::Emission, 2}
+    };
+
+    static const std::map<Material::TextureMaps, int> floatMaps =
+    {
+        {Material::Metallic, 0}
+    };
+
     void MaterialEditor::RenderProperties(Ref<Material> const& material)
     {
         if (!material) return;
@@ -111,6 +123,7 @@ namespace Borealis
         }*/
 
         bool isModified = false;
+
 
         ImGui::Checkbox("Is Transparent", &material->isTransparent);
 
@@ -154,13 +167,26 @@ namespace Borealis
 
             ImGui::NewLine();
             ImGui::SameLine(125);
-            glm::vec4 albedoColor = material->GetTextureMapColor()[matMap];
-            if (ImGui::ColorEdit4(("##" + label).c_str(), glm::value_ptr(albedoColor)))
-            {
-                material->SetTextureMapColor((Material::TextureMaps)i, albedoColor);
-                isModified = true;
-            }
 
+            if (colorMaps.contains(matMap))
+            {
+                glm::vec4 albedoColor = material->GetTextureMapColor()[matMap];
+                if (ImGui::ColorEdit4(("##" + label).c_str(), glm::value_ptr(albedoColor)))
+                {
+                    material->SetTextureMapColor((Material::TextureMaps)i, albedoColor);
+                    isModified = true;
+                }
+            }
+            else if(floatMaps.contains(matMap))
+            {
+                float floatValue = material->GetTextureMapFloats()[matMap];
+                if (DrawFloatSlider("##", &floatValue))
+                {
+                    material->SetTextureMapFloat(matMap, floatValue);
+                    isModified = true;
+                }
+            }
+           
 
             ImGui::Spacing();
             ImGui::Separator();

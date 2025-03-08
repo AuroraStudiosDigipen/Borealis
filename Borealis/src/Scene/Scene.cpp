@@ -802,21 +802,6 @@ namespace Borealis
 				}
 			}
 		}
-
-		//particles
-		{
-			entt::basic_group group = mRegistry.group<>(entt::get<TransformComponent, ParticleSystemComponent>);
-			for (auto& entity : group)
-			{
-				auto entityBR = Entity{ entity, this };
-				if (!entityBR.IsActive())
-				{
-					continue;
-				}
-				auto [transform, particleSystemComponent] = group.get<TransformComponent, ParticleSystemComponent>(entity);
-				particleSystemComponent.Update(transform, dt);
-			}
-		}
 	}
 
 	//move down ltr
@@ -851,6 +836,11 @@ namespace Borealis
 	void Scene::ClearRenderGraph()
 	{
 		mRenderGraph.Init();
+	}
+
+	RenderGraph::SceneRenderConfig& Scene::GetSceneRenderConfig()
+	{
+		return mRenderGraph.sceneRenderConfig;
 	}
 
 	void Scene::CreateBuffers()
@@ -930,9 +920,6 @@ namespace Borealis
 					mainCamera = &camera.Camera;
 					mainCameratransform = transform.GetGlobalTransform();;
 
-					//mainCameratransform = glm::translate(mainCameratransform, glm::vec3{0.f,0.01f,0.f});
-					//transform.SetGlobalTransform(brEntity, mainCameratransform);
-
 					break;
 				}
 			}
@@ -979,7 +966,9 @@ namespace Borealis
 
 		mRenderGraph.SetFinalSink("BackBuffer", "Render2D.renderTarget"); //do i need it for immediate mode?
 
-		mRenderGraph.Execute(dt);
+		mRenderGraph.Update(dt);
+
+		mRenderGraph.Execute();
 
 	}
 
@@ -1108,13 +1097,13 @@ namespace Borealis
 
 	}
 
-	void Scene::DuplicateEntity(Entity entity)
+	UUID Scene::DuplicateEntity(Entity entity)
 	{
 		std::string name = entity.GetName();
 		name += " (clone)";
 		Entity newEntity = CreateEntity(name);
 		CopyComponent<TagComponent>(newEntity, entity);
-		newEntity.GetName() = name;
+		newEntity.GetComponent<TagComponent>().Name = name;
 		CopyComponent<TransformComponent>(newEntity, entity);
 		CopyComponent<SpriteRendererComponent>(newEntity, entity);
 		CopyComponent<CameraComponent>(newEntity, entity);
@@ -1141,6 +1130,7 @@ namespace Borealis
 		CopyComponent<CanvasRendererComponent>(newEntity, entity);
 		CopyComponent<ParticleSystemComponent>(newEntity, entity);
 		CopyComponent<ButtonComponent>(newEntity, entity);
+		CopyComponent<UIAnimatorComponent>(newEntity, entity);
 		auto& tc = newEntity.GetComponent<TransformComponent>();
 		if (tc.ParentID)
 		{
@@ -1148,6 +1138,17 @@ namespace Borealis
 			auto& parentTC = parent.GetComponent<TransformComponent>();
 			parentTC.ChildrenID.push_back(newEntity.GetComponent<IDComponent>().ID);
 		}
+		tc.ChildrenID.clear();
+		for (auto id : entity.GetComponent<TransformComponent>().ChildrenID)
+		{
+			auto OGChildEntity = GetEntityByUUID(id);
+			auto newChildID = DuplicateEntity(OGChildEntity);
+			tc.ChildrenID.push_back(newChildID);
+			GetEntityByUUID(OGChildEntity.GetComponent<TransformComponent>().ParentID).GetComponent<TransformComponent>().ChildrenID.pop_back();
+			GetEntityByUUID(newChildID).GetComponent<TransformComponent>().ParentID = newEntity.GetUUID();
+		}
+
+		return newEntity.GetUUID();
 	}
 
 	void Scene::ResizeViewport(const uint32_t& width, const uint32_t& height)
@@ -1337,12 +1338,15 @@ namespace Borealis
 		CopyComponent<CanvasRendererComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<ParticleSystemComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		CopyComponent<ButtonComponent>(newRegistry, originalRegistry, UUIDtoENTT);
+		CopyComponent<UIAnimatorComponent>(newRegistry, originalRegistry, UUIDtoENTT);
 		auto tcView = newRegistry.view<TransformComponent>();
 		for (auto entity : tcView)
 		{
 			auto name = newRegistry.get<TagComponent>(entity).Name;
 			auto& tc = tcView.get<TransformComponent>(entity);
 		}
+		
+		newScene->mRenderGraph.sceneRenderConfig = other->mRenderGraph.sceneRenderConfig;
 
 		return newScene;
 	}
@@ -1972,6 +1976,12 @@ namespace Borealis
 
 	template<>
 	void Scene::OnComponentAdded<ButtonComponent>(Entity entity, ButtonComponent& component)
+	{
+
+	}
+
+	template<>
+	void Scene::OnComponentAdded<UIAnimatorComponent>(Entity entity, UIAnimatorComponent& component)
 	{
 
 	}

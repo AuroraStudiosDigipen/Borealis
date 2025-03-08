@@ -149,6 +149,10 @@ namespace Borealis
 
 		virtual void AttachDepthBuffer(uint32_t index) = 0;
 
+		virtual uint32_t DetachTextureAttachment(uint32_t index = 0) = 0;
+
+		virtual void AttachTextureAttachment(uint32_t textureID, uint32_t index = 0) = 0;
+
 		/*!***********************************************************************
 			\brief
 				Get the Frame Buffer Properties

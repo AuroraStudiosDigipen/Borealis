@@ -20,6 +20,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include "Assets/AssetManager.hpp"
 #include "Assets/AssetConfigs.hpp"
 
+#include "Scene/SceneManager.hpp"
+
 #include <imgui.h>
 
 namespace Borealis
@@ -30,6 +32,7 @@ namespace Borealis
 
 	void SceneRenderPanel::ImGuiRender()
 	{
+		RenderGraph::SceneRenderConfig& config = SceneManager::GetActiveScene()->GetSceneRenderConfig();
 		ImGui::Begin("Scene Render");
 
 		static char skyboxImageName[256] = "";
@@ -47,6 +50,29 @@ namespace Borealis
 			}
 			ImGui::EndDragDropTarget();
 		}
+
+		if (ImGui::SliderFloat("Exposure", &config.ubo.exposure, 0.0f, 10.0f, "%.2f"))
+		{
+			config.ubo.exposure = round(config.ubo.exposure * 100.0f) / 100.0f;
+		}
+
+		ImGui::Text("Bloom Options");
+
+		ImGui::Checkbox("Enable Bloom", &config.bloom);
+		
+		if (ImGui::SliderFloat("Threshold", &config.ubo.threshold, 0.0f, 10.0f, "%.2f"))
+		{
+			config.ubo.threshold = round(config.ubo.threshold * 100.0f) / 100.0f;
+		}
+		if (ImGui::SliderFloat("Knee", &config.ubo.knee, 0.0f, 10.0f, "%.2f"))
+		{
+			config.ubo.knee = round(config.ubo.knee * 100.0f) / 100.0f;
+		}
+		if (ImGui::SliderFloat("Bloom Scale", &config.ubo.bloomScale, 0.0f, 10.0f, "%.2f"))
+		{
+			config.ubo.bloomScale = round(config.ubo.bloomScale * 100.0f) / 100.0f;
+		}
+
 
 		ImGui::End();
 	}

@@ -110,6 +110,10 @@ namespace Borealis
 
 		void AttachDepthBuffer(uint32_t index) override;
 
+		uint32_t DetachTextureAttachment(uint32_t index = 0) override;
+
+		void AttachTextureAttachment(uint32_t textureID, uint32_t index = 0);
+
 		/*!***********************************************************************
 			\brief
 				Recreates the Attachments of the FrameBuffer

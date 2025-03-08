@@ -180,6 +180,11 @@ namespace Borealis
 			SerializeComponent(out, entity.GetComponent<ButtonComponent>());
 		}
 
+		if (entity.HasComponent<UIAnimatorComponent>())
+		{
+			SerializeComponent(out, entity.GetComponent<UIAnimatorComponent>());
+		}
+
 		if (entity.HasComponent<ScriptComponent>())
 		{
 			out << YAML::Key << "ScriptComponent";
@@ -388,7 +393,16 @@ namespace Borealis
 		YAML::Emitter out;
 		out << YAML::BeginMap
 			<< YAML::Key << "Scene" << YAML::Value << mScene->GetName()
-		    << YAML::Key <<"Entities"	<<	YAML::Value << YAML::BeginSeq;
+
+			<< YAML::Key << "RenderSettings" << YAML::Value << YAML::BeginMap
+			<< YAML::Key << "BloomBool" << YAML::Value << mScene->GetSceneRenderConfig().bloom
+			<< YAML::Key << "BloomThreshold" << YAML::Value << mScene->GetSceneRenderConfig().ubo.threshold
+			<< YAML::Key << "BloomScale" << YAML::Value << mScene->GetSceneRenderConfig().ubo.bloomScale
+			<< YAML::Key << "BloomKnee" << YAML::Value << mScene->GetSceneRenderConfig().ubo.knee
+			<< YAML::Key << "Exposure" << YAML::Value << mScene->GetSceneRenderConfig().ubo.exposure
+			<< YAML::EndMap
+
+			<< YAML::Key <<"Entities"	<<	YAML::Value << YAML::BeginSeq;
 
 		auto view = HierarchyLayerManager::GetInstance().GetEntitiesInLayerOrder();
 		for (auto id : view)
@@ -397,8 +411,8 @@ namespace Borealis
 			SerializeEntity(out, entity);
 
 		}
-		out << YAML::EndSeq
-			<< YAML::EndMap;
+		out << YAML::EndSeq;
+		out	<< YAML::EndMap;
 
 		// Create directory if doesnt exist
 		std::filesystem::path fileSystemPaths = filepath;
@@ -444,6 +458,7 @@ namespace Borealis
 		DeserialiseComponent<CylinderColliderComponent>(entity, BorealisEntity);
 		DeserialiseComponent<BehaviourTreeComponent>(entity, BorealisEntity);
 		DeserialiseComponent<ButtonComponent>(entity, BorealisEntity);
+		DeserialiseComponent<UIAnimatorComponent>(entity, BorealisEntity);
 		DeserialiseAbstractItems(entity, BorealisEntity);
 		TagList::AddEntity(BorealisEntity.GetComponent<TagComponent>().Tag, uuid);
 		if (BorealisEntity.HasComponent<ParticleSystemComponent>()) {
@@ -713,6 +728,16 @@ namespace Borealis
 			{
 				transform.ChildrenID.erase(transform.ChildrenID.begin() + *iterator);
 			}
+		}
+
+		auto renderSettings = data["RenderSettings"];
+		if (renderSettings)
+		{
+			mScene->GetSceneRenderConfig().bloom = renderSettings["BloomBool"].as<bool>();
+			mScene->GetSceneRenderConfig().ubo.threshold = renderSettings["BloomThreshold"].as<float>();
+			mScene->GetSceneRenderConfig().ubo.bloomScale = renderSettings["BloomScale"].as<float>();
+			mScene->GetSceneRenderConfig().ubo.knee = renderSettings["BloomKnee"].as<float>();
+			mScene->GetSceneRenderConfig().ubo.exposure = renderSettings["Exposure"].as<float>();
 		}
 
 		return true;

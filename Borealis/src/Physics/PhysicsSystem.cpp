@@ -628,6 +628,18 @@ namespace Borealis
 		return bodySensorMap[bodyID];
 	}
 
+	void PhysicsSystem::SetActive(unsigned int bodyID)
+	{
+		if(!sPhysicsData.body_interface->IsAdded((BodyID)bodyID))
+		sPhysicsData.body_interface->AddBody((BodyID)bodyID, EActivation::Activate);
+	}
+
+	void PhysicsSystem::SetInactive(unsigned int bodyID)
+	{
+		if(sPhysicsData.body_interface->IsAdded((BodyID)bodyID))
+		sPhysicsData.body_interface->RemoveBody((BodyID)bodyID);
+	}
+
 	std::pair<glm::vec3, glm::vec3> PhysicsSystem::calculateBoundingVolume(const Model& model)
 	{
 		glm::vec3 minExtent{}, maxExtent{};
@@ -1281,7 +1293,8 @@ namespace Borealis
 			body_settings.mObjectLayer = tagComponent.mLayer.toUint16();
 			body_settings.mAllowDynamicOrKinematic = true;
 			body_settings.mFriction = rigidbody->friction;
-			body_settings.mRestitution = 0.f;
+			body_settings.mRestitution = rigidbody->bounciness;
+			body_settings.mGravityFactor = rigidbody->gravityScale;
 		}
 		else
 		{
@@ -1321,6 +1334,7 @@ namespace Borealis
 	{
 		if (collider.rigidBody)
 		{
+			if(sPhysicsData.body_interface->IsAdded(BodyID(collider.bodyID)))
 			sPhysicsData.body_interface->RemoveBody(JPH::BodyID(collider.bodyID));
 			sPhysicsData.body_interface->DestroyBody(JPH::BodyID(collider.bodyID));
 			bodyIDMapUUID.erase(collider.bodyID);

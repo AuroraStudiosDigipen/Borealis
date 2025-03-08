@@ -35,6 +35,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Audio/Audio.hpp>
 #include <Audio/AudioGroup.hpp>
 
+#include "Graphics/Animation/UIAnimation.hpp"
+#include "Graphics/Animation/UIAnimator.hpp"
 #include "Graphics/UI/Button.hpp"
 
 
@@ -177,6 +179,7 @@ namespace Borealis
 	{
 		Ref<SkinnedModel> SkinnnedModel = nullptr;
 		Ref<Material>	  Material = nullptr;
+		uint32_t		  AnimationIndex = 0;
 
 		SkinnedMeshRendererComponent() = default;
 		SkinnedMeshRendererComponent(const SkinnedMeshRendererComponent&) = default;
@@ -192,6 +195,26 @@ namespace Borealis
 
 		AnimatorComponent() = default;
 		AnimatorComponent(const AnimatorComponent&) = default;
+	};
+
+	struct UIAnimatorComponent
+	{
+		Ref<UIAnimation> animation = nullptr;
+		UIAnimator animator{};
+
+		bool loop = true;
+		float speed = 1.f;
+		Ref<Texture2D> texture = nullptr;
+		int numRow = 1;
+		int numCol = 1;
+		int numSprites = 1;
+		float duration = 1;
+
+		float tilingFactor = 1.0f;
+		bool useTextureAspectRatio = false;
+
+		UIAnimatorComponent() = default;
+		UIAnimatorComponent(const UIAnimatorComponent&) = default;
 	};
 
 	// Move into appropraite file another time
@@ -246,7 +269,8 @@ namespace Borealis
 	{
 		MovementType movement = MovementType::Static;
 		float friction = 0.5f;
-		float bounciness = 0.0f;
+		float bounciness = 0.5f;
+		float gravityScale = 1.0f;
 		bool dynamicBody = false;
 		// not serialised
 		glm::vec3 offset = { 0.0f, 0.0f, 0.0f };

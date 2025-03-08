@@ -21,6 +21,7 @@ namespace Borealis
 #define MATERIAL_ARRAY_BIND 1
 #define LIGHTING_BIND 2
 #define ANIMATION_BIND 3
+#define SCENE_RENDER_BIND 4
 }
 
 #endif

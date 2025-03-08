@@ -68,6 +68,8 @@ namespace Borealis
 		static void DrawString(TextComponent& text, TransformComponent& trans, int entityID, bool alignCenter = false);
 		static void DrawBox(const glm::vec3& pMin, const glm::vec3& pMax, const glm::vec4& colour);
 
+		static void DrawAnimatedSprite(const glm::mat4& transform, const glm::vec2& spriteSize, const Ref<Texture2D>& texture, const glm::vec2& spriteOffset, int entityID = -1, const float& tilingFactor = 1.f, const glm::vec4& tint = { 1,1,1,1 }, bool billBoard = false, bool useTextureAR = false);
+
 		static void DrawLineFromQueue();
 		static void ClearDrawQueue();
 

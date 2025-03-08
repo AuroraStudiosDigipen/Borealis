@@ -35,7 +35,11 @@ namespace BorealisAssetCompiler
 
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(sourcePath.string(), aiProcess_Triangulate | aiProcess_FlipUVs);
-
+		if (!scene)
+		{
+			std::cout << "\033[1;31m" << "Asset Compile Error: " << importer.GetErrorString() << "\033[0m" << std::endl;
+			return;
+		}
 		if (scene->HasAnimations() || scene->hasSkeletons())
 		{
 			config.skinMesh = true;
@@ -58,11 +62,8 @@ namespace BorealisAssetCompiler
 		{
 			config.skinMesh = false;
 			Model model;
-
 			LoadFBXModel(model, sourcePath.string());
-
 			OptimizeModel(model);
-
 			//cachePath.replace_extension(".mesh");
 			SaveModel(model, cachePath);
 		}

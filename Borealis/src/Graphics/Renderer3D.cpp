@@ -369,7 +369,7 @@ namespace Borealis
 					{
 						uboData.hasNormalMap = true;
 					}
-					if (textureMap.contains(Material::Specular))
+					if (textureMap.contains(Material::Emission))
 					{
 						uboData.hasEmissionMap = true;
 					}

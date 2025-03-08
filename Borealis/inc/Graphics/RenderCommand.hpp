@@ -140,6 +140,9 @@ namespace Borealis
 
 		inline static void DisablePolygonOffset() { sRendererAPI->DisablePolygonOffset(); }
 
+		inline static void DisableDrawToSecondaryBuffer() { sRendererAPI->DisableDrawToSecondaryBuffer(); }
+		inline static void EnableDrawToSecondaryBuffer() { sRendererAPI->EnableDrawToSecondaryBuffer(); }
+
 		inline static void IgnoreNextError() { sRendererAPI->IgnoreNextError(); }
 		inline static unsigned GetError(std::string const& errorMsg) { return sRendererAPI->GetError(errorMsg); }
 	private:

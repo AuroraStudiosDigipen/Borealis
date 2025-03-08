@@ -16,7 +16,8 @@ void main()
 #version 410 core	
 
 in vec2 v_TexCoord;
-out vec4 FragColor;
+layout(location = 0) out vec4 FragColor;
+layout(location = 1) out int entityIDs;
 
 uniform int u_Step;
 uniform sampler2D u_SceneTexture;

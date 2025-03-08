@@ -228,6 +228,22 @@ namespace Borealis
 		glDisable(GL_POLYGON_OFFSET_FILL);
 	}
 
+	void OpenGLRendererAPI::DisableDrawToSecondaryBuffer()
+	{
+		GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0 };
+		glDrawBuffers(1, drawBuffers);
+	}
+
+	void OpenGLRendererAPI::EnableDrawToSecondaryBuffer()
+	{
+		GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+		glDrawBuffers(2, drawBuffers);
+
+		//unsigned err{};
+		//err = glGetError();
+		//BOREALIS_CORE_WARN("Error with opengl no: {}", err);
+	}
+
 	void OpenGLRendererAPI::IgnoreNextError()
 	{
 		ignoreNextError = true;

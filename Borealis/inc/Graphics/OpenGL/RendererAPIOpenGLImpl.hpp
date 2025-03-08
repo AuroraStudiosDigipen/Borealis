@@ -136,6 +136,10 @@ namespace Borealis
 		void SetPolygonOffset(float factor, float units) override;
 		void DisablePolygonOffset() override;
 
+		void DisableDrawToSecondaryBuffer() override;
+
+		void EnableDrawToSecondaryBuffer() override;
+
 		void IgnoreNextError() override;
 
 		unsigned GetError(std::string const& errorMsg) override;

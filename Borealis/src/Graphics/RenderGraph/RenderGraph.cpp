@@ -1710,11 +1710,13 @@ namespace Borealis
 
 		//draw onto render target
 		renderTarget->Bind();
+		RenderCommand::DisableDrawToSecondaryBuffer();
 		correctionBuffer->BindTexture(0, 0);
 		shader->Bind();
 		shader->Set("u_Step", 4);
 		shader->Set("u_SceneTexture", 0);
 		Renderer3D::DrawQuad();
+		RenderCommand::EnableDrawToSecondaryBuffer();
 		renderTarget->Unbind();
 		shader->Unbind();
 	}
@@ -2317,7 +2319,7 @@ namespace Borealis
 				if (sink->sinkName == "accumulaionTarget")
 				{
 					accumulaionTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
-					accumulaionTarget->buffer->ClearAttachment(1, -1);
+					//accumulaionTarget->buffer->ClearAttachment(1, -1);
 				}
 			}
 
@@ -2529,7 +2531,7 @@ namespace Borealis
 		if (!correctionBuffer)
 		{
 			FrameBufferProperties propsCorrectionBuffer{ 1280, 720, false };
-			propsCorrectionBuffer.Attachments = { FramebufferTextureFormat::RGBA16F };
+			propsCorrectionBuffer.Attachments = { FramebufferTextureFormat::RGBA16F};
 			correctionBuffer = FrameBuffer::Create(propsCorrectionBuffer);
 		}
 

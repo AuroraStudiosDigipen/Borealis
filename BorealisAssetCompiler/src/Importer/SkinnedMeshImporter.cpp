@@ -19,7 +19,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-
+#include <iostream>
 namespace
 {
 	glm::mat4 ConvertMatrixtoGLM(aiMatrix4x4 const& mat)
@@ -137,7 +137,11 @@ namespace BorealisAssetCompiler
 	{
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
-
+		if (!scene)
+		{
+			std::cout << "\033[1;31m" << "Asset Compile Error: " << importer.GetErrorString() << "\033[0m" << std::endl;
+			return;
+		}
 		if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 		{
 			return;

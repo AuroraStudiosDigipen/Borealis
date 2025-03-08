@@ -38,7 +38,8 @@ namespace BorealisAssetCompiler
         memset(&MipSetIn, 0, sizeof(CMP_MipSet));
         CMP_ERROR cmp_status = CMP_LoadTexture(filePath.string().c_str(), &MipSetIn);
         if (cmp_status != CMP_OK) {
-            std::printf("Error %d: Loading source file!\n", cmp_status);
+
+            std::cout << "\033[1;31m" << "Asset Compile Error: " << cmp_status  << "Error Loading Source File!" << "\033[0m" << std::endl;
             return;
         }
 

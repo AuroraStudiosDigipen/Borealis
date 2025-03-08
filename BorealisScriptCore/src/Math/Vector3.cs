@@ -131,6 +131,117 @@ namespace Borealis
             return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z;
         }
 
+        //CatmullRom
+        public static Vector3 CMSpline(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t)
+        {
+            t = Mathf.Clamp01(t);
+            float t2 = t * t;
+            float t3 = t2 * t;
+
+            return 0.5f * (
+                (2f * p1) +
+                (-p0 + p2) * t +
+                (2f * p0 - 5f * p1 + 4f * p2 - p3) * t2 +
+                (-p0 + 3f * p1 - 3f * p2 + p3) * t3
+            );
+        }
+        public static Vector3 CMSplineUnclamped(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t)
+        {
+            float t2 = t * t;
+            float t3 = t2 * t;
+
+            return 0.5f * (
+                (2f * p1) +
+                (-p0 + p2) * t +
+                (2f * p0 - 5f * p1 + 4f * p2 - p3) * t2 +
+                (-p0 + 3f * p1 - 3f * p2 + p3) * t3
+            );
+        }
+
+
+
+        // Quadratic: 3 vectors
+        public static Vector3 Bezier(Vector3 p0, Vector3 p1, Vector3 p2, float t)
+        {
+            t = Mathf.Clamp01(t);
+            float u = 1 - t;
+            return u * u * p0 + 2 * u * t * p1 + t * t * p2;
+        }
+
+        // Cubic: 4 vectors
+        public static Vector3 Bezier(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t)
+        {
+            t = Mathf.Clamp01(t);
+            float u = 1 - t;
+            float tt = t * t;
+            float uu = u * u;
+            float uuu = uu * u;
+            float ttt = tt * t;
+
+            return (uuu * p0) + (3 * uu * t * p1) + (3 * u * tt * p2) + (ttt * p3);
+        }
+
+        public static Vector3 BezierUnclamped(Vector3 p0, Vector3 p1, Vector3 p2, float t)
+        {
+            float u = 1 - t;
+            return u * u * p0 + 2 * u * t * p1 + t * t * p2;
+        }
+
+        public static Vector3 BezierUnclamped(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t)
+        {
+            float u = 1 - t;
+            float tt = t * t;
+            float uu = u * u;
+            float uuu = uu * u;
+            float ttt = tt * t;
+
+            return (uuu * p0) + (3 * uu * t * p1) + (3 * u * tt * p2) + (ttt * p3);
+        }
+
+        public static Vector3 CubErp(Vector3 a, Vector3 b, Vector3 c, Vector3 d, float t)
+        {
+            t = Mathf.Clamp01(t);
+            float tt = t * t;
+            float ttt = tt * t;
+
+            return a * (-0.5f * t + ttt - 0.5f * tt) +
+                   b * (1.5f * tt - 2.5f * ttt + 1.0f) +
+                   c * (-1.5f * tt + 2.0f * ttt + 0.5f * t) +
+                   d * (0.5f * tt - 0.5f * ttt);
+        }
+        public static Vector3 CubErpUnclamped(Vector3 a, Vector3 b, Vector3 c, Vector3 d, float t)
+        {
+            float tt = t * t;
+            float ttt = tt * t;
+
+            return a * (-0.5f * t + ttt - 0.5f * tt) +
+                   b * (1.5f * tt - 2.5f * ttt + 1.0f) +
+                   c * (-1.5f * tt + 2.0f * ttt + 0.5f * t) +
+                   d * (0.5f * tt - 0.5f * ttt);
+        }
+
+        public static Vector3 LogErp(Vector3 start, Vector3 end, float t)
+        {
+            t = Mathf.Clamp01(t);
+            return start + (end - start) * Mathf.Log10(1 + 9 * t);
+        }
+        public static Vector3 LogErpUnclamped(Vector3 start, Vector3 end, float t)
+        {
+            return start + (end - start) * Mathf.Log10(1 + 9 * t);
+        }
+
+        public static Vector3 ExErp(Vector3 start, Vector3 end, float t)
+        {
+            t = Mathf.Clamp01(t);
+            return Lerp(start, end, Mathf.Pow(2, 10 * (t - 1)));
+        }
+
+        public static Vector3 ExErpUnclamped(Vector3 start, Vector3 end, float t)
+        {
+            return Lerp(start, end, Mathf.Pow(2, 10 * (t - 1)));
+        }
+
+
         public static Vector3 Lerp(Vector3 a, Vector3 b, float t)
         {
             t = Mathf.Clamp01(t);

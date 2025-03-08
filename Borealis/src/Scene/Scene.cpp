@@ -1347,6 +1347,8 @@ namespace Borealis
 			auto name = newRegistry.get<TagComponent>(entity).Name;
 			auto& tc = tcView.get<TransformComponent>(entity);
 		}
+		
+		newScene->mRenderGraph.sceneRenderConfig = other->mRenderGraph.sceneRenderConfig;
 
 		return newScene;
 	}

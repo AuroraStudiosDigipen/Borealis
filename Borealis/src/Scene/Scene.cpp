@@ -1218,6 +1218,15 @@ namespace Borealis
 							(property.second.hasSerializeField(scriptKlass->GetMonoClass()))))
 					{
 						MonoObject* scriptReference = srcIT->second->GetFieldValue<MonoObject*>(property.first);
+						if (scriptReference == nullptr)
+						{
+							BOREALIS_CORE_ERROR("Script Reference is null");
+							BOREALIS_CORE_ERROR("Entity ID: " + std::to_string(uuid));
+							BOREALIS_CORE_ERROR("Entity Name: " + src.get<TagComponent>(srcEntity).Name);
+							BOREALIS_CORE_ERROR("Script Name: " + srcIT->second->GetKlassName());
+							BOREALIS_CORE_ERROR("Property Name: " + property.second.mName);
+							BOREALIS_CORE_ERROR("Property Class: " + property.second.mFieldClassName());
+						}
 						UUID scriptUUID = property.second.GetGameObjectID(scriptReference);
 						MonoObject* data;
 						InitGameObject(data, scriptUUID, property.second.mFieldClassName());

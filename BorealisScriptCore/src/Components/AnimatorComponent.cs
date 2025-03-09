@@ -4,12 +4,12 @@ using System;
 namespace Borealis
 {
     [NativeComponent]
-    public class AnimatorComponent : Component
+    public class Animator : Component
     {
-        public AnimatorComponent()
+        public Animator()
         {
         }
-        public AnimatorComponent(ulong id)
+        public Animator(ulong id)
         {
             InstanceID = id;
             gameObject = new GameObject(id);

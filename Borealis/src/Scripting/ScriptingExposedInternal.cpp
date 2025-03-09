@@ -1544,7 +1544,7 @@ namespace Borealis
 			entity.GetComponent<AudioSourceComponent>().audio = Ref<Audio>();
 		}
 	}
-	void AudioSource_PlayOneShot(uint64_t ID, float volume, uint64_t ClipID)
+	void AudioSource_PlayOneShot(uint64_t ID, float volume, uint64_t ClipID, bool is2D)
 	{
 		if (ClipID != 0)
 		{
@@ -1558,7 +1558,7 @@ namespace Borealis
 				auto& transform = entity.GetComponent<TransformComponent>();
 				auto translate = transform.GetGlobalTranslate();
 				auto& audioSource = entity.GetComponent<AudioSourceComponent>();
-				AudioEngine::PlayOneShot(audio, translate, volume, audioSource.group);
+				AudioEngine::PlayOneShot(audio, translate, volume, audioSource.group, is2D);
 			}
 		}
 		

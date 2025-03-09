@@ -262,7 +262,7 @@ namespace Borealis
         \param groupName
             The name of the audio group.
         *************************************************************************/
-        static void PlayOneShot(Ref<Audio> audio, const glm::vec3& position, float volumeDB, const std::string& groupName);
+        static void PlayOneShot(Ref<Audio> audio, const glm::vec3& position, float volumeDB, const std::string& groupName, bool is2D = false);
         
         /*!***********************************************************************
         \brief

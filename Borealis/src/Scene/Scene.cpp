@@ -1293,25 +1293,7 @@ namespace Borealis
 
 					{
 						MonoObject* DstData = dstIT->second->GetFieldValue<MonoObject*>(property.first);
-						if (DstData == nullptr)
-						{
-							BOREALIS_CORE_ERROR("Script Reference is null");
-							BOREALIS_CORE_ERROR("Entity ID: " + std::to_string(dstID));
-							BOREALIS_CORE_ERROR("Entity Name: " + src.get<TagComponent>(dstEntity).Name);
-							BOREALIS_CORE_ERROR("Script Name: " + srcIT->second->GetKlassName());
-							BOREALIS_CORE_ERROR("Property Name: " + property.second.mName);
-							BOREALIS_CORE_ERROR("Property Class: " + property.second.mFieldClassName());
-						}
 						MonoObject* Data = srcIT->second->GetFieldValue<MonoObject*>(property.first);
-						if (Data == nullptr)
-						{
-							BOREALIS_CORE_ERROR("Script Reference is null");
-							BOREALIS_CORE_ERROR("Entity ID: " + std::to_string(dstID));
-							BOREALIS_CORE_ERROR("Entity Name: " + src.get<TagComponent>(dstEntity).Name);
-							BOREALIS_CORE_ERROR("Script Name: " + srcIT->second->GetKlassName());
-							BOREALIS_CORE_ERROR("Property Name: " + property.second.mName);
-							BOREALIS_CORE_ERROR("Property Class: " + property.second.mFieldClassName());
-						}
 						if (!Data) continue;
 						UUID setUUID = property.second.GetGameObjectID(Data);
 						BOREALIS_CORE_ASSERT(setUUID != 0, "UUID is 0");

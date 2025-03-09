@@ -429,6 +429,7 @@ namespace Borealis
 	void AudioSource_SetLooping(uint64_t ID,  bool* looping);
 	void AudioSource_GetVolume(uint64_t ID,  float* volume);
 	void AudioSource_SetVolume(uint64_t ID,  float* volume);
+	void AudioListener_SetListener(uint64_t ID);
 
 }
 

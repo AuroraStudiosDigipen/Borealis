@@ -69,7 +69,7 @@ namespace Borealis
         \param fVolumedB
             The volume in decibels for the listener.
         *************************************************************************/
-        static void Set3DListenerAndOrientation(const glm::vec3& vPos = glm::vec3{ 0, 0, 0 }, float fVolumedB = 0.0f);
+        static void Set3DListenerAndOrientation(const glm::mat4& transform = glm::mat4{ 1.f }, float fVolumedB = 0.0f);
 
         /*!***********************************************************************
         \brief

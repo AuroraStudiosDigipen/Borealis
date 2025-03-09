@@ -206,7 +206,7 @@ namespace Borealis
 			ButtonSystem::Update();
 
 			static float accumDt = 0.0f; // Accumulated delta time
-			const float fixedTimeStep = 1.f/60; // Fixed update interval (~60 FPS)
+			const float fixedTimeStep = 1.f / 60; // Fixed update interval (~60 FPS)
 
 			accumDt += dt; // Accumulate elapsed time
 
@@ -252,7 +252,7 @@ namespace Borealis
 			//------------------------
 			// Physics Simulation here
 			//------------------------
-			
+
 			// thread the push operation maybe next time. TODO
 			{
 				/*unsigned numThread = std::thread::hardware_concurrency();
@@ -371,7 +371,7 @@ namespace Borealis
 						std::string jobName = "PushBoxTransform_" + (std::to_string(brEntity.GetUUID())); // Create a unique job name
 						PhysicsSystem::PushJob(jobName, jobFunction);  // No dependencies in this case
 
-						
+
 					}
 
 					for (auto entity : sphereGroup)
@@ -506,7 +506,7 @@ namespace Borealis
 
 						auto jobFunction = [this, entity, cylinderGroup]()
 							{
-								auto [transform, cylinder, rigidbody] = cylinderGroup.get<TransformComponent,CylinderColliderComponent, RigidbodyComponent>(entity);
+								auto [transform, cylinder, rigidbody] = cylinderGroup.get<TransformComponent, CylinderColliderComponent, RigidbodyComponent>(entity);
 								PhysicsSystem::PullTransform(cylinder, transform);
 							};
 
@@ -692,9 +692,9 @@ namespace Borealis
 					}
 				}
 
-				
 
-			
+
+
 
 				for (auto entity : view)
 				{
@@ -758,7 +758,7 @@ namespace Borealis
 		//	Render2DPass();
 		//	Renderer2D::End();
 		//}
-		
+
 
 		//Audio
 		{
@@ -772,14 +772,12 @@ namespace Borealis
 					continue;
 				}
 				auto [transform, audioListener] = group.get<TransformComponent, AudioListenerComponent>(entity);
-				if (listener == 0)
-				{
-					listener = 1;
-				}
-				if (listener > 1)
-				{
-					BOREALIS_CORE_ASSERT(false, "More than 1 listener");
-				}
+
+				if (!audioListener.isAudioListener) continue;
+				AudioEngine::Set3DListenerAndOrientation(transform.GetGlobalTransform());
+
+				listener += 1;
+				break;
 			}
 
 			if (listener == 1)
@@ -798,7 +796,7 @@ namespace Borealis
 					{
 						AudioEngine::StopChannel(audio.channelID);
 						audio.isPlaying = false;
-						audio.channelID = Borealis::AudioEngine::PlayAudio(audio, transform.GetGlobalTranslate(), audio.Volume, audio.isMute, audio.isLoop, 0);
+						audio.channelID = Borealis::AudioEngine::PlayAudio(audio, transform.GetGlobalTranslate(), audio.Volume, audio.isMute, audio.isLoop, "SFX");
 						//audio.channelID = Borealis::AudioEngine::PlayAudio(audio.audio->AudioPath, {}, audio.Volume, audio.isMute, audio.isLoop);
 					}
 				}
@@ -884,9 +882,9 @@ namespace Borealis
 			FrameBufferProperties propsAccumulaionFBO{ 1280, 720, false };
 			propsAccumulaionFBO.Attachments = { FramebufferTextureFormat::RGBA16F,FramebufferTextureFormat::RedInteger, FramebufferTextureFormat::R16F };
 			mAccumulaionFBO = FrameBuffer::Create(propsAccumulaionFBO);
-			
+
 			FrameBufferProperties propsCompositeFBO{ 1280, 720, false };
-			propsCompositeFBO.Attachments = { FramebufferTextureFormat::RGBA16F,FramebufferTextureFormat::RedInteger};
+			propsCompositeFBO.Attachments = { FramebufferTextureFormat::RGBA16F,FramebufferTextureFormat::RedInteger };
 			mCompositeFBO = FrameBuffer::Create(propsAccumulaionFBO);
 		}
 	}
@@ -917,7 +915,7 @@ namespace Borealis
 
 				if (camera.Primary)
 				{
-					Entity brEntity { entity, this };
+					Entity brEntity{ entity, this };
 					//camera.Camera.SetCameraType(SceneCamera::CameraType::Perspective);
 					mainCamera = &camera.Camera;
 					mainCameratransform = transform.GetGlobalTransform();;
@@ -1001,7 +999,7 @@ namespace Borealis
 		if (mEntityMap.find(uuid) != mEntityMap.end())
 			return { mEntityMap.at(uuid), this };
 
-		return {(entt::entity)-1, this};
+		return { (entt::entity)-1, this };
 	}
 
 	bool Scene::EntityExists(UUID uuid)
@@ -1009,7 +1007,7 @@ namespace Borealis
 		return mEntityMap.find(uuid) != mEntityMap.end();
 	}
 	void Scene::DestroyEntity(Entity entity)
-	{		
+	{
 		if (hasRuntimeStarted)
 		{
 			if (entity.HasComponent<CharacterControllerComponent>())
@@ -1102,7 +1100,7 @@ namespace Borealis
 	UUID Scene::DuplicateEntity(Entity entity)
 	{
 		std::string name = entity.GetName();
-		name+= " (clone)";
+		name += " (clone)";
 		Entity newEntity = CreateEntity(name);
 		CopyComponent<TagComponent>(newEntity, entity);
 		newEntity.GetComponent<TagComponent>().Name = name;
@@ -1110,14 +1108,14 @@ namespace Borealis
 		CopyComponent<SpriteRendererComponent>(newEntity, entity);
 		CopyComponent<CameraComponent>(newEntity, entity);
 		CopyComponent<NativeScriptComponent>(newEntity, entity);
-		CopyComponent<MeshFilterComponent>(newEntity,entity);
-		CopyComponent<MeshRendererComponent>(newEntity,entity);
-		CopyComponent<SkinnedMeshRendererComponent>(newEntity,entity);
-		CopyComponent<AnimatorComponent>(newEntity,entity);
-		CopyComponent<BoxColliderComponent>(newEntity,entity);
+		CopyComponent<MeshFilterComponent>(newEntity, entity);
+		CopyComponent<MeshRendererComponent>(newEntity, entity);
+		CopyComponent<SkinnedMeshRendererComponent>(newEntity, entity);
+		CopyComponent<AnimatorComponent>(newEntity, entity);
+		CopyComponent<BoxColliderComponent>(newEntity, entity);
 		CopyComponent<SphereColliderComponent>(newEntity, entity);
-		CopyComponent<CapsuleColliderComponent>(newEntity,entity);
-		CopyComponent<CylinderColliderComponent>(newEntity,entity);
+		CopyComponent<CapsuleColliderComponent>(newEntity, entity);
+		CopyComponent<CylinderColliderComponent>(newEntity, entity);
 		CopyComponent<RigidbodyComponent>(newEntity, entity);
 		CopyComponent<CharacterControllerComponent>(newEntity, entity);
 		CopyComponent<LightComponent>(newEntity, entity);
@@ -1170,7 +1168,7 @@ namespace Borealis
 	}
 
 	template <typename Component>
-	static void CopyComponent(entt::registry& dst, entt::registry& src, const std::unordered_map<UUID,entt::entity>& entitymap)
+	static void CopyComponent(entt::registry& dst, entt::registry& src, const std::unordered_map<UUID, entt::entity>& entitymap)
 	{
 		auto view = src.view<Component>();
 		for (auto srcEntity : view)
@@ -1184,7 +1182,7 @@ namespace Borealis
 	}
 
 	template <>
-	static void CopyComponent <ScriptComponent> (entt::registry& dst, entt::registry& src, const std::unordered_map<UUID, entt::entity>& entitymap)
+	static void CopyComponent <ScriptComponent>(entt::registry& dst, entt::registry& src, const std::unordered_map<UUID, entt::entity>& entitymap)
 	{
 		std::unordered_map<UUID, entt::entity> srcMap;
 		auto view = src.view<ScriptComponent>();
@@ -1215,14 +1213,14 @@ namespace Borealis
 				auto srcIT = srcScriptComponent.mScripts.find(dstIT->first);
 				for (auto property : scriptKlass->mFields)
 				{
-					if (property.second.isNativeComponent() && 
-						((!property.second.hasHideInInspector(scriptKlass->GetMonoClass()) && property.second.isPublic()) || 
+					if (property.second.isNativeComponent() &&
+						((!property.second.hasHideInInspector(scriptKlass->GetMonoClass()) && property.second.isPublic()) ||
 							(property.second.hasSerializeField(scriptKlass->GetMonoClass()))))
 					{
 						MonoObject* scriptReference = srcIT->second->GetFieldValue<MonoObject*>(property.first);
 						UUID scriptUUID = property.second.GetGameObjectID(scriptReference);
 						MonoObject* data;
-						InitGameObject(data , scriptUUID, property.second.mFieldClassName());
+						InitGameObject(data, scriptUUID, property.second.mFieldClassName());
 						dstIT->second->SetFieldValue(property.first, data);
 					}
 					else if (!property.second.isMonoBehaviour() && !property.second.isGameObject() &&
@@ -1230,7 +1228,7 @@ namespace Borealis
 							|| (property.second.hasSerializeField(scriptKlass->GetMonoClass())))
 						)
 
-					dstIT->second->ReplaceFieldValue(srcIT->second.get(), property.first);
+						dstIT->second->ReplaceFieldValue(srcIT->second.get(), property.first);
 				}
 			}
 		}
@@ -1423,12 +1421,12 @@ namespace Borealis
 		auto capsuleGroup = mRegistry.group<>(entt::get<TransformComponent, CapsuleColliderComponent>);
 		for (auto entity : capsuleGroup)
 		{
-			Entity brEntity { entity, this };
+			Entity brEntity{ entity, this };
 			if (!brEntity.IsActive())
 			{
 				continue;
 			}
-		
+
 
 			auto jobFunction = [this, entity, capsuleGroup]()
 				{
@@ -1612,7 +1610,7 @@ namespace Borealis
 			{
 				script->Start();
 			}
-		
+
 		}
 
 		auto behaviourTreeGroup = mRegistry.group<>(entt::get<TransformComponent, BehaviourTreeComponent>);
@@ -1664,7 +1662,7 @@ namespace Borealis
 			for (auto entity : boxView)
 			{
 				if (!mRegistry.storage<CharacterControllerComponent>().contains(entity))
-				PhysicsSystem::FreeRigidBody(boxView.get<BoxColliderComponent>(entity));
+					PhysicsSystem::FreeRigidBody(boxView.get<BoxColliderComponent>(entity));
 			}
 		}
 
@@ -1673,7 +1671,7 @@ namespace Borealis
 			for (auto entity : capsuleView)
 			{
 				if (!mRegistry.storage<CharacterControllerComponent>().contains(entity))
-				PhysicsSystem::FreeRigidBody(capsuleView.get<CapsuleColliderComponent>(entity));
+					PhysicsSystem::FreeRigidBody(capsuleView.get<CapsuleColliderComponent>(entity));
 			}
 		}
 
@@ -1682,7 +1680,7 @@ namespace Borealis
 			for (auto entity : sphereView)
 			{
 				if (!mRegistry.storage<CharacterControllerComponent>().contains(entity))
-				PhysicsSystem::FreeRigidBody(sphereView.get<SphereColliderComponent>(entity));
+					PhysicsSystem::FreeRigidBody(sphereView.get<SphereColliderComponent>(entity));
 			}
 		}
 
@@ -1735,7 +1733,7 @@ namespace Borealis
 	template<>
 	void Scene::OnComponentAdded<SpriteRendererComponent>(Entity entity, SpriteRendererComponent& component)
 	{
-		
+
 	}
 
 	template<>
@@ -1807,7 +1805,7 @@ namespace Borealis
 		if (entity.HasComponent<MeshFilterComponent>())
 		{
 			if (entity.GetComponent<MeshFilterComponent>().Model)
-			
+
 			{
 				component.center = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).first;
 				glm::vec3 data = PhysicsSystem::calculateBoundingVolume(*(entity.GetComponent<MeshFilterComponent>().Model.get())).second;
@@ -1943,7 +1941,7 @@ namespace Borealis
 	template<>
 	void Scene::OnComponentAdded<AudioListenerComponent>(Entity entity, AudioListenerComponent& component)
 	{
-		
+
 	}
 
 	template<>
@@ -1968,7 +1966,7 @@ namespace Borealis
 	void Scene::OnComponentAdded<CanvasRendererComponent>(Entity entity, CanvasRendererComponent& component)
 	{
 
-	}	
+	}
 
 	template<>
 	void Scene::OnComponentAdded<ParticleSystemComponent>(Entity entity, ParticleSystemComponent& component)
@@ -1979,7 +1977,7 @@ namespace Borealis
 	template<>
 	void Scene::OnComponentAdded<ButtonComponent>(Entity entity, ButtonComponent& component)
 	{
-		
+
 	}
 
 	template<>

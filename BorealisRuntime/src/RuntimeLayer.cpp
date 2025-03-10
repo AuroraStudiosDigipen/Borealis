@@ -100,60 +100,61 @@ namespace BorealisRuntime
 		Borealis::RenderCommand::BindBackBuffer();
 		Borealis::RenderCommand::Clear();
 
+		Borealis::SceneManager::GetActiveScene()->SetRunTimeViewPort(true);
+		Borealis::SceneManager::GetActiveScene()->SetRunTimeRenderPass();
+		Borealis::RenderGraphConfig fconfig = Borealis::SceneManager::GetActiveScene()->GetRenderGraphConfig();
+		////set render graph config manually for now
+		//{
+		//	Borealis::RenderGraphConfig fconfig;
+		//	Borealis::RenderPassConfig SkyBoxPass(Borealis::RenderPassType::SkyboxPass, "SkyBox");
+		//	SkyBoxPass.AddSinkLinkage("renderTarget", "RunTimeBuffer");
+		//	SkyBoxPass.AddSinkLinkage("camera", "RunTimeCamera");
+		//	fconfig.AddPass(SkyBoxPass);
 
-		//set render graph config manually for now
-		{
-			Borealis::RenderGraphConfig fconfig;
-			Borealis::RenderPassConfig SkyBoxPass(Borealis::RenderPassType::SkyboxPass, "SkyBox");
-			SkyBoxPass.AddSinkLinkage("renderTarget", "RunTimeBuffer");
-			SkyBoxPass.AddSinkLinkage("camera", "RunTimeCamera");
-			fconfig.AddPass(SkyBoxPass);
+		//	Borealis::RenderPassConfig shadowPass(Borealis::RenderPassType::Shadow, "ShadowPass");
+		//	shadowPass.AddSinkLinkage("shadowMap", "ShadowMapBuffer");
+		//	shadowPass.AddSinkLinkage("camera", "RunTimeCamera");
+		//	fconfig.AddPass(shadowPass);
 
-			Borealis::RenderPassConfig shadowPass(Borealis::RenderPassType::Shadow, "ShadowPass");
-			shadowPass.AddSinkLinkage("shadowMap", "ShadowMapBuffer");
-			shadowPass.AddSinkLinkage("camera", "RunTimeCamera");
-			fconfig.AddPass(shadowPass);
+		//	Borealis::RenderPassConfig Render3D(Borealis::RenderPassType::Render3D, "Render3D");
+		//	Render3D.AddSinkLinkage("renderTarget", "RunTimeBuffer");
+		//	Render3D.AddSinkLinkage("accumulaionTarget", "accumulaionBuffer");
+		//	Render3D.AddSinkLinkage("shadowMap", "ShadowPass.shadowMap");
+		//	Render3D.AddSinkLinkage("camera", "RunTimeCamera");
+		//	fconfig.AddPass(Render3D);
 
-			Borealis::RenderPassConfig Render3D(Borealis::RenderPassType::Render3D, "Render3D");
-			Render3D.AddSinkLinkage("renderTarget", "RunTimeBuffer");
-			Render3D.AddSinkLinkage("accumulaionTarget", "accumulaionBuffer");
-			Render3D.AddSinkLinkage("shadowMap", "ShadowPass.shadowMap");
-			Render3D.AddSinkLinkage("camera", "RunTimeCamera");
-			fconfig.AddPass(Render3D);
+		//	Borealis::RenderPassConfig Render2D(Borealis::RenderPassType::Render2D, "Render2D");
+		//	Render2D.AddSinkLinkage("renderTarget", "Render3D.renderTarget");
+		//	Render2D.AddSinkLinkage("camera", "RunTimeCamera");
+		//	fconfig.AddPass(Render2D);
 
-			Borealis::RenderPassConfig Render2D(Borealis::RenderPassType::Render2D, "Render2D");
-			Render2D.AddSinkLinkage("renderTarget", "Render3D.renderTarget");
-			Render2D.AddSinkLinkage("camera", "RunTimeCamera");
-			fconfig.AddPass(Render2D);
+		//	Borealis::RenderPassConfig UIWorldPass(Borealis::RenderPassType::UIWorldPass, "UIWorldPass");
+		//	UIWorldPass.AddSinkLinkage("renderTarget", "Render2D.renderTarget");
+		//	UIWorldPass.AddSinkLinkage("camera", "RunTimeCamera");
+		//	fconfig.AddPass(UIWorldPass);
 
-			Borealis::RenderPassConfig UIWorldPass(Borealis::RenderPassType::UIWorldPass, "UIWorldPass");
-			UIWorldPass.AddSinkLinkage("renderTarget", "Render2D.renderTarget");
-			UIWorldPass.AddSinkLinkage("camera", "RunTimeCamera");
-			fconfig.AddPass(UIWorldPass);
+		//	Borealis::RenderPassConfig particleSystemPass(Borealis::RenderPassType::ParticleSystemPass, "ParticleSystem");
+		//	particleSystemPass.AddSinkLinkage("camera", "RunTimeCamera");
+		//	particleSystemPass.AddSinkLinkage("accumulaionTarget", "accumulaionBuffer");
+		//	particleSystemPass.AddSinkLinkage("renderTarget", "UIWorldPass.renderTarget");
+		//	fconfig.AddPass(particleSystemPass);
 
-			Borealis::RenderPassConfig particleSystemPass(Borealis::RenderPassType::ParticleSystemPass, "ParticleSystem");
-			particleSystemPass.AddSinkLinkage("camera", "RunTimeCamera");
-			particleSystemPass.AddSinkLinkage("accumulaionTarget", "accumulaionBuffer");
-			particleSystemPass.AddSinkLinkage("renderTarget", "UIWorldPass.renderTarget");
-			fconfig.AddPass(particleSystemPass);
+		//	Borealis::RenderPassConfig RunTimeHighlight(Borealis::RenderPassType::HighlightPass, "RunTimeHighlight");
+		//	RunTimeHighlight.AddSinkLinkage("camera", "RunTimeCamera");
+		//	RunTimeHighlight.AddSinkLinkage("renderTarget", "Render2D.renderTarget");
+		//	fconfig.AddPass(RunTimeHighlight);
 
-			Borealis::RenderPassConfig RunTimeHighlight(Borealis::RenderPassType::HighlightPass, "RunTimeHighlight");
-			RunTimeHighlight.AddSinkLinkage("camera", "RunTimeCamera");
-			RunTimeHighlight.AddSinkLinkage("renderTarget", "Render2D.renderTarget");
-			fconfig.AddPass(RunTimeHighlight);
+		//	Borealis::RenderPassConfig UIPass(Borealis::RenderPassType::UIPass, "UIPass");
+		//	UIPass.AddSinkLinkage("renderTarget", "RunTimeHighlight.renderTarget");
+		//	UIPass.AddSinkLinkage("camera", "RunTimeCamera");
+		//	fconfig.AddPass(UIPass);
 
-			Borealis::RenderPassConfig UIPass(Borealis::RenderPassType::UIPass, "UIPass");
-			UIPass.AddSinkLinkage("renderTarget", "RunTimeHighlight.renderTarget");
-			UIPass.AddSinkLinkage("camera", "RunTimeCamera");
-			fconfig.AddPass(UIPass);
+		Borealis::RenderPassConfig backBuffer(Borealis::RenderPassType::RenderToTarget, "BackBuffer");
+		backBuffer.AddSinkLinkage("renderSource", "RunTimeBuffer");
+		fconfig.AddPass(backBuffer);
 
-			Borealis::RenderPassConfig backBuffer(Borealis::RenderPassType::RenderToTarget, "BackBuffer");
-			backBuffer.AddSinkLinkage("renderSource", "RunTimeHighlight.renderTarget");
-			fconfig.AddPass(backBuffer);
-
-			Borealis::SceneManager::GetActiveScene()->SetRenderGraphConfig(fconfig);
-			Borealis::SceneManager::GetActiveScene()->UpdateRenderer(dt);
-		}
+		Borealis::SceneManager::GetActiveScene()->SetRenderGraphConfig(fconfig);
+		Borealis::SceneManager::GetActiveScene()->UpdateRenderer(dt);
 
 		if (Borealis::SceneManager::ToNextScene)
 		{

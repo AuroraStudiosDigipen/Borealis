@@ -1754,7 +1754,7 @@ namespace Borealis
 		shader->Set("u_Step", 0);
 		shader->Set("u_SceneTexture", 0);  
 		thresholdBuffer->Bind();
-		if (thresholdBuffer->GetProperties().Width != renderTarget->Width/2 || thresholdBuffer->GetProperties().Height != renderTarget->Height/2)
+		if (compositeBuffer->GetProperties().Width != renderTarget->Width || compositeBuffer->GetProperties().Height != renderTarget->Height)
 		{
 			thresholdBuffer->Resize(renderTarget->Width/2, renderTarget->Height/2);
 			downSample_0->Resize(renderTarget->Width/4, renderTarget->Height/4);
@@ -1892,6 +1892,10 @@ namespace Borealis
 					renderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
 				}
 			}
+		}
+		if (compositeBuffer->GetProperties().Width != renderTarget->Width || compositeBuffer->GetProperties().Height != renderTarget->Height)
+		{
+			compositeBuffer->Resize(renderTarget->Width, renderTarget->Height);
 		}
 
 		//do after skybox is rendered
@@ -2335,6 +2339,11 @@ namespace Borealis
 		}
 
 		auto group = registryPtr->group<>(entt::get<TransformComponent, ParticleSystemComponent>);
+
+		if (accumulaionTarget->buffer->GetProperties().Width != renderTarget->Width || accumulaionTarget->buffer->GetProperties().Height != renderTarget->Height)
+		{
+			accumulaionTarget->buffer->Resize(renderTarget->Width, renderTarget->Height);
+		}
 
 		uint32_t depthTexture = renderTarget->buffer->DetachDepthBuffer();
 		accumulaionTarget->buffer->AttachDepthBuffer(depthTexture);

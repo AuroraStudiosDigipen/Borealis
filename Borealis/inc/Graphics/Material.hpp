@@ -256,7 +256,7 @@ namespace Borealis
 
 		static Ref<Asset> Load(std::filesystem::path const& cachePath, AssetMetaData const& assetMetaData);
 
-		bool mNonRepeatingTiles;
+		bool mNonRepeatingTiles = false;
 	private:
 		/*!***********************************************************************
 			\brief

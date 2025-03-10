@@ -24,7 +24,7 @@ uniform bool u_HasAnimation;
 uniform int  u_AnimationIndex;
 const int MAX_BONES = 128;
 const int MAX_BONE_INFLUENCE = 4;
-const int MAX_ANIMATIONS = 5;
+const int MAX_ANIMATIONS = 6;
 
 struct Animation
 {
@@ -309,7 +309,7 @@ vec4 GetAlbedoColor()
     {
         if(materials[materialIndex].hasAlbedoMap) 
         {
-            albedoColor = vec4(texture(albedoMap, GetTexCoord()).rgb, materials[materialIndex].albedoColor.a);
+            albedoColor = texture(albedoMap, GetTexCoord()) + materials[materialIndex].albedoColor;
         }
         else
         {

@@ -604,6 +604,8 @@ namespace Borealis
 
 	void PhysicsSystem::Free()
 	{
+		bodyIDMapUUID.clear();
+		bodySensorMap.clear();
 		delete sPhysicsData.body_activation_listener;
 		delete sPhysicsData.broad_phase_layer_interface;
 		delete sPhysicsData.object_vs_broadphase_layer_filter;
@@ -999,11 +1001,11 @@ namespace Borealis
 	void PhysicsSystem::FreeCharacter(CharacterControllerComponent& character)
 	{
 
-		bodyIDMapUUID.erase(reinterpret_cast<CharacterVirtual*>(character.controller)->GetInnerBodyID().GetIndexAndSequenceNumber());
-		bodySensorMap.erase(reinterpret_cast<CharacterVirtual*>(character.controller)->GetInnerBodyID().GetIndexAndSequenceNumber());
-
+	
 		if(character.controller)
 		{
+			bodyIDMapUUID.erase(reinterpret_cast<CharacterVirtual*>(character.controller)->GetInnerBodyID().GetIndexAndSequenceNumber());
+			bodySensorMap.erase(reinterpret_cast<CharacterVirtual*>(character.controller)->GetInnerBodyID().GetIndexAndSequenceNumber());
 			auto InnerID = reinterpret_cast<CharacterVirtual*>(character.controller)->GetInnerBodyID();
 			delete character.controller;
 			sPhysicsData.mSystem->GetBodyInterface().RemoveBody(InnerID);

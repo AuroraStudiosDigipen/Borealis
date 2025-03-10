@@ -19,11 +19,20 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scene/Serialiser.hpp>
 #include <Graphics/UI/Button.hpp>
 #include <Graphics/Font.hpp>
+#include <Windows.h>
+
+#define HIDE_CONSOLE 1
+
 namespace BorealisRuntime
 {
 	void RuntimeLayer::Init()
 	{
 
+		if (HIDE_CONSOLE)
+		{
+			HWND hwnd = GetConsoleWindow();
+			ShowWindow(hwnd, SW_HIDE);
+		}
 		// Retrieve the list of component names
 		std::vector<std::string> properties = Borealis::ComponentRegistry::GetComponentNames();
 

@@ -309,7 +309,7 @@ vec4 GetAlbedoColor()
     {
         if(materials[materialIndex].hasAlbedoMap) 
         {
-            albedoColor = vec4(texture(albedoMap, GetTexCoord()).rgb, materials[materialIndex].albedoColor.a);
+            albedoColor = texture(albedoMap, GetTexCoord()) + materials[materialIndex].albedoColor;
         }
         else
         {

@@ -678,7 +678,7 @@ namespace Borealis
 				//Renderer3D::SetLights(materialShader);
 				Renderer3D::DrawSkinnedMesh(transform.GetGlobalTransform(), skinnedMesh, materialShader, (int)entity, skinnedMesh.AnimationIndex);
 
-				if (skinnedMesh.AnimationIndex > 5)
+				if (skinnedMesh.AnimationIndex > 6)
 				{
 					renderTarget->Bind();
 					Renderer3D::End();
@@ -2556,7 +2556,7 @@ namespace Borealis
 			sData = std::make_unique<RenderData>();
 			sData->CameraUBO = UniformBufferObject::Create(sizeof(RenderData::CameraData), CAMERA_BIND);
 
-			sData->AnimationUBO = UniformBufferObject::Create(sizeof(glm::mat4) * 128 * 5, ANIMATION_BIND);
+			sData->AnimationUBO = UniformBufferObject::Create(sizeof(glm::mat4) * 128 * 6, ANIMATION_BIND);
 
 			sData->LightsUBO = UniformBufferObject::Create(sizeof(LightUBO) * 32 + sizeof(int), LIGHTING_BIND);
 

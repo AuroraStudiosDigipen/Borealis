@@ -105,6 +105,7 @@ namespace Borealis
         #region GameObject
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void Entity_AddComponent(ulong entityID, Type type);
+
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static bool Entity_HasComponent(ulong entityID, Type type);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
@@ -230,6 +231,8 @@ namespace Borealis
         internal extern static void ColliderComponent_GetBounds(ulong id, out Vector3 center, out Vector3 extents, out Vector3 max, out Vector3 min, out Vector3 size);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void ColliderComponent_UpdateScale(ulong id);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ColliderComponent_SetActive(ulong id, ref bool state);
         #endregion
 
         #region Material

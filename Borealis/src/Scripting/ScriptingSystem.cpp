@@ -373,6 +373,7 @@ namespace Borealis
 	}
 
 
+
 	template <typename T>
 	static void RegisterComponent()
 	{
@@ -398,6 +399,71 @@ namespace Borealis
 			GCFM::mHasComponentFunctions[strName] = [](Entity& entity) { return entity.HasComponent<T>(); };
 			GCFM::mAddComponentFunctions[strName] = [](Entity& entity) { entity.AddComponent<T>(); };
 			GCFM::mRemoveComponentFunctions[strName] = [](Entity& entity) { entity.GetComponent<T>(); };
+		}
+		else
+		{
+			BOREALIS_CORE_WARN("Failed to register component {0}", typeName);
+		}
+	}
+
+	template <>
+	static void RegisterComponent<ColliderComponent>()
+	{
+		std::string typeName = typeid(ColliderComponent).name();
+		if (typeName.find("::") != std::string::npos)
+		{
+			typeName = "Borealis." + typeName.substr(typeName.find("::") + 2);
+		}
+		if (typeName.find("Component") != std::string::npos)
+		{
+			typeName = typeName.substr(0, typeName.find("Component"));
+		}
+		MonoType* managedType = mono_reflection_type_from_name(typeName.data(), mono_assembly_get_image(sData->mRoslynAssembly));
+
+		if (managedType)
+		{
+			auto name = mono_type_get_name(managedType);
+			std::string strName(name);
+			mono_free(name);
+			GCFM::mHasComponentFunctions[strName] = [](Entity& entity) { 
+				bool set = false;
+				if (entity.HasComponent<BoxColliderComponent>())
+				{
+					set = true;
+				}
+				else if (entity.HasComponent<CapsuleColliderComponent>())
+				{
+					set = true;
+				}
+				else if (entity.HasComponent<SphereColliderComponent>())
+				{
+					set = true;
+				}
+				else if (entity.HasComponent<CylinderColliderComponent>())
+				{
+					set = true;
+				}
+				return set;
+				};
+			GCFM::mAddComponentFunctions[strName] = [](Entity& entity) { entity.AddComponent<ColliderComponent>(); };
+			GCFM::mRemoveComponentFunctions[strName] = [](Entity& entity) { 
+				if (entity.HasComponent<BoxColliderComponent>())
+				{
+					entity.RemoveComponent<BoxColliderComponent>();
+				}
+				else if (entity.HasComponent<CapsuleColliderComponent>())
+				{
+					entity.RemoveComponent<CapsuleColliderComponent>();
+				}
+				else if (entity.HasComponent<SphereColliderComponent>())
+				{
+					entity.RemoveComponent<SphereColliderComponent>();
+				}
+				else if (entity.HasComponent<CylinderColliderComponent>())
+				{
+					entity.RemoveComponent<CylinderColliderComponent>();
+				}
+				};
 		}
 		else
 		{

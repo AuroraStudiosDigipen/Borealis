@@ -1156,7 +1156,7 @@ namespace Borealis
 		Scene* scene = SceneManager::GetActiveScene().get();
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
-		if (value)
+		if (*value)
 		{
 			//Activate
 			if (entity.HasComponent<BoxColliderComponent>()) {

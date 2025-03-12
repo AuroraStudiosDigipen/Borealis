@@ -2132,11 +2132,11 @@ namespace Borealis
 		viewProjMatrix = glm::ortho(0.0f, (float)renderTarget->Width, (float)renderTarget->Height, 0.0f, -1.0f, 1.0f);
 		sData->cameraData.ViewProjection = viewProjMatrix;
 		sData->CameraUBO->SetData(&sData->cameraData, sizeof(sData->cameraData));
-		Renderer2D::Begin(viewProjMatrix);
 
 
 		for (int i = 0; i < 10; ++i)
 		{
+			Renderer2D::Begin(viewProjMatrix);
 			bool UIexist = false;
 			auto group = registryPtr->group<>(entt::get<TransformComponent, CanvasComponent>);
 			for (auto& entity : group)

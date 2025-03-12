@@ -455,6 +455,7 @@ namespace Borealis
 
 	void PhysicsSystem::PushTransform(ColliderComponent& collider, TransformComponent& transform, RigidbodyComponent* rigidbody)
 	{
+		if (!sPhysicsData.body_interface->IsAdded((BodyID)collider.bodyID)) return;
 		auto entityTransform = transform.GetGlobalTransform();
 		auto modelCenter = collider.center;
 		auto actualCenterVec4 = entityTransform * glm::vec4(modelCenter, 1.0f);
@@ -498,6 +499,8 @@ namespace Borealis
 
 	void PhysicsSystem::PullTransform(ColliderComponent& collider, TransformComponent& transform)
 	{
+		if (!sPhysicsData.body_interface->IsAdded((BodyID)collider.bodyID)) return;
+
 		// Get position from the physics system (JPH::RVec3 to glm::vec3)
 
 		JPH::RVec3 newPosition = sPhysicsData.body_interface->GetPosition((BodyID)collider.bodyID);

@@ -7,8 +7,7 @@ namespace Borealis
     public class Blackboard
     {
         private Dictionary<string, IBlackboardValue> _data = new Dictionary<string, IBlackboardValue>();
-        private static int instanceCounter = 0;
-        public Blackboard() { Debug.Log(instanceCounter);  instanceCounter++; }
+        public Blackboard() { }
         public void SetValue<T>(string key, T value)
         {
             _data[key] = new BlackboardValue<T>(value);

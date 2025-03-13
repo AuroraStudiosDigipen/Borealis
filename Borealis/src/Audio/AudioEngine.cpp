@@ -125,7 +125,6 @@ namespace Borealis
             if (!bIsPlaying)
             {
                 pStoppedChannels.push_back(it);
-                BOREALIS_CORE_INFO("Stop channel {}", it->first);
             }
         }
 
@@ -275,7 +274,7 @@ namespace Borealis
             }
 
             // Other settings (volume, mute, etc.)
-            ErrorCheck(pChannel->setVolume(dbToVolume(fVolumedB)));
+            ErrorCheck(pChannel->setVolume(fVolumedB));
             ErrorCheck(pChannel->setPaused(false));
             ErrorCheck(pChannel->setMute(bMute));
             ErrorCheck(pChannel->setMode(bLoop ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF));
@@ -488,13 +487,13 @@ namespace Borealis
         if (channel)
         {
             // Set 3D attributes if the sound is in 3D mode
-            FMOD_MODE mode;
-            sound->getMode(&mode);
-            if (mode & FMOD_3D) {
-                FMOD_VECTOR fmodPosition = VectorToFmod(position);
-                FMOD_VECTOR velocity = { 0.0f, 0.0f, 0.0f };
-                ErrorCheck(channel->set3DAttributes(&fmodPosition, &velocity));
-            }
+            FMOD_MODE mode = FMOD_2D;
+            //sound->getMode(&mode);
+            //if (mode & FMOD_3D) {
+            //    FMOD_VECTOR fmodPosition = VectorToFmod(position);
+            //    FMOD_VECTOR velocity = { 0.0f, 0.0f, 0.0f };
+            //    ErrorCheck(channel->set3DAttributes(&fmodPosition, &velocity));
+            //}
 
             // Set additional properties
             ErrorCheck(channel->setVolume(dbToVolume(volumeDB)));
@@ -531,20 +530,20 @@ namespace Borealis
         if (channel) 
         {
             FMOD_MODE channelMode = FMOD_LOOP_OFF;
-            if (true) {
+            if (is2D) {
                 channelMode |= FMOD_2D;
             }
             ErrorCheck(channel->setMode(channelMode));
 
             FMOD_MODE soundMode;
             sound->getMode(&soundMode);
-            if (!true && (soundMode & FMOD_3D)) {
+            if (!is2D && (soundMode & FMOD_3D)) {
                 FMOD_VECTOR fmodPosition = VectorToFmod(position);
                 FMOD_VECTOR velocity = { 0.0f, 0.0f, 0.0f };
                 ErrorCheck(channel->set3DAttributes(&fmodPosition, &velocity));
             }
 
-            ErrorCheck(channel->setVolume(dbToVolume(volumeDB)));
+            ErrorCheck(channel->setVolume(volumeDB));
             ErrorCheck(channel->setPaused(false));
 
             auto itGroup = sgpImplementation->mChannelGroups.find(groupName);

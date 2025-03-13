@@ -678,7 +678,7 @@ namespace Borealis
 				//Renderer3D::SetLights(materialShader);
 				Renderer3D::DrawSkinnedMesh(transform.GetGlobalTransform(), skinnedMesh, materialShader, (int)entity, skinnedMesh.AnimationIndex);
 
-				if (skinnedMesh.AnimationIndex > 5)
+				if (skinnedMesh.AnimationIndex > 6)
 				{
 					renderTarget->Bind();
 					Renderer3D::End();
@@ -1754,7 +1754,7 @@ namespace Borealis
 		shader->Set("u_Step", 0);
 		shader->Set("u_SceneTexture", 0);  
 		thresholdBuffer->Bind();
-		if (thresholdBuffer->GetProperties().Width != renderTarget->Width/2 || thresholdBuffer->GetProperties().Height != renderTarget->Height/2)
+		if (compositeBuffer->GetProperties().Width != renderTarget->Width || compositeBuffer->GetProperties().Height != renderTarget->Height)
 		{
 			thresholdBuffer->Resize(renderTarget->Width/2, renderTarget->Height/2);
 			downSample_0->Resize(renderTarget->Width/4, renderTarget->Height/4);
@@ -1892,6 +1892,10 @@ namespace Borealis
 					renderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
 				}
 			}
+		}
+		if (compositeBuffer->GetProperties().Width != renderTarget->Width || compositeBuffer->GetProperties().Height != renderTarget->Height)
+		{
+			compositeBuffer->Resize(renderTarget->Width, renderTarget->Height);
 		}
 
 		//do after skybox is rendered
@@ -2128,11 +2132,11 @@ namespace Borealis
 		viewProjMatrix = glm::ortho(0.0f, (float)renderTarget->Width, (float)renderTarget->Height, 0.0f, -1.0f, 1.0f);
 		sData->cameraData.ViewProjection = viewProjMatrix;
 		sData->CameraUBO->SetData(&sData->cameraData, sizeof(sData->cameraData));
-		Renderer2D::Begin(viewProjMatrix);
 
 
 		for (int i = 0; i < 10; ++i)
 		{
+			Renderer2D::Begin(viewProjMatrix);
 			bool UIexist = false;
 			auto group = registryPtr->group<>(entt::get<TransformComponent, CanvasComponent>);
 			for (auto& entity : group)
@@ -2335,6 +2339,11 @@ namespace Borealis
 		}
 
 		auto group = registryPtr->group<>(entt::get<TransformComponent, ParticleSystemComponent>);
+
+		if (accumulaionTarget->buffer->GetProperties().Width != renderTarget->Width || accumulaionTarget->buffer->GetProperties().Height != renderTarget->Height)
+		{
+			accumulaionTarget->buffer->Resize(renderTarget->Width, renderTarget->Height);
+		}
 
 		uint32_t depthTexture = renderTarget->buffer->DetachDepthBuffer();
 		accumulaionTarget->buffer->AttachDepthBuffer(depthTexture);
@@ -2556,7 +2565,7 @@ namespace Borealis
 			sData = std::make_unique<RenderData>();
 			sData->CameraUBO = UniformBufferObject::Create(sizeof(RenderData::CameraData), CAMERA_BIND);
 
-			sData->AnimationUBO = UniformBufferObject::Create(sizeof(glm::mat4) * 128 * 5, ANIMATION_BIND);
+			sData->AnimationUBO = UniformBufferObject::Create(sizeof(glm::mat4) * 128 * 6, ANIMATION_BIND);
 
 			sData->LightsUBO = UniformBufferObject::Create(sizeof(LightUBO) * 32 + sizeof(int), LIGHTING_BIND);
 

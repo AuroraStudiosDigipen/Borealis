@@ -843,6 +843,80 @@ namespace Borealis
 		return mRenderGraph.sceneRenderConfig;
 	}
 
+	void Scene::SetRunTimeRenderPass()
+	{
+		mRenderConfig = RenderGraphConfig();
+		if (mIsRunTimeViewPort)
+		{
+			RenderPassConfig shadowPass(RenderPassType::Shadow, "ShadowPass");
+			shadowPass.AddSinkLinkage("shadowMap", "ShadowMapBuffer");
+			shadowPass.AddSinkLinkage("camera", "RunTimeCamera");
+			mRenderConfig.AddPass(shadowPass);
+
+			RenderPassConfig Render3D(RenderPassType::Render3D, "Render3D");
+			Render3D.AddSinkLinkage("renderTarget", "RunTimeBuffer");
+			Render3D.AddSinkLinkage("accumulaionTarget", "accumulaionBuffer");
+			Render3D.AddSinkLinkage("shadowMap", "ShadowPass.shadowMap");
+			Render3D.AddSinkLinkage("camera", "RunTimeCamera");
+			mRenderConfig.AddPass(Render3D);
+
+			RenderPassConfig bloomPass(RenderPassType::BloomPass, "bloomPass");
+			bloomPass.AddSinkLinkage("renderTarget", "Render3D.renderTarget");
+			mRenderConfig.AddPass(bloomPass);
+
+			RenderPassConfig correctionPass(RenderPassType::CorrectionPass, "correctionPass");
+			correctionPass.AddSinkLinkage("renderTarget", "bloomPass.renderTarget");
+			mRenderConfig.AddPass(correctionPass);
+
+			RenderPassConfig Render2D(RenderPassType::Render2D, "Render2D");
+			Render2D.AddSinkLinkage("renderTarget", "correctionPass.renderTarget");
+			Render2D.AddSinkLinkage("camera", "RunTimeCamera");
+			mRenderConfig.AddPass(Render2D);
+
+
+			RenderPassConfig skyBoxPass(RenderPassType::SkyboxPass, "skyBox");
+			skyBoxPass.AddSinkLinkage("renderTarget", "Render2D.renderTarget");
+			skyBoxPass.AddSinkLinkage("camera", "RunTimeCamera");
+			mRenderConfig.AddPass(skyBoxPass);
+
+			RenderPassConfig particleSystemPass(RenderPassType::ParticleSystemPass, "ParticleSystem");
+			particleSystemPass.AddSinkLinkage("accumulaionTarget", "accumulaionBuffer")
+				.AddSinkLinkage("renderTarget", "skyBox.renderTarget")
+				.AddSinkLinkage("camera", "RunTimeCamera");
+			mRenderConfig.AddPass(particleSystemPass);
+
+			RenderPassConfig UIWorldPass(RenderPassType::UIWorldPass, "UIWorldPass");
+			UIWorldPass.AddSinkLinkage("renderTarget", "ParticleSystem.renderTarget");
+			UIWorldPass.AddSinkLinkage("camera", "RunTimeCamera");
+			mRenderConfig.AddPass(UIWorldPass);
+
+			RenderPassConfig RunTimeHighlight(RenderPassType::HighlightPass, "RunTimeHighlight");
+			RunTimeHighlight.AddSinkLinkage("camera", "RunTimeCamera");
+			RunTimeHighlight.AddSinkLinkage("renderTarget", "UIWorldPass.renderTarget");
+			mRenderConfig.AddPass(RunTimeHighlight);
+
+			RenderPassConfig bloomCompositePass(RenderPassType::BloomCompositePass, "bloomComposite");
+			bloomCompositePass.AddSinkLinkage("renderTarget", "RunTimeHighlight.renderTarget");
+			mRenderConfig.AddPass(bloomCompositePass);
+
+			RenderPassConfig UIPass(RenderPassType::UIPass, "UIPass");
+			UIPass.AddSinkLinkage("renderTarget", "bloomComposite.renderTarget");
+			UIPass.AddSinkLinkage("camera", "RunTimeCamera");
+			mRenderConfig.AddPass(UIPass);
+
+		}
+	}
+
+	RenderGraphConfig& Scene::GetRenderGraphConfig()
+	{
+		return mRenderConfig;
+	}
+
+	void Scene::SetRunTimeViewPort(bool isView)
+	{
+		mIsRunTimeViewPort = isView;
+	}
+
 	void Scene::CreateBuffers()
 	{
 		//move to rendergraph
@@ -1218,6 +1292,15 @@ namespace Borealis
 							(property.second.hasSerializeField(scriptKlass->GetMonoClass()))))
 					{
 						MonoObject* scriptReference = srcIT->second->GetFieldValue<MonoObject*>(property.first);
+						if (scriptReference == nullptr)
+						{
+							BOREALIS_CORE_ERROR("Script Reference is null");
+							BOREALIS_CORE_ERROR("Entity ID: " + std::to_string(uuid));
+							BOREALIS_CORE_ERROR("Entity Name: " + src.get<TagComponent>(srcEntity).Name);
+							BOREALIS_CORE_ERROR("Script Name: " + srcIT->second->GetKlassName());
+							BOREALIS_CORE_ERROR("Property Name: " + property.second.mName);
+							BOREALIS_CORE_ERROR("Property Class: " + property.second.mFieldClassName());
+						}
 						UUID scriptUUID = property.second.GetGameObjectID(scriptReference);
 						MonoObject* data;
 						InitGameObject(data, scriptUUID, property.second.mFieldClassName());
@@ -1253,7 +1336,15 @@ namespace Borealis
 					{
 
 						MonoObject* Data = srcIT->second->GetFieldValue<MonoObject*>(property.first);
-
+						if (Data == nullptr)
+						{
+							BOREALIS_CORE_ERROR("Script Reference is null");
+							BOREALIS_CORE_ERROR("Entity ID: " + std::to_string(dstID));
+							BOREALIS_CORE_ERROR("Entity Name: " + src.get<TagComponent>(dstEntity).Name);
+							BOREALIS_CORE_ERROR("Script Name: " + srcIT->second->GetKlassName());
+							BOREALIS_CORE_ERROR("Property Name: " + property.second.mName);
+							BOREALIS_CORE_ERROR("Property Class: " + property.second.mFieldClassName());
+						}
 						UUID monoBehaviourEntityID = property.second.GetAttachedID(Data);
 						BOREALIS_CORE_ASSERT(monoBehaviourEntityID != 0, "UUID is 0");
 

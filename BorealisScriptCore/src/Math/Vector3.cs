@@ -74,6 +74,13 @@ namespace Borealis
             this.z = z;
         }
 
+        public Vector3 (Vector3 vec)
+        {
+            x = vec.x;
+            y = vec.y;
+            z = vec.z;
+        }
+
         // Public Methods
         public override bool Equals(object obj)
         {

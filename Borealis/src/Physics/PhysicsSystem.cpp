@@ -455,6 +455,7 @@ namespace Borealis
 
 	void PhysicsSystem::PushTransform(ColliderComponent& collider, TransformComponent& transform, RigidbodyComponent* rigidbody)
 	{
+		if (!sPhysicsData.body_interface->IsAdded((BodyID)collider.bodyID)) return;
 		auto entityTransform = transform.GetGlobalTransform();
 		auto modelCenter = collider.center;
 		auto actualCenterVec4 = entityTransform * glm::vec4(modelCenter, 1.0f);
@@ -498,6 +499,8 @@ namespace Borealis
 
 	void PhysicsSystem::PullTransform(ColliderComponent& collider, TransformComponent& transform)
 	{
+		if (!sPhysicsData.body_interface->IsAdded((BodyID)collider.bodyID)) return;
+
 		// Get position from the physics system (JPH::RVec3 to glm::vec3)
 
 		JPH::RVec3 newPosition = sPhysicsData.body_interface->GetPosition((BodyID)collider.bodyID);
@@ -604,6 +607,8 @@ namespace Borealis
 
 	void PhysicsSystem::Free()
 	{
+		bodyIDMapUUID.clear();
+		bodySensorMap.clear();
 		delete sPhysicsData.body_activation_listener;
 		delete sPhysicsData.broad_phase_layer_interface;
 		delete sPhysicsData.object_vs_broadphase_layer_filter;
@@ -999,11 +1004,11 @@ namespace Borealis
 	void PhysicsSystem::FreeCharacter(CharacterControllerComponent& character)
 	{
 
-		bodyIDMapUUID.erase(reinterpret_cast<CharacterVirtual*>(character.controller)->GetInnerBodyID().GetIndexAndSequenceNumber());
-		bodySensorMap.erase(reinterpret_cast<CharacterVirtual*>(character.controller)->GetInnerBodyID().GetIndexAndSequenceNumber());
-
+	
 		if(character.controller)
 		{
+			bodyIDMapUUID.erase(reinterpret_cast<CharacterVirtual*>(character.controller)->GetInnerBodyID().GetIndexAndSequenceNumber());
+			bodySensorMap.erase(reinterpret_cast<CharacterVirtual*>(character.controller)->GetInnerBodyID().GetIndexAndSequenceNumber());
 			auto InnerID = reinterpret_cast<CharacterVirtual*>(character.controller)->GetInnerBodyID();
 			delete character.controller;
 			sPhysicsData.mSystem->GetBodyInterface().RemoveBody(InnerID);

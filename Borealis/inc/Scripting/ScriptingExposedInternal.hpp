@@ -344,6 +344,7 @@ namespace Borealis
 
 	void ColliderComponent_GetBounds(UUID uuid, glm::vec3* center, glm::vec3* extents, glm::vec3* min, glm::vec3* max, glm::vec3* size);
 	void ColliderComponent_UpdateScale(UUID uuid);
+	void ColliderComponent_SetActive(UUID uuid, bool* state);
 
 	void AnimatorComponent_SetCurrentAnimation(UUID uuid, UUID animation);
 	void AnimatorComponent_GetCurrentAnimation(UUID uuid, UUID* animation);

@@ -34,6 +34,14 @@ namespace Borealis
             InternalCalls.ColliderComponent_UpdateScale(GetInstanceID());
         }
 
+        public bool enabled
+        {
+            set
+            {
+                InternalCalls.ColliderComponent_SetActive(GetInstanceID(), ref value);
+            }
+        }
+
         public Bounds bounds
         {
             get

@@ -30,7 +30,6 @@ namespace Borealis
             get
             {
                 InternalCalls.Entity_GetTag(InstanceID, out string name);
-                Debug.Log(name);
                 return name;
             }
             set

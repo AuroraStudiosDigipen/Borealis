@@ -35,6 +35,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 		PROFILE_START("Borealis Shutdown");
 		delete app;
+		Borealis::LoggerSystem::Shutdown();
 		PROFILE_END();
 	}
 

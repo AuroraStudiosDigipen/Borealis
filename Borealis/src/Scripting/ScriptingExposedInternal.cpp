@@ -121,6 +121,7 @@ namespace Borealis
 
 		BOREALIS_ADD_INTERNAL_CALL(ColliderComponent_GetBounds);
 		BOREALIS_ADD_INTERNAL_CALL(ColliderComponent_UpdateScale);
+		BOREALIS_ADD_INTERNAL_CALL(ColliderComponent_SetActive);
 		BOREALIS_ADD_INTERNAL_CALL(Material_GetSprite);
 
 		BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_AddForce);
@@ -437,46 +438,46 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		entity.GetComponent<TagComponent>().active = *active;
 
-		//if (*active)
-		//{
-		//	//Activate
-		//	if (entity.HasComponent<BoxColliderComponent>()) {
-		//		PhysicsSystem::SetActive(entity.GetComponent<BoxColliderComponent>().bodyID);
-		//	}
+		if (*active)
+		{
+			//Activate
+			if (entity.HasComponent<BoxColliderComponent>()) {
+				PhysicsSystem::SetActive(entity.GetComponent<BoxColliderComponent>().bodyID);
+			}
 
-		//	if (entity.HasComponent<CapsuleColliderComponent>()) {
-		//		PhysicsSystem::SetActive(entity.GetComponent<CapsuleColliderComponent>().bodyID);
-		//	}
+			if (entity.HasComponent<CapsuleColliderComponent>()) {
+				PhysicsSystem::SetActive(entity.GetComponent<CapsuleColliderComponent>().bodyID);
+			}
 
-		//	if (entity.HasComponent<SphereColliderComponent>()) {
-		//		PhysicsSystem::SetActive(entity.GetComponent<SphereColliderComponent>().bodyID);
-		//	}
+			if (entity.HasComponent<SphereColliderComponent>()) {
+				PhysicsSystem::SetActive(entity.GetComponent<SphereColliderComponent>().bodyID);
+			}
 
-		//	if (entity.HasComponent<CylinderColliderComponent>()) {
-		//		PhysicsSystem::SetActive(entity.GetComponent<CylinderColliderComponent>().bodyID);
-		//	}
-		//}
+			if (entity.HasComponent<CylinderColliderComponent>()) {
+				PhysicsSystem::SetActive(entity.GetComponent<CylinderColliderComponent>().bodyID);
+			}
+		}
 
-		//else
+		else
 
-		//{
-		//	// decativate
-		//	if (entity.HasComponent<BoxColliderComponent>()) {
-		//		PhysicsSystem::SetInactive(entity.GetComponent<BoxColliderComponent>().bodyID);
-		//	}
+		{
+			// decativate
+			if (entity.HasComponent<BoxColliderComponent>()) {
+				PhysicsSystem::SetInactive(entity.GetComponent<BoxColliderComponent>().bodyID);
+			}
 
-		//	if (entity.HasComponent<CapsuleColliderComponent>()) {
-		//		PhysicsSystem::SetInactive(entity.GetComponent<CapsuleColliderComponent>().bodyID);
-		//	}
+			if (entity.HasComponent<CapsuleColliderComponent>()) {
+				PhysicsSystem::SetInactive(entity.GetComponent<CapsuleColliderComponent>().bodyID);
+			}
 
-		//	if (entity.HasComponent<SphereColliderComponent>()) {
-		//		PhysicsSystem::SetInactive(entity.GetComponent<SphereColliderComponent>().bodyID);
-		//	}
+			if (entity.HasComponent<SphereColliderComponent>()) {
+				PhysicsSystem::SetInactive(entity.GetComponent<SphereColliderComponent>().bodyID);
+			}
 
-		//	if (entity.HasComponent<CylinderColliderComponent>()) {
-		//		PhysicsSystem::SetInactive(entity.GetComponent<CylinderColliderComponent>().bodyID);
-		//	}
-		//}
+			if (entity.HasComponent<CylinderColliderComponent>()) {
+				PhysicsSystem::SetInactive(entity.GetComponent<CylinderColliderComponent>().bodyID);
+			}
+		}
 	}
 	void Entity_GetActive(uint64_t entityID, bool* active)
 	{
@@ -1148,6 +1149,50 @@ namespace Borealis
 		{
 			auto& collider = entity.GetComponent<CylinderColliderComponent>();
 			PhysicsSystem::UpdateScale(entity.GetComponent<CylinderColliderComponent>(), entity.GetComponent<TransformComponent>());
+		}
+	}
+	void ColliderComponent_SetActive(UUID uuid, bool* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		if (*value)
+		{
+			//Activate
+			if (entity.HasComponent<BoxColliderComponent>()) {
+				PhysicsSystem::SetActive(entity.GetComponent<BoxColliderComponent>().bodyID);
+			}
+
+			if (entity.HasComponent<CapsuleColliderComponent>()) {
+				PhysicsSystem::SetActive(entity.GetComponent<CapsuleColliderComponent>().bodyID);
+			}
+
+			if (entity.HasComponent<SphereColliderComponent>()) {
+				PhysicsSystem::SetActive(entity.GetComponent<SphereColliderComponent>().bodyID);
+			}
+
+			if (entity.HasComponent<CylinderColliderComponent>()) {
+				PhysicsSystem::SetActive(entity.GetComponent<CylinderColliderComponent>().bodyID);
+			}
+		}
+		else
+		{
+			// decativate
+			if (entity.HasComponent<BoxColliderComponent>()) {
+				PhysicsSystem::SetInactive(entity.GetComponent<BoxColliderComponent>().bodyID);
+			}
+
+			if (entity.HasComponent<CapsuleColliderComponent>()) {
+				PhysicsSystem::SetInactive(entity.GetComponent<CapsuleColliderComponent>().bodyID);
+			}
+
+			if (entity.HasComponent<SphereColliderComponent>()) {
+				PhysicsSystem::SetInactive(entity.GetComponent<SphereColliderComponent>().bodyID);
+			}
+
+			if (entity.HasComponent<CylinderColliderComponent>()) {
+				PhysicsSystem::SetInactive(entity.GetComponent<CylinderColliderComponent>().bodyID);
+			}
 		}
 	}
 	void AnimatorComponent_SetCurrentAnimation(UUID uuid, UUID animation)

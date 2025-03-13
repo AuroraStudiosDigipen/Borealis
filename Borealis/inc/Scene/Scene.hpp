@@ -204,6 +204,12 @@ namespace Borealis
 		void ClearRenderGraph();
 
 		RenderGraph::SceneRenderConfig& GetSceneRenderConfig();
+
+		void SetRunTimeRenderPass();
+
+		RenderGraphConfig& GetRenderGraphConfig();
+
+		void SetRunTimeViewPort(bool isView);
 	private:
 
 		/*!***********************************************************************
@@ -237,6 +243,8 @@ namespace Borealis
 		Ref<FrameBuffer> mAccumulaionFBO;
 		Ref<FrameBuffer> mCompositeFBO;
 		RenderGraph mRenderGraph;
+		RenderGraphConfig mRenderConfig;
+		bool mIsRunTimeViewPort = true;
 	};
 }
 

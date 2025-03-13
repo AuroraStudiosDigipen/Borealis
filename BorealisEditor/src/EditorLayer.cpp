@@ -965,6 +965,8 @@ namespace Borealis {
 				{
 					mRuntimeHovered = ImGui::IsWindowHovered();
 					mRuntimeFocused = ImGui::IsWindowFocused();
+					if (mRuntimeHovered && mRuntimeFocused)
+						ApplicationManager::Get().GetImGuiLayer()->SetBlockEvents(!mRuntimeHovered && !mRuntimeFocused);
 
 					ImVec2 runtimeSize = ImGui::GetContentRegionAvail();
 					mRuntimeSize = { runtimeSize.x, runtimeSize.y };
@@ -1067,6 +1069,37 @@ namespace Borealis {
 			ScriptingSystem::CompileCSharpQueue(Project::GetProjectPath() + "/Cache/CSharp_Assembly.dll");
 			ScriptingSystem::LoadScriptAssemblies(Project::GetProjectPath() + "/Cache/CSharp_Assembly.dll");
 			break;
+		case Key::Space:
+		{
+			BOREALIS_CORE_INFO("Pressed Space");
+			if (shift)
+			{
+				if (mSceneState == SceneState::Edit)
+				{
+					ScenePlay();
+				}
+				else
+				{
+					SceneStop();
+				}
+			}
+			break;
+		}
+		case Key::LeftAlt:
+		{
+			if (shift)
+			{
+				if (mSceneState == SceneState::Play)
+				{
+					mSceneState = SceneState::Pause;
+				}
+				else if (mSceneState == SceneState::Pause)
+				{
+					mSceneState = SceneState::Play;
+				}
+			}
+			break;
+		}
 		case Key::N:
 		{
 			if (control)

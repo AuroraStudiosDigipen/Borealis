@@ -229,8 +229,13 @@ namespace Borealis
         // Here you can add your logic for unloading sounds
     }
 
+    glm::vec3 CalculateVelocity(const glm::vec3& previousPosition, const glm::vec3& currentPosition, float deltaTime) {
+        return (currentPosition - previousPosition) / deltaTime;
+    }
+
     void AudioEngine::Set3DListenerAndOrientation(const glm::mat4& transform, float fVolumedB)
     {
+
         glm::vec3 vPos = transform[3];
         FMOD_VECTOR fmodPosition = VectorToFmod(vPos);
 
@@ -239,7 +244,7 @@ namespace Borealis
 
         FMOD_VECTOR fmodForward = VectorToFmod(forward);
         FMOD_VECTOR fmodUp = VectorToFmod(up);
-
+        ErrorCheck(sgpImplementation->mpSystem->set3DNumListeners(1));
         ErrorCheck(sgpImplementation->mpSystem->set3DListenerAttributes(
             0,
             &fmodPosition,
@@ -488,18 +493,11 @@ namespace Borealis
         {
             // Set 3D attributes if the sound is in 3D mode
             FMOD_MODE mode = FMOD_2D;
-            //sound->getMode(&mode);
-            //if (mode & FMOD_3D) {
-            //    FMOD_VECTOR fmodPosition = VectorToFmod(position);
-            //    FMOD_VECTOR velocity = { 0.0f, 0.0f, 0.0f };
-            //    ErrorCheck(channel->set3DAttributes(&fmodPosition, &velocity));
-            //}
-
             // Set additional properties
-            ErrorCheck(channel->setVolume(dbToVolume(volumeDB)));
+            ErrorCheck(channel->setVolume(volumeDB));
             ErrorCheck(channel->setPaused(false));
-            ErrorCheck(channel->setMode(looping ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF));
-
+            mode |= looping ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF;
+            ErrorCheck(channel->setMode(mode));
             // Assign channel to a group
             auto itGroup = sgpImplementation->mChannelGroups.find(groupName);
             if (itGroup != sgpImplementation->mChannelGroups.end())

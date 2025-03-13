@@ -777,6 +777,10 @@ namespace Borealis
 				AudioEngine::Set3DListenerAndOrientation(transform.GetGlobalTransform());
 
 				listener += 1;
+
+				BOREALIS_CORE_TRACE("Hello");
+				BOREALIS_CORE_WARN("Hello2");
+				BOREALIS_CORE_ASSERT("Hello3");
 				break;
 			}
 

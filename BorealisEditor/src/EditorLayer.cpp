@@ -183,7 +183,8 @@ namespace Borealis {
 			mEditorCamera.UpdateFn(dt);
 		}
 
-		SceneManager::GetActiveScene()->UpdateRuntime(dt); //update physics, scripts and audio
+		if (mSceneState == SceneState::Play)
+			SceneManager::GetActiveScene()->UpdateRuntime(dt); //update physics, scripts and audio
 
 		Renderer2D::ResetStats();
 		{
@@ -1337,16 +1338,6 @@ namespace Borealis {
 		SceneManager::SetActiveScene(copiedScene);
 		SCPanel.SetContext(SceneManager::GetActiveScene());
 		SceneManager::GetActiveScene()->RuntimeStart();
-
-		auto view = SceneManager::GetActiveScene()->GetRegistry().view<ScriptComponent>();
-		for (auto entity : view)
-		{
-			auto& scriptComponent = view.get<ScriptComponent>(entity);
-			for (auto& [name,script] : scriptComponent.mScripts)
-			{
-				script->Start();
-			}
-		}
 	}
 
 	void EditorLayer::SceneStop()

@@ -21,6 +21,11 @@ namespace Borealis
             InternalCalls.AudioSource_Play(InstanceID);
         }
 
+        public void Stop()
+        {
+            InternalCalls.AudioSource_Stop(InstanceID);
+        }
+
         public AudioClip clip
         {
             get

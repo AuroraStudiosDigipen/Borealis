@@ -425,6 +425,7 @@ namespace Borealis
 	void AudioSource_SetClip(uint64_t ID, uint64_t* ClipID);
 	void AudioSource_PlayOneShot(uint64_t ID, float volume, uint64_t ClipID, bool is2D);
 	void AudioSource_Play(uint64_t ID);
+	void AudioSource_Stop(uint64_t ID);
 	void AudioSource_IsPlaying(uint64_t ID,  bool* playing);
 	void AudioSource_GetLooping(uint64_t ID,  bool* looping);
 	void AudioSource_SetLooping(uint64_t ID,  bool* looping);

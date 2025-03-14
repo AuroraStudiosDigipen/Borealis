@@ -310,6 +310,8 @@ namespace Borealis
 	void RigidbodyComponent_GetIsKinematic(UUID uuid, bool* kinematic);
 
 
+
+
 	/*!***********************************************************************
 		\brief
 			Get color of sprite renderer component
@@ -332,6 +334,14 @@ namespace Borealis
 
 	void SpriteRendererComponent_GetSprite(UUID uuid, UUID* spriteID);
 	void SpriteRendererComponent_SetSprite(UUID uuid, UUID* spriteID);
+
+	void CircleRendererComponent_GetColor(UUID uuid, glm::vec4* outColor);
+	void CircleRendererComponent_SetColor(UUID uuid, glm::vec4* color);
+	void CircleRendererComponent_GetThickness(UUID uuid, float* outColor);
+	void CircleRendererComponent_SetThickness(UUID uuid, float* color);
+	void CircleRendererComponent_GetFade(UUID uuid, float* outColor);
+	void CircleRendererComponent_SetFade(UUID uuid, float* color);
+
 
 	void MeshRendererComponent_GetMaterial(UUID uuid, UUID* materialID);
 	void MeshRendererComponent_SetMaterial(UUID uuid, UUID* materialID);

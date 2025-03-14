@@ -526,6 +526,8 @@ namespace Borealis
 						Entity entity2 = GetEntityByUUID(collisionPair.second);
 						if (!entity1.IsValid()) continue;
 						if (!entity2.IsValid()) continue;
+						if (!entity1.IsActive()) continue;
+						if (!entity2.IsActive()) continue;
 						if (entity1.HasComponent<ScriptComponent>())
 						{
 							auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
@@ -558,6 +560,8 @@ namespace Borealis
 						Entity entity2 = GetEntityByUUID(collisionPair.second);
 						if (!entity1.IsValid()) continue;
 						if (!entity2.IsValid()) continue;
+						if (!entity1.IsActive()) continue;
+						if (!entity2.IsActive()) continue;
 						if (entity1.HasComponent<ScriptComponent>())
 						{
 							auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
@@ -586,6 +590,8 @@ namespace Borealis
 						Entity entity2 = GetEntityByUUID(collisionPair.second);
 						if (!entity1.IsValid()) continue;
 						if (!entity2.IsValid()) continue;
+						if (!entity1.IsActive()) continue;
+						if (!entity2.IsActive()) continue;
 						if (entity1.HasComponent<ScriptComponent>())
 						{
 							auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
@@ -618,6 +624,10 @@ namespace Borealis
 						Entity entity2 = GetEntityByUUID(collisionPair.second);
 						if (!entity1.IsValid()) continue;
 						if (!entity2.IsValid()) continue;
+						if (!entity1.IsActive()) continue;
+						if (!entity2.IsActive()) continue;
+
+
 						if (entity1.HasComponent<ScriptComponent>())
 						{
 							auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
@@ -650,6 +660,8 @@ namespace Borealis
 						Entity entity2 = GetEntityByUUID(collisionPair.second);
 						if (!entity1.IsValid()) continue;
 						if (!entity2.IsValid()) continue;
+						if (!entity1.IsActive()) continue;
+						if (!entity2.IsActive()) continue;
 						if (entity1.HasComponent<ScriptComponent>())
 						{
 							auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
@@ -678,6 +690,8 @@ namespace Borealis
 						Entity entity2 = GetEntityByUUID(collisionPair.second);
 						if (!entity1.IsValid()) continue;
 						if (!entity2.IsValid()) continue;
+						if (!entity1.IsActive()) continue;
+						if (!entity2.IsActive()) continue;
 						if (entity1.HasComponent<ScriptComponent>())
 						{
 							auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
@@ -1084,7 +1098,7 @@ namespace Borealis
 		if (mEntityMap.find(uuid) != mEntityMap.end())
 			return { mEntityMap.at(uuid), this };
 
-		return { (entt::entity)-1, this };
+		return { (entt::entity)-1, nullptr };
 	}
 
 	bool Scene::EntityExists(UUID uuid)

@@ -524,6 +524,8 @@ namespace Borealis
 						PhysicsSystem::GetCollisionEnterQueue().pop();
 						Entity entity1 = GetEntityByUUID(collisionPair.first);
 						Entity entity2 = GetEntityByUUID(collisionPair.second);
+						if (!entity1.IsValid()) continue;
+						if (!entity2.IsValid()) continue;
 						if (entity1.HasComponent<ScriptComponent>())
 						{
 							auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
@@ -554,7 +556,8 @@ namespace Borealis
 						PhysicsSystem::GetCollisionPersistQueue().pop();
 						Entity entity1 = GetEntityByUUID(collisionPair.first);
 						Entity entity2 = GetEntityByUUID(collisionPair.second);
-
+						if (!entity1.IsValid()) continue;
+						if (!entity2.IsValid()) continue;
 						if (entity1.HasComponent<ScriptComponent>())
 						{
 							auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
@@ -581,6 +584,8 @@ namespace Borealis
 						PhysicsSystem::GetCollisionExitQueue().pop();
 						Entity entity1 = GetEntityByUUID(collisionPair.first);
 						Entity entity2 = GetEntityByUUID(collisionPair.second);
+						if (!entity1.IsValid()) continue;
+						if (!entity2.IsValid()) continue;
 						if (entity1.HasComponent<ScriptComponent>())
 						{
 							auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
@@ -611,6 +616,8 @@ namespace Borealis
 						PhysicsSystem::GetTriggerEnterQueue().pop();
 						Entity entity1 = GetEntityByUUID(collisionPair.first);
 						Entity entity2 = GetEntityByUUID(collisionPair.second);
+						if (!entity1.IsValid()) continue;
+						if (!entity2.IsValid()) continue;
 						if (entity1.HasComponent<ScriptComponent>())
 						{
 							auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
@@ -641,7 +648,8 @@ namespace Borealis
 						PhysicsSystem::GetTriggerPersistQueue().pop();
 						Entity entity1 = GetEntityByUUID(collisionPair.first);
 						Entity entity2 = GetEntityByUUID(collisionPair.second);
-
+						if (!entity1.IsValid()) continue;
+						if (!entity2.IsValid()) continue;
 						if (entity1.HasComponent<ScriptComponent>())
 						{
 							auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
@@ -668,6 +676,8 @@ namespace Borealis
 						PhysicsSystem::GetTriggerExitQueue().pop();
 						Entity entity1 = GetEntityByUUID(collisionPair.first);
 						Entity entity2 = GetEntityByUUID(collisionPair.second);
+						if (!entity1.IsValid()) continue;
+						if (!entity2.IsValid()) continue;
 						if (entity1.HasComponent<ScriptComponent>())
 						{
 							auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();

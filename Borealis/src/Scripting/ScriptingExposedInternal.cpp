@@ -111,6 +111,14 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(SpriteRendererComponent_GetSprite);
 		BOREALIS_ADD_INTERNAL_CALL(SpriteRendererComponent_SetSprite);
 
+		BOREALIS_ADD_INTERNAL_CALL(CircleRendererComponent_GetColor);
+		BOREALIS_ADD_INTERNAL_CALL(CircleRendererComponent_SetColor);
+		BOREALIS_ADD_INTERNAL_CALL(CircleRendererComponent_GetThickness);
+		BOREALIS_ADD_INTERNAL_CALL(CircleRendererComponent_SetThickness);
+		BOREALIS_ADD_INTERNAL_CALL(CircleRendererComponent_GetFade);
+		BOREALIS_ADD_INTERNAL_CALL(CircleRendererComponent_SetFade);
+
+
 		BOREALIS_ADD_INTERNAL_CALL(MeshRendererComponent_GetMaterial);
 		BOREALIS_ADD_INTERNAL_CALL(MeshRendererComponent_SetMaterial);
 		BOREALIS_ADD_INTERNAL_CALL(MeshRendererComponent_GetEnabled);
@@ -1002,7 +1010,7 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(uuid);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		entity.GetComponent<SpriteRendererComponent>().Colour = *outColor;
+		*outColor = entity.GetComponent<SpriteRendererComponent>().Colour;
 	}
 	void SpriteRendererComponent_SetColor(UUID uuid, glm::vec4* color)
 	{
@@ -1035,6 +1043,54 @@ namespace Borealis
 		{
 			entity.GetComponent<SpriteRendererComponent>().Texture = Ref<Texture2D>();
 		}
+	}
+	void CircleRendererComponent_GetColor(UUID uuid, glm::vec4* outColor)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*outColor = entity.GetComponent<CircleRendererComponent>().Colour;
+	}
+	void CircleRendererComponent_SetColor(UUID uuid, glm::vec4* color)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<CircleRendererComponent>().Colour = *color;
+	}
+	void CircleRendererComponent_GetThickness(UUID uuid, float* thickness)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*thickness = entity.GetComponent<CircleRendererComponent>().thickness;
+	}
+	void CircleRendererComponent_SetThickness(UUID uuid, float* thickness)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<CircleRendererComponent>().thickness = *thickness;
+	}
+	void CircleRendererComponent_GetFade(UUID uuid, float* fade)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*fade = entity.GetComponent<CircleRendererComponent>().fade;
+	}
+	void CircleRendererComponent_SetFade(UUID uuid, float* fade)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<CircleRendererComponent>().fade = *fade;
 	}
 	void MeshRendererComponent_GetMaterial(UUID uuid, UUID* materialID)
 	{

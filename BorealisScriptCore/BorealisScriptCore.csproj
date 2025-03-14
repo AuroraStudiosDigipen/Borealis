@@ -149,6 +149,7 @@
     <Compile Include="src\Components\AudioListener.cs" />
     <Compile Include="src\Components\AudioSource.cs" />
     <Compile Include="src\Components\CharacterController.cs" />
+    <Compile Include="src\Components\CircleRenderer.cs" />
     <Compile Include="src\Components\Collider.cs" />
     <Compile Include="src\Components\Component.cs" />
     <Compile Include="src\Components\MeshRenderer.cs" />

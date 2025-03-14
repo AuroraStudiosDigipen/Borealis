@@ -476,6 +476,7 @@ namespace Borealis
 		RegisterComponent<TransformComponent>();
 		//RegisterComponent<CameraComponent>();
 		RegisterComponent<SpriteRendererComponent>();
+		RegisterComponent<CircleRendererComponent>();
 		//RegisterComponent<IDComponent>();
 		//RegisterComponent<TagComponent>();
 		//RegisterComponent<CircleRendererComponent>();

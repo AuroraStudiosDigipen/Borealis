@@ -205,6 +205,21 @@ namespace Borealis
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void SpriteRendererComponent_SetSprite(ulong id, ref ulong spriteID);
 
+        #region CircleRendererComponent
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void CircleRendererComponent_GetColor(ulong id, out Color color);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void CircleRendererComponent_SetColor(ulong id, ref Color color);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void CircleRendererComponent_GetThickness(ulong id, out float thickness);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void CircleRendererComponent_SetThickness(ulong id, ref float thickness);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void CircleRendererComponent_GetFade(ulong id, out float fade);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void CircleRendererComponent_SetFade(ulong id, ref float fade);
+
         #endregion
 
         #region MeshRenderer

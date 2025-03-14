@@ -299,6 +299,7 @@ namespace Borealis
 		Ref<PhysicMaterial> Material;
 		RigidbodyComponent* rigidBody = nullptr;
 		unsigned int bodyID = 0;
+		bool isActive = true;
 	};
 
 	struct CylinderColliderComponent : public ColliderComponent

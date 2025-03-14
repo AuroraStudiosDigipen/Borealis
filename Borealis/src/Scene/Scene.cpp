@@ -524,6 +524,8 @@ namespace Borealis
 						PhysicsSystem::GetCollisionEnterQueue().pop();
 						Entity entity1 = GetEntityByUUID(collisionPair.first);
 						Entity entity2 = GetEntityByUUID(collisionPair.second);
+						if (!entity1.IsValid()) continue;
+						if (!entity2.IsValid()) continue;
 						if (entity1.HasComponent<ScriptComponent>())
 						{
 							auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
@@ -554,7 +556,8 @@ namespace Borealis
 						PhysicsSystem::GetCollisionPersistQueue().pop();
 						Entity entity1 = GetEntityByUUID(collisionPair.first);
 						Entity entity2 = GetEntityByUUID(collisionPair.second);
-
+						if (!entity1.IsValid()) continue;
+						if (!entity2.IsValid()) continue;
 						if (entity1.HasComponent<ScriptComponent>())
 						{
 							auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
@@ -581,6 +584,8 @@ namespace Borealis
 						PhysicsSystem::GetCollisionExitQueue().pop();
 						Entity entity1 = GetEntityByUUID(collisionPair.first);
 						Entity entity2 = GetEntityByUUID(collisionPair.second);
+						if (!entity1.IsValid()) continue;
+						if (!entity2.IsValid()) continue;
 						if (entity1.HasComponent<ScriptComponent>())
 						{
 							auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
@@ -611,6 +616,8 @@ namespace Borealis
 						PhysicsSystem::GetTriggerEnterQueue().pop();
 						Entity entity1 = GetEntityByUUID(collisionPair.first);
 						Entity entity2 = GetEntityByUUID(collisionPair.second);
+						if (!entity1.IsValid()) continue;
+						if (!entity2.IsValid()) continue;
 						if (entity1.HasComponent<ScriptComponent>())
 						{
 							auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
@@ -641,7 +648,8 @@ namespace Borealis
 						PhysicsSystem::GetTriggerPersistQueue().pop();
 						Entity entity1 = GetEntityByUUID(collisionPair.first);
 						Entity entity2 = GetEntityByUUID(collisionPair.second);
-
+						if (!entity1.IsValid()) continue;
+						if (!entity2.IsValid()) continue;
 						if (entity1.HasComponent<ScriptComponent>())
 						{
 							auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
@@ -668,6 +676,8 @@ namespace Borealis
 						PhysicsSystem::GetTriggerExitQueue().pop();
 						Entity entity1 = GetEntityByUUID(collisionPair.first);
 						Entity entity2 = GetEntityByUUID(collisionPair.second);
+						if (!entity1.IsValid()) continue;
+						if (!entity2.IsValid()) continue;
 						if (entity1.HasComponent<ScriptComponent>())
 						{
 							auto& scriptComponent1 = entity1.GetComponent<ScriptComponent>();
@@ -1295,12 +1305,13 @@ namespace Borealis
 						MonoObject* scriptReference = srcIT->second->GetFieldValue<MonoObject*>(property.first);
 						if (scriptReference == nullptr)
 						{
-							BOREALIS_CORE_ERROR("Script Reference is null");
-							BOREALIS_CORE_ERROR("Entity ID: " + std::to_string(uuid));
-							BOREALIS_CORE_ERROR("Entity Name: " + src.get<TagComponent>(srcEntity).Name);
-							BOREALIS_CORE_ERROR("Script Name: " + srcIT->second->GetKlassName());
-							BOREALIS_CORE_ERROR("Property Name: " + property.second.mName);
-							BOREALIS_CORE_ERROR("Property Class: " + property.second.mFieldClassName());
+							BOREALIS_CORE_WARN("Script Reference is null");
+							BOREALIS_CORE_WARN("Entity ID: " + std::to_string(uuid));
+							BOREALIS_CORE_WARN("Entity Name: " + dst.get<TagComponent>(srcEntity).Name);
+							BOREALIS_CORE_WARN("Script Name: " + srcIT->second->GetKlassName());
+							BOREALIS_CORE_WARN("Property Name: " + property.second.mName);
+							BOREALIS_CORE_WARN("Property Class: " + property.second.mFieldClassName());
+							continue;
 						}
 						UUID scriptUUID = property.second.GetGameObjectID(scriptReference);
 						MonoObject* data;
@@ -1339,12 +1350,13 @@ namespace Borealis
 						MonoObject* Data = srcIT->second->GetFieldValue<MonoObject*>(property.first);
 						if (Data == nullptr)
 						{
-							BOREALIS_CORE_ERROR("Script Reference is null");
-							BOREALIS_CORE_ERROR("Entity ID: " + std::to_string(dstID));
-							BOREALIS_CORE_ERROR("Entity Name: " + src.get<TagComponent>(dstEntity).Name);
-							BOREALIS_CORE_ERROR("Script Name: " + srcIT->second->GetKlassName());
-							BOREALIS_CORE_ERROR("Property Name: " + property.second.mName);
-							BOREALIS_CORE_ERROR("Property Class: " + property.second.mFieldClassName());
+							BOREALIS_CORE_WARN("Script Reference is null");
+							BOREALIS_CORE_WARN("Entity ID: " + std::to_string(dstID));
+							BOREALIS_CORE_WARN("Entity Name: " + dst.get<TagComponent>(dstEntity).Name);
+							BOREALIS_CORE_WARN("Script Name: " + srcIT->second->GetKlassName());
+							BOREALIS_CORE_WARN("Property Name: " + property.second.mName);
+							BOREALIS_CORE_WARN("Property Class: " + property.second.mFieldClassName());
+							continue;
 						}
 						UUID monoBehaviourEntityID = property.second.GetAttachedID(Data);
 						BOREALIS_CORE_ASSERT(monoBehaviourEntityID != 0, "UUID is 0");
@@ -1369,7 +1381,16 @@ namespace Borealis
 					{
 						MonoObject* DstData = dstIT->second->GetFieldValue<MonoObject*>(property.first);
 						MonoObject* Data = srcIT->second->GetFieldValue<MonoObject*>(property.first);
-						if (!Data) continue;
+						if (Data == nullptr)
+						{
+							BOREALIS_CORE_WARN("Script Reference is null");
+							BOREALIS_CORE_WARN("Entity ID: " + std::to_string(dstID));
+							BOREALIS_CORE_WARN("Entity Name: " + dst.get<TagComponent>(dstEntity).Name);
+							BOREALIS_CORE_WARN("Script Name: " + srcIT->second->GetKlassName());
+							BOREALIS_CORE_WARN("Property Name: " + property.second.mName);
+							BOREALIS_CORE_WARN("Property Class: " + property.second.mFieldClassName());
+							continue;
+						}
 						UUID setUUID = property.second.GetGameObjectID(Data);
 						BOREALIS_CORE_ASSERT(setUUID != 0, "UUID is 0");
 						InitGameObject(DstData, setUUID, property.second.mFieldClassName());

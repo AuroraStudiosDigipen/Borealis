@@ -136,6 +136,7 @@ namespace Borealis
 
 	 void ButtonComponent::onClick()
 	 {
+		 if (onClickEntity == 0) return;
 		auto entity = SceneManager::GetActiveScene()->GetEntityByUUID(onClickEntity);
 		if (!entity.HasComponent<ScriptComponent>())
 			 return;

@@ -824,6 +824,11 @@ namespace Borealis
 						audio.channelID = Borealis::AudioEngine::PlayAudio(audio, transform.GetGlobalTranslate(), audio.Volume, audio.isMute, audio.isLoop, "SFX");
 						//audio.channelID = Borealis::AudioEngine::PlayAudio(audio.audio->AudioPath, {}, audio.Volume, audio.isMute, audio.isLoop);
 					}
+
+					if (audio.channelID)
+					{
+						AudioEngine::UpdateChannelPosition(audio.channelID, transform.GetGlobalTranslate());
+					}
 				}
 			}
 		}

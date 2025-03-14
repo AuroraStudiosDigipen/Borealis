@@ -390,7 +390,7 @@ namespace Borealis
 		}
 		else if (lightComponent.type == LightComponent::Type::Directional)
 		{
-			std::vector<float> shadowCascadeLevels{ camera->farPlane / 50.0f, camera->farPlane / 25.0f, camera->farPlane / 10.0f, camera->farPlane / 2.0f };
+			std::vector<float> shadowCascadeLevels{ camera->farPlane / 200.0f, camera->farPlane / 100.0f, camera->farPlane / 10.0f, camera->farPlane };
 
 			//std::vector<float> shadowCascadeLevels(4);
 			//float nearP = camera->nearPlane;
@@ -532,7 +532,6 @@ namespace Borealis
 		Ref<RenderTargetSource> shadowMap = nullptr;
 		Ref<RenderTargetSource> accumulaionTarget = nullptr;
 		Ref<PixelBufferSource> pixelBuffer = nullptr;
-		glm::vec3 camPos{};
 
 		static Ref<TextureCubeMap> cubeMap = nullptr;
 
@@ -550,7 +549,6 @@ namespace Borealis
 				sData->CameraUBO->SetData(&sData->cameraData, sizeof(RenderData::CameraData));
 				viewProjMatrix = std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj();
 				editor = std::dynamic_pointer_cast<CameraSource>(sink->source)->editor;
-				camPos = std::dynamic_pointer_cast<CameraSource>(sink->source)->position;
 
 				camera = std::dynamic_pointer_cast<CameraSource>(sink->source);
 			}
@@ -736,6 +734,8 @@ namespace Borealis
 		RenderCommand::SetDepthMask(true);
 		RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLess);
 		RenderCommand::EnableDepthTest();
+
+		RenderCommand::GetError("Here");
 	}
 
 	void Render2D::Execute()
@@ -814,6 +814,8 @@ namespace Borealis
 		//RenderCommand::DisableBlend();
 
 		renderTarget->Unbind();
+
+		RenderCommand::GetError("Here");
 	}
 
 	UIWorldPass::UIWorldPass(std::string name) : EntityPass((name))
@@ -984,6 +986,8 @@ namespace Borealis
 
 		Renderer2D::End();
 		renderTarget->Unbind();
+
+		RenderCommand::GetError("Here");
 	}
 
 	GeometryPass::GeometryPass(std::string name) : EntityPass(name)
@@ -1409,6 +1413,8 @@ namespace Borealis
 		}
 
 		shader->Unbind();
+
+		RenderCommand::GetError("Here");
 	}
 
 
@@ -1486,6 +1492,8 @@ namespace Borealis
 				entityID->mRef = -1;
 			}
 		}
+
+		RenderCommand::GetError("Here");
 	}
 
 	EditorHighlightPass::EditorHighlightPass(std::string name) : RenderPass(name)
@@ -1618,6 +1626,8 @@ namespace Borealis
 				shader->Unbind();
 			}
 		}
+
+		RenderCommand::GetError("Here");
 	}
 
 	SkyboxPass::SkyboxPass(std::string name) : RenderPass(name)
@@ -1671,6 +1681,8 @@ namespace Borealis
 
 		RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLess);
 		RenderCommand::SetDepthMask(true);
+
+		RenderCommand::GetError("Here");
 	}
 
 	CorrectionPass::CorrectionPass(std::string name) : RenderPass(name)
@@ -1719,6 +1731,8 @@ namespace Borealis
 		RenderCommand::EnableDrawToSecondaryBuffer();
 		renderTarget->Unbind();
 		shader->Unbind();
+
+		RenderCommand::GetError("Here");
 	}
 
 	BloomPass::BloomPass(std::string name) : RenderPass(name)
@@ -1865,6 +1879,8 @@ namespace Borealis
 		//Renderer3D::DrawQuad();
 		//renderTarget->Unbind();
 		//shader->Unbind();
+
+		RenderCommand::GetError("Here");
 	}
 
 	BloomCompositePass::BloomCompositePass(std::string name) : RenderPass(name)
@@ -1972,6 +1988,8 @@ namespace Borealis
 		Renderer3D::DrawQuad();
 		renderSource->Unbind();
 		shader->Unbind();
+
+		RenderCommand::GetError("Here");
 	}
 
 	HighlightPass::HighlightPass(std::string name) : EntityPass(name)
@@ -2089,6 +2107,8 @@ namespace Borealis
 				shader->Unbind();
 			}
 		}
+
+		RenderCommand::GetError("Here");
 	}
 
 	//Ref<FrameBuffer> UIFBO;
@@ -2227,6 +2247,8 @@ namespace Borealis
 				//RenderCommand::DisableBlend();
 			}
 		}
+
+		RenderCommand::GetError("Here");
 	}
 
 	EditorUIPass::EditorUIPass(std::string name) : EntityPass(name)
@@ -2296,6 +2318,8 @@ namespace Borealis
 		//RenderCommand::DisableBlend();
 
 		renderTarget->Unbind();
+
+		RenderCommand::GetError("Here");
 	}
 
 
@@ -2459,6 +2483,8 @@ namespace Borealis
 		RenderCommand::SetDepthMask(true);
 		RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLess);
 		RenderCommand::EnableDepthTest();
+
+		RenderCommand::GetError("Here");
 	}
 
 	//========================================================================

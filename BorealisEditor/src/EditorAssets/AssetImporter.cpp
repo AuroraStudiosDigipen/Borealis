@@ -259,7 +259,8 @@ namespace Borealis
 		}
 
 		//difference between source file and meta data
-		if (MetaFileSerializer::HashFile(metaData.SourcePath) != metaData.SourceFileHash)
+		uint32_t newHash = MetaFileSerializer::HashFile(metaData.SourcePath);
+		if (newHash != metaData.SourceFileHash)
 		{
 			return MetaErrorType::SOURCE_FILE_MODIFIED;
 		}
@@ -289,6 +290,8 @@ namespace Borealis
 			CreateCache(metaData);
 		}
 
+		metaData.SourceFileHash = MetaFileSerializer::HashFile(metaData.SourcePath);
+		MetaFileSerializer::SaveMetaFile(metaData);
 		//Update meta file
 	}
 

@@ -405,8 +405,24 @@ namespace Borealis
         return volume;
     }
 
+    void AudioEngine::UpdateChannelPosition(int channelID, glm::vec3 position)
+    {
+        auto it = sgpImplementation->mChannels.find(channelID);
+        if (it == sgpImplementation->mChannels.end())
+        {
+            return;
+        }
 
+        FMOD::Channel* channel = it->second;
+        if (!channel) {
+            return;
+        }
 
+        FMOD_VECTOR fmodPosition = VectorToFmod(position);
+        FMOD_VECTOR velocity = { 0.0f, 0.0f, 0.0f };
+
+        ErrorCheck(channel->set3DAttributes(&fmodPosition, &velocity));
+    }
 
     float AudioEngine::VolumeTodb(float volume)
     {
@@ -512,11 +528,11 @@ namespace Borealis
         return channelId; // Return the channel ID for tracking
     }
 
-    void AudioEngine::PlayOneShot(Ref<Audio> audio, const glm::vec3& position, float volumeDB, const std::string& groupName, bool is2D)
+    int AudioEngine::PlayOneShot(Ref<Audio> audio, const glm::vec3& position, float volumeDB, const std::string& groupName, bool is2D)
     {
         if (!audio || !audio->audioPtr) {
             std::cerr << "Invalid audio reference" << std::endl;
-            return;
+            return -1;
         }
 
         FMOD::Channel* channel = nullptr;
@@ -548,7 +564,13 @@ namespace Borealis
             if (itGroup != sgpImplementation->mChannelGroups.end()) {
                 ErrorCheck(channel->setChannelGroup(itGroup->second));
             }
+
+            sgpImplementation->mChannels[channelId] = channel;
+
+            return channelId;
         }
+
+        return -1;
     }
 
     void AudioEngine::ApplyFadeIn(int channelId, float fadeInTime, float targetVolumeDB)

@@ -262,7 +262,7 @@ namespace Borealis
         \param groupName
             The name of the audio group.
         *************************************************************************/
-        static void PlayOneShot(Ref<Audio> audio, const glm::vec3& position, float volumeDB, const std::string& groupName, bool is2D = false);
+        static int PlayOneShot(Ref<Audio> audio, const glm::vec3& position, float volumeDB, const std::string& groupName, bool is2D = false);
         
         /*!***********************************************************************
         \brief
@@ -287,6 +287,8 @@ namespace Borealis
         static void ApplyFadeOut(int channelId, float fadeOutTime);
 
         static float dbToVolume2(float sliderValue);
+
+        static void UpdateChannelPosition(int channelID, glm::vec3 position);
 
     private:
         static std::map<int, float> mGroupVolumes; /*!< Map of group IDs and their volume levels */

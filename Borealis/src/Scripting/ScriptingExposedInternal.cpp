@@ -1620,7 +1620,7 @@ namespace Borealis
 				auto& transform = entity.GetComponent<TransformComponent>();
 				auto translate = transform.GetGlobalTranslate();
 				auto& audioSource = entity.GetComponent<AudioSourceComponent>();
-				AudioEngine::PlayOneShot(audio, translate, volume, audioSource.group, is2D);
+				audioSource.channelID = AudioEngine::PlayOneShot(audio, translate, volume, audioSource.group, is2D);
 			}
 		}
 		

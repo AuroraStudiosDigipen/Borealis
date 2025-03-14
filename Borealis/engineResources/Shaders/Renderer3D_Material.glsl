@@ -419,10 +419,10 @@ float GetShadowFactor(vec3 lightDir, vec3 normal)
 
 float GetCascadeShadowFactor(vec3 lightDir, vec3 normal)
 {
-	vec4 fragPosViewSpace = u_View * vec4(v_FragPos, 1.0);
-	float depthValue = abs(fragPosViewSpace.z);
+    vec4 fragPosViewSpace = u_View * vec4(v_FragPos, 1.0);
+    float depthValue = abs(fragPosViewSpace.z);
 
-	int layer = -1;
+    int layer = -1;
     for (int i = 0; i < cascadeCount; ++i)
     {
         if (depthValue < u_CascadePlaneDistances[i])
@@ -436,36 +436,36 @@ float GetCascadeShadowFactor(vec3 lightDir, vec3 normal)
         layer = cascadeCount;
     }
 
-	vec4 LightPos = u_LightSpaceMatrices[layer] * vec4(v_FragPos, 1.0);
+    vec4 LightPos = u_LightSpaceMatrices[layer] * vec4(v_FragPos, 1.0);
 
-	vec3 projCoord = LightPos.xyz / LightPos.w;
-	vec2 UVCoord;
-	UVCoord.x = 0.5 * projCoord.x + 0.5;
-	UVCoord.y = 0.5 * projCoord.y + 0.5;
-	float z = 0.5 * projCoord.z + 0.5;
+    vec3 projCoord = LightPos.xyz / LightPos.w;
+    vec2 UVCoord;
+    UVCoord.x = 0.5 * projCoord.x + 0.5;
+    UVCoord.y = 0.5 * projCoord.y + 0.5;
+    float z = 0.5 * projCoord.z + 0.5;
 
-	float currentDepth = projCoord.z;
+    float currentDepth = projCoord.z;
 
-    // keep the shadow at 0.0 when outside the far_plane region of the light's frustum.
+    // Keep the shadow at 0.0 when outside the far_plane region of the light's frustum.
     if (currentDepth > 1.0)
     {
         return 0.0;
     }
 
-	float depth = texture(u_CascadeShadowMap, vec3(UVCoord, layer)).x;
+    float depth = texture(u_CascadeShadowMap, vec3(UVCoord, layer)).x;
     float depth2 = texture(u_CascadeShadowMapDynamic, vec3(UVCoord, layer)).x;
 
-	float diffuseFactor = dot(normal, -lightDir);
-	float bias = 0.0005;//mix(0.0025f, 0.00f, diffuseFactor);
+    float diffuseFactor = dot(normal, -lightDir);
+    float bias = max(0.0005, 0.005 * (1.0 - diffuseFactor));
 
-	if((depth + bias < z) || (depth2 + bias < z))
-	{
-		return 0.5;
-	}
-	else
-	{
-		return 1.f;
-	}
+    if ((depth + bias < z) || (depth2 + bias < z))
+    {
+        return 0.5;
+    }
+    else
+    {
+        return 1.0;
+    }
 }
 
 vec3 ComputeLight(vec3 albedo, float roughness,

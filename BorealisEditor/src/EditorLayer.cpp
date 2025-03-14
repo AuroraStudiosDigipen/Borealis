@@ -320,9 +320,7 @@ namespace Borealis {
 
 				RenderPassConfig editorRender3D(RenderPassType::Render3D, "editorRender3D");
 				editorRender3D.AddSinkLinkage("renderTarget", "EditorBuffer")
-					.AddSinkLinkage("opaqueTarget", "opaqueBuffer")
 					.AddSinkLinkage("accumulaionTarget", "accumulaionBuffer")
-					.AddSinkLinkage("compositeTarget", "compositeBuffer")
 					.AddSinkLinkage("shadowMap", "editorShadowPass.shadowMap")
 					.AddSinkLinkage("camera", "EditorCamera");
 				fconfig.AddPass(editorRender3D);

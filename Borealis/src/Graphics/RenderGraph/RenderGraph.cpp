@@ -390,7 +390,7 @@ namespace Borealis
 		}
 		else if (lightComponent.type == LightComponent::Type::Directional)
 		{
-			std::vector<float> shadowCascadeLevels{ camera->farPlane / 50.0f, camera->farPlane / 25.0f, camera->farPlane / 10.0f, camera->farPlane / 2.0f };
+			std::vector<float> shadowCascadeLevels{ camera->farPlane / 200.0f, camera->farPlane / 100.0f, camera->farPlane / 10.0f, camera->farPlane };
 
 			//std::vector<float> shadowCascadeLevels(4);
 			//float nearP = camera->nearPlane;
@@ -532,7 +532,6 @@ namespace Borealis
 		Ref<RenderTargetSource> shadowMap = nullptr;
 		Ref<RenderTargetSource> accumulaionTarget = nullptr;
 		Ref<PixelBufferSource> pixelBuffer = nullptr;
-		glm::vec3 camPos{};
 
 		static Ref<TextureCubeMap> cubeMap = nullptr;
 
@@ -550,7 +549,6 @@ namespace Borealis
 				sData->CameraUBO->SetData(&sData->cameraData, sizeof(RenderData::CameraData));
 				viewProjMatrix = std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj();
 				editor = std::dynamic_pointer_cast<CameraSource>(sink->source)->editor;
-				camPos = std::dynamic_pointer_cast<CameraSource>(sink->source)->position;
 
 				camera = std::dynamic_pointer_cast<CameraSource>(sink->source);
 			}

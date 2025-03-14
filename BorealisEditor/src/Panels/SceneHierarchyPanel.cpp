@@ -177,7 +177,7 @@ namespace Borealis
 	{
 		auto propType = Property.get_type();
 		auto propName = Property.get_name().to_string();
-		auto name = propName;
+		std::string name = rInstance.get_type().get_name().to_string();
 
 		if (Property.get_metadata("Dependency").is_valid())
 		{
@@ -221,7 +221,7 @@ namespace Borealis
 				ImGui::PushID(Property.get_name().to_string().c_str());
 				ImGui::Columns(2);
 				ImGui::SetColumnWidth(0, 10 * ImGui::GetFontSize());
-				ImGui::Text(name.c_str());
+				ImGui::Text(propName.c_str());
 				ImGui::NextColumn();
 				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 10, 0 }); // Spacing between Items
 				*propertyDrawn = true;
@@ -232,7 +232,7 @@ namespace Borealis
 				}
 			}
 
-			else if (DrawVec3Controller(name, Data, min))
+			else if (DrawVec3Controller(propName, Data, min))
 			{
 				Property.set_value(rInstance, Data);
 				return true;
@@ -245,7 +245,7 @@ namespace Borealis
 		ImGui::PushID(Property.get_name().to_string().c_str());
 		ImGui::Columns(2);
 		ImGui::SetColumnWidth(0, 10 * ImGui::GetFontSize());
-		ImGui::Text(name.c_str());
+		ImGui::Text(propName.c_str());
 		ImGui::NextColumn();
 
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 10, 0 }); // Spacing between Items

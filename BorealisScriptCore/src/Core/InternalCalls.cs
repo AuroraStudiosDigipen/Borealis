@@ -204,7 +204,7 @@ namespace Borealis
         internal extern static void SpriteRendererComponent_GetSprite(ulong id, out ulong spriteID);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void SpriteRendererComponent_SetSprite(ulong id, ref ulong spriteID);
-
+        #endregion
         #region CircleRendererComponent
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void CircleRendererComponent_GetColor(ulong id, out Color color);

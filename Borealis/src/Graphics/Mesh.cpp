@@ -1,4 +1,4 @@
-/******************************************************************************/
+﻿/******************************************************************************/
 /*!
 \file		Mesh.cpp
 \author 	Chua Zheng Yang
@@ -600,24 +600,22 @@ namespace Borealis
 		std::vector<float> vertices;
 		std::vector<unsigned int> indices;
 
-		// Generate vertices
 		for (unsigned int i = 0; i <= stacks; ++i) {
-			float phi = (float)M_PI * (-0.5f + static_cast<float>(i) / stacks); // Vertical angle
-			float z = radius * sin(phi);
+			float phi = (float)M_PI * (-0.5f + static_cast<float>(i) / stacks);
+			float y = radius * sin(phi);
 			float ringRadius = cos(phi);
 
 			for (unsigned int j = 0; j <= sectors; ++j) {
-				float theta = 2.0f * (float)M_PI * static_cast<float>(j) / sectors; // Horizontal angle
+				float theta = 2.0f * (float)M_PI * static_cast<float>(j) / sectors;
 				float x = ringRadius * cos(theta);
-				float y = ringRadius * sin(theta);
+				float z = ringRadius * sin(theta);
 
 				vertices.push_back(x * radius);
-				vertices.push_back(y * radius);
-				vertices.push_back(z);
+				vertices.push_back(y);
+				vertices.push_back(z * radius);
 			}
 		}
 
-		// Generate indices
 		for (unsigned int i = 0; i < stacks; ++i) {
 			for (unsigned int j = 0; j < sectors; ++j) {
 				unsigned int first = i * (sectors + 1) + j;
@@ -633,7 +631,6 @@ namespace Borealis
 			}
 		}
 
-		// Create VAO, VBO, and EBO
 		glGenVertexArrays(1, &VAO);
 		glGenBuffers(1, &VBO);
 		glGenBuffers(1, &EBO);

@@ -1674,9 +1674,17 @@ namespace Borealis
 		cubeMap->Bind(7);
 		shader->Set("u_Skybox", 7);
 		shader->Set("u_ViewProjection", projMatrix * view);
+		shader->Set("Red", false);
 		renderTarget->Bind();
 		Renderer3D::DrawCubeMap();
 		renderTarget->Unbind();
+
+		//shader->Set("Red", true);
+		//RenderCommand::EnableWireFrameMode();
+		//RenderCommand::SetLineThickness(5.f);
+		//Renderer3D::DrawCubeMap();
+		//RenderCommand::DisableWireFrameMode();
+
 		shader->Unbind();
 
 		RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLess);

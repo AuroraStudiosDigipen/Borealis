@@ -24,7 +24,15 @@ uniform samplerCube u_Skybox;
 
 out vec4 FragColor;
 
+uniform bool Red;
+
 void main()
 {
-    FragColor = texture(u_Skybox, v_TexCoord);
+    if(Red)
+    {
+        FragColor = vec4(1.f, 0.f, 0.f, 1.f);
+    }
+    else
+
+   { FragColor = texture(u_Skybox, v_TexCoord);}
 }

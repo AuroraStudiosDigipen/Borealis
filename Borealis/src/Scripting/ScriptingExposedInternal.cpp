@@ -1723,8 +1723,7 @@ namespace Borealis
 		auto& transform = entity.GetComponent<TransformComponent>();
 		auto translate = transform.GetGlobalTranslate();
 		auto& audioSource = entity.GetComponent<AudioSourceComponent>();
-		if (audioSource.audio)
-			AudioEngine::StopChannel(audioSource.channelID);
+		AudioEngine::StopChannel(audioSource.channelID);
 	}
 	void AudioSource_IsPlaying(uint64_t ID, bool* playing)
 	{

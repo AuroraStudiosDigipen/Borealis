@@ -817,13 +817,13 @@ namespace Borealis
 					}
 
 					auto [transform, audio] = group.get<TransformComponent, AudioSourceComponent>(entity);
-					if (audio.isPlaying && (!Borealis::AudioEngine::isSoundPlaying(audio.channelID) || !audio.isLoop))
-					{
-						AudioEngine::StopChannel(audio.channelID);
-						audio.isPlaying = false;
-						audio.channelID = Borealis::AudioEngine::PlayAudio(audio, transform.GetGlobalTranslate(), audio.Volume, audio.isMute, audio.isLoop, "SFX");
-						//audio.channelID = Borealis::AudioEngine::PlayAudio(audio.audio->AudioPath, {}, audio.Volume, audio.isMute, audio.isLoop);
-					}
+					//if (audio.isPlaying && (!Borealis::AudioEngine::isSoundPlaying(audio.channelID) || !audio.isLoop))
+					//{
+					//	AudioEngine::StopChannel(audio.channelID);
+					//	audio.isPlaying = false;
+					//	audio.channelID = Borealis::AudioEngine::PlayAudio(audio, transform.GetGlobalTranslate(), audio.Volume, audio.isMute, audio.isLoop, "SFX");
+					//	//audio.channelID = Borealis::AudioEngine::PlayAudio(audio.audio->AudioPath, {}, audio.Volume, audio.isMute, audio.isLoop);
+					//}
 
 					if (audio.channelID)
 					{

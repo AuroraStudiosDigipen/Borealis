@@ -358,6 +358,8 @@ namespace Borealis
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void AudioSource_PlayOneShot(ulong ID, float volume, ulong ClipID, bool is2D);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void AudioSource_PlayOneShotPosition(ulong ID, float volume, ulong ClipID, ref Vector3 position, float minDist, float maxDist);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void AudioSource_Play(ulong ID);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void AudioSource_Stop(ulong ID);

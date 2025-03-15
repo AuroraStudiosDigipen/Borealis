@@ -434,6 +434,7 @@ namespace Borealis
 	void AudioSource_GetClip(uint64_t ID, uint64_t* ClipID);
 	void AudioSource_SetClip(uint64_t ID, uint64_t* ClipID);
 	void AudioSource_PlayOneShot(uint64_t ID, float volume, uint64_t ClipID, bool is2D);
+	void AudioSource_PlayOneShotPosition(uint64_t ID, float volume, uint64_t ClipID, glm::vec3* pos, float minDist, float maxDist);
 	void AudioSource_Play(uint64_t ID);
 	void AudioSource_Stop(uint64_t ID);
 	void AudioSource_IsPlaying(uint64_t ID,  bool* playing);

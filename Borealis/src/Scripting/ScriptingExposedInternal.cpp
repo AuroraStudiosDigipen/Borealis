@@ -168,6 +168,7 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_GetClip);
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_SetClip);
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_PlayOneShot);
+		BOREALIS_ADD_INTERNAL_CALL(AudioSource_PlayOneShotPosition);
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_Play);
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_Stop);
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_IsPlaying );
@@ -1682,6 +1683,24 @@ namespace Borealis
 		}
 		
 	}
+
+	void AudioSource_PlayOneShotPosition(uint64_t ID, float volume, uint64_t ClipID, glm::vec3* pos, float minDist, float maxDist)
+	{
+		if (ClipID != 0)
+		{
+			Ref<Audio> audio = AssetManager::GetAsset<Audio>(ClipID);
+			if (audio)
+			{
+				Scene* scene = SceneManager::GetActiveScene().get();
+				BOREALIS_CORE_ASSERT(scene, "Scene is null");
+				Entity entity = scene->GetEntityByUUID(ID);
+				BOREALIS_CORE_ASSERT(entity, "Entity is null");
+				auto& audioSource = entity.GetComponent<AudioSourceComponent>();
+				AudioEngine::PlayOneShot(audio, *pos, volume, audioSource.group, false, minDist, maxDist);
+			}
+		}
+	}
+
 	void AudioSource_Play(uint64_t ID)
 	{
 		Scene* scene = SceneManager::GetActiveScene().get();

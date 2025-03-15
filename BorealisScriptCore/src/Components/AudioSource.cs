@@ -11,9 +11,9 @@ namespace Borealis
             gameObject = new GameObject(id);
         }
 
-        public void PlayOneShot(AudioClip clip, float volumeScale = 1.0F, bool is2D = false)
+        public void PlayOneShot(AudioClip clip, float volumeScale = 1.0F, bool is2D = false, float minDist = 30F, float maxDist = 100F)
         {
-            InternalCalls.AudioSource_PlayOneShot(InstanceID, volumeScale, clip.InstanceID, is2D);
+            InternalCalls.AudioSource_PlayOneShot(InstanceID, volumeScale, clip.InstanceID, is2D, minDist, maxDist);
         }
 
         public void PlayOneShotPosition(AudioClip clip, Vector3 position, float volumeScale = 1.0F, float minDist = 30F, float maxDist = 100F)

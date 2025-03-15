@@ -13,7 +13,7 @@ namespace Borealis
 
         public void PlayOneShot(AudioClip clip, float volumeScale = 1.0F, bool is2D = false)
         {
-            InternalCalls.AudioSource_PlayOneShot(InstanceID, volumeScale, clip.InstanceID, out is2D);
+            InternalCalls.AudioSource_PlayOneShot(InstanceID, volumeScale, clip.InstanceID, is2D);
         }
 
         public void Play()

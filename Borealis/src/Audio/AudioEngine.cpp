@@ -84,7 +84,8 @@ namespace Borealis
         ErrorCheck(FMOD::System_Create(&mpSystem));
 
         // Initialize FMOD Core system
-        ErrorCheck(mpSystem->init(32, FMOD_INIT_PROFILE_ENABLE, nullptr));
+        ErrorCheck(mpSystem->init(128, FMOD_INIT_PROFILE_ENABLE, nullptr));
+        ErrorCheck(mpSystem->set3DSettings(1.0, 1.f, 1.0f));
 
         FMOD::ChannelGroup* bgmGroup = nullptr;
         FMOD::ChannelGroup* sfxGroup = nullptr;
@@ -538,8 +539,8 @@ namespace Borealis
         return channelId; // Return the channel ID for tracking
     }
 
-#pragma optimize("", off)
-    int AudioEngine::PlayOneShot(Ref<Audio> audio, const glm::vec3& position, float volumeDB, const std::string& groupName, bool is2D)
+//#pragma optimize("", off)
+    int AudioEngine::PlayOneShot(Ref<Audio> audio, const glm::vec3& position, float volumeDB, const std::string& groupName, bool is2D, float minDist, float maxDist)
     {
         if (!audio || !audio->audioPtr) {
             std::cerr << "Invalid audio reference" << std::endl;
@@ -549,7 +550,6 @@ namespace Borealis
         FMOD::Channel* channel = nullptr;
         FMOD::Sound* sound = audio->audioPtr;
         int channelId = sgpImplementation->mnNextChannelId++;
-
         ErrorCheck(sgpImplementation->mpSystem->playSound(sound, nullptr, true, &channel));
 
         if (channel) 
@@ -557,6 +557,10 @@ namespace Borealis
             FMOD_MODE channelMode = FMOD_LOOP_OFF;
             if (is2D) {
                 channelMode |= FMOD_2D;
+            }
+            else
+            {
+                channelMode |= FMOD_3D | FMOD_3D_LINEARSQUAREROLLOFF;
             }
             ErrorCheck(channel->setMode(channelMode));
 
@@ -566,6 +570,7 @@ namespace Borealis
                 FMOD_VECTOR fmodPosition = VectorToFmod(position);
                 FMOD_VECTOR velocity = { 0.0f, 0.0f, 0.0f };
                 ErrorCheck(channel->set3DAttributes(&fmodPosition, &velocity));
+                ErrorCheck(channel->set3DMinMaxDistance(minDist,maxDist));
             }
 
             ErrorCheck(channel->setVolume(volumeDB));
@@ -583,7 +588,7 @@ namespace Borealis
 
         return -1;
     }
-#pragma optimize("", on)
+//#pragma optimize("", on)
 
     void AudioEngine::ApplyFadeIn(int channelId, float fadeInTime, float targetVolumeDB)
     {

@@ -64,7 +64,7 @@ namespace Borealis
 		Renderer::Free();
 		mLayerSystem.Clear();
 		ScriptingSystem::Free();
-
+		AudioEngine::Shutdown();
 		//PhysicsSystem::Free();
 		delete mWindowManager;
 		glfwTerminate(); // Terminate after system shuts down

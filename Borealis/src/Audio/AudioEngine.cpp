@@ -326,6 +326,7 @@ namespace Borealis
 
     void AudioEngine::Shutdown()
     {
+        if (HasInit)
         delete sgpImplementation;
     }
 

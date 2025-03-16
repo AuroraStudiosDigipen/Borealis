@@ -50,7 +50,6 @@ void ThresholdFilterPass()
         color = vec3(0.0); // Replace NaN with black
     }
     float brightness = max(max(color.r, color.g), color.b);
-    brightness = clamp(brightness, 0.0, 1e6);
     // Smooth transition using a soft knee
     float soft = clamp((brightness - u_Threshold + u_Knee) / u_Knee, 0.0, 1.0);
     soft = soft * soft;

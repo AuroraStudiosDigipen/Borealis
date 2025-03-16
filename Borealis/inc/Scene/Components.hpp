@@ -32,8 +32,6 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <AI/BehaviourTree/BTreeFactory.hpp>
 #include <Core/UUID.hpp>
 #include <Core/Bitset32.hpp>
-#include <Audio/Audio.hpp>
-#include <Audio/AudioGroup.hpp>
 
 #include "Graphics/Animation/UIAnimation.hpp"
 #include "Graphics/Animation/UIAnimator.hpp"
@@ -435,15 +433,8 @@ namespace Borealis
 	
 	struct AudioSourceComponent
 	{
-		std::string group = "Master";
-		bool isLoop = false;
-		bool isMute = false;
-		bool isPlaying = false;
 		float Volume = 1.0f;
 		int channelID = 0;
-
-	
-		Ref<Audio> audio;
 
 		AudioSourceComponent() = default;
 		AudioSourceComponent(const AudioSourceComponent&) = default;

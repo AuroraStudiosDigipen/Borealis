@@ -271,4 +271,17 @@ namespace Borealis
 		return result.str();
 	}
 
+	std::set<std::string> StringUtils::filterFromString(std::set<std::string> original, std::string keyword)
+	{
+		size_t pos = keyword.find("event:/");
+		std::string item = (pos != std::string::npos) ? keyword.substr(pos + 7) : keyword;
+
+		std::erase_if(original, [&](const std::string& s) {
+			return s.find(item) == std::string::npos; // Remove if keyword is NOT found
+			});
+
+		return original;
+
+	}
+
 }

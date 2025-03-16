@@ -49,7 +49,6 @@ namespace Borealis
 
 		ScriptingSystem::Init();
 
-		AudioEngine::Init();
 		InputSystem::Init();
 		//PhysicsSystem::Init();
 	}
@@ -63,7 +62,6 @@ namespace Borealis
 		PROFILE_FUNCTION();
 
 		Renderer::Free();
-		AudioEngine::Shutdown();
 		mLayerSystem.Clear();
 		ScriptingSystem::Free();
 

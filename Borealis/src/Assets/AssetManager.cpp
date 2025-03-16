@@ -16,7 +16,6 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Assets/AssetManager.hpp>
 
 #include <AI/BehaviourTree/BTreeFactory.hpp>
-#include <Audio/Audio.hpp>
 #include <Audio/AudioEngine.hpp>
 #include <Graphics/Model.hpp>
 #include <Graphics/Material.hpp>
@@ -32,7 +31,6 @@ namespace Borealis
 		//Asset Type					//Asset Name				//extensions			//load function			//Reload function
 		{ AssetType::None,				"AssetType::None",			{},						nullptr},
 		{ AssetType::Animation,			"AssetType::Animation",		{ ".anim" },			Animation::Load },
-		{ AssetType::Audio,				"AssetType::Audio",			{ ".mp3", ".wav" },		AudioEngine::Load },
 		{ AssetType::BehaviourTreeData,	"AssetType::BehaviourTree", { ".btree" },			BTreeFactory::Load },
 		{ AssetType::Folder,			"AssetType::Folder",		{},						nullptr},
 		{ AssetType::Font,				"AssetType::Font",			{ ".ttf"},				nullptr},

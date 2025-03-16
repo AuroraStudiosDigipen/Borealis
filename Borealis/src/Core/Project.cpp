@@ -19,7 +19,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/LoggerSystem.hpp>
 #include <Scene/SceneManager.hpp>
 #include <Core/LayerList.hpp>
-
+#include <Audio/AudioEngine.hpp>
 
 namespace Borealis
 {
@@ -74,6 +74,8 @@ namespace Borealis
 				mProjectInfo.AssetsPath = projectFilePath + mProjectInfo.AssetsDirectoryName;
 				mProjectInfo.AssetsRegistryPath = projectFilePath + mProjectInfo.AssetsRegistryName;
 				mProjectInfo.CachePath = std::filesystem::path(mProjectInfo.AssetsPath).replace_filename("Cache");
+
+				AudioEngine::Init(projectFilePath);
 
 				LayerList::Reset();
 				////pass in project info

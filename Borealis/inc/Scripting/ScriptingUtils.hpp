@@ -142,6 +142,8 @@ namespace Borealis
 
 	void InitGameObject(MonoObject*& object, UUID id, std::string objectType, bool pin = true);
 
+	void InitStringObject(MonoObject*& object, std::string str, std::string objectType, bool pin = true);
+
 }
 
 #endif //SCRIPTING_UTILS_HPP

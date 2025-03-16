@@ -126,6 +126,9 @@ namespace Borealis
 	struct StringUtils
 	{
 		static std::string SplitAndCapitalize(const std::string& str);
+
+		static std::set<std::string> filterFromString(std::set<std::string> original, std::string keyword);
+			
 	};
 
 	struct Math

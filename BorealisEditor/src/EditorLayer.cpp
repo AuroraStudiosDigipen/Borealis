@@ -432,7 +432,7 @@ namespace Borealis {
 			}
 
 			SceneManager::GetActiveScene()->SetRenderGraphConfig(fconfig);
-			SceneManager::GetActiveScene()->UpdateRenderer(dt);	
+			//SceneManager::GetActiveScene()->UpdateRenderer(dt);	
 		}
 
 		mHoveredEntity = { (entt::entity)entityID , SceneManager::GetActiveScene().get() };
@@ -703,7 +703,6 @@ namespace Borealis {
 			SCPanel.ImGuiRender();
 			CBPanel.ImGuiRender();
 			CSPanel.ImGuiRender();
-			AMPanel.ImGuiRender();
 			SRPanel.ImGuiRender();
 			
 			BTNEPanel.ImGuiRender();
@@ -1332,6 +1331,8 @@ namespace Borealis {
 			std::filesystem::create_directory(filepath + "\\Cache");
 			Project::CopyFolder(Project::GetProjectPath() + "\\Cache", filepath + "\\Cache");
 			Project::CopyIndividualFile(Project::GetProjectPath() + "\\AssetRegistry.brdb", filepath + "\\AssetRegistry.brdb");
+			Project::CopyIndividualFile(Project::GetProjectPath() + "\\Master.bank", filepath + "\\Master.bank");
+			Project::CopyIndividualFile(Project::GetProjectPath() + "\\Master.strings.bank", filepath + "\\Master.strings.bank");
 
 			// copy fmod dll and mono dll from editor
 			// Editor directory

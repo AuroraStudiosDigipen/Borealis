@@ -43,6 +43,8 @@ namespace Borealis
 		std::string mFieldClassName() const; // The name of the class of the field
 		UUID GetAttachedID(MonoObject* object) const; // The ID of the attached object
 		UUID GetGameObjectID(MonoObject* object) const;
+		std::string GetAudioName(MonoObject* object) const;
+		void SetAudioName(MonoObject* object, std::string name) const;
 		bool isPublic() const;
 		bool isPrivate() const;
 		bool hasHideInInspector(MonoClass* klass) const;

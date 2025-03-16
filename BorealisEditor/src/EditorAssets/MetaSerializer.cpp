@@ -108,8 +108,6 @@ namespace Borealis
 		{
 		case Borealis::AssetType::None:
 			break;
-		case Borealis::AssetType::Audio:
-			break;
 		case Borealis::AssetType::Mesh:
 			SerializeMeshConfig(out, GetConfig<MeshConfig>(assetConfig));
 			break;
@@ -214,8 +212,6 @@ namespace Borealis
 		switch (type)
 		{
 		case Borealis::AssetType::None:
-			break;
-		case Borealis::AssetType::Audio:
 			break;
 		case Borealis::AssetType::Mesh:
 			config = DeserializeMeshConfig(node);
@@ -518,8 +514,6 @@ namespace Borealis
 		switch (type)
 		{
 		case Borealis::AssetType::None:
-			break;
-		case Borealis::AssetType::Audio:
 			break;
 		case Borealis::AssetType::Mesh:
 			assetConfig = MeshConfig{};

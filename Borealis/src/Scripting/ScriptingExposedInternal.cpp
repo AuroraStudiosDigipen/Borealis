@@ -164,18 +164,10 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(CharacterController_GetLinearVelocity);
 		BOREALIS_ADD_INTERNAL_CALL(CharacterController_SetLinearVelocity);
 
-
-		BOREALIS_ADD_INTERNAL_CALL(AudioSource_GetClip);
-		BOREALIS_ADD_INTERNAL_CALL(AudioSource_SetClip);
+		BOREALIS_ADD_INTERNAL_CALL(AudioSource_Stop);
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_PlayOneShot);
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_PlayOneShotPosition);
-		BOREALIS_ADD_INTERNAL_CALL(AudioSource_Play);
-		BOREALIS_ADD_INTERNAL_CALL(AudioSource_Stop);
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_IsPlaying );
-		BOREALIS_ADD_INTERNAL_CALL(AudioSource_GetLooping);
-		BOREALIS_ADD_INTERNAL_CALL(AudioSource_SetLooping);
-		BOREALIS_ADD_INTERNAL_CALL(AudioSource_GetVolume );
-		BOREALIS_ADD_INTERNAL_CALL(AudioSource_SetVolume );
 		BOREALIS_ADD_INTERNAL_CALL(AudioListener_SetListener);
 
 		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_SetNextAnimation);
@@ -1634,85 +1626,39 @@ namespace Borealis
 		PhysicsSystem::SetLinearVelocity(entity.GetComponent<CharacterControllerComponent>().controller, *vel);
 	}
 
-	void AudioSource_GetClip(uint64_t ID, uint64_t* ClipID)
+	void AudioSource_PlayOneShot(uint64_t ID, MonoString* str)
 	{
-		Scene* scene = SceneManager::GetActiveScene().get();
-		BOREALIS_CORE_ASSERT(scene, "Scene is null");
-		Entity entity = scene->GetEntityByUUID(ID);
-		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		if (entity.GetComponent<AudioSourceComponent>().audio)
-		{
-			*ClipID = entity.GetComponent<AudioSourceComponent>().audio->mAssetHandle;
-		}
-		else
-		{
-			*ClipID = 0;
-		}
-	}
-	void AudioSource_SetClip(uint64_t ID, uint64_t* ClipID)
-	{
-		Scene* scene = SceneManager::GetActiveScene().get();
-		BOREALIS_CORE_ASSERT(scene, "Scene is null");
-		Entity entity = scene->GetEntityByUUID(ID);
-		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		if (*ClipID != 0)
-		{
-			entity.GetComponent<AudioSourceComponent>().audio = AssetManager::GetAsset<Audio>(*ClipID);
-		}
-		else
-		{
-			entity.GetComponent<AudioSourceComponent>().audio = Ref<Audio>();
-		}
-	}
-	void AudioSource_PlayOneShot(uint64_t ID, float volume, uint64_t ClipID, bool is2D, float minDist, float maxDist)
-	{
-		if (ClipID != 0)
-		{
-			Ref<Audio> audio = AssetManager::GetAsset<Audio>(ClipID);
-			if (audio)
-			{
-				Scene* scene = SceneManager::GetActiveScene().get();
-				BOREALIS_CORE_ASSERT(scene, "Scene is null");
-				Entity entity = scene->GetEntityByUUID(ID);
-				BOREALIS_CORE_ASSERT(entity, "Entity is null");
-				auto& transform = entity.GetComponent<TransformComponent>();
-				auto translate = transform.GetGlobalTranslate();
-				auto& audioSource = entity.GetComponent<AudioSourceComponent>();
-				audioSource.channelID = AudioEngine::PlayOneShot(audio, translate, volume, audioSource.group, is2D, minDist, maxDist);
-			}
-		}
-		
+			Scene* scene = SceneManager::GetActiveScene().get();
+			BOREALIS_CORE_ASSERT(scene, "Scene is null");
+			Entity entity = scene->GetEntityByUUID(ID);
+			BOREALIS_CORE_ASSERT(entity, "Entity is null");
+			auto& transform = entity.GetComponent<TransformComponent>();
+			auto translate = transform.GetGlobalTranslate();
+			auto& audioSource = entity.GetComponent<AudioSourceComponent>();
+
+			char* message = mono_string_to_utf8(str);
+			std::string audioName = message;
+			mono_free(message);
+
+			audioSource.channelID = AudioEngine::PlayOneShot(audioName, translate);
+			
 	}
 
-	void AudioSource_PlayOneShotPosition(uint64_t ID, float volume, uint64_t ClipID, glm::vec3* pos, float minDist, float maxDist)
-	{
-		if (ClipID != 0)
-		{
-			Ref<Audio> audio = AssetManager::GetAsset<Audio>(ClipID);
-			if (audio)
-			{
-				Scene* scene = SceneManager::GetActiveScene().get();
-				BOREALIS_CORE_ASSERT(scene, "Scene is null");
-				Entity entity = scene->GetEntityByUUID(ID);
-				BOREALIS_CORE_ASSERT(entity, "Entity is null");
-				auto& audioSource = entity.GetComponent<AudioSourceComponent>();
-				AudioEngine::PlayOneShot(audio, *pos, volume, audioSource.group, false, minDist, maxDist);
-			}
-		}
-	}
-
-	void AudioSource_Play(uint64_t ID)
+	void AudioSource_PlayOneShotPosition(uint64_t ID, MonoString* str, glm::vec3* pos)
 	{
 		Scene* scene = SceneManager::GetActiveScene().get();
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(ID);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		auto& transform = entity.GetComponent<TransformComponent>();
-		auto translate = transform.GetGlobalTranslate();
 		auto& audioSource = entity.GetComponent<AudioSourceComponent>();
-		/*AudioEngine::PlayAudio(audioSource, translate, audioSource.Volume, audioSource.isMute, audioSource.isLoop)*/
-		audioSource.channelID = AudioEngine::Play(audioSource.audio, translate, audioSource.Volume, audioSource.isLoop, "BGM");
+
+		char* message = mono_string_to_utf8(str);
+		std::string audioName = message;
+		mono_free(message);
+
+		audioSource.channelID = AudioEngine::PlayOneShot(audioName, *pos);
 	}
+
 	void AudioSource_Stop(uint64_t ID)
 	{
 		Scene* scene = SceneManager::GetActiveScene().get();
@@ -1721,8 +1667,11 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		auto& transform = entity.GetComponent<TransformComponent>();
 		auto translate = transform.GetGlobalTranslate();
-		auto& audioSource = entity.GetComponent<AudioSourceComponent>();
-		AudioEngine::StopChannel(audioSource.channelID);
+		if (entity.HasComponent<AudioSourceComponent>())
+		{
+			auto& audioSource = entity.GetComponent<AudioSourceComponent>();
+			AudioEngine::StopChannel(audioSource.channelID);
+		}
 	}
 	void AudioSource_IsPlaying(uint64_t ID, bool* playing)
 	{
@@ -1730,41 +1679,10 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
 		Entity entity = scene->GetEntityByUUID(ID);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		*playing = entity.GetComponent<AudioSourceComponent>().isPlaying;
+		if (entity.HasComponent<AudioSourceComponent>())
+		*playing = AudioEngine::isSoundPlaying(entity.GetComponent<AudioSourceComponent>().channelID);
 	}
-	void AudioSource_GetLooping(uint64_t ID, bool* looping)
-	{
-		Scene* scene = SceneManager::GetActiveScene().get();
-		BOREALIS_CORE_ASSERT(scene, "Scene is null");
-		Entity entity = scene->GetEntityByUUID(ID);
-		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		*looping = entity.GetComponent<AudioSourceComponent>().isLoop;
-	}
-	void AudioSource_SetLooping(uint64_t ID, bool* looping)
-	{
-		Scene* scene = SceneManager::GetActiveScene().get();
-		BOREALIS_CORE_ASSERT(scene, "Scene is null");
-		Entity entity = scene->GetEntityByUUID(ID);
-		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		entity.GetComponent<AudioSourceComponent>().isLoop = *looping;
-	}
-	void AudioSource_GetVolume(uint64_t ID, float* volume)
-	{
-		Scene* scene = SceneManager::GetActiveScene().get();
-		BOREALIS_CORE_ASSERT(scene, "Scene is null");
-		Entity entity = scene->GetEntityByUUID(ID);
-		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		*volume = entity.GetComponent<AudioSourceComponent>().Volume;
-	}
-	void AudioSource_SetVolume(uint64_t ID, float* volume)
-	{
-		Scene* scene = SceneManager::GetActiveScene().get();
-		BOREALIS_CORE_ASSERT(scene, "Scene is null");
-		Entity entity = scene->GetEntityByUUID(ID);
-		BOREALIS_CORE_ASSERT(entity, "Entity is null");
-		entity.GetComponent<AudioSourceComponent>().Volume = *volume;
-	}
-	
+
 	void AudioListener_SetListener(uint64_t ID)
 	{
 		Scene* scene = SceneManager::GetActiveScene().get();

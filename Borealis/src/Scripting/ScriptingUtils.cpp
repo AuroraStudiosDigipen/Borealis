@@ -254,5 +254,17 @@ namespace Borealis
 
 	}
 
+	void InitStringObject(MonoObject*& object, std::string str, std::string objectType, bool pin)
+	{
+		object = mono_object_new(mono_domain_get(), ScriptingSystem::GetScriptClass(objectType)->GetMonoClass());
+		void* args[1];
+		MonoMethod* ctor = mono_class_get_method_from_name(ScriptingSystem::GetScriptClass(objectType)->GetMonoClass(), ".ctor", 1);
+		MonoString* monoStr = mono_string_new(mono_domain_get(), str.c_str());
+		args[0] = monoStr;
+		if (pin)
+			mono_gchandle_new(object, true);
+		mono_runtime_invoke(ctor, object, args, NULL);
+	}
+
 
 }

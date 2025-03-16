@@ -14,43 +14,31 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include <BorealisPCH.hpp>
 #include <FMOD/fmod.hpp>
-#include <Audio/Audio.hpp>
+#include <FMOD/fmod_studio.hpp>
 #include "Audio/AudioEngine.hpp"
 #include <Scene/Components.hpp>
-#include <Audio/AudioGroup.hpp>
+#include <Core/Project.hpp>
 #include <vector>
 
 namespace Borealis
 {
-    struct FadeEffect {
-        int channelId;
-        float targetVolume;
-        float startVolume;
-        float currentTime;
-        float duration;
-        bool fadeIn;
 
-        FadeEffect(int chId, float startVol, float targetVol, float dur, bool in)
-            : channelId(chId), startVolume(startVol), targetVolume(targetVol),
-            currentTime(0.0f), duration(dur), fadeIn(in) {}
-    };
-
-
+    static bool HasInit = false;
     struct Implementation {
-        Implementation();
+        Implementation(std::string path);
         ~Implementation();
 
         void Update();
 
         FMOD::System* mpSystem;
+        FMOD::Studio::System* mpStudioSystem;
+        FMOD::Studio::Bank* mpMasterBank = nullptr;
+        FMOD::Studio::Bank* mpStringsBank = nullptr;
+        std::set<std::string> mAudioList;
 
         int mnNextChannelId;
-        typedef std::map<int, FMOD::Channel*> ChannelMap;
-        typedef std::map<std::string, FMOD::ChannelGroup*> ChannelGroupMap;
-
+        typedef std::map<int, FMOD::Studio::EventInstance*> ChannelMap;
         ChannelMap mChannels;
-        ChannelGroupMap mChannelGroups;
-        std::vector<FadeEffect> mFades;
         //typedef std::map<FMOD::Sound*, int> AudioGroupMap;
         //AudioGroupMap mAudioGroupMap;
 
@@ -69,160 +57,67 @@ namespace Borealis
     {
         if (result != FMOD_OK)
         {
-            std::cerr << "FMOD ERROR " << result << std::endl;
+            BOREALIS_CORE_ERROR("FMOD: {}", result);
             return 1;
         }
         return 0;
     }
 
-    Implementation::Implementation()
+    Implementation::Implementation(std::string path)
     {
         mpSystem = nullptr;
         mnNextChannelId = 1;
+        ErrorCheck(FMOD::Studio::System::create(&mpStudioSystem));
 
+        ErrorCheck(mpStudioSystem->initialize(128, FMOD_STUDIO_INIT_LIVEUPDATE, FMOD_INIT_NORMAL, nullptr));
         // Create FMOD Core system
-        ErrorCheck(FMOD::System_Create(&mpSystem));
-
+        ErrorCheck(mpStudioSystem->getCoreSystem(&mpSystem));
         // Initialize FMOD Core system
-        ErrorCheck(mpSystem->init(128, FMOD_INIT_PROFILE_ENABLE, nullptr));
         ErrorCheck(mpSystem->set3DSettings(1.0, 1.f, 1.0f));
 
-        FMOD::ChannelGroup* bgmGroup = nullptr;
-        FMOD::ChannelGroup* sfxGroup = nullptr;
-        FMOD::ChannelGroup* masterGroup = nullptr;
+        ErrorCheck(mpStudioSystem->loadBankFile((path + "/" + "Master.bank").c_str(), FMOD_STUDIO_LOAD_BANK_NORMAL, &mpMasterBank));
+        mpStudioSystem->loadBankFile((path + "/" + "Master.strings.bank").c_str(), FMOD_STUDIO_LOAD_BANK_NORMAL, &mpStringsBank);
 
-        ErrorCheck(mpSystem->createChannelGroup(Borealis::AudioGroups::BGM.c_str(), &bgmGroup));
-        ErrorCheck(mpSystem->createChannelGroup(Borealis::AudioGroups::SFX.c_str(), &sfxGroup));
-        ErrorCheck(mpSystem->getMasterChannelGroup(&masterGroup));
-
-        mChannelGroups[Borealis::AudioGroups::BGM] = bgmGroup;
-        mChannelGroups[Borealis::AudioGroups::SFX] = sfxGroup;
-        mChannelGroups[Borealis::AudioGroups::Master] = masterGroup;
-
-        //FMOD::ChannelGroup* masterGroup = nullptr;
-        //ErrorCheck(mpSystem->getMasterChannelGroup(&masterGroup));
-
-        if (masterGroup)
-        {
-            ErrorCheck(masterGroup->addGroup(bgmGroup));
-            ErrorCheck(masterGroup->addGroup(sfxGroup));
+        FMOD::Studio::EventDescription** eventArray;
+        int eventCount = 0;
+        mpMasterBank->getEventCount(&eventCount);
+        eventArray = new FMOD::Studio::EventDescription * [eventCount];
+        mpMasterBank->getEventList(eventArray, eventCount, &eventCount);
+        for (int i = 0; i < eventCount; i++) {
+            char path[256];
+            eventArray[i]->getPath(path, sizeof(path), nullptr);
+            mAudioList.insert(path);
         }
+        delete[] eventArray;
     }
 
     Implementation::~Implementation()
     {
         // Release FMOD Core system
+        ErrorCheck(mpStudioSystem->unloadAll());
+        ErrorCheck(mpStudioSystem->release());
         ErrorCheck(mpSystem->release());
     }
 
     void Implementation::Update()
     {
-        std::vector<ChannelMap::iterator> pStoppedChannels;
-
-        for (auto it = mChannels.begin(), itEnd = mChannels.end(); it != itEnd; ++it)
-        {
-            bool bIsPlaying = false;
-            it->second->isPlaying(&bIsPlaying);
-            if (!bIsPlaying)
-            {
-                pStoppedChannels.push_back(it);
-            }
-        }
-
-        for (auto& it : pStoppedChannels)
-        {
-            mChannels.erase(it);
-        }
-
-        float deltaTime = 0.016f; // Assume ~60 FPS
-
-        auto it = mFades.begin();
-        while (it != mFades.end())
-        {
-            it->currentTime += deltaTime;
-            float progress = glm::clamp(it->currentTime / it->duration, 0.0f, 1.0f);
-
-            float newVolume;
-            if (it->fadeIn)
-            {
-                // Linear interpolation for fade-in (as before)
-                newVolume = glm::mix(it->startVolume, it->targetVolume, progress);
-            }
-            else
-            {
-                // Convert volumes to dB for logarithmic fade-out
-                constexpr float MIN_VOLUME = 0.0001f; // -80 dB (near silence)
-                float startVol = glm::max(it->startVolume, MIN_VOLUME);
-                float targetVol = glm::max(it->targetVolume, MIN_VOLUME);
-
-                float startDB = 20.0f * log10f(startVol);
-                float targetDB = 20.0f * log10f(targetVol);
-                float currentDB = glm::mix(startDB, targetDB, progress);
-                newVolume = powf(10.0f, currentDB / 20.0f);
-            }
-
-            auto chIt = mChannels.find(it->channelId);
-            if (chIt != mChannels.end())
-            {
-                ErrorCheck(chIt->second->setVolume(newVolume));
-            }
-
-            // Stop when fade-out completes (progress >=1)
-            if (progress >= 1.0f)
-            {
-                if (!it->fadeIn)
-                {
-                    if (chIt != mChannels.end())
-                    {
-                        chIt->second->stop();
-                        mChannels.erase(chIt);
-                    }
-                }
-                it = mFades.erase(it);
-            }
-            else
-            {
-                ++it;
-            }
-        }
-
-
-
-        ErrorCheck(mpSystem->update());
+        ErrorCheck(mpStudioSystem->update());
     }
 
     Implementation* sgpImplementation = nullptr;
-    int AudioEngine::mNextGroupId = 0;
 
-    void AudioEngine::Init()
+    void AudioEngine::Init(std::string path)
     {
-        sgpImplementation = new Implementation;
+        sgpImplementation = new Implementation(path);
+        HasInit = true;
     }
+
+
 
     void AudioEngine::Update()
     {
-        sgpImplementation->Update();
-    }
-
-    Audio AudioEngine::LoadAudio(const std::string& strAudioName, bool b3d, bool bLooping, bool bStream)
-    {
-        FMOD_MODE eMode = FMOD_DEFAULT;
-        eMode |= b3d ? FMOD_3D : FMOD_2D;
-        eMode |= bLooping ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF;
-        eMode |= bStream ? FMOD_CREATESTREAM : FMOD_CREATECOMPRESSEDSAMPLE;
-
-        FMOD::Sound* pSound = nullptr;
-        ErrorCheck(sgpImplementation->mpSystem->createSound(strAudioName.c_str(), eMode, nullptr, &pSound));
-
-        if (pSound)
-        {
-            Audio audio;
-            audio.AudioPath = strAudioName;
-            audio.audioPtr = pSound;
-            return audio;
-        }
-
-        return Audio();
+        if (HasInit)
+            sgpImplementation->Update();
     }
 
     void AudioEngine::UnLoadAudio(const std::string& strSoundName)
@@ -255,58 +150,36 @@ namespace Borealis
         ));
     }
 
-    int AudioEngine::PlayAudio(AudioSourceComponent& audio, const glm::vec3& vPosition, float fVolumedB, bool bMute, bool bLoop, const std::string& groupName)
+    int AudioEngine::PlayAudio(std::string audioPath, const glm::vec3& vPosition)
     {
-        int nChannelId = sgpImplementation->mnNextChannelId++;
 
-        FMOD::Sound* fmodSound = audio.audio->audioPtr;
-        if (!fmodSound) return -1;
+        FMOD::Studio::EventInstance* eventInstance;
+        FMOD::Studio::EventDescription* eventDesc;
+        sgpImplementation->mpStudioSystem->getEvent(audioPath.c_str(), &eventDesc);
+        eventDesc->createInstance(&eventInstance);
+        FMOD_3D_ATTRIBUTES attr;
+        attr.position = VectorToFmod(vPosition);
+        ErrorCheck(eventInstance->set3DAttributes(&attr));
+        ErrorCheck(eventInstance->setPaused(false));
+        ErrorCheck(eventInstance->start());
+        
+        sgpImplementation->mChannels[sgpImplementation->mnNextChannelId++] = eventInstance;
 
-        FMOD::Channel* pChannel = nullptr;
-        ErrorCheck(sgpImplementation->mpSystem->playSound(fmodSound, nullptr, true, &pChannel));
 
-        if (pChannel)
-        {
-            // Check if the sound is in 3D mode
-            FMOD_MODE currMode;
-            fmodSound->getMode(&currMode);
-            if (currMode & FMOD_3D)
-            {
-                FMOD_VECTOR fmodPosition = VectorToFmod(vPosition);
-                FMOD_VECTOR fmodVelocity = { 0.0f, 0.0f, 0.0f };
-
-                // Set the 3D attributes for the sound
-                ErrorCheck(pChannel->set3DAttributes(&fmodPosition, &fmodVelocity));
-            }
-
-            // Other settings (volume, mute, etc.)
-            ErrorCheck(pChannel->setVolume(fVolumedB));
-            ErrorCheck(pChannel->setPaused(false));
-            ErrorCheck(pChannel->setMute(bMute));
-            ErrorCheck(pChannel->setMode(bLoop ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF));
-
-            // Assign the channel to the specified group using setChannelGroup
-            auto itGroup = sgpImplementation->mChannelGroups.find(groupName);
-            if (itGroup != sgpImplementation->mChannelGroups.end())
-            {
-                ErrorCheck(pChannel->setChannelGroup(itGroup->second));
-            }
-
-            sgpImplementation->mChannels[nChannelId] = pChannel;
-        }
-        return nChannelId;
+        return sgpImplementation->mnNextChannelId - 1;
     }
 
-    bool AudioEngine::isSoundPlaying(int nChannelId)
+    bool AudioEngine::isSoundPlaying(int channelID)
     {
-        auto tFoundChannel = sgpImplementation->mChannels.find(nChannelId);
-        if (tFoundChannel == sgpImplementation->mChannels.end())
-            return false;
+        auto tFoundIt = sgpImplementation->mChannels.find(channelID);
 
-        bool bIsPlaying = false;
-        ErrorCheck(tFoundChannel->second->isPlaying(&bIsPlaying));
-
-        return bIsPlaying;
+        if (tFoundIt != sgpImplementation->mChannels.end())
+        {
+            FMOD_STUDIO_PLAYBACK_STATE state;
+            ErrorCheck(tFoundIt->second->getPlaybackState(&state));
+            return state == FMOD_STUDIO_PLAYBACK_PLAYING;
+        }
+        return false;
     }
 
     void AudioEngine::StopChannel(int nChannelId)
@@ -315,14 +188,12 @@ namespace Borealis
 
         if (tFoundIt != sgpImplementation->mChannels.end())
         {
-            FMOD::Channel* pChannel = tFoundIt->second;
+            FMOD::Studio::EventInstance* pChannel = tFoundIt->second;
             bool bIsPlaying = false;
 
-            pChannel->isPlaying(&bIsPlaying);
-
-            if (bIsPlaying)
+            if (isSoundPlaying(nChannelId))
             {
-                ErrorCheck(pChannel->stop());
+                ErrorCheck(pChannel->stop(FMOD_STUDIO_STOP_ALLOWFADEOUT));
                 sgpImplementation->mChannels.erase(nChannelId);
             }
         }
@@ -333,19 +204,11 @@ namespace Borealis
         // Stop all tracked channels
         for (auto it = sgpImplementation->mChannels.begin(); it != sgpImplementation->mChannels.end(); ++it)
         {
-            FMOD::Channel* pChannel = it->second;
-            pChannel->stop();
+            FMOD::Studio::EventInstance* pChannel = it->second;
+            ErrorCheck(pChannel->stop(FMOD_STUDIO_STOP_IMMEDIATE));
         }
 
         sgpImplementation->mChannels.clear(); // Clear the map as all channels are stopped
-
-        // Stop all channels globally via the master group
-        FMOD::ChannelGroup* masterGroup = nullptr;
-        ErrorCheck(sgpImplementation->mpSystem->getMasterChannelGroup(&masterGroup));
-        if (masterGroup)
-        {
-            ErrorCheck(masterGroup->stop());
-        }
     }
 
     void AudioEngine::SetChannel3DPosition(int nChannelId, const glm::vec3& vPosition)
@@ -355,7 +218,9 @@ namespace Borealis
             return;
 
         FMOD_VECTOR position = VectorToFmod(vPosition);
-        ErrorCheck(tFoundIt->second->set3DAttributes(&position, nullptr));
+        FMOD_3D_ATTRIBUTES attr;
+        attr.position = VectorToFmod(vPosition);
+        ErrorCheck(tFoundIt->second->set3DAttributes(&attr));
     }
 
     void AudioEngine::SetChannelVolume(int nChannelId, float fVolumedB)
@@ -366,6 +231,7 @@ namespace Borealis
 
         ErrorCheck(tFoundIt->second->setVolume(dbToVolume(fVolumedB)));
     }
+
 
     void AudioEngine::SetListenerPosition(const glm::vec3& position, const glm::vec3& forward, const glm::vec3& up)
     {
@@ -415,23 +281,41 @@ namespace Borealis
             return;
         }
 
-        FMOD::Channel* channel = it->second;
+        FMOD::Studio::EventInstance* channel = it->second;
         if (!channel) {
-            return;
-        }
-
-        FMOD_MODE mode;
-        ErrorCheck(channel->getMode(&mode));
-
-        if (mode & FMOD_2D)
-        {
             return;
         }
 
         FMOD_VECTOR fmodPosition = VectorToFmod(position);
         FMOD_VECTOR velocity = { 0.0f, 0.0f, 0.0f };
+        FMOD_3D_ATTRIBUTES attr;
+        attr.position = VectorToFmod(position);
+        ErrorCheck(channel->set3DAttributes(&attr));
+    }
+    std::set<std::string> AudioEngine::GetAudioList()
+    {
+        return sgpImplementation->mAudioList;
 
-        ErrorCheck(channel->set3DAttributes(&fmodPosition, &velocity));
+    }
+    void AudioEngine::EditorUpdate()
+    {
+        if (sgpImplementation == nullptr) return;
+        int eventCount;
+        sgpImplementation->mpMasterBank->getEventCount(&eventCount);
+
+        if (eventCount != sgpImplementation->mAudioList.size())
+        {
+			FMOD::Studio::EventDescription** eventArray;
+			eventArray = new FMOD::Studio::EventDescription * [eventCount];
+			sgpImplementation->mpMasterBank->getEventList(eventArray, eventCount, &eventCount);
+			sgpImplementation->mAudioList.clear();
+            for (int i = 0; i < eventCount; i++) {
+				char path[256];
+				eventArray[i]->getPath(path, sizeof(path), nullptr);
+				sgpImplementation->mAudioList.insert(path);
+			}
+			delete[] eventArray;
+		}
     }
 #pragma optimize("", on)
 
@@ -463,177 +347,52 @@ namespace Borealis
 
     int AudioEngine::CreateGroup(const std::string& groupName)
     {
-        FMOD::ChannelGroup* pGroup = nullptr;
-        if (ErrorCheck(sgpImplementation->mpSystem->createChannelGroup(groupName.c_str(), &pGroup)) == 0)
-        {
-            sgpImplementation->mChannelGroups[groupName] = pGroup;
-            return 0; // Success
-        }
-
-        std::cerr << "Error creating group: " << groupName << std::endl;
-        return -1; // Failure
+        return 0; // Failure
     }
 
     void AudioEngine::SetGroupVolume(const std::string& groupName, float fVolumedB)
     {
         float volume = dbToVolume2(fVolumedB);
 
-        auto it = sgpImplementation->mChannelGroups.find(groupName);
-        if (it != sgpImplementation->mChannelGroups.end())
-        {
-            ErrorCheck(it->second->setVolume(volume));
+        FMOD::Studio::Bus* bus;
+        std::string busName = "bus:/" + groupName;
+        auto result = sgpImplementation->mpStudioSystem->getBus(busName.c_str(), &bus);
 
-            float appliedVolume = 0.0f;
-            it->second->getVolume(&appliedVolume);
-        }
+        if (result == FMOD_OK)
+        {
+			ErrorCheck(bus->setVolume(volume));
+		}
         else
         {
-            std::cerr << "Error: Group \"" << groupName << "\" not found!" << std::endl;
-        }
-    }
-    Ref<Asset> AudioEngine::Load(std::filesystem::path const& cachePath, AssetMetaData const& assetMetaData)
-    {
-        Audio audio = LoadAudio((cachePath / std::to_string(assetMetaData.Handle)).string());
-        return MakeRef<Audio>(audio);
+			std::cerr << "Error: Group \"" << groupName << "\" not found!" << std::endl;
+		}
     }
 
-    int AudioEngine::Play(Ref<Audio> audio, const glm::vec3& position, float volumeDB, bool looping, const std::string& groupName)
+    int AudioEngine::Play(std::string audioPath, const glm::vec3& position)
     {
-        if (!audio || !audio->audioPtr)
-        {
-            std::cerr << "Invalid audio reference" << std::endl;
-            return -1;
-        }
 
-        int channelId = sgpImplementation->mnNextChannelId++;
+        FMOD::Studio::EventInstance* eventInstance;
+        FMOD::Studio::EventDescription* eventDesc;
+        ErrorCheck(sgpImplementation->mpStudioSystem->getEvent(audioPath.c_str(), &eventDesc));
+        eventDesc->createInstance(&eventInstance);
+        FMOD_3D_ATTRIBUTES attr;
+        attr.position = VectorToFmod(position);
+        ErrorCheck(eventInstance->set3DAttributes(&attr));
+        ErrorCheck(eventInstance->setPaused(false));
+        ErrorCheck(eventInstance->start());
 
-        FMOD::Channel* channel = nullptr;
-        FMOD::Sound* sound = audio->audioPtr;
+        sgpImplementation->mChannels[sgpImplementation->mnNextChannelId++] = eventInstance;
 
-        ErrorCheck(sgpImplementation->mpSystem->playSound(sound, nullptr, true, &channel));
-        int chIndex = -1;
-        channel->getIndex(&chIndex);
-
-        // Play the sound with pausing enabled initially
-
-        if (channel)
-        {
-            // Set 3D attributes if the sound is in 3D mode
-            FMOD_MODE mode = FMOD_2D;
-            // Set additional properties
-            ErrorCheck(channel->setVolume(volumeDB));
-            ErrorCheck(channel->setPaused(false));
-            mode |= looping ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF;
-            ErrorCheck(channel->setMode(mode));
-            // Assign channel to a group
-            auto itGroup = sgpImplementation->mChannelGroups.find(groupName);
-            if (itGroup != sgpImplementation->mChannelGroups.end())
-            {
-                ErrorCheck(channel->setChannelGroup(itGroup->second));
-            }
-
-            // Store the channel
-            sgpImplementation->mChannels[channelId] = channel;
-        }
-
-        return channelId; // Return the channel ID for tracking
+        return sgpImplementation->mnNextChannelId-1; // Return the channel ID for tracking
     }
 
 //#pragma optimize("", off)
-    int AudioEngine::PlayOneShot(Ref<Audio> audio, const glm::vec3& position, float volumeDB, const std::string& groupName, bool is2D, float minDist, float maxDist)
+    int AudioEngine::PlayOneShot(std::string audioPath, const glm::vec3& position)
     {
-        if (!audio || !audio->audioPtr) {
-            std::cerr << "Invalid audio reference" << std::endl;
-            return -1;
-        }
-
-        FMOD::Channel* channel = nullptr;
-        FMOD::Sound* sound = audio->audioPtr;
-        int channelId = sgpImplementation->mnNextChannelId++;
-        ErrorCheck(sgpImplementation->mpSystem->playSound(sound, nullptr, true, &channel));
-
-        if (channel) 
-        {
-            FMOD_MODE channelMode = FMOD_LOOP_OFF;
-            if (is2D) {
-                channelMode |= FMOD_2D;
-            }
-            else
-            {
-                channelMode |= FMOD_3D | FMOD_3D_LINEARSQUAREROLLOFF;
-            }
-            ErrorCheck(channel->setMode(channelMode));
-
-            FMOD_MODE soundMode;
-            sound->getMode(&soundMode);
-            if (!is2D && (soundMode & FMOD_3D)) {
-                FMOD_VECTOR fmodPosition = VectorToFmod(position);
-                FMOD_VECTOR velocity = { 0.0f, 0.0f, 0.0f };
-                ErrorCheck(channel->set3DAttributes(&fmodPosition, &velocity));
-                ErrorCheck(channel->set3DMinMaxDistance(minDist,maxDist));
-            }
-
-            ErrorCheck(channel->setVolume(volumeDB));
-            ErrorCheck(channel->setPaused(false));
-
-            auto itGroup = sgpImplementation->mChannelGroups.find(groupName);
-            if (itGroup != sgpImplementation->mChannelGroups.end()) {
-                ErrorCheck(channel->setChannelGroup(itGroup->second));
-            }
-
-            sgpImplementation->mChannels[channelId] = channel;
-
-            return channelId;
-        }
-
-        return -1;
+       return Play(audioPath, position);
     }
+
+
 //#pragma optimize("", on)
-
-    void AudioEngine::ApplyFadeIn(int channelId, float fadeInTime, float targetVolumeDB)
-    {
-        auto it = sgpImplementation->mChannels.find(channelId);
-        if (it == sgpImplementation->mChannels.end())
-        {
-            std::cerr << "Error: Invalid channel ID " << channelId << std::endl;
-            return;
-        }
-
-        FMOD::Channel* channel = it->second;
-
-        // ✅ Convert dB to linear volume
-        float startVolume = 0.0f;  // Typically starts from silence
-        float targetVolume = dbToVolume(targetVolumeDB);  // Convert dB to linear
-
-        // Ensure FMOD starts with proper volume
-        ErrorCheck(channel->setVolume(startVolume));
-
-        // ✅ Use linear values in fade effect
-        sgpImplementation->mFades.emplace_back(channelId, startVolume, targetVolume, fadeInTime, true);
-    }
-
-    void AudioEngine::ApplyFadeOut(int channelId, float fadeOutTime)
-    {
-        auto it = sgpImplementation->mChannels.find(channelId);
-        if (it == sgpImplementation->mChannels.end())
-        {
-            std::cerr << "Error: Invalid channel ID " << channelId << std::endl;
-            return;
-        }
-
-        FMOD::Channel* channel = it->second;
-        bool isPlaying = false;
-        channel->isPlaying(&isPlaying);
-
-        if (isPlaying)
-        {
-            float currentVolume = 1.0f;
-            channel->getVolume(&currentVolume);
-            // Use a lower target volume (0.0001f = -80 dB)
-            sgpImplementation->mFades.emplace_back(channelId, currentVolume, 0.0001f, fadeOutTime, false);
-        }
-    }
-
-
 
 }

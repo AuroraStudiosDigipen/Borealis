@@ -13,6 +13,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
  /******************************************************************************/
 
 #include <BorealisPCH.hpp>
+#include <mono/jit/jit.h>
 #include <mono/metadata/attrdefs.h>
 #include <mono/metadata/reflection.h>
 #include <Scripting/ScriptField.hpp>
@@ -54,6 +55,31 @@ namespace Borealis
 
 
 	}
+
+	std::string ScriptField::GetAudioName(MonoObject* object) const
+	{
+		auto Method = mono_class_get_method_from_name(GetScriptClassUtils("AudioClip")->GetMonoClass(), "GetAudioName", 0);
+		MonoObject* result = mono_runtime_invoke(Method, object, nullptr, nullptr);
+		MonoString* monoString = reinterpret_cast<MonoString*>(result);
+		if (monoString)
+		{
+			char* str = mono_string_to_utf8(monoString);
+			std::string output = str;
+			mono_free((void*)str);
+			return output;
+		}
+
+	}
+
+	void ScriptField::SetAudioName(MonoObject* object, std::string name) const
+	{
+		auto Method = mono_class_get_method_from_name(GetScriptClassUtils("AudioClip")->GetMonoClass(), "SetAudioName", 1);
+		MonoString* monoString = mono_string_new(mono_domain_get(), name.c_str());
+		void* args[1] = { monoString };
+		mono_runtime_invoke(Method, object, args, nullptr);
+	}
+
+
 	bool ScriptField::isPublic() const
 	{
 		return mono_field_get_flags(mMonoFieldType) & MONO_FIELD_ATTR_PUBLIC;

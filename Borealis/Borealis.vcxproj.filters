@@ -196,13 +196,7 @@
     <ClInclude Include="inc\Assets\IAssetManager.hpp">
       <Filter>inc\Assets</Filter>
     </ClInclude>
-    <ClInclude Include="inc\Audio\Audio.hpp">
-      <Filter>inc\Audio</Filter>
-    </ClInclude>
     <ClInclude Include="inc\Audio\AudioEngine.hpp">
-      <Filter>inc\Audio</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\Audio\AudioGroup.hpp">
       <Filter>inc\Audio</Filter>
     </ClInclude>
     <ClInclude Include="inc\BorealisPCH.hpp">

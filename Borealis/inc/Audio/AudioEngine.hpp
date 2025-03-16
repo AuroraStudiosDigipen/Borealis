@@ -25,7 +25,7 @@ namespace Borealis
         \brief
             Initializes the audio engine system.
         *************************************************************************/
-        static void Init();
+        static void Init(std::string path);
 
         /*!***********************************************************************
         \brief
@@ -38,20 +38,6 @@ namespace Borealis
             Shuts down and cleans up the audio engine system.
         *************************************************************************/
         static void Shutdown();
-
-        /*!***********************************************************************
-        \brief
-            Loads an audio file into the engine.
-        \param strAudioName
-            The name of the audio file.
-        \param b3d
-            Indicates whether the audio is 3D.
-        \param bLooping
-            Indicates whether the audio should loop.
-        \param bStream
-            Indicates whether the audio should be streamed or loaded in memory.
-        *************************************************************************/
-        static Audio LoadAudio(const std::string& strAudioName, bool b3d = true, bool bLooping = false, bool bStream = false);
 
         /*!***********************************************************************
         \brief
@@ -89,7 +75,7 @@ namespace Borealis
         \return
             The ID of the channel where the sound is played.
         *************************************************************************/
-        static int PlayAudio(AudioSourceComponent& audio, const glm::vec3& vPosition = glm::vec3{ 0, 0, 0 }, float fVolumedB = 5.0f, bool bMute = false, bool bLoop = false, const std::string& groupName = "Master");
+        static int PlayAudio(std::string audioPath, const glm::vec3& vPosition = glm::vec3{ 0, 0, 0 });
 
         /*!***********************************************************************
         \brief
@@ -134,16 +120,6 @@ namespace Borealis
             The volume in decibels.
         *************************************************************************/
         static void SetChannelVolume(int nChannelId, float fVolumedB);
-
-        /*!***********************************************************************
-        \brief
-            Checks if a sound is currently playing on a specified channel.
-        \param nChannelId
-            The ID of the channel to check.
-        \return
-            True if the sound is playing, false otherwise.
-        *************************************************************************/
-        bool IsPlaying(int nChannelId) const;
 
         /*!***********************************************************************
         \brief
@@ -215,21 +191,6 @@ namespace Borealis
 
         //static int GetGroupIdForAudio(FMOD::Sound* fmodSound);
 
-        /*!***********************************************************************
-        \brief
-            Loads an audio asset from metadata.
-        \param assetMetaData
-            Metadata containing the source path and other properties.
-        \return
-            A reference to the loaded audio asset.
-        *************************************************************************/
-        //static Ref<Asset> Load(AssetMetaData const& assetMetaData);
-        static int GetDefaultGroupId();
-
-        static int GetGroupIdForAudio(FMOD::Sound* fmodSound);
-
-        static Ref<Asset> Load(std::filesystem::path const& cachePath, AssetMetaData const& assetMetaData);
-
         static int mDefaultGroupI; /*!< The default audio group ID */
 
         /*!***********************************************************************
@@ -248,7 +209,7 @@ namespace Borealis
         \return
             The ID of the playing channel.
         *************************************************************************/
-        static int Play(Ref<Audio> audio, const glm::vec3& position, float volumeDB, bool looping, const std::string& groupName);
+        static int Play(std::string audioPath, const glm::vec3& position);
 
         /*!***********************************************************************
         \brief
@@ -262,38 +223,16 @@ namespace Borealis
         \param groupName
             The name of the audio group.
         *************************************************************************/
-        static int PlayOneShot(Ref<Audio> audio, const glm::vec3& position, float volumeDB, const std::string& groupName, bool is2D = false, float minDist = 30.f, float maxDist = 100.f);
+        static int PlayOneShot(std::string audioPath, const glm::vec3& position);
         
-        /*!***********************************************************************
-        \brief
-            Applies a fade-in effect to a specific channel.
-        \param channelId
-            The ID of the channel.
-        \param fadeInTime
-            The duration of the fade-in effect.
-        \param targetVolumeDB
-            The final volume in decibels.
-        *************************************************************************/
-        static void ApplyFadeIn(int channelId, float fadeInTime, float targetVolumeDB);
-        
-        /*!***********************************************************************
-        \brief
-            Applies a fade-out effect to a specific channel.
-        \param channelId
-            The ID of the channel.
-        \param fadeOutTime
-            The duration of the fade-out effect.
-        *************************************************************************/
-        static void ApplyFadeOut(int channelId, float fadeOutTime);
-
         static float dbToVolume2(float sliderValue);
 
         static void UpdateChannelPosition(int channelID, glm::vec3 position);
 
-    private:
-        static std::map<int, float> mGroupVolumes; /*!< Map of group IDs and their volume levels */
-        static std::map<int, std::vector<int>> mGroupChannels; /*!< Map of group IDs and the channels assigned to them */
-        static int mNextGroupId; /*!< Counter for creating unique group IDs */
+        static std::set<std::string> GetAudioList();
+
+        static void EditorUpdate();
+
     };
 } // End of namespace Borealis
 

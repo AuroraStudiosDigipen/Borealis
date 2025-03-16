@@ -1,3 +1,0 @@
-File Path: C:\Users\Owner\Documents\Digipen\test2\Assets\untitled.sc
-File Name: untitled.sc
-Asset Type: AssetType::Scene

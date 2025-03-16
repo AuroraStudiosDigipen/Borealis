@@ -354,17 +354,6 @@ namespace Borealis
 			return true;
 		}
 
-
-		if (propType == rttr::type::get<Ref<Audio>>())
-		{
-			if (propValue.get_value<Ref<Audio>>() == nullptr)
-			{
-				return false;
-			}
-			out << YAML::Key << propName.to_string() << YAML::Value << propValue.get_value<Ref<Audio>>()->mAssetHandle;
-			return true;
-		}
-
 		if (propType.is_class() && propType.is_valid()) // all custom classes
 		{
 			out << YAML::Key << propName.to_string() << YAML::BeginMap;
@@ -597,11 +586,6 @@ namespace Borealis
 				return true;
 			}
 
-			if (propType == rttr::type::get<Ref<Audio>>())
-			{
-				prop.set_value(instance, rttr::variant(AssetManager::GetAsset<Audio>(propData.as<uint64_t>())));
-				return true;
-			}
 			if (propType == rttr::type::get<Ref<BehaviourTreeData>>())
 			{
 				prop.set_value(instance, rttr::variant(AssetManager::GetAsset<BehaviourTreeData>(propData.as<uint64_t>())));

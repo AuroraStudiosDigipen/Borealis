@@ -29,7 +29,6 @@ namespace Borealis
 	{
 		None,
 		Animation,
-		Audio,
 		Mesh,
 		Shader,
 		Texture2D,

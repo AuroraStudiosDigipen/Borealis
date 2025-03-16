@@ -67,6 +67,8 @@ workspace "Borealis"
 	Library = {}
 	Library["FMOD_Debug"] = "%{LibraryDir.FMOD}/fmodL_vc.lib"
 	Library["FMOD_Release"] = "%{LibraryDir.FMOD}/fmod_vc.lib"
+	Library["FMODStudio_Debug"] = "%{LibraryDir.FMOD}/fmodstudioL_vc.lib"
+	Library["FMODStudio_Release"] = "%{LibraryDir.FMOD}/fmodstudio_vc.lib"
 	Library["Mono_Debug"] = "%{LibraryDir.Mono_Debug}/mono-2.0-sgen.lib"
 	Library["Mono_Release"] = "%{LibraryDir.Mono_Release}/mono-2.0-sgen.lib"
 
@@ -194,6 +196,7 @@ workspace "Borealis"
 			links
 			{
 				"%{Library.FMOD_Debug}",
+				"%{Library.FMODStudio_Debug}",
 				"%{Library.Mono_Debug}",
 				"%{Library.GLAD_Debug}",
 				"%{Library.GLFW_Debug}",
@@ -213,6 +216,7 @@ workspace "Borealis"
 			links
 			{
 				"%{Library.FMOD_Release}",
+				"%{Library.FMODStudio_Release}",
 				"%{Library.Mono_Release}",
 				"%{Library.GLAD_Release}",
 				"%{Library.GLFW_Release}",
@@ -232,6 +236,7 @@ workspace "Borealis"
 			links
 			{
 				"%{Library.FMOD_Release}",
+				"%{Library.FMODStudio_Release}",
 				"%{Library.Mono_Release}",
 				"%{Library.GLAD_Release}",
 				"%{Library.GLFW_Release}",
@@ -308,6 +313,7 @@ workspace "Borealis"
 			runtime "Debug"
 			postbuildcommands {
 				"{COPYFILE} \"../Borealis/lib/FMOD/dll/fmodL.dll\" \"$(TargetDir)\"",
+				"{COPYFILE} \"../Borealis/lib/FMOD/dll/fmodstudioL.dll\" \"$(TargetDir)\"",
 				"{COPYFILE} \"../Borealis/lib/mono/dll/Deb/mono-2.0-sgen.dll\" \"$(TargetDir)\"",
 				"{COPY} \"engineResources\" \"$(TargetDir)engineResources\"",
 				"{COPY} \"resources\" \"$(TargetDir)resources\"",
@@ -338,6 +344,7 @@ workspace "Borealis"
 			runtime "Release"
 			postbuildcommands {
 				"{COPYFILE} \"../Borealis/lib/FMOD/dll/fmod.dll\" \"$(TargetDir)\"",
+				"{COPYFILE} \"../Borealis/lib/FMOD/dll/fmodstudio.dll\" \"$(TargetDir)\"",
 				"{COPYFILE} \"../Borealis/lib/mono/dll/Rel/mono-2.0-sgen.dll\" \"$(TargetDir)\"",
 				"{COPY} \"engineResources\" \"$(TargetDir)engineResources\"",
 				"{COPY} \"resources\" \"$(TargetDir)resources\"",
@@ -368,6 +375,7 @@ workspace "Borealis"
 			runtime "Release"
 			postbuildcommands {
 				"{COPYFILE} \"../Borealis/lib/FMOD/dll/fmod.dll\" \"$(TargetDir)\"",
+				"{COPYFILE} \"../Borealis/lib/FMOD/dll/fmodstudio.dll\" \"$(TargetDir)\"",
 				"{COPYFILE} \"../Borealis/lib/mono/dll/Rel/mono-2.0-sgen.dll\" \"$(TargetDir)\"",
 				"{COPY} \"engineResources\" \"$(TargetDir)engineResources\"",
 				"{COPY} \"resources\" \"$(TargetDir)resources\"",

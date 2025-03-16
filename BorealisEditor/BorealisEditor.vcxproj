@@ -96,6 +96,7 @@
     </Link>
     <PostBuildEvent>
       <Command>copy /B /Y "..\Borealis\lib\FMOD\dll\fmodL.dll" "$(TargetDir)"
+copy /B /Y "..\Borealis\lib\FMOD\dll\fmodstudioL.dll" "$(TargetDir)"
 copy /B /Y "..\Borealis\lib\mono\dll\Deb\mono-2.0-sgen.dll" "$(TargetDir)"
 IF EXIST "engineResources"\ (xcopy /Q /E /Y /I "engineResources" "$(TargetDir)engineResources" &gt; nul) ELSE (xcopy /Q /Y /I "engineResources" "$(TargetDir)engineResources" &gt; nul)
 IF EXIST "resources"\ (xcopy /Q /E /Y /I "resources" "$(TargetDir)resources" &gt; nul) ELSE (xcopy /Q /Y /I "resources" "$(TargetDir)resources" &gt; nul)
@@ -132,6 +133,7 @@ IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
     </Link>
     <PostBuildEvent>
       <Command>copy /B /Y "..\Borealis\lib\FMOD\dll\fmod.dll" "$(TargetDir)"
+copy /B /Y "..\Borealis\lib\FMOD\dll\fmodstudio.dll" "$(TargetDir)"
 copy /B /Y "..\Borealis\lib\mono\dll\Rel\mono-2.0-sgen.dll" "$(TargetDir)"
 IF EXIST "engineResources"\ (xcopy /Q /E /Y /I "engineResources" "$(TargetDir)engineResources" &gt; nul) ELSE (xcopy /Q /Y /I "engineResources" "$(TargetDir)engineResources" &gt; nul)
 IF EXIST "resources"\ (xcopy /Q /E /Y /I "resources" "$(TargetDir)resources" &gt; nul) ELSE (xcopy /Q /Y /I "resources" "$(TargetDir)resources" &gt; nul)
@@ -168,6 +170,7 @@ IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
     </Link>
     <PostBuildEvent>
       <Command>copy /B /Y "..\Borealis\lib\FMOD\dll\fmod.dll" "$(TargetDir)"
+copy /B /Y "..\Borealis\lib\FMOD\dll\fmodstudio.dll" "$(TargetDir)"
 copy /B /Y "..\Borealis\lib\mono\dll\Rel\mono-2.0-sgen.dll" "$(TargetDir)"
 IF EXIST "engineResources"\ (xcopy /Q /E /Y /I "engineResources" "$(TargetDir)engineResources" &gt; nul) ELSE (xcopy /Q /Y /I "engineResources" "$(TargetDir)engineResources" &gt; nul)
 IF EXIST "resources"\ (xcopy /Q /E /Y /I "resources" "$(TargetDir)resources" &gt; nul) ELSE (xcopy /Q /Y /I "resources" "$(TargetDir)resources" &gt; nul)
@@ -191,7 +194,6 @@ IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
     <ClInclude Include="inc\EditorLayer.hpp" />
     <ClInclude Include="inc\EditorSerialiser.hpp" />
     <ClInclude Include="inc\MaterialEditor.hpp" />
-    <ClInclude Include="inc\Panels\AudioMixerPanel.hpp" />
     <ClInclude Include="inc\Panels\BTNodeEditorPanel.hpp" />
     <ClInclude Include="inc\Panels\ConsolePanel.hpp" />
     <ClInclude Include="inc\Panels\ContentBrowserPanel.hpp" />
@@ -217,7 +219,6 @@ IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
     <ClCompile Include="src\EditorLayer.cpp" />
     <ClCompile Include="src\EditorSerialiser.cpp" />
     <ClCompile Include="src\MaterialEditor.cpp" />
-    <ClCompile Include="src\Panels\AudioMixerPanel.cpp" />
     <ClCompile Include="src\Panels\BTNodeEditorPanel.cpp" />
     <ClCompile Include="src\Panels\ConsolePanel.cpp" />
     <ClCompile Include="src\Panels\ContentBrowserPanel.cpp" />

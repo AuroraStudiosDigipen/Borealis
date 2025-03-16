@@ -31,11 +31,7 @@ namespace Borealis
         registration::class_<AudioSourceComponent>("Audio Source Component")
             (metadata("Component", true))
             .constructor<>()
-            .property("Is Looping", &AudioSourceComponent::isLoop)
-            .property("Is Mute", &AudioSourceComponent::isMute)
-            .property("Is Playing", &AudioSourceComponent::isPlaying)
-            .property("Volume", &AudioSourceComponent::Volume)
-            .property("Audio", &AudioSourceComponent::audio);
+            .property("Volume", &AudioSourceComponent::Volume);
 
         registration::class_<BehaviourTreeComponent>("Behaviour Tree Component")
             (metadata("Component", true))

@@ -38,7 +38,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 // Currently accepts at least the condition and one additional parameter (the message) being optional
 #define BOREALIS_ASSERT(...) BOREALIS_EXPAND_MACRO( BOREALIS_INTERNAL_ASSERT_GET_MACRO(__VA_ARGS__)(_, __VA_ARGS__) )
-#define BOREALIS_CORE_ASSERT(...) BOREALIS_EXPAND_MACRO( BOREALIS_INTERNAL_ASSERT_GET_MACRO(__VA_ARGS__)(_CORE_, __VA_ARGS__) )
+#define BOREALIS_CORE_ASSERT(...) 
 #else
 #define BOREALIS_ASSERT(...)
 #define BOREALIS_CORE_ASSERT(...)
@@ -118,7 +118,7 @@ namespace Borealis {
 // Define the log macros
 #define BOREALIS_CORE_INFO(...)     ::Borealis::LoggerSystem::GetEngineLogger()->info(__VA_ARGS__); ::Borealis::Console::GetInstance().Log(::Borealis::LoggerSystem::GetString(), ::Borealis::Console::INFO_MESSAGE); ::Borealis::LoggerSystem::Flush()
 #define BOREALIS_CORE_TRACE(...)    ::Borealis::LoggerSystem::GetEngineLogger()->trace(__VA_ARGS__);  ::Borealis::Console::GetInstance().Log(::Borealis::LoggerSystem::GetString(), ::Borealis::Console::INFO_MESSAGE); ::Borealis::LoggerSystem::Flush()
-#define BOREALIS_CORE_WARN(...)     ::Borealis::LoggerSystem::GetEngineLogger()->warn(__VA_ARGS__); ::Borealis::Console::GetInstance().Log(::Borealis::LoggerSystem::GetString(), ::Borealis::Console::WARNING_MESSAGE); ::Borealis::LoggerSystem::Flush()
+#define BOREALIS_CORE_WARN(...)    
 #define BOREALIS_CORE_ERROR(...)    ::Borealis::LoggerSystem::GetEngineLogger()->error(__VA_ARGS__); ::Borealis::Console::GetInstance().Log(::Borealis::LoggerSystem::GetString(), ::Borealis::Console::ERROR_MESSAGE); ::Borealis::LoggerSystem::Flush()
 #define BOREALIS_CORE_CRITICAL(...) ::Borealis::LoggerSystem::GetEngineLogger()->critical(__VA_ARGS__); ::Borealis::Console::GetInstance().Log(::Borealis::LoggerSystem::GetString(), ::Borealis::Console::ERROR_MESSAGE); ::Borealis::LoggerSystem::Flush()
 

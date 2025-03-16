@@ -11,37 +11,18 @@ namespace Borealis
             gameObject = new GameObject(id);
         }
 
-        public void PlayOneShot(AudioClip clip, float volumeScale = 1.0F, bool is2D = false, float minDist = 0f, float maxDist = 100F)
+        public void PlayOneShot(AudioClip clip)
         {
-            InternalCalls.AudioSource_PlayOneShot(InstanceID, volumeScale, clip.InstanceID, is2D, minDist, maxDist);
+            InternalCalls.AudioSource_PlayOneShot(InstanceID, clip.audioName);
         }
 
-        public void PlayOneShotPosition(AudioClip clip, Vector3 position, float volumeScale = 1.0F, float minDist = 0f, float maxDist = 100F)
+        public void PlayOneShotPosition( AudioClip clip, Vector3 position)
         {
-            InternalCalls.AudioSource_PlayOneShotPosition(InstanceID , volumeScale, clip.InstanceID, ref position, minDist, maxDist);
+            InternalCalls.AudioSource_PlayOneShotPosition(InstanceID, clip.audioName, ref position);
         }
-
-        public void Play()
-        {
-            InternalCalls.AudioSource_Play(InstanceID);
-        }
-
         public void Stop()
         {
             InternalCalls.AudioSource_Stop(InstanceID);
-        }
-
-        public AudioClip clip
-        {
-            get
-            {
-                InternalCalls.AudioSource_GetClip(GetInstanceID(), out ulong clipID);
-                return new AudioClip(clipID);
-            }
-            set
-            {
-                InternalCalls.AudioSource_SetClip(GetInstanceID(), ref value.InstanceID);
-            }
         }
 
         public bool isPlaying
@@ -50,32 +31,6 @@ namespace Borealis
             {
                 InternalCalls.AudioSource_IsPlaying(GetInstanceID(), out bool playing);
                 return playing;
-            }
-        }
-
-        public bool loop
-        {
-            get
-            {
-                InternalCalls.AudioSource_GetLooping(GetInstanceID(), out bool looping);
-                return looping;
-            }
-            set
-            {
-                InternalCalls.AudioSource_SetLooping(GetInstanceID(), ref value);
-            }
-        }
-
-        public float volume
-        {
-            get
-            {
-                InternalCalls.AudioSource_GetVolume(GetInstanceID(), out float volume);
-                return volume;
-            }
-            set
-            {
-                InternalCalls.AudioSource_SetVolume(GetInstanceID(), ref value);
             }
         }
     }

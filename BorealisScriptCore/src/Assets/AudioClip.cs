@@ -6,17 +6,26 @@ using System.Threading.Tasks;
 
 namespace Borealis
 {
-    [AssetField(AssetType.Audio)]
     public class AudioClip : Object
     {
-        public AudioClip(ulong id)
+        public string audioName;
+        public AudioClip(string name)
         {
-            InstanceID = id;
+            audioName = name;
         }
 
+        public string GetAudioName()
+        {
+            return audioName;
+        }
+
+        public void SetAudioName(string name)
+        {
+            audioName = name;
+        }
         public AudioClip()
         {
-            InstanceID = 0;
+            audioName = "";
         }
     }
 }

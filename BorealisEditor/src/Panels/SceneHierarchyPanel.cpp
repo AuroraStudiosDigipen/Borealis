@@ -37,7 +37,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 //#include <Assets/MeshImporter.hpp>
 //#include <Assets/FontImporter.hpp>
 #include <EditorLayer.hpp>
-
+#include <Audio/AudioEngine.hpp>
 #include <Core/Project.hpp>
 #include <Core/LayerList.hpp>
 
@@ -712,47 +712,6 @@ namespace Borealis
 			return false;
 		}
 
-		if (propType == rttr::type::get<Ref<Audio>>())
-		{
-			rttr::variant value = Property.get_value(rInstance);
-			Ref<Audio> Data = value.get_value<Ref<Audio>>();
-			if (Data)
-			{
-				AssetMetaData meta = AssetManager::GetMetaData(Data->mAssetHandle);
-				std::string fileName = meta.name;
-				ImGui::InputText(("##" + name + propName).c_str(), fileName.data(), fileName.size(), ImGuiInputTextFlags_ReadOnly);
-				if (ImGui::BeginPopupContextItem(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverExistingPopup))
-				{
-					if (ImGui::MenuItem("Remove Audio"))
-					{
-						Property.set_value(rInstance, Ref<Audio>());
-					}
-					ImGui::EndPopup();
-				}
-			}
-			else
-			{
-				ImU32 color32 = IM_COL32(180, 120, 120, 255);
-				ImVec4 color = ImGui::ColorConvertU32ToFloat4(color32);
-				ImGui::PushStyleColor(ImGuiCol_FrameBg, color);
-				char buffer[1] = "";
-				ImGui::InputText(("##" + name + propName).c_str(), buffer, IM_ARRAYSIZE(buffer), ImGuiInputTextFlags_ReadOnly);
-				ImGui::PopStyleColor();
-			}
-			if (ImGui::BeginDragDropTarget())
-			{
-				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropAudioItem"))
-				{
-					AssetHandle data = *(const uint64_t*)payload->Data;
-					rttr::variant setValue(AssetManager::GetAsset<Audio>(data));
-					Property.set_value(rInstance, setValue);
-					return true;
-				}
-				ImGui::EndDragDropTarget();
-			}
-			return false;
-		}
-
 		if (propType.is_valid() && propType.is_class()) // any other type that is registered but not in above "basic types"
 		{
 			
@@ -1281,6 +1240,7 @@ namespace Borealis
 
 		if (Project::GetProjectPath() != "")
 		{
+			AudioEngine::EditorUpdate();
 			ImGuiIO& io = ImGui::GetIO();
 			ImFont* bold = io.Fonts->Fonts[ImGuiFonts::bold];
 			ImGui::PushFont(bold);
@@ -1414,11 +1374,6 @@ namespace Borealis
 				case AssetType::Texture2D:
 				{
 					ShowTextureConfig(metadata);
-					MaterialEditor::SetMaterial(0);
-					break;
-				}
-				case AssetType::Audio:
-				{
 					MaterialEditor::SetMaterial(0);
 					break;
 				}
@@ -1749,18 +1704,6 @@ namespace Borealis
 					case 2:
 						if (ImGui::BeginDragDropTarget())
 						{
-							if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropAudioItem"))
-							{
-								UUID data = *(const uint64_t*)payload->Data;
-								InitGameObject(ObjData, data, field.mFieldClassName());
-								component->SetFieldValue(name, ObjData);
-							}
-							ImGui::EndDragDropTarget();
-						}
-						break;
-					case 3:
-						if (ImGui::BeginDragDropTarget())
-						{
 							if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropAnimationItem"))
 							{
 								UUID data = *(const uint64_t*)payload->Data;
@@ -1980,6 +1923,37 @@ namespace Borealis
 						component->SetFieldValue(name, script->second->GetInstance());
 					}
 					ImGui::EndDragDropTarget();
+				}
+
+			}
+
+			if (field.mFieldClassName() == "AudioClip")
+			{
+				MonoObject* Data = component->GetFieldValue<MonoObject*>(name);
+				if (Data == nullptr)
+				{
+					InitStringObject(Data, "", "AudioClip");
+				}
+				auto fieldData = field.GetAudioName(Data);
+				if (ImGui::BeginCombo(("##" + component->GetKlassName() + name).c_str(), fieldData.c_str()))
+				{
+					auto eventList = AudioEngine::GetAudioList();
+					int i = 0;
+					for (auto audioName : eventList)
+					{
+						bool isSelected = audioName == eventList[i];
+						if (ImGui::Selectable(eventList[i].c_str(), isSelected))
+						{
+							fieldData = eventList[i];
+							field.SetAudioName(Data, fieldData);
+						}
+						if (isSelected)
+						{
+							ImGui::SetItemDefaultFocus();
+						}
+						i++;
+					}
+					ImGui::EndCombo();
 				}
 
 			}

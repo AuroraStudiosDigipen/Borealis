@@ -90,7 +90,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>opengl32.lib;lib\FMOD\lib\fmodL_vc.lib;lib\mono\lib\Deb\mono-2.0-sgen.lib;lib\GLAD\lib\Deb\GLAD.lib;lib\GLFW\lib\Deb\GLFW.lib;lib\JoltPhysics\lib\Deb\JoltPhysics.lib;lib\yaml-cpp\lib\Deb\yaml-cpp.lib;lib\IMGUI\lib\Deb\IMGUI.lib;lib\RTTR\lib\Deb\librttr_core.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;lib\FMOD\lib\fmodL_vc.lib;lib\FMOD\lib\fmodstudioL_vc.lib;lib\mono\lib\Deb\mono-2.0-sgen.lib;lib\GLAD\lib\Deb\GLAD.lib;lib\GLFW\lib\Deb\GLFW.lib;lib\JoltPhysics\lib\Deb\JoltPhysics.lib;lib\yaml-cpp\lib\Deb\yaml-cpp.lib;lib\IMGUI\lib\Deb\IMGUI.lib;lib\RTTR\lib\Deb\librttr_core.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <PostBuildEvent>
       <Command>IF EXIST "engineResources"\ (xcopy /Q /E /Y /I "engineResources" "..\BorealisEditor\engineResources" &gt; nul) ELSE (xcopy /Q /Y /I "engineResources" "..\BorealisEditor\engineResources" &gt; nul)</Command>
@@ -119,7 +119,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>opengl32.lib;lib\FMOD\lib\fmod_vc.lib;lib\mono\lib\Rel\mono-2.0-sgen.lib;lib\GLAD\lib\Rel\GLAD.lib;lib\GLFW\lib\Rel\GLFW.lib;lib\JoltPhysics\lib\Rel\JoltPhysics.lib;lib\yaml-cpp\lib\Rel\yaml-cpp.lib;lib\IMGUI\lib\Rel\IMGUI.lib;lib\RTTR\lib\Rel\librttr_core.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;lib\FMOD\lib\fmod_vc.lib;lib\FMOD\lib\fmodstudio_vc.lib;lib\mono\lib\Rel\mono-2.0-sgen.lib;lib\GLAD\lib\Rel\GLAD.lib;lib\GLFW\lib\Rel\GLFW.lib;lib\JoltPhysics\lib\Rel\JoltPhysics.lib;lib\yaml-cpp\lib\Rel\yaml-cpp.lib;lib\IMGUI\lib\Rel\IMGUI.lib;lib\RTTR\lib\Rel\librttr_core.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <PostBuildEvent>
       <Command>IF EXIST "engineResources"\ (xcopy /Q /E /Y /I "engineResources" "..\BorealisEditor\engineResources" &gt; nul) ELSE (xcopy /Q /Y /I "engineResources" "..\BorealisEditor\engineResources" &gt; nul)</Command>
@@ -148,7 +148,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>opengl32.lib;lib\FMOD\lib\fmod_vc.lib;lib\mono\lib\Rel\mono-2.0-sgen.lib;lib\GLAD\lib\Rel\GLAD.lib;lib\GLFW\lib\Rel\GLFW.lib;lib\JoltPhysics\lib\Rel\JoltPhysics.lib;lib\yaml-cpp\lib\Rel\yaml-cpp.lib;lib\IMGUI\lib\Rel\IMGUI.lib;lib\RTTR\lib\Rel\librttr_core.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;lib\FMOD\lib\fmod_vc.lib;lib\FMOD\lib\fmodstudio_vc.lib;lib\mono\lib\Rel\mono-2.0-sgen.lib;lib\GLAD\lib\Rel\GLAD.lib;lib\GLFW\lib\Rel\GLFW.lib;lib\JoltPhysics\lib\Rel\JoltPhysics.lib;lib\yaml-cpp\lib\Rel\yaml-cpp.lib;lib\IMGUI\lib\Rel\IMGUI.lib;lib\RTTR\lib\Rel\librttr_core.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <PostBuildEvent>
       <Command>IF EXIST "engineResources"\ (xcopy /Q /E /Y /I "engineResources" "..\BorealisEditor\engineResources" &gt; nul) ELSE (xcopy /Q /Y /I "engineResources" "..\BorealisEditor\engineResources" &gt; nul)</Command>
@@ -165,9 +165,7 @@
     <ClInclude Include="inc\Assets\AssetMetaData.hpp" />
     <ClInclude Include="inc\Assets\EditorAssetManager.hpp" />
     <ClInclude Include="inc\Assets\IAssetManager.hpp" />
-    <ClInclude Include="inc\Audio\Audio.hpp" />
     <ClInclude Include="inc\Audio\AudioEngine.hpp" />
-    <ClInclude Include="inc\Audio\AudioGroup.hpp" />
     <ClInclude Include="inc\BorealisPCH.hpp" />
     <ClInclude Include="inc\Core\ApplicationManager.hpp" />
     <ClInclude Include="inc\Core\BitSet32.hpp" />

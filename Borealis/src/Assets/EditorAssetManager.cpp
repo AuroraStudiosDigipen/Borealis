@@ -18,8 +18,6 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/LoggerSystem.hpp>
 #include <Assets/AssetManager.hpp>
 #include <Assets/EditorAssetManager.hpp>
-#include <Audio/Audio.hpp>
-#include <Audio/AudioEngine.hpp>
 #include <Graphics/Material.hpp>
 #include <Graphics/Texture.hpp>
 #include <Graphics/Model.hpp>
@@ -79,8 +77,6 @@ namespace Borealis
 			switch (type)
 			{
 			case Borealis::AssetType::None:
-				break;
-			case Borealis::AssetType::Audio:
 				break;
 			case Borealis::AssetType::Mesh:
 				config = DeserializeMeshConfig(node);

@@ -22,8 +22,7 @@ namespace Borealis
     {
         Sprite = 0,
         Material = 1,
-        Audio = 2,
-        Animation = 3
+        Animation = 2
     }
     internal class AssetField : Attribute 
     {

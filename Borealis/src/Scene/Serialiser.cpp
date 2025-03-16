@@ -29,6 +29,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scripting/ScriptingSystem.hpp>
 #include <Scripting/ScriptingUtils.hpp>
 #include <Core/HierarchyLayerManager.hpp>
+#include <Core/Project.hpp>
 namespace Borealis
 {
 
@@ -204,7 +205,16 @@ namespace Borealis
 						continue;
 					}
 
-
+					if (field.mFieldClassName() == "AudioClip")
+					{
+						MonoObject* Data = script->GetFieldValue<MonoObject*>(name);
+						if (!Data) continue;
+						auto assetID = field.GetAudioName(Data);
+						out << YAML::Key << field.mName << YAML::BeginMap;
+						out << YAML::Key << "Type" << field.mFieldClassName().c_str();
+						out << YAML::Key << "Data" << YAML::Value << assetID;
+						out << YAML::EndMap;
+					}
 
 					if (field.isAssetField() || field.isNativeComponent())
 					{
@@ -498,6 +508,17 @@ namespace Borealis
 						{
 							continue;
 						}
+
+						if (fieldData["Type"].as<std::string>() == "AudioClip")
+						{
+							std::string data = fieldData["Data"].as<std::string>();
+							MonoObject* field = nullptr;
+							InitStringObject(field, data, fieldData["Type"].as<std::string>());
+							scriptInstance->SetFieldValue(fieldName, field);
+
+							continue;
+						}
+
 
 						if (fieldData["Type"].as<std::string>() == "GameObject")
 						{

@@ -162,7 +162,7 @@ namespace Borealis
 		ScriptingSystem::RegisterCSharpClass(ScriptClass("Borealis", "Behaviour", assembly));
 		ScriptingSystem::RegisterCSharpClass(ScriptClass("Borealis", "GameObject", assembly));
 		ScriptingSystem::RegisterCSharpClass(ScriptClass("Borealis", "Object", assembly));
-
+		ScriptingSystem::RegisterCSharpClass(ScriptClass("Borealis", "AudioClip", assembly));
 		ScriptingSystem::RegisterCSharpClass(ScriptClass("Borealis", "BehaviourNode", assembly));
 
 		MonoClass* attributeClass = mono_class_from_name(mono_get_corlib(), "System", "Attribute");

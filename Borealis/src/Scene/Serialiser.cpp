@@ -30,6 +30,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scripting/ScriptingUtils.hpp>
 #include <Core/HierarchyLayerManager.hpp>
 #include <Core/Project.hpp>
+#include <Audio/AudioEngine.hpp>
+#include <Core/Utils.hpp>
 namespace Borealis
 {
 
@@ -515,7 +517,7 @@ namespace Borealis
 							MonoObject* field = nullptr;
 							InitStringObject(field, data, fieldData["Type"].as<std::string>());
 							scriptInstance->SetFieldValue(fieldName, field);
-
+							
 							continue;
 						}
 

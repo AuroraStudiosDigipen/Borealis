@@ -229,7 +229,7 @@ namespace Borealis
 
         static void UpdateChannelPosition(int channelID, glm::vec3 position);
 
-        static std::vector<std::string> GetAudioList();
+        static std::set<std::string> GetAudioList();
 
         static void EditorUpdate();
 

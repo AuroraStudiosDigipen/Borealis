@@ -34,7 +34,7 @@ namespace Borealis
         FMOD::Studio::System* mpStudioSystem;
         FMOD::Studio::Bank* mpMasterBank = nullptr;
         FMOD::Studio::Bank* mpStringsBank = nullptr;
-        std::vector<std::string> mAudioList;
+        std::set<std::string> mAudioList;
 
         int mnNextChannelId;
         typedef std::map<int, FMOD::Studio::EventInstance*> ChannelMap;
@@ -86,7 +86,7 @@ namespace Borealis
         for (int i = 0; i < eventCount; i++) {
             char path[256];
             eventArray[i]->getPath(path, sizeof(path), nullptr);
-            mAudioList.push_back(path);
+            mAudioList.insert(path);
         }
         delete[] eventArray;
     }
@@ -292,7 +292,7 @@ namespace Borealis
         attr.position = VectorToFmod(position);
         ErrorCheck(channel->set3DAttributes(&attr));
     }
-    std::vector<std::string> AudioEngine::GetAudioList()
+    std::set<std::string> AudioEngine::GetAudioList()
     {
         return sgpImplementation->mAudioList;
 
@@ -312,7 +312,7 @@ namespace Borealis
             for (int i = 0; i < eventCount; i++) {
 				char path[256];
 				eventArray[i]->getPath(path, sizeof(path), nullptr);
-				sgpImplementation->mAudioList.push_back(path);
+				sgpImplementation->mAudioList.insert(path);
 			}
 			delete[] eventArray;
 		}

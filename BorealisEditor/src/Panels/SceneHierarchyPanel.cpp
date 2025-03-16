@@ -1935,23 +1935,22 @@ namespace Borealis
 					InitStringObject(Data, "", "AudioClip");
 				}
 				auto fieldData = field.GetAudioName(Data);
+
 				if (ImGui::BeginCombo(("##" + component->GetKlassName() + name).c_str(), fieldData.c_str()))
 				{
 					auto eventList = AudioEngine::GetAudioList();
-					int i = 0;
-					for (auto audioName : eventList)
+					for (const auto& audioName : eventList)
 					{
-						bool isSelected = audioName == eventList[i];
-						if (ImGui::Selectable(eventList[i].c_str(), isSelected))
+						bool isSelected = (audioName == fieldData);
+						if (ImGui::Selectable(audioName.c_str(), isSelected))
 						{
-							fieldData = eventList[i];
+							fieldData = audioName;
 							field.SetAudioName(Data, fieldData);
 						}
 						if (isSelected)
 						{
 							ImGui::SetItemDefaultFocus();
 						}
-						i++;
 					}
 					ImGui::EndCombo();
 				}

@@ -432,7 +432,7 @@ namespace Borealis {
 			}
 
 			SceneManager::GetActiveScene()->SetRenderGraphConfig(fconfig);
-			//SceneManager::GetActiveScene()->UpdateRenderer(dt);	
+			SceneManager::GetActiveScene()->UpdateRenderer(dt);	
 		}
 
 		mHoveredEntity = { (entt::entity)entityID , SceneManager::GetActiveScene().get() };

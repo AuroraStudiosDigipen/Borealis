@@ -19,6 +19,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scene/Components.hpp>
 #include <Core/Project.hpp>
 #include <vector>
+#include <sstream>
+#include <cctype>
 
 namespace Borealis
 {
@@ -35,6 +37,8 @@ namespace Borealis
         FMOD::Studio::Bank* mpMasterBank = nullptr;
         FMOD::Studio::Bank* mpStringsBank = nullptr;
         std::set<std::string> mAudioList;
+        DirectoryTree treeData;
+
 
         int mnNextChannelId;
         typedef std::map<int, FMOD::Studio::EventInstance*> ChannelMap;
@@ -68,7 +72,6 @@ namespace Borealis
         mpSystem = nullptr;
         mnNextChannelId = 1;
         ErrorCheck(FMOD::Studio::System::create(&mpStudioSystem));
-
         ErrorCheck(mpStudioSystem->initialize(128, FMOD_STUDIO_INIT_LIVEUPDATE, FMOD_INIT_NORMAL, nullptr));
         // Create FMOD Core system
         ErrorCheck(mpStudioSystem->getCoreSystem(&mpSystem));
@@ -77,7 +80,7 @@ namespace Borealis
 
         ErrorCheck(mpStudioSystem->loadBankFile((path + "/" + "Master.bank").c_str(), FMOD_STUDIO_LOAD_BANK_NORMAL, &mpMasterBank));
         mpStudioSystem->loadBankFile((path + "/" + "Master.strings.bank").c_str(), FMOD_STUDIO_LOAD_BANK_NORMAL, &mpStringsBank);
-
+        DirectoryTree tree;
         FMOD::Studio::EventDescription** eventArray;
         int eventCount = 0;
         mpMasterBank->getEventCount(&eventCount);
@@ -87,6 +90,8 @@ namespace Borealis
             char path[256];
             eventArray[i]->getPath(path, sizeof(path), nullptr);
             mAudioList.insert(path);
+            std::string eventPath(path);
+            treeData.insertPath(eventPath.substr(7));
         }
         delete[] eventArray;
     }
@@ -313,9 +318,40 @@ namespace Borealis
 				char path[256];
 				eventArray[i]->getPath(path, sizeof(path), nullptr);
 				sgpImplementation->mAudioList.insert(path);
+                std::string eventPath(path);
+                sgpImplementation->treeData.insertPath(eventPath.substr(7));
 			}
 			delete[] eventArray;
 		}
+    }
+    std::set<std::string> AudioEngine::GetAudioListInDirectory(const std::string& directory)
+    {
+        return sgpImplementation->treeData.getFilesInDirectory(directory);
+    }
+    std::set<std::string> AudioEngine::GetFoldersInDirectory(const std::string& directory)
+    {
+        return sgpImplementation->treeData.getFoldersInDirectory(directory);
+    }
+    std::set<std::string> AudioEngine::GetAudioListSearch(std::string keyword)
+    {
+        std::set<std::string> list;
+
+        for (auto audioPath : sgpImplementation->mAudioList)
+        {
+            // find last '/'
+            auto pos = audioPath.find_last_of('/');
+            std::string audioFile = audioPath.substr(pos + 1); // file name
+            // check if audio file contains keyword
+            // put  audio file to all lower case
+            std::transform(audioFile.begin(), audioFile.end(), audioFile.begin(), ::tolower);
+
+            std::transform(keyword.begin(), keyword.end(), keyword.begin(), ::tolower);
+            if (audioFile.find(keyword) != std::string::npos)
+            {
+				list.insert(audioPath);
+			}
+        }
+        return list;
     }
 #pragma optimize("", on)
 
@@ -395,5 +431,132 @@ namespace Borealis
 
 
 //#pragma optimize("", on)
+
+    DirectoryTree::DirectoryTree()
+    {
+        root = new DirectoryNode("/");
+    }
+
+    void DirectoryTree::insertPath(const std::string& path)
+    {
+        std::stringstream ss(path);
+        std::string token;
+        DirectoryNode* currentNode = root;
+        std::vector<std::string> pathParts;
+
+        while (std::getline(ss, token, '/')) {
+            if (token.empty()) continue;
+            pathParts.push_back(token);
+        }
+
+        // Traverse or create directories in the path
+        for (size_t i = 0; i < pathParts.size(); ++i) {
+            const std::string& part = pathParts[i];
+            if (i == pathParts.size() - 1) { // Last part (file)
+                currentNode->addFile(part);
+            }
+            else { // Intermediate directory
+                currentNode = currentNode->addSubdirectory(part);
+            }
+        }
+    }
+
+    void DirectoryTree::printStructure(DirectoryNode* node, int depth)
+    {
+        if (node == nullptr) return;
+
+        // Indentation for the current level
+        for (int i = 0; i < depth; i++) {
+            std::cout << "  ";
+        }
+
+        // Print directories first
+        if (node->isDirectory()) {
+            std::cout << "[" << node->name << "]" << std::endl;
+            for (auto& subdir : node->subdirectories) {
+                printStructure(subdir.second, depth + 1);
+            }
+        }
+
+        // Then print files
+        for (const auto& file : node->files) {
+            for (int j = 0; j < depth + 1; j++) {
+                std::cout << "  ";
+            }
+            std::cout << file << std::endl;
+        }
+    }
+
+    std::set<std::string> DirectoryTree::getFilesInDirectory(const std::string& directory)
+    {
+        std::stringstream ss(directory);
+        std::string token;
+        std::vector<std::string> pathParts;
+
+        while (std::getline(ss, token, '/')) {
+            if (token.empty()) continue;
+            pathParts.push_back(token);
+        }
+
+        DirectoryNode* currentNode = root;
+        for (size_t i = 0; i < pathParts.size(); ++i) {
+			const std::string& part = pathParts[i];
+			auto it = currentNode->subdirectories.find(part);
+            if (it == currentNode->subdirectories.end()) {
+				return std::set<std::string>();
+			}
+			currentNode = it->second;
+		}
+
+        return currentNode->files;
+    }
+
+    std::set<std::string> DirectoryTree::getFoldersInDirectory(const std::string& directory)
+    {
+        std::stringstream ss(directory);
+        std::string token;
+        std::vector<std::string> pathParts;
+
+        while (std::getline(ss, token, '/')) {
+            if (token.empty()) continue;
+            pathParts.push_back(token);
+        }
+
+        DirectoryNode* currentNode = root;
+        for (size_t i = 0; i < pathParts.size(); ++i) {
+            const std::string& part = pathParts[i];
+            auto it = currentNode->subdirectories.find(part);
+            if (it == currentNode->subdirectories.end()) {
+                return std::set<std::string>();
+            }
+            currentNode = it->second;
+        }
+
+        std::set<std::string> folders;
+        for (const auto& subdir : currentNode->subdirectories) {
+			folders.insert(subdir.first);
+		}
+        return folders;
+    }
+
+    void DirectoryTree::clear()
+    {
+        delete root;
+		root = new DirectoryNode("/");
+    }
+
+
+    void DirectoryNode::addFile(const std::string& fileName)
+    {
+        files.insert(fileName);
+    }
+
+    DirectoryNode* DirectoryNode::addSubdirectory(const std::string& dirName)
+    {
+        if (subdirectories.find(dirName) == subdirectories.end()) {
+            subdirectories[dirName] = new DirectoryNode(dirName);
+        }
+        return subdirectories[dirName];
+    }
 
 }

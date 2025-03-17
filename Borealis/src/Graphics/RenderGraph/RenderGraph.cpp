@@ -842,6 +842,36 @@ namespace Borealis
 				Renderer2D::DrawString(text.text, text.font, transform, (int)parent, (float)text.fontSize, text.colour, text.align == TextComponent::TextAlign::Left? false:true);
 			}
 
+			if (parent.HasComponent<ParticleSystemComponent>())
+			{
+				ParticleSystemComponent & particleSystem = parent.GetComponent<ParticleSystemComponent>();
+				std::vector<Particle> const& particles = particleSystem.GetParticles();
+				for (Particle const& particle : particles)
+				{
+					if (!particle.isActive)
+					{
+						continue;
+					}
+
+					glm::mat4 transfromP = glm::translate(glm::mat4(1.0f), particle.position) *
+						glm::toMat4(particle.startRotation) *
+						glm::scale(glm::mat4(1.0f), particle.startSize);
+
+					transfromP = canvasTransform * transfromP;
+
+					float tileFactor = 1.f;
+					if (particleSystem.billboard)
+					{
+						tileFactor = particle.startSize[0] * -1;
+					}
+
+					if (particleSystem.texture)
+						Renderer2D::DrawQuad(transfromP, particleSystem.texture, tileFactor, particle.currentColor, -1, particleSystem.billboard);
+					else
+						Renderer2D::DrawQuad(transfromP, ParticleSystemComponent::GetDefaultParticleTexture(), tileFactor, particle.currentColor, -1, particleSystem.billboard);
+				}
+			}
+
 			if (parent.HasComponent<UIAnimatorComponent>())
 			{
 				UIAnimatorComponent& uiAnimator = parent.GetComponent<UIAnimatorComponent>();
@@ -2393,7 +2423,7 @@ namespace Borealis
 		for (auto& entity : group)
 		{
 			Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
-			if (!brEntity.IsActive())
+			if (!brEntity.IsActive() || (!editor && brEntity.HasComponent<CanvasRendererComponent>()))
 			{
 				continue;
 			}
@@ -2401,7 +2431,6 @@ namespace Borealis
 			auto particleSystem = brEntity.GetComponent<ParticleSystemComponent>();
 			
 			std::vector<Particle> const& particles = particleSystem.GetParticles();
-			uint32_t particlesCount = particleSystem.GetParticlesCount();
 			for (Particle const& particle : particles)
 			{
 				if (!particle.isActive)

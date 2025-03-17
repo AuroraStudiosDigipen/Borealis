@@ -22,5 +22,9 @@ uniform sampler2D u_Texture0;
 
 void main()
 {
-    FragColor = texture(u_Texture0, v_TexCoord);
+    vec4 color = texture(u_Texture0, v_TexCoord);
+    if (isnan(color.r) || isnan(color.g) || isnan(color.b) || isnan(color.a)) {
+        color = vec4(0.0); // Replace NaN with black
+    }
+    FragColor = color;
 }

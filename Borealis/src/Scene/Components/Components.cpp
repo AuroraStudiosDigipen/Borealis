@@ -198,6 +198,7 @@ namespace Borealis
 
 	 void ParticleSystemComponent::Update(TransformComponent& transfrom, float dt)
 	 {
+		 glm::vec3 gravity = glm::vec3(0.0f, -9.81f, 0.0f);
 		 Timer += dt;
 
 		 if (Timer >= duration)
@@ -238,6 +239,9 @@ namespace Borealis
 				 mParticlesCount--;
 				 continue;
 			 }
+
+			 glm::vec3 effectiveGravity = gravity * gravityModifer;
+			 particle.startVelocity += effectiveGravity * dt;
 
 			 if (useNoise) {
 				 // Compute noise input based on position and time

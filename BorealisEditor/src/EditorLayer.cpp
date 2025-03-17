@@ -337,15 +337,16 @@ namespace Borealis {
 				editorCorrectionPass.AddSinkLinkage("renderTarget", "EditorBuffer");
 				fconfig.AddPass(editorCorrectionPass);
 
+				RenderPassConfig editorSkyBoxPass(RenderPassType::SkyboxPass, "editorSkyBox");
+				editorSkyBoxPass.AddSinkLinkage("renderTarget", "editorCorrectionPass.renderTarget");
+				editorSkyBoxPass.AddSinkLinkage("camera", "EditorCamera");
+				fconfig.AddPass(editorSkyBoxPass);
+
 				RenderPassConfig editorRender2D(RenderPassType::Render2D, "editorRender2D");
-				editorRender2D.AddSinkLinkage("renderTarget", "editorCorrectionPass.renderTarget")
+				editorRender2D.AddSinkLinkage("renderTarget", "editorSkyBox.renderTarget")
 					.AddSinkLinkage("camera", "EditorCamera");
 				fconfig.AddPass(editorRender2D);
 				
-				RenderPassConfig editorSkyBoxPass(RenderPassType::SkyboxPass, "editorSkyBox");
-				editorSkyBoxPass.AddSinkLinkage("renderTarget", "editorRender2D.renderTarget");
-				editorSkyBoxPass.AddSinkLinkage("camera", "EditorCamera");
-				fconfig.AddPass(editorSkyBoxPass);
 
 				if (particlesForEditor)
 				{

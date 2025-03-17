@@ -255,12 +255,12 @@ namespace Borealis
 		err = glGetError();
 		if (ignoreNextError)
 			ignoreNextError = false;
-		//else
-		//{
-		//	if (err != GL_NO_ERROR)
-		//		BOREALIS_CORE_WARN("Error with opengl no: {}", err);
-		//	//BOREALIS_CORE_ASSERT(err == GL_NO_ERROR, errorMsg);
-		//}
+		else
+		{
+			if (err != GL_NO_ERROR)
+				BOREALIS_CORE_WARN("Error with opengl no: {}", err);
+			//BOREALIS_CORE_ASSERT(err == GL_NO_ERROR, errorMsg);
+		}
 
 		return err;
 	}

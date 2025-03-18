@@ -195,10 +195,10 @@ namespace BorealisAssetCompiler
 
 
 				msdf_atlas::TightAtlasPacker packer;
-				//packer.setPixelRange(6.5);
+				packer.setPixelRange(10.0);
 				packer.setUnitRange(0.5);
 				packer.setMiterLimit(1.0);
-				packer.setScale(48.0);
+				packer.setScale(40.0);
 				int remain = packer.pack(glyphs.data(), (int)glyphs.size());
 
 				int width, height;

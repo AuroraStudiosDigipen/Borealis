@@ -803,7 +803,7 @@ namespace Borealis
 				}
 
 				auto [transform, text] = group.get<TransformComponent, TextComponent>(entity);
-				Renderer2D::DrawString(text.text, text.font, transform.GetGlobalTransform(), (int)entity, (float)text.fontSize, text.colour, text.align == TextComponent::TextAlign::Left ? false : true);
+				Renderer2D::DrawString(text.text, text.font, transform.GetGlobalTransform(), (int)entity, (float)text.fontSize, text.colour, text.align == TextComponent::TextAlign::Left ? false : true, text.outline, text.width);
 			}
 		}
 
@@ -839,7 +839,7 @@ namespace Borealis
 			{
 				TextComponent const& text = parent.GetComponent<TextComponent>();
 
-				Renderer2D::DrawString(text.text, text.font, transform, (int)parent, (float)text.fontSize, text.colour, text.align == TextComponent::TextAlign::Left? false:true);
+				Renderer2D::DrawString(text.text, text.font, transform, (int)parent, (float)text.fontSize, text.colour, text.align == TextComponent::TextAlign::Left? false:true, text.outline, text.width);
 			}
 
 			if (parent.HasComponent<ParticleSystemComponent>())
@@ -926,7 +926,7 @@ namespace Borealis
 			{
 				TextComponent const& text = parent.GetComponent<TextComponent>();
 
-				Renderer2D::DrawString(text.text, text.font, transform, (int)parent, text.fontSize, text.colour, text.align == TextComponent::TextAlign::Left ? false : true);
+				Renderer2D::DrawString(text.text, text.font, transform, (int)parent, text.fontSize, text.colour, text.align == TextComponent::TextAlign::Left ? false : true, text.outline, text.width);
 			}
 
 			if (parent.HasComponent<UIAnimatorComponent>())

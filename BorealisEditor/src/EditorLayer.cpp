@@ -45,6 +45,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include<EditorSerialiser.hpp>
 #include <Panels/CubemapPanel.hpp>
+#include <Commands.hpp>
 
 namespace ImGui
 {
@@ -707,6 +708,14 @@ namespace Borealis {
 			
 			BTNEPanel.ImGuiRender();
 
+			if (InputSystem::IsKeyPressed(Key::LeftControl))
+			{
+				if (InputSystem::IsKeyTriggered(Key::Z))
+					ActionManager::undo();
+				if (InputSystem::IsKeyTriggered(Key::Y))
+					ActionManager::redo();
+			}
+
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0,0 });
 
 			if (ImGui::Begin("Viewport"))
@@ -850,9 +859,8 @@ namespace Borealis {
 								{
 									ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(globalTransform), glm::value_ptr(translation), glm::value_ptr(rotation), glm::value_ptr(scale));
 								}
-								tc.Rotation = rotation;
-								tc.Translate = translation;
-								tc.Scale = scale;
+								ActionManager::execute(std::make_unique<GizmoCommand>(tc.Translate, tc.Rotation, tc.Scale, translation, rotation, scale, selectedEntity));
+				
 							}
 						}
 				}
@@ -1227,6 +1235,7 @@ namespace Borealis {
 			}
 			break;
 		}
+
 
 		}
 

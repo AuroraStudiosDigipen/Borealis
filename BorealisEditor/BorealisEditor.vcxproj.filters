@@ -30,6 +30,9 @@
     <ClInclude Include="inc\BTNodeEditor.hpp">
       <Filter>inc</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Commands.hpp">
+      <Filter>inc</Filter>
+    </ClInclude>
     <ClInclude Include="inc\EditorAssets\AnimationImporter.hpp">
       <Filter>inc\EditorAssets</Filter>
     </ClInclude>
@@ -96,6 +99,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\BTNodeEditor.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Commands.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\EditorApp.cpp">

@@ -184,6 +184,7 @@ IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="inc\BTNodeEditor.hpp" />
+    <ClInclude Include="inc\Commands.hpp" />
     <ClInclude Include="inc\EditorAssets\AnimationImporter.hpp" />
     <ClInclude Include="inc\EditorAssets\AssetImporter.hpp" />
     <ClInclude Include="inc\EditorAssets\FontImporter.hpp" />
@@ -208,6 +209,7 @@ IF NOT EXIST "$(TargetDir)assets" (mkdir "$(TargetDir)assets")</Command>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\BTNodeEditor.cpp" />
+    <ClCompile Include="src\Commands.cpp" />
     <ClCompile Include="src\EditorApp.cpp" />
     <ClCompile Include="src\EditorAssets\AnimationImporter.cpp" />
     <ClCompile Include="src\EditorAssets\AssetImporter.cpp" />

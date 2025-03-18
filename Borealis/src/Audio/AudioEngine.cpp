@@ -131,7 +131,6 @@ namespace Borealis
         // Release FMOD Core system
         ErrorCheck(mpStudioSystem->unloadAll());
         ErrorCheck(mpStudioSystem->release());
-        ErrorCheck(mpSystem->release());
     }
 
     void Implementation::Update()

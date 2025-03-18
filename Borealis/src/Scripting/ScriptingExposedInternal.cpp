@@ -169,6 +169,7 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_PlayOneShotPosition);
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_IsPlaying );
 		BOREALIS_ADD_INTERNAL_CALL(AudioListener_SetListener);
+		BOREALIS_ADD_INTERNAL_CALL(AudioSource_StopID);
 
 		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_SetNextAnimation);
 		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_GetNextAnimation);
@@ -1626,7 +1627,7 @@ namespace Borealis
 		PhysicsSystem::SetLinearVelocity(entity.GetComponent<CharacterControllerComponent>().controller, *vel);
 	}
 
-	void AudioSource_PlayOneShot(uint64_t ID, MonoString* str)
+	int AudioSource_PlayOneShot(uint64_t ID, MonoString* str)
 	{
 			Scene* scene = SceneManager::GetActiveScene().get();
 			BOREALIS_CORE_ASSERT(scene, "Scene is null");
@@ -1641,10 +1642,11 @@ namespace Borealis
 			mono_free(message);
 
 			audioSource.channelID = AudioEngine::PlayOneShot(audioName, translate);
+			return audioSource.channelID;
 			
 	}
 
-	void AudioSource_PlayOneShotPosition(uint64_t ID, MonoString* str, glm::vec3* pos)
+	int AudioSource_PlayOneShotPosition(uint64_t ID, MonoString* str, glm::vec3* pos)
 	{
 		Scene* scene = SceneManager::GetActiveScene().get();
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
@@ -1657,6 +1659,7 @@ namespace Borealis
 		mono_free(message);
 
 		audioSource.channelID = AudioEngine::PlayOneShot(audioName, *pos);
+		return audioSource.channelID;
 	}
 
 	void AudioSource_Stop(uint64_t ID)
@@ -1671,6 +1674,17 @@ namespace Borealis
 		{
 			auto& audioSource = entity.GetComponent<AudioSourceComponent>();
 			AudioEngine::StopChannel(audioSource.channelID);
+		}
+	}
+	void AudioSource_StopID(uint64_t Uid, int ID)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(ID);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		if (entity.HasComponent<AudioSourceComponent>())
+		{
+			AudioEngine::StopChannel(ID);
 		}
 	}
 	void AudioSource_IsPlaying(uint64_t ID, bool* playing)

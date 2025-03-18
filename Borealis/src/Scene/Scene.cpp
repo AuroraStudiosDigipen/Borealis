@@ -845,7 +845,7 @@ namespace Borealis
 	{
 		//move to rendergraph
 		CreateBuffers();
-		return mGFrameBuffer;
+		return mViewportFrameBuffer;
 	}
 
 	Ref<PixelBuffer> Scene::GetPixelBuffer()

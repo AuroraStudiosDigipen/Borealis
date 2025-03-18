@@ -39,7 +39,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace Borealis
 {
-	Ref<Shader> s_shader = nullptr;
+	Ref<Shader> geometryShader = nullptr;
+	Ref<Shader> lightingShader = nullptr;
 	Ref<Shader> material_shader = nullptr;
 	Ref<Shader> material_shader_transparency = nullptr;
 	Ref<Shader> revealage_shader = nullptr;
@@ -74,7 +75,7 @@ namespace Borealis
 		{
 			glm::mat4 ViewProjection;
 			glm::vec4 CameraPos;
-			//glm::mat4 invViewProj;
+			glm::mat4 invViewProj;
 		};
 		CameraData cameraData;
 		Ref<UniformBufferObject> CameraUBO;
@@ -1023,14 +1024,13 @@ namespace Borealis
 
 	GeometryPass::GeometryPass(std::string name) : EntityPass(name)
 	{
-		shader = s_shader;
+		shader = geometryShader;
 	}
 
 	void GeometryPass::Execute()
 	{
 		PROFILE_FUNCTION();
 		if (shader) shader->Bind();
-		shader->Set("u_lightPass", false);
 		Ref<FrameBuffer> gBuffer = nullptr;
 		glm::mat4 viewProjMatrix{};
 		for (auto sink : sinkList)
@@ -1053,7 +1053,7 @@ namespace Borealis
 					viewProjMatrix = std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj();
 					sData->cameraData.ViewProjection = viewProjMatrix;
 					sData->cameraData.CameraPos = glm::vec4(std::dynamic_pointer_cast<CameraSource>(sink->source)->position, 0.f);
-					//sData->cameraData.invViewProj = glm::inverse(std::dynamic_pointer_cast<CameraSource>(sourcePtr)->GetViewProj());
+					sData->cameraData.invViewProj = glm::inverse(viewProjMatrix);
 					sData->CameraUBO->SetData(&sData->cameraData, sizeof(RenderData::CameraData));
 				}
 			}
@@ -1101,14 +1101,13 @@ namespace Borealis
 
 	LightingPass::LightingPass(std::string name) : EntityPass(name)
 	{
-		shader = s_shader;
+		shader = lightingShader;
 	}
 
 	void LightingPass::Execute()
 	{
 		PROFILE_FUNCTION();
 		if (shader) shader->Bind();
-		shader->Set("u_lightPass", true);
 
 		Ref<GBufferSource> gBuffer = nullptr;
 		Ref<FrameBuffer> renderTarget = nullptr;
@@ -2542,13 +2541,19 @@ namespace Borealis
 		mType = type;
 		mPassName = passName;
 
-		if(!s_shader)
+		if(!geometryShader)
 		{
-			s_shader = Shader::Create("engineResources/Shaders/Renderer3D_DeferredLighting.glsl");
-			UniformBufferObject::BindToShader(s_shader->GetID(), "Camera", CAMERA_BIND);
-			UniformBufferObject::BindToShader(s_shader->GetID(), "MaterialUBO", MATERIAL_ARRAY_BIND);
-			//UniformBufferObject::BindToShader(s_shader->GetID(), "LightsUBO", LIGHTING_BIND);
-			//UniformBufferObject::BindToShader(s_shader->GetID(), "AnimationUBO", ANIMATION_BIND);
+			geometryShader = Shader::Create("engineResources/Shaders/Renderer3D_DeferredGeometry.glsl");
+			UniformBufferObject::BindToShader(geometryShader->GetID(), "Camera", CAMERA_BIND);
+			UniformBufferObject::BindToShader(geometryShader->GetID(), "MaterialUBO", MATERIAL_ARRAY_BIND);
+		}
+
+		if (!lightingShader)
+		{
+			lightingShader = Shader::Create("engineResources/Shaders/Renderer3D_DeferredLighting.glsl");
+			UniformBufferObject::BindToShader(lightingShader->GetID(), "Camera", CAMERA_BIND);
+			UniformBufferObject::BindToShader(lightingShader->GetID(), "LightsUBO", LIGHTING_BIND);
+			//UniformBufferObject::BindToShader(lightingShader->GetID(), "AnimationUBO", ANIMATION_BIND);
 		}
 
 		if (!material_shader)

@@ -13,6 +13,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
  /******************************************************************************/
 
 #include <BorealisPCH.hpp>
+#include <mono/metadata/class.h>
 #include <mono/metadata/assembly.h>
 #include <mono/metadata/appdomain.h>
 #include <Core/LoggerSystem.hpp>

@@ -19,9 +19,33 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scene/Components.hpp>
 #include <Core/Project.hpp>
 #include <vector>
+#include <sstream>
+#include <cctype>
+#include <windows.h>
 
 namespace Borealis
 {
+    static bool HasFileChanged(const std::wstring& filePath, FILETIME& lastWriteTime) {
+        HANDLE hFile = CreateFileW(filePath.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
+            NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+        if (hFile == INVALID_HANDLE_VALUE) {
+            std::wcerr << L"Failed to open file: " << filePath << std::endl;
+            return false;
+        }
+
+        FILETIME ftWrite;
+        if (GetFileTime(hFile, NULL, NULL, &ftWrite)) {
+            if (CompareFileTime(&ftWrite, &lastWriteTime) != 0) {
+                lastWriteTime = ftWrite;
+                CloseHandle(hFile);
+                return true; // File has been modified
+            }
+        }
+
+        CloseHandle(hFile);
+        return false; // No change detected
+    }
+
 
     static bool HasInit = false;
     struct Implementation {
@@ -35,6 +59,8 @@ namespace Borealis
         FMOD::Studio::Bank* mpMasterBank = nullptr;
         FMOD::Studio::Bank* mpStringsBank = nullptr;
         std::set<std::string> mAudioList;
+        DirectoryTree treeData;
+
 
         int mnNextChannelId;
         typedef std::map<int, FMOD::Studio::EventInstance*> ChannelMap;
@@ -63,21 +89,25 @@ namespace Borealis
         return 0;
     }
 
+    static FILETIME lastWriteTime1 = {};
+    static FILETIME lastWriteTime2 = {};
+    static bool stringFileChanged = false;
+    static bool masterFileChanged = false;
+
     Implementation::Implementation(std::string path)
     {
         mpSystem = nullptr;
         mnNextChannelId = 1;
         ErrorCheck(FMOD::Studio::System::create(&mpStudioSystem));
-
         ErrorCheck(mpStudioSystem->initialize(128, FMOD_STUDIO_INIT_LIVEUPDATE, FMOD_INIT_NORMAL, nullptr));
         // Create FMOD Core system
         ErrorCheck(mpStudioSystem->getCoreSystem(&mpSystem));
         // Initialize FMOD Core system
         ErrorCheck(mpSystem->set3DSettings(1.0, 1.f, 1.0f));
 
-        ErrorCheck(mpStudioSystem->loadBankFile((path + "/" + "Master.bank").c_str(), FMOD_STUDIO_LOAD_BANK_NORMAL, &mpMasterBank));
-        mpStudioSystem->loadBankFile((path + "/" + "Master.strings.bank").c_str(), FMOD_STUDIO_LOAD_BANK_NORMAL, &mpStringsBank);
-
+        ErrorCheck(mpStudioSystem->loadBankFile((path + "\\" + "Master.bank").c_str(), FMOD_STUDIO_LOAD_BANK_NORMAL, &mpMasterBank));
+        ErrorCheck(mpStudioSystem->loadBankFile((path + "\\" + "Master.strings.bank").c_str(), FMOD_STUDIO_LOAD_BANK_NORMAL, &mpStringsBank));
+        DirectoryTree tree;
         FMOD::Studio::EventDescription** eventArray;
         int eventCount = 0;
         mpMasterBank->getEventCount(&eventCount);
@@ -87,8 +117,13 @@ namespace Borealis
             char path[256];
             eventArray[i]->getPath(path, sizeof(path), nullptr);
             mAudioList.insert(path);
+            std::string eventPath(path);
+            treeData.insertPath(eventPath.substr(7));
         }
         delete[] eventArray;
+
+        HasFileChanged(std::filesystem::path(path + "\\" + "Master.bank"), lastWriteTime1);
+        HasFileChanged(std::filesystem::path(path + "\\" + "Master.strings.bank"), lastWriteTime2);
     }
 
     Implementation::~Implementation()
@@ -110,6 +145,31 @@ namespace Borealis
     {
         sgpImplementation = new Implementation(path);
         HasInit = true;
+    }
+
+    void AudioEngine::Reload(std::string path)
+    {
+        sgpImplementation->mAudioList.clear();
+        sgpImplementation->treeData.clear();
+        sgpImplementation->mChannels.clear();
+        sgpImplementation->mnNextChannelId = 1;
+        ErrorCheck(sgpImplementation->mpStudioSystem->unloadAll());
+        ErrorCheck(sgpImplementation->mpStudioSystem->loadBankFile((path + "\\" + "Master.bank").c_str(), FMOD_STUDIO_LOAD_BANK_NORMAL, &sgpImplementation->mpMasterBank));
+        ErrorCheck(sgpImplementation->mpStudioSystem->loadBankFile((path + "\\" + "Master.strings.bank").c_str(), FMOD_STUDIO_LOAD_BANK_NORMAL, &sgpImplementation->mpStringsBank));
+        DirectoryTree tree;
+        FMOD::Studio::EventDescription** eventArray;
+        int eventCount = 0;
+        ErrorCheck(sgpImplementation->mpMasterBank->getEventCount(&eventCount));
+        eventArray = new FMOD::Studio::EventDescription * [eventCount];
+        ErrorCheck(sgpImplementation->mpMasterBank->getEventList(eventArray, eventCount, &eventCount));
+        for (int i = 0; i < eventCount; i++) {
+            char path[256];
+            eventArray[i]->getPath(path, sizeof(path), nullptr);
+            sgpImplementation->mAudioList.insert(path);
+            std::string eventPath(path);
+            sgpImplementation->treeData.insertPath(eventPath.substr(7));
+        }
+        delete[] eventArray;
     }
 
 
@@ -297,25 +357,50 @@ namespace Borealis
         return sgpImplementation->mAudioList;
 
     }
+
     void AudioEngine::EditorUpdate()
     {
-        if (sgpImplementation == nullptr) return;
-        int eventCount;
-        sgpImplementation->mpMasterBank->getEventCount(&eventCount);
 
-        if (eventCount != sgpImplementation->mAudioList.size())
+        if (sgpImplementation == nullptr) return;
+        
+        if (HasFileChanged(std::filesystem::path(Project::GetProjectPath() + "\\master.bank"), lastWriteTime1)) masterFileChanged = true;
+        if (HasFileChanged(std::filesystem::path(Project::GetProjectPath() + "\\master.strings.bank"), lastWriteTime2)) stringFileChanged = true;
+
+        if (masterFileChanged && stringFileChanged)
         {
-			FMOD::Studio::EventDescription** eventArray;
-			eventArray = new FMOD::Studio::EventDescription * [eventCount];
-			sgpImplementation->mpMasterBank->getEventList(eventArray, eventCount, &eventCount);
-			sgpImplementation->mAudioList.clear();
-            for (int i = 0; i < eventCount; i++) {
-				char path[256];
-				eventArray[i]->getPath(path, sizeof(path), nullptr);
-				sgpImplementation->mAudioList.insert(path);
-			}
-			delete[] eventArray;
+			Reload(Project::GetProjectPath());
+			masterFileChanged = false;
+			stringFileChanged = false;
 		}
+    }
+    std::set<std::string> AudioEngine::GetAudioListInDirectory(const std::string& directory)
+    {
+        return sgpImplementation->treeData.getFilesInDirectory(directory);
+    }
+    std::set<std::string> AudioEngine::GetFoldersInDirectory(const std::string& directory)
+    {
+        return sgpImplementation->treeData.getFoldersInDirectory(directory);
+    }
+    std::set<std::string> AudioEngine::GetAudioListSearch(std::string keyword)
+    {
+        std::set<std::string> list;
+
+        for (auto audioPath : sgpImplementation->mAudioList)
+        {
+            // find last '/'
+            auto pos = audioPath.find_last_of('/');
+            std::string audioFile = audioPath.substr(pos + 1); // file name
+            // check if audio file contains keyword
+            // put  audio file to all lower case
+            std::transform(audioFile.begin(), audioFile.end(), audioFile.begin(), ::tolower);
+
+            std::transform(keyword.begin(), keyword.end(), keyword.begin(), ::tolower);
+            if (audioFile.find(keyword) != std::string::npos)
+            {
+				list.insert(audioPath);
+			}
+        }
+        return list;
     }
 #pragma optimize("", on)
 
@@ -395,5 +480,132 @@ namespace Borealis
 
 
 //#pragma optimize("", on)
+
+    DirectoryTree::DirectoryTree()
+    {
+        root = new DirectoryNode("/");
+    }
+
+    void DirectoryTree::insertPath(const std::string& path)
+    {
+        std::stringstream ss(path);
+        std::string token;
+        DirectoryNode* currentNode = root;
+        std::vector<std::string> pathParts;
+
+        while (std::getline(ss, token, '/')) {
+            if (token.empty()) continue;
+            pathParts.push_back(token);
+        }
+
+        // Traverse or create directories in the path
+        for (size_t i = 0; i < pathParts.size(); ++i) {
+            const std::string& part = pathParts[i];
+            if (i == pathParts.size() - 1) { // Last part (file)
+                currentNode->addFile(part);
+            }
+            else { // Intermediate directory
+                currentNode = currentNode->addSubdirectory(part);
+            }
+        }
+    }
+
+    void DirectoryTree::printStructure(DirectoryNode* node, int depth)
+    {
+        if (node == nullptr) return;
+
+        // Indentation for the current level
+        for (int i = 0; i < depth; i++) {
+            std::cout << "  ";
+        }
+
+        // Print directories first
+        if (node->isDirectory()) {
+            std::cout << "[" << node->name << "]" << std::endl;
+            for (auto& subdir : node->subdirectories) {
+                printStructure(subdir.second, depth + 1);
+            }
+        }
+
+        // Then print files
+        for (const auto& file : node->files) {
+            for (int j = 0; j < depth + 1; j++) {
+                std::cout << "  ";
+            }
+            std::cout << file << std::endl;
+        }
+    }
+
+    std::set<std::string> DirectoryTree::getFilesInDirectory(const std::string& directory)
+    {
+        std::stringstream ss(directory);
+        std::string token;
+        std::vector<std::string> pathParts;
+
+        while (std::getline(ss, token, '/')) {
+            if (token.empty()) continue;
+            pathParts.push_back(token);
+        }
+
+        DirectoryNode* currentNode = root;
+        for (size_t i = 0; i < pathParts.size(); ++i) {
+			const std::string& part = pathParts[i];
+			auto it = currentNode->subdirectories.find(part);
+            if (it == currentNode->subdirectories.end()) {
+				return std::set<std::string>();
+			}
+			currentNode = it->second;
+		}
+
+        return currentNode->files;
+    }
+
+    std::set<std::string> DirectoryTree::getFoldersInDirectory(const std::string& directory)
+    {
+        std::stringstream ss(directory);
+        std::string token;
+        std::vector<std::string> pathParts;
+
+        while (std::getline(ss, token, '/')) {
+            if (token.empty()) continue;
+            pathParts.push_back(token);
+        }
+
+        DirectoryNode* currentNode = root;
+        for (size_t i = 0; i < pathParts.size(); ++i) {
+            const std::string& part = pathParts[i];
+            auto it = currentNode->subdirectories.find(part);
+            if (it == currentNode->subdirectories.end()) {
+                return std::set<std::string>();
+            }
+            currentNode = it->second;
+        }
+
+        std::set<std::string> folders;
+        for (const auto& subdir : currentNode->subdirectories) {
+			folders.insert(subdir.first);
+		}
+        return folders;
+    }
+
+    void DirectoryTree::clear()
+    {
+        delete root;
+		root = new DirectoryNode("/");
+    }
+
+
+    void DirectoryNode::addFile(const std::string& fileName)
+    {
+        files.insert(fileName);
+    }
+
+    DirectoryNode* DirectoryNode::addSubdirectory(const std::string& dirName)
+    {
+        if (subdirectories.find(dirName) == subdirectories.end()) {
+            subdirectories[dirName] = new DirectoryNode(dirName);
+        }
+        return subdirectories[dirName];
+    }
 
 }

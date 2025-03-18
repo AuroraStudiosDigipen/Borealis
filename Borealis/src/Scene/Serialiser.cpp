@@ -195,12 +195,12 @@ namespace Borealis
 
 			auto& scriptComponent = entity.GetComponent<ScriptComponent>();
 
-			for (auto[name, script]: scriptComponent.mScripts)
+			for (auto [name, script] : scriptComponent.mScripts)
 			{
 				out << YAML::Key << name;
 				out << YAML::BeginMap;
 
-				for (auto [name,field] : script->GetScriptClass()->mFields)
+				for (auto [name, field] : script->GetScriptClass()->mFields)
 				{
 					if ((field.isPrivate() && !field.hasSerializeField(script->GetMonoClass()) || field.hasHideInInspector(script->GetMonoClass())))
 					{
@@ -270,7 +270,7 @@ namespace Borealis
 					}
 					if (field.mType == ScriptFieldType::Float)
 					{
-						out <<  YAML::Key << field.mName << YAML::BeginMap;
+						out << YAML::Key << field.mName << YAML::BeginMap;
 						out << YAML::Key << "Type" << YAML::Value << "Float";
 						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<float>(name);
 						out << YAML::EndMap;
@@ -400,6 +400,221 @@ namespace Borealis
 		}
 	}
 
+	void Serialiser::SerializeEntityScript(YAML::Emitter& out, Entity& entity)
+	{
+
+		if (entity.HasComponent<ScriptComponent>())
+		{
+			out << YAML::Flow << YAML::BeginMap;
+			out << YAML::Key << "EntityID" << YAML::Value << entity.GetComponent<IDComponent>().ID;
+			out << YAML::Key << "ScriptComponent";
+			out << YAML::BeginMap;
+
+			auto& scriptComponent = entity.GetComponent<ScriptComponent>();
+
+			for (auto [name, script] : scriptComponent.mScripts)
+			{
+				out << YAML::Key << name;
+				out << YAML::BeginMap;
+
+				for (auto [name, field] : script->GetScriptClass()->mFields)
+				{
+					if ((field.isPrivate() && !field.hasSerializeField(script->GetMonoClass()) || field.hasHideInInspector(script->GetMonoClass())))
+					{
+						continue;
+					}
+
+					if (field.mFieldClassName() == "AudioClip")
+					{
+						MonoObject* Data = script->GetFieldValue<MonoObject*>(name);
+						if (!Data) continue;
+						auto assetID = field.GetAudioName(Data);
+						out << YAML::Key << field.mName << YAML::BeginMap;
+						out << YAML::Key << "Type" << field.mFieldClassName().c_str();
+						out << YAML::Key << "Data" << YAML::Value << assetID;
+						out << YAML::EndMap;
+					}
+
+					if (field.isAssetField() || field.isNativeComponent())
+					{
+						MonoObject* Data = script->GetFieldValue<MonoObject*>(name);
+						if (!Data)
+						{
+							continue;
+						}
+						out << YAML::Key << field.mName << YAML::BeginMap;
+						out << YAML::Key << "Type" << field.mFieldClassName().c_str();
+						out << YAML::Key << "Data" << YAML::Value << field.GetGameObjectID(Data);
+						out << YAML::EndMap;
+						continue;
+					}
+
+					if (field.isGameObject())
+					{
+						MonoObject* Data = script->GetFieldValue<MonoObject*>(name);
+						if (!Data)
+						{
+							continue;
+						}
+						out << YAML::Key << field.mName << YAML::BeginMap;
+						out << YAML::Key << "Type" << YAML::Value << "GameObject";
+						out << YAML::Key << "Data" << YAML::Value << field.GetGameObjectID(Data);
+						out << YAML::EndMap;
+						continue;
+					}
+
+					if (field.isMonoBehaviour())
+					{
+						MonoObject* Data = script->GetFieldValue<MonoObject*>(name);
+						if (!Data)
+						{
+							continue;
+						}
+						out << YAML::Key << field.mName << YAML::BeginMap;
+						out << YAML::Key << "Type" << YAML::Value << "MonoBehaviour";
+						out << YAML::Key << "Data" << YAML::Value << field.GetAttachedID(Data);
+						out << YAML::EndMap;
+						continue;
+					}
+
+					if (field.mType == ScriptFieldType::Bool)
+					{
+						out << YAML::Key << field.mName << YAML::BeginMap;
+						out << YAML::Key << "Type" << YAML::Value << "Bool";
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<bool>(name);
+						out << YAML::EndMap;
+						continue;
+					}
+					if (field.mType == ScriptFieldType::Float)
+					{
+						out << YAML::Key << field.mName << YAML::BeginMap;
+						out << YAML::Key << "Type" << YAML::Value << "Float";
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<float>(name);
+						out << YAML::EndMap;
+						continue;
+					}
+					if (field.mType == ScriptFieldType::Int)
+					{
+						out << YAML::Key << field.mName << YAML::BeginMap;
+						out << YAML::Key << "Type" << YAML::Value << "Int";
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<int>(name);
+						out << YAML::EndMap;
+						continue;
+					}
+					if (field.mType == ScriptFieldType::String)
+					{
+						out << YAML::Key << field.mName << YAML::BeginMap;
+						out << YAML::Key << "Type" << YAML::Value << "String";
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<std::string>(name);
+						out << YAML::EndMap;
+						continue;
+					}
+					if (field.mType == ScriptFieldType::Vector2)
+					{
+						out << YAML::Key << field.mName << YAML::BeginMap;
+						out << YAML::Key << "Type" << YAML::Value << "Vector2";
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<glm::vec2>(name);
+						out << YAML::EndMap;
+						continue;
+					}
+					if (field.mType == ScriptFieldType::Vector3)
+					{
+						out << YAML::Key << field.mName << YAML::BeginMap;
+						out << YAML::Key << "Type" << YAML::Value << "Vector3";
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<glm::vec3>(name);
+						out << YAML::EndMap;
+						continue;
+					}
+
+					if (field.mType == ScriptFieldType::Vector4)
+					{
+						out << YAML::Key << field.mName << YAML::BeginMap;
+						out << YAML::Key << "Type" << YAML::Value << "Vector4";
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<glm::vec4>(name);
+						out << YAML::EndMap;
+						continue;
+					}
+					if (field.mType == ScriptFieldType::UChar)
+					{
+						out << YAML::Key << field.mName << YAML::BeginMap;
+						out << YAML::Key << "Type" << YAML::Value << "UChar";
+						out << YAML::Key << "Data" << YAML::Value << static_cast<unsigned>(script->GetFieldValue<unsigned char>(name));
+						out << YAML::EndMap;
+						continue;
+					}
+					if (field.mType == ScriptFieldType::Char)
+					{
+						out << YAML::Key << field.mName << YAML::BeginMap;
+						out << YAML::Key << "Type" << YAML::Value << "Char";
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<char>(name);
+						out << YAML::EndMap;
+						continue;
+					}
+					if (field.mType == ScriptFieldType::UShort)
+					{
+						out << YAML::Key << field.mName << YAML::BeginMap;
+						out << YAML::Key << "Type" << YAML::Value << "UShort";
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<unsigned short>(name);
+						out << YAML::EndMap;
+						continue;
+					}
+					if (field.mType == ScriptFieldType::Short)
+					{
+						out << YAML::Key << field.mName << YAML::BeginMap;
+						out << YAML::Key << "Type" << YAML::Value << "Short";
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<short>(name);
+						out << YAML::EndMap;
+						continue;
+					}
+					if (field.mType == ScriptFieldType::UInt)
+					{
+						out << YAML::Key << field.mName << YAML::BeginMap;
+						out << YAML::Key << "Type" << YAML::Value << "UInt";
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<unsigned>(name);
+						out << YAML::EndMap;
+						continue;
+					}
+					if (field.mType == ScriptFieldType::Long)
+					{
+						out << YAML::Key << field.mName << YAML::BeginMap;
+						out << YAML::Key << "Type" << YAML::Value << "Long";
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<long long>(name);
+						out << YAML::EndMap;
+						continue;
+					}
+					if (field.mType == ScriptFieldType::ULong)
+					{
+						out << YAML::Key << field.mName << YAML::BeginMap;
+						out << YAML::Key << "Type" << YAML::Value << "ULong";
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<unsigned long long>(name);
+						out << YAML::EndMap;
+						continue;
+					}
+					if (field.mType == ScriptFieldType::Double)
+					{
+						out << YAML::Key << field.mName << YAML::BeginMap;
+						out << YAML::Key << "Type" << YAML::Value << "Double";
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<double>(name);
+						out << YAML::EndMap;
+						continue;
+					}
+				}
+
+				out << YAML::EndMap;
+			}
+
+			out << YAML::EndMap;
+			out << YAML::EndMap;
+		}
+
+
+		for (auto child : entity.GetComponent<TransformComponent>().ChildrenID)
+		{
+			auto childEntity = mScene->GetEntityByUUID(child);
+			SerializeEntityScript(out, childEntity);
+		}
+	}
+
 	bool Serialiser::SerialiseScene(const std::string& filepath)
 	{
 		YAML::Emitter out;
@@ -435,8 +650,264 @@ namespace Borealis
 		outStream.close();
 		return true;
 	}
+	static std::stringstream backupSS;
+	void Serialiser::SerialiseBackupScriptData(const std::string& filepath)
+	{
+		YAML::Emitter out;
+		out << YAML::BeginMap
+			<< YAML::Key << "Scene" << YAML::Value << mScene->GetName()
+			<< YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
+
+		auto view = HierarchyLayerManager::GetInstance().GetEntitiesInLayerOrder();
+		for (auto id : view)
+		{
+			auto entity = mScene->GetEntityByUUID(id);
+			SerializeEntityScript(out, entity);
+		}
+		out << YAML::EndSeq;
+		out << YAML::EndMap;
+
+		backupSS << out.c_str();
+	}
+
+	void Serialiser::DeserialiseBackupScriptData(const std::string& filepath)
+	{
+		std::stringstream ss;
+		ss << backupSS.rdbuf();
+		YAML::Node data = YAML::Load(ss.str());
+		auto entities = data["Entities"];
+
+		if (entities)
+		{
+			for (auto entity : entities)
+			{
+				uint64_t uuid = entity["EntityID"].as<uint64_t>(); // UUID
+				DeserialiseEntityScript(entity, mScene->GetRegistry(), *reinterpret_cast<UUID*>(&uuid));
+				Entity entity2(mScene->mEntityMap[uuid], mScene.get());
+			}
+			while (!scriptQueue.empty())
+			{
+				auto& scriptData = scriptQueue.front();
+				Entity targetEntity = mScene->GetEntityByUUID(scriptData.targetUUID);
+				auto& scriptComponent = targetEntity.GetComponent<ScriptComponent>();
+				auto script = scriptComponent.mScripts.find(scriptData.scriptInstance->GetScriptClass()->mFields[scriptData.scriptFieldName].mFieldClassName());
+				scriptData.scriptInstance->SetFieldValue(scriptData.scriptFieldName, script->second->GetInstance());
+				scriptQueue.pop();
+			}
+		}
+		backupSS.clear();
+	}
 
 	static std::unordered_set<UUID> sEntityList;
+
+	void Serialiser::DeserialiseEntityScript(YAML::detail::iterator_value& entity, entt::registry& registry, UUID& uuid)
+	{
+		auto BorealisEntity = mScene->GetEntityByUUID(uuid);
+		if (BorealisEntity.HasComponent<ScriptComponent>())
+		{
+			BorealisEntity.RemoveComponent<ScriptComponent>();
+		}
+		auto scriptComponent = entity["ScriptComponent"];
+		if (scriptComponent)
+		{
+			auto& sc = BorealisEntity.AddComponent<ScriptComponent>();
+			for (const auto& script : scriptComponent)
+			{
+				std::string scriptName = script.first.as<std::string>();
+				auto scriptInstance = MakeRef<ScriptInstance>(ScriptingSystem::GetScriptClass(scriptName));
+				scriptInstance->Init(BorealisEntity.GetUUID()); // Initialise the script instance (set the entity reference
+				sc.AddScript(scriptName, scriptInstance);
+
+				const YAML::Node& fields = script.second;
+				if (fields) {
+					for (const auto& field : fields) {
+
+
+						// Each field will have a name and a corresponding node
+						std::string fieldName = field.first.as<std::string>();
+						const YAML::Node& fieldData = field.second;
+						fieldData["Type"].as<std::string>();
+
+
+						if (scriptInstance->GetScriptClass()->mFields.find(fieldName) == scriptInstance->GetScriptClass()->mFields.end())
+						{
+							BOREALIS_CORE_WARN("Field not in script", fieldName, scriptName);
+							continue;
+						}
+						ScriptField scriptField = scriptInstance->GetScriptClass()->mFields[fieldName];
+
+						if ((scriptField.isPrivate() && !scriptField.hasSerializeField(scriptInstance->GetMonoClass()) || scriptField.hasHideInInspector(scriptInstance->GetMonoClass())))
+						{
+							continue;
+						}
+
+						if (fieldData["Type"].as<std::string>() == "AudioClip")
+						{
+							std::string data = fieldData["Data"].as<std::string>();
+							MonoObject* field = nullptr;
+							InitStringObject(field, data, fieldData["Type"].as<std::string>());
+							scriptInstance->SetFieldValue(fieldName, field);
+
+							continue;
+						}
+
+
+						if (fieldData["Type"].as<std::string>() == "GameObject")
+						{
+							uint64_t data = fieldData["Data"].as<uint64_t>();
+							if (!mScene->EntityExists(data))
+							{
+								continue;
+							}
+							MonoObject* field = nullptr;
+							InitGameObject(field, data, fieldData["Type"].as<std::string>());
+							scriptInstance->SetFieldValue(fieldName, field);
+							continue;
+						}
+
+						if (fieldData["Type"].as<std::string>() == "MonoBehaviour")
+						{
+							uint64_t data = fieldData["Data"].as<uint64_t>();
+							if (!mScene->EntityExists(data))
+							{
+								continue;
+							}
+							scriptQueue.push({ scriptInstance, data, fieldName });
+							continue;
+						}
+
+						if (fieldData["Type"].as<std::string>() == "Bool")
+						{
+							bool data = fieldData["Data"].as<bool>();
+							scriptInstance->SetFieldValue(fieldName, &data);
+							continue;
+						}
+
+						if (fieldData["Type"].as<std::string>() == "Float")
+						{
+							float data = fieldData["Data"].as<float>();
+							scriptInstance->SetFieldValue(fieldName, &data);
+							continue;
+						}
+
+						if (fieldData["Type"].as<std::string>() == "Int")
+						{
+							int data = fieldData["Data"].as<int>();
+							scriptInstance->SetFieldValue(fieldName, &data);
+							continue;
+						}
+
+						if (fieldData["Type"].as<std::string>() == "String")
+						{
+							std::string data = fieldData["Data"].as<std::string>();
+							scriptInstance->SetFieldValue(fieldName, &data);
+							continue;
+						}
+
+						if (fieldData["Type"].as<std::string>() == "Vector2")
+						{
+							glm::vec2 data = fieldData["Data"].as<glm::vec2>();
+							scriptInstance->SetFieldValue(fieldName, &data);
+							continue;
+						}
+
+						if (fieldData["Type"].as<std::string>() == "Vector3")
+						{
+							glm::vec3 data = fieldData["Data"].as<glm::vec3>();
+							scriptInstance->SetFieldValue(fieldName, &data);
+							continue;
+						}
+
+						if (fieldData["Type"].as<std::string>() == "Vector4")
+						{
+							glm::vec4 data = fieldData["Data"].as<glm::vec4>();
+							scriptInstance->SetFieldValue(fieldName, &data);
+							continue;
+						}
+
+						if (fieldData["Type"].as<std::string>() == "UChar")
+						{
+							unsigned char data = static_cast<unsigned char>(fieldData["Data"].as<unsigned>());
+							scriptInstance->SetFieldValue(fieldName, &data);
+							continue;
+						}
+
+						if (fieldData["Type"].as<std::string>() == "Char")
+						{
+							char data = fieldData["Data"].as<char>();
+							scriptInstance->SetFieldValue(fieldName, &data);
+							continue;
+						}
+
+						if (fieldData["Type"].as<std::string>() == "UShort")
+						{
+							unsigned short data = fieldData["Data"].as<unsigned short>();
+							scriptInstance->SetFieldValue(fieldName, &data);
+							continue;
+						}
+
+						if (fieldData["Type"].as<std::string>() == "Short")
+						{
+							short data = fieldData["Data"].as<short>();
+							scriptInstance->SetFieldValue(fieldName, &data);
+							continue;
+						}
+
+						if (fieldData["Type"].as<std::string>() == "UInt")
+						{
+							unsigned data = fieldData["Data"].as<unsigned>();
+							scriptInstance->SetFieldValue(fieldName, &data);
+							continue;
+						}
+
+						if (fieldData["Type"].as<std::string>() == "Long")
+						{
+							long long data = fieldData["Data"].as<long long>();
+							scriptInstance->SetFieldValue(fieldName, &data);
+							continue;
+						}
+
+						if (fieldData["Type"].as<std::string>() == "ULong")
+						{
+							unsigned long long data = fieldData["Data"].as<unsigned long long>();
+							scriptInstance->SetFieldValue(fieldName, &data);
+							continue;
+						}
+
+						if (fieldData["Type"].as<std::string>() == "Double")
+						{
+							double data = fieldData["Data"].as<double>();
+							scriptInstance->SetFieldValue(fieldName, &data);
+							continue;
+						}
+
+						if (scriptInstance->GetScriptClass()->mFields[fieldName].isAssetField())
+						{
+							uint64_t data = fieldData["Data"].as<uint64_t>();
+							MonoObject* field = nullptr;
+							InitGameObject(field, data, fieldData["Type"].as<std::string>());
+							scriptInstance->SetFieldValue(fieldName, field);
+							continue;
+						}
+
+						if (scriptInstance->GetScriptClass()->mFields[fieldName].isNativeComponent())
+						{
+							uint64_t data = fieldData["Data"].as<uint64_t>();
+							if (!mScene->EntityExists(data))
+							{
+								continue;
+							}
+							MonoObject* field = nullptr;
+							InitGameObject(field, data, fieldData["Type"].as<std::string>());
+							scriptInstance->SetFieldValue(fieldName, field);
+							continue;
+						}
+					}
+				}
+			}
+		}
+	}
+
 
 	entt::entity Serialiser::DeserialiseEntity(YAML::detail::iterator_value& entity, entt::registry& registry, UUID& uuid)
 	{

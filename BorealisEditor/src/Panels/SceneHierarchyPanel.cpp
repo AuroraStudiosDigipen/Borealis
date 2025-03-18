@@ -40,7 +40,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Audio/AudioEngine.hpp>
 #include <Core/Project.hpp>
 #include <Core/LayerList.hpp>
-
+#include <ResourceManager.hpp>
 #include "MaterialEditor.hpp"
 #include <EditorSerialiser.hpp>
 #include <AI/BehaviourTree/BTreeFactory.hpp>
@@ -1935,25 +1935,112 @@ namespace Borealis
 					InitStringObject(Data, "", "AudioClip");
 				}
 				auto fieldData = field.GetAudioName(Data);
+				static std::string currentDir = "/";
+				static bool comboIsOpen = false;
+				static char searchBufferAudioClip[128] = "";
 
-				if (ImGui::BeginCombo(("##" + component->GetKlassName() + name).c_str(), fieldData.c_str()))
+				std::string previewValue = fieldData;
+				size_t pos = previewValue.find_last_of('/'); // Last '/'
+				if (pos != std::string::npos) {
+					previewValue = previewValue.substr(pos + 1); // Keep the trailing '/'
+				}
+				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10.0f, 10.0f));
+				if (ImGui::BeginCombo(("##" + component->GetKlassName() + name).c_str(), previewValue.c_str()))
 				{
-					auto eventList = AudioEngine::GetAudioList();
-					for (const auto& audioName : eventList)
-					{
-						bool isSelected = (audioName == fieldData);
-						if (ImGui::Selectable(audioName.c_str(), isSelected))
+					if (!comboIsOpen) {
+						if (fieldData == "")
 						{
-							fieldData = audioName;
-							field.SetAudioName(Data, fieldData);
+							currentDir = "/";
 						}
-						if (isSelected)
+						else
 						{
-							ImGui::SetItemDefaultFocus();
+							size_t pos = fieldData.find_last_of('/'); // Last '/'
+							if (pos != std::string::npos) {
+								currentDir = fieldData.substr(0, pos + 1); // Keep the trailing '/'
+								currentDir = currentDir.substr(6);
+							}
+						}
+						comboIsOpen = true;
+					}
+
+					ImGui::InputText("##Search Audio", searchBufferAudioClip, IM_ARRAYSIZE(searchBufferAudioClip));
+					std::string searchBarAudio = searchBufferAudioClip;
+
+					if (searchBarAudio != "")
+					{
+						auto List = AudioEngine::GetAudioListSearch(searchBarAudio);
+						for (const auto& audioFile : List)
+						{
+							auto pos = audioFile.find_last_of('/');
+							std::string audioName = audioFile.substr(pos + 1);
+							bool isSelected = (audioName == fieldData);
+							ImGui::Image((ImTextureID)(ResourceManager::GetFileIcon(FileIcon::Audio)->GetRendererID()), { ImGui::GetFontSize(), ImGui::GetFontSize() });
+							ImGui::SameLine();
+							if (ImGui::Selectable(audioName.c_str(), isSelected))
+							{
+								fieldData = audioFile;
+								field.SetAudioName(Data, fieldData);
+								currentDir = "/";
+								memset(searchBufferAudioClip, 0, 128);
+								comboIsOpen = false;
+							}
+							if (isSelected)
+							{
+								ImGui::SetItemDefaultFocus();
+							}
 						}
 					}
+					else
+					{
+						if (currentDir != "/")
+						{
+							if (ImGui::Button("<-"))
+							{
+								size_t pos = currentDir.find_last_of('/'); // Last '/'
+								if (pos != std::string::npos) {
+									pos = currentDir.find_last_of('/', pos - 1); // Second-to-last '/'
+									if (pos != std::string::npos) {
+										currentDir = currentDir.substr(0, pos + 1); // Keep the trailing '/'
+									}
+								}
+							}
+						}
+
+						auto directoryList = AudioEngine::AudioEngine::GetFoldersInDirectory(currentDir);
+						for (const auto& directoryName : directoryList)
+						{
+							ImGui::Image((ImTextureID)(ResourceManager::GetFileIcon(FileIcon::Directory)->GetRendererID()), { ImGui::GetFontSize(), ImGui::GetFontSize() });
+							ImGui::SameLine();
+							if (ImGui::Selectable(directoryName.c_str(), false, ImGuiSelectableFlags_DontClosePopups))
+							{
+								currentDir += directoryName + "/";
+							}
+						}
+
+						auto eventList = AudioEngine::AudioEngine::GetAudioListInDirectory(currentDir);
+						for (const auto& audioName : eventList)
+						{
+							bool isSelected = (audioName == fieldData);
+							ImGui::Image((ImTextureID)(ResourceManager::GetFileIcon(FileIcon::Audio)->GetRendererID()), { ImGui::GetFontSize(), ImGui::GetFontSize() });
+							ImGui::SameLine();
+							if (ImGui::Selectable(audioName.c_str(), isSelected))
+							{
+								fieldData = "event:" + currentDir + audioName;
+								field.SetAudioName(Data, fieldData);
+								currentDir = "/";
+								comboIsOpen = false;
+							}
+							if (isSelected)
+							{
+								ImGui::SetItemDefaultFocus();
+							}
+						}
+					}
+
 					ImGui::EndCombo();
 				}
+
+				ImGui::PopStyleVar();
 
 			}
 			if (field.mType == ScriptFieldType::Bool)

@@ -30,7 +30,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scene/Entity.hpp>
 #include <AI/BehaviourTree/BehaviourNode.hpp>
 #include <AI/BehaviourTree/BTreeFactory.hpp>
-
+#include <mutex>
 #include <Core/Project.hpp>
 
 namespace Borealis
@@ -38,7 +38,8 @@ namespace Borealis
 
 	 std::unordered_map<std::string, Ref<ScriptClass>> ScriptingSystem::mScriptClasses;
 	 std::unordered_map<std::string, std::unordered_set<UUID>> ScriptingSystem::mEntityScriptMap; // Scripts attached to entities
-
+	 std::mutex g_mutex;
+	 static bool hasInit = false;
 
 	struct ScriptingSystemData
 	{
@@ -109,7 +110,7 @@ namespace Borealis
 	{
 		auto thread = mono_thread_attach(sData->mAppDomain);
 		// Compile the C# script
-		mono_domain_set(sData->mAppDomain, true);
+		mono_domain_set(sData->mAppDomain, false);
 		MonoObject* monoCompiler = (MonoObject*)InitCoreAssembly();
 		MonoArray* monoFilePaths = mono_array_new(mono_domain_get(), mono_get_string_class(), sData->mCSharpList.size());
 
@@ -143,6 +144,41 @@ namespace Borealis
 		mono_thread_detach(thread);
 	}
 
+	void ScriptingSystem::CompileCSharpQueueNonThreaded(std::string cSharpPath)
+	{
+		mono_domain_set(sData->mAppDomain, false);
+		MonoObject* monoCompiler = (MonoObject*)InitCoreAssembly();
+		MonoArray* monoFilePaths = mono_array_new(mono_domain_get(), mono_get_string_class(), sData->mCSharpList.size());
+
+		for (size_t i = 0; i < sData->mCSharpList.size(); ++i) {
+			MonoString* monoString = mono_string_new(mono_domain_get(), sData->mCSharpList[i].c_str());
+			mono_array_set(monoFilePaths, MonoString*, i, monoString);
+		}
+
+		MonoString* str2 = mono_string_new(mono_domain_get(), "CSharp_Assembly");
+
+		bool success = false;
+		void* args[3] = { monoFilePaths, str2, &success };
+
+		auto method = mono_class_get_method_from_name(GetScriptClassUtils("RoslynCompiler")->GetMonoClass(), "CompileCode", 3);
+		MonoObject* result = mono_runtime_invoke(method, monoCompiler, args, nullptr);
+
+		if (success) {
+			MonoArray* byteArray = (MonoArray*)result;
+			int length = mono_array_length(byteArray);
+			void* data = mono_array_addr_with_size(byteArray, 0, 0);
+
+			std::ofstream file(cSharpPath, std::ios::binary);
+			if (file.is_open())
+			{
+				file.write((char*)data, length);
+				file.close();
+			}
+		}
+
+		sData->mCSharpList.clear();
+	}
+
 	void ScriptingSystem::PushCSharpQueue(std::string filepath)
 	{
 		sData->mCSharpList.push_back(filepath);
@@ -151,6 +187,7 @@ namespace Borealis
 
 	static void RegisterCSharpScriptsFromAssembly(MonoAssembly* assembly)
 	{
+		std::lock_guard<std::mutex> lock(g_mutex);
 		void* iterator = nullptr;
 		auto assemblyImage = mono_assembly_get_image(assembly);
 
@@ -280,11 +317,11 @@ namespace Borealis
 
 	void ScriptingSystem::LoadScriptAssembliesNonThreaded(std::string filepath)
 	{
-		mono_domain_set(sData->mRootDomain, true);
+		mono_domain_set(mono_get_root_domain(), false);
 		mono_domain_unload(sData->mAppDomain);
 		char friendlyName[] = "BorealisAppDomain";
 		sData->mAppDomain = mono_domain_create_appdomain(friendlyName, nullptr);
-		mono_domain_set(sData->mAppDomain, true);
+		mono_domain_set(sData->mAppDomain, false);
 		sData->mRoslynAssembly = LoadCSharpAssembly("resources/scripts/core/BorealisScriptCore.dll");
 		RegisterCSharpScriptsFromAssembly(sData->mRoslynAssembly);
 
@@ -360,16 +397,17 @@ namespace Borealis
 				continue;
 			}
 		}
+		hasInit = true;
 	}
 
 	void ScriptingSystem::AttachAppDomain()
 	{
-		mono_domain_set(sData->mAppDomain, true);
+		mono_domain_set(sData->mAppDomain, false);
 	}
 
 	void ScriptingSystem::DetachAppDomain()
 	{
-		mono_domain_set(sData->mRootDomain, true);
+		mono_domain_set(sData->mRootDomain, false);
 	}
 
 
@@ -529,7 +567,7 @@ namespace Borealis
 
 		char friendlyName[] = "BorealisAppDomain";
 		sData->mAppDomain = mono_domain_create_appdomain(friendlyName, nullptr); // Compiler
-		mono_domain_set(sData->mAppDomain, true);
+		mono_domain_set(sData->mAppDomain, false);
 
 		RegisterInternals();
 
@@ -561,11 +599,38 @@ namespace Borealis
 				ScriptingSystem::PushCSharpQueue(assetMetaDataFromRegistry.SourcePath.string());
 			}
 		}
-		ScriptingSystem::CompileCSharpQueue(Project::GetProjectPath() + "/Cache/CSharp_Assembly.dll");
-		ScriptingSystem::LoadScriptAssemblies(Project::GetProjectPath() + "/Cache/CSharp_Assembly.dll");
+
+		if (!hasInit)
+		{
+			ScriptingSystem::CompileCSharpQueue(Project::GetProjectPath() + "/Cache/CSharp_Assembly.dll");
+			ScriptingSystem::LoadScriptAssemblies(Project::GetProjectPath() + "/Cache/CSharp_Assembly.dll");
+		}
+		else // reloading
+		{
+			if (SceneManager::GetActiveScene())
+			{
+				Serialiser serialise(SceneManager::GetActiveScene());
+				serialise.SerialiseBackupScriptData(Project::GetProjectPath() + "/backupData.sc");
+			}
+			ScriptingSystem::CompileCSharpQueueNonThreaded(Project::GetProjectPath() + "/Cache/CSharp_Assembly.dll");
+			mScriptClasses.clear();
+			ScriptingSystem::LoadScriptAssembliesNonThreaded(Project::GetProjectPath() + "/Cache/CSharp_Assembly.dll");
+
+			if (SceneManager::GetActiveScene())
+			{
+				Serialiser serialise(SceneManager::GetActiveScene());
+				serialise.DeserialiseBackupScriptData(Project::GetProjectPath() + "/backupData.sc");
+			}
+			BOREALIS_CORE_WARN("[[[DONE RECOMPILING SCRIPTS]]]");
+		}
 	}
 	void* ScriptingSystem::GetScriptDomain()
 	{
 		return sData->mAppDomain;
+	}
+	void ScriptingSystem::ReloadAllEntities()
+	{
+	
+
 	}
 }

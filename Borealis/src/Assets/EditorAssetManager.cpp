@@ -22,10 +22,12 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/Texture.hpp>
 #include <Graphics/Model.hpp>
 #include <AI/BehaviourTree/BTreeFactory.hpp>
-
+#include <mutex>
 
 namespace Borealis
 {
+
+	static std::mutex reloadMutex;
 	//TEMP
 	//=====================================
 	namespace
@@ -215,7 +217,10 @@ namespace Borealis
 				return request == assetHandle;
 			});
 		if(it == mAssetReloadRequests.end())
+		{
+			std::lock_guard<std::mutex> lock(reloadMutex);
 			mAssetReloadRequests.push_back(assetHandle);
+		}
 	}
 
 	Ref<Asset> EditorAssetManager::ReloadAsset(AssetHandle assetHandle)
@@ -319,6 +324,8 @@ namespace Borealis
 
 	void EditorAssetManager::Update()
 	{
+		std::lock_guard<std::mutex> lock(reloadMutex);
+
 		if (mAssetReloadRequests.empty()) return;
 
 		for (AssetHandle assetHandle : mAssetReloadRequests)

@@ -14,6 +14,52 @@
 
 namespace Borealis
 {
+
+    class DirectoryNode {
+    public:
+        std::string name;  // Directory name or file name
+        std::map<std::string, DirectoryNode*> subdirectories;  // Subdirectories
+        std::set<std::string> files;  // Files in this directory
+
+        bool isLeaf() const {
+            return subdirectories.empty() && files.empty();
+        }
+
+        bool isDirectory() const
+        {
+            return !isLeaf();
+        }
+
+        DirectoryNode(const std::string& name)
+            : name(name) {}
+
+        // Function to add a file to the current directory
+        void addFile(const std::string& fileName);
+
+        // Function to add a subdirectory
+        DirectoryNode* addSubdirectory(const std::string& dirName);
+    };
+
+    class DirectoryTree {
+    public:
+        DirectoryNode* root;
+
+        DirectoryTree();
+
+        // Insert file path into the tree
+        void insertPath(const std::string& path);
+
+        // Print the directory structure (for debugging)
+        void printStructure(DirectoryNode* node, int depth = 0);
+
+        std::set<std::string> getFilesInDirectory(const std::string& directory);
+
+        std::set<std::string> getFoldersInDirectory(const std::string& directory);
+
+        void clear();
+    };
+
+
     /*!***********************************************************************
     \class AudioEngine
     \brief Handles audio-related functionality, including initialization, playing sounds, and managing channels.
@@ -26,6 +72,8 @@ namespace Borealis
             Initializes the audio engine system.
         *************************************************************************/
         static void Init(std::string path);
+
+        static void Reload(std::string path);
 
         /*!***********************************************************************
         \brief
@@ -232,6 +280,11 @@ namespace Borealis
         static std::set<std::string> GetAudioList();
 
         static void EditorUpdate();
+
+        static std::set<std::string> GetAudioListInDirectory(const std::string& directory);
+        static std::set<std::string> GetFoldersInDirectory(const std::string& directory);
+
+        static std::set<std::string> GetAudioListSearch( std::string keyword);
 
     };
 } // End of namespace Borealis

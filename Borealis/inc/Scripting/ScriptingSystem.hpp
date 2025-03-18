@@ -70,6 +70,7 @@ namespace Borealis
 		static Ref<ScriptClass> GetScriptClass(const std::string& className) { return mScriptClasses[className]; }
 
 		static void CompileCSharpQueue(std::string pathToSave);
+		static void CompileCSharpQueueNonThreaded(std::string pathToSave);
 
 		static void PushCSharpQueue(std::string filepath);
 
@@ -90,6 +91,8 @@ namespace Borealis
 		static void Reload(AssetMetaData const& assetMetaData);
 
 		static void* GetScriptDomain();
+
+		static void ReloadAllEntities();
 
 	private:
 

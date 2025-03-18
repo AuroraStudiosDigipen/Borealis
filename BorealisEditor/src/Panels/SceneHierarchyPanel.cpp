@@ -1323,6 +1323,7 @@ namespace Borealis
 								SceneManager::SetActiveScene(name, serialiser);
 								mContext = SceneManager::GetActiveScene();
 								*mEditorScene = SceneManager::GetActiveScene();
+								serialiser.DeserializeEditorCameraProp(*editorCamera, Project::GetProjectPath() + "/cameras.prop");
 								mSelectedEntity = {};
 								ClearSelectedEntities();
 							}

@@ -130,8 +130,9 @@ namespace Borealis {
 
 		SCPanel.SetContext(SceneManager::GetActiveScene());
 		SCPanel.mEditorScene = &mEditorScene;
-
+		
 		mEditorCamera = EditorCamera(60.0f, 1.778f, 0.3f, 1000.0f);
+		SCPanel.editorCamera = &mEditorCamera;
 		ScriptingSystem::InitCoreAssembly();
 		ResourceManager::Init();
 
@@ -147,6 +148,8 @@ namespace Borealis {
 	void EditorLayer::Free()
 	{
 		PROFILE_FUNCTION();
+		EditorSerialiser serialiser(nullptr);
+		serialiser.SerializeEditorCameraProp(mEditorCamera, Project::GetProjectPath() + "/cameras.props");
 		ResourceManager::Free();
 
 	}
@@ -518,6 +521,7 @@ namespace Borealis {
 
 				EditorSerialiser serialiser(nullptr);
 				SceneManager::SetActiveScene(activeScName, serialiser);
+				serialiser.DeserializeEditorCameraProp(mEditorCamera, Project::GetProjectPath()+"/cameras.props");
 
 				for (auto [handle, meta] : Project::GetEditorAssetsManager()->GetAssetRegistry())
 				{
@@ -1268,7 +1272,10 @@ namespace Borealis {
 			EditorSerialiser serialiser(mEditorScene);
 			serialiser.DeserialiseScene(filepath);
 
+
 			SceneManager::GetActiveScene() = mEditorScene;
+			serialiser.DeserializeEditorCameraProp(mEditorCamera, Project::GetProjectPath() + "/cameras.props");
+
 			if (hasRuntimeCamera)
 			{
 				SceneManager::GetActiveScene()->GetRegistry().get<CameraComponent>(mRuntimeCamera).Camera.SetViewportSize((uint32_t)mRuntimeSize.x, (uint32_t)mRuntimeSize.y);
@@ -1299,6 +1306,8 @@ namespace Borealis {
 			BOREALIS_CORE_INFO(SceneManager::GetActiveScene()->GetName());
 
 			DeserialiseEditorScene();
+			serialiser.DeserializeEditorCameraProp(mEditorCamera, Project::GetProjectPath() + "/cameras.props");
+
 		}
 		for (auto& item : SceneManager::GetActiveScene()->GetRegistry().view<entt::entity>()) {
 			Entity entity{ item, SceneManager::GetActiveScene().get() }; // Use GetActiveScene() here
@@ -1524,6 +1533,8 @@ namespace Borealis {
 		Project::SaveProject();
 		EditorSerialiser serialiser(mEditorScene);
 		SceneManager::SaveActiveScene(serialiser);
+		serialiser.SerializeEditorCameraProp(mEditorCamera, Project::GetProjectPath() + "/cameras.props");
+
 	}
 
 	void EditorLayer::UIToolbar()

@@ -18,12 +18,10 @@ namespace Borealis
             undoStack.pop();
             command->undo();
             redoStack.push(std::move(command));
-            BOREALIS_CORE_INFO(redoStack.size());
         }
     }
 
     void ActionManager::redo() {
-        BOREALIS_CORE_INFO("TEST2");
         if (!redoStack.empty()) {
             auto command = std::move(redoStack.top());
             redoStack.pop();

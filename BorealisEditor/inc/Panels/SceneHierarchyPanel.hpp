@@ -167,6 +167,7 @@ namespace Borealis {
 			return false;
 		}
 		Ref<Scene>* mEditorScene;
+		EditorCamera* editorCamera = nullptr;
 
 	private:
 

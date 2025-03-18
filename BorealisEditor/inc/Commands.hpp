@@ -296,11 +296,19 @@ namespace Borealis
 
         void execute() override {
             entity.AddComponent<ComponentType>();
+            if (std::is_same<ComponentType, MeshFilterComponent>::value)
+            {
+                entity.AddComponent<MeshRendererComponent>();
+            }
         }
 
         void undo() override {
             // Bring back entity
             entity.RemoveComponent<ComponentType>();
+            if (std::is_same<ComponentType, MeshFilterComponent>::value)
+            {
+                entity.RemoveComponent<MeshRendererComponent>();
+            }
         }
     };
 
@@ -309,28 +317,19 @@ namespace Borealis
     {
     private:
         Entity entity;
+        ComponentType component;
     public:
-        RemoveComponentCommand(Entity ent)
-            : entity(ent) {}
+        RemoveComponentCommand(Entity ent, ComponentType component)
+            : entity(ent), component(component) {}
 
         void execute() override {
             entity.RemoveComponent<ComponentType>();
-            if (std::is_same<ComponentType, MeshFilterComponent>::value)
-            {
-                if (!entity.HasComponent<MeshRendererComponent>())
-                {
-                    entity.AddComponent<MeshRendererComponent>();
-                }
-            }
         }
 
         void undo() override {
             // Bring back entity
             entity.AddComponent<ComponentType>(); //Retain all data
-            if (std::is_same<ComponentType, MeshFilterComponent>::value)
-            {
-                entity.RemoveComponent<MeshRendererComponent>();
-            }
+            entity.GetComponent<ComponentType>() = component;
         }
     };
 

@@ -837,7 +837,7 @@ namespace Borealis
 
 			if (deleteComponent)
 			{
-				ActionManager::execute(std::make_unique<RemoveComponentCommand<T>>(entity));
+				ActionManager::execute(std::make_unique<RemoveComponentCommand<T>>(entity, entity.GetComponent<T>()));
 			}
 		}
 		return isEdited;

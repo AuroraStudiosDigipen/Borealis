@@ -1342,6 +1342,11 @@ namespace Borealis {
 #else
 			Project::CopyIndividualFile(editorPath + "\\fmodL.dll", filepath + "\\fmodL.dll");
 #endif
+#ifndef _DEB
+			Project::CopyIndividualFile(editorPath + "\\fmodstudio.dll", filepath + "\\fmodstudio.dll");
+#else
+			Project::CopyIndividualFile(editorPath + "\\fmodstudioL.dll", filepath + "\\fmodstudioL.dll");
+#endif
 			Project::CopyIndividualFile(editorPath + "\\mono-2.0-sgen.dll", filepath + "\\mono-2.0-sgen.dll");
 			Project::CopyFolder(editorPath + "\\mono", filepath + "\\mono");
 			Project::CopyFolder(editorPath + "\\resources", filepath + "\\resources");

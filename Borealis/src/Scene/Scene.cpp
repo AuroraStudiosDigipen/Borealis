@@ -845,7 +845,7 @@ namespace Borealis
 	{
 		//move to rendergraph
 		CreateBuffers();
-		return mViewportFrameBuffer;
+		return mGFrameBuffer;
 	}
 
 	Ref<PixelBuffer> Scene::GetPixelBuffer()
@@ -964,10 +964,10 @@ namespace Borealis
 			{
 				FramebufferTextureFormat::RGBA16F,  // Albedo + Alpha
 				FramebufferTextureFormat::RedInteger,  // entity id
-				FramebufferTextureFormat::RGBA8,   // Normal + roughness
-				FramebufferTextureFormat::RGBA8,   // Specular + metallic
-				//FramebufferTextureFormat::RGB16F,   // Position
-				FramebufferTextureFormat::Depth     // Depth buffer
+				FramebufferTextureFormat::RGBA8,   // Normal
+				FramebufferTextureFormat::RGBA8,   // Emissive
+				FramebufferTextureFormat::RGBA8,   // Roughness + Metallic
+				FramebufferTextureFormat::Depth     // Depth buffer/Stencil
 			};
 			mGFrameBuffer = FrameBuffer::Create(propsGBuffer);
 

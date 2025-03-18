@@ -74,6 +74,7 @@ namespace Borealis
 		{
 			glm::mat4 ViewProjection;
 			glm::vec4 CameraPos;
+			//glm::mat4 invViewProj;
 		};
 		CameraData cameraData;
 		Ref<UniformBufferObject> CameraUBO;
@@ -820,7 +821,7 @@ namespace Borealis
 
 	UIWorldPass::UIWorldPass(std::string name) : EntityPass((name))
 	{
-		shader = s_shader;
+
 	}
 
 	void RenderCanvasRecursive(Entity parent, const glm::mat4& canvasTransform)
@@ -1044,24 +1045,22 @@ namespace Borealis
 					gBuffer->Bind();
 					RenderCommand::Clear();
 					RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
-					//for (int i{1}; i < 4; i++)
-					//{
-					//	gBuffer->ClearAttachment(i, 0);
-					//}
 					gBuffer->ClearAttachment(1, -1);
 				}
 
 				if (sourcePtr->sourceType == RenderSourceType::Camera)
 				{
-					viewProjMatrix = std::dynamic_pointer_cast<CameraSource>(sourcePtr)->GetViewProj();
-					shader->Set("u_ViewProjection", viewProjMatrix);
+					viewProjMatrix = std::dynamic_pointer_cast<CameraSource>(sink->source)->GetViewProj();
+					sData->cameraData.ViewProjection = viewProjMatrix;
+					sData->cameraData.CameraPos = glm::vec4(std::dynamic_pointer_cast<CameraSource>(sink->source)->position, 0.f);
+					//sData->cameraData.invViewProj = glm::inverse(std::dynamic_pointer_cast<CameraSource>(sourcePtr)->GetViewProj());
+					sData->CameraUBO->SetData(&sData->cameraData, sizeof(RenderData::CameraData));
 				}
 			}
 		}
 		Frustum frustum = ComputeFrustum(viewProjMatrix);
-
+		//mesh pass
 		{
-			RenderCommand::DisableBlend();
 			auto group = registryPtr->group<>(entt::get<TransformComponent, MeshFilterComponent, MeshRendererComponent>);
 			for (auto& entity : group)
 			{
@@ -1070,24 +1069,33 @@ namespace Borealis
 				{
 					continue;
 				}
+
 				auto [transform, meshFilter, meshRenderer] = group.get<TransformComponent, MeshFilterComponent, MeshRendererComponent>(entity);
+
 				if (!meshFilter.Model || !meshRenderer.Material || !meshRenderer.active) continue;
+
 				BoundingSphere modelBoundingSphere = meshFilter.Model->mBoundingSphere;
 				modelBoundingSphere.Transform(transform.GetGlobalTransform());
 
-
 				if (CullBoundingSphere(frustum, modelBoundingSphere))
 				{
-					//BOREALIS_CORE_INFO("Culling entity {}", (int)entity);
 					continue;
 				}
 
-				Renderer3D::DrawMesh(transform.GetGlobalTransform(), meshFilter, meshRenderer, shader,(int)entity);
+				Renderer3D::DrawMesh(transform.GetGlobalTransform(), meshFilter, meshRenderer, shader, (int)entity);
 			}
-			RenderCommand::EnableBlend();
 		}
 
-		if (gBuffer) gBuffer->Unbind();
+		RenderCommand::EnableDepthTest();
+		RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLess);
+		RenderCommand::SetDepthMask(true);
+		RenderCommand::DisableBlend();
+		RenderCommand::SetClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.f));
+		gBuffer->Bind();
+		RenderCommand::Clear();
+		Renderer3D::End(false);
+		gBuffer->Unbind();
+		RenderCommand::GetError({});
 		if (shader) shader->Unbind();
 	}
 
@@ -1120,33 +1128,34 @@ namespace Borealis
 
 					renderTarget->ClearAttachment(1, -1);
 				}
-
-				if (sourcePtr->sourceType == RenderSourceType::Camera)
-				{
-					glm::mat4 invViewProj = glm::inverse(std::dynamic_pointer_cast<CameraSource>(sourcePtr)->GetViewProj());
-					shader->Set("u_invViewProj", invViewProj);
-				}
 			}
+		}
+
+		if (renderTarget->GetProperties().Width != gBuffer->buffer->GetProperties().Width || renderTarget->GetProperties().Height != gBuffer->buffer->GetProperties().Height)
+		{
+			gBuffer->buffer->Resize(renderTarget->GetProperties().Width, renderTarget->GetProperties().Height);
 		}
 
 		gBuffer->Bind();
 
-		gBuffer->BindTexture(GBufferSource::Albedo,		0);
-		gBuffer->BindTexture(GBufferSource::EntityID,	1);
-		gBuffer->BindTexture(GBufferSource::Normal,		2);
-		gBuffer->BindTexture(GBufferSource::Specular,	3);
-		gBuffer->BindDepthBuffer(4);
+		gBuffer->BindTexture(GBufferSource::Albedo,			0);
+		gBuffer->BindTexture(GBufferSource::EntityID,		1);
+		gBuffer->BindTexture(GBufferSource::Normal,			2);
+		gBuffer->BindTexture(GBufferSource::Emissive,		3);
+		gBuffer->BindTexture(GBufferSource::RoughMetallic,	4);
+		gBuffer->BindDepthBuffer(5);
 
 		gBuffer->Unbind();
 		
-		shader->Set("lAlbedo",		0);
-		shader->Set("lEntityID",	1);
-		shader->Set("lNormal",		2);
-		shader->Set("lSpecular",	3);
-		shader->Set("lDepthBuffer",	4);
+		shader->Set("lAlbedo",				0);
+		shader->Set("lEntityID",			1);
+		shader->Set("lNormal",				2);
+		shader->Set("lEmissive",			3);
+		shader->Set("lRoughnessMetallic",	4);
+		shader->Set("lDepthBuffer",			5);
 
 		{
-			Renderer3D::End();//clear lights, move ltr on
+			Renderer3D::Begin({}, nullptr);
 			entt::basic_group group = registryPtr->group<>(entt::get<TransformComponent, LightComponent>);
 			for (auto& entity : group)
 			{
@@ -2534,7 +2543,13 @@ namespace Borealis
 		mPassName = passName;
 
 		if(!s_shader)
+		{
 			s_shader = Shader::Create("engineResources/Shaders/Renderer3D_DeferredLighting.glsl");
+			UniformBufferObject::BindToShader(s_shader->GetID(), "Camera", CAMERA_BIND);
+			UniformBufferObject::BindToShader(s_shader->GetID(), "MaterialUBO", MATERIAL_ARRAY_BIND);
+			//UniformBufferObject::BindToShader(s_shader->GetID(), "LightsUBO", LIGHTING_BIND);
+			//UniformBufferObject::BindToShader(s_shader->GetID(), "AnimationUBO", ANIMATION_BIND);
+		}
 
 		if (!material_shader)
 			material_shader = Shader::GetDefault3DMaterialShader();

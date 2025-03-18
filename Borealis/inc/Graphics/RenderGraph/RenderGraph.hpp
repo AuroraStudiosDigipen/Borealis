@@ -117,10 +117,8 @@ namespace Borealis
 			Albedo = 0,
 			EntityID,
 			Normal,
-			Specular,
-			Position,
-			Metallic,
-			Roughness
+			Emissive,
+			RoughMetallic
 		};
 		GBufferSource(std::string name, Ref<FrameBuffer> framebuffer);
 

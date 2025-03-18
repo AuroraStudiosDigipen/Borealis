@@ -162,6 +162,7 @@ namespace Borealis {
 			(spec.Width != mViewportSize.x || spec.Height != mViewportSize.y))
 		{
 			SceneManager::GetActiveScene()->GetEditorFB()->Resize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
+
 			mEditorCamera.SetViewportSize(mViewportSize.x, mViewportSize.y);
 			SceneManager::GetActiveScene()->ResizeViewport((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
 		}
@@ -311,7 +312,7 @@ namespace Borealis {
 			//}
 
 			//forward rendering editor
-			if(editorView)
+			if(false)
 			{
 				RenderPassConfig editorShadowPass(RenderPassType::Shadow, "editorShadowPass");
 				editorShadowPass.AddSinkLinkage("shadowMap", "ShadowMapBuffer")
@@ -416,18 +417,19 @@ namespace Borealis {
 				//add render2d
 			}
 
+			if (editorView)
 			//deferred rendering editor
 			{
-				//RenderPassConfig editorGeometricPass(RenderPassType::Geometry, "editorGeometricPass");
-				//editorGeometricPass.AddSinkLinkage("gBuffer", "gBuffer");
-				//editorGeometricPass.AddSinkLinkage("camera", "EditorCamera");
-				//dconfig.AddPass(editorGeometricPass);
+				RenderPassConfig editorGeometricPass(RenderPassType::Geometry, "editorGeometricPass");
+				editorGeometricPass.AddSinkLinkage("gBuffer", "gBuffer");
+				editorGeometricPass.AddSinkLinkage("camera", "EditorCamera");
+				fconfig.AddPass(editorGeometricPass);
 
 				//RenderPassConfig editorLightPass(RenderPassType::Lighting, "editorLightPass");
 				//editorLightPass.AddSinkLinkage("gBuffer", "editorGeometricPass.gBuffer");
 				//editorLightPass.AddSinkLinkage("renderTarget", "EditorBuffer");
 				//editorLightPass.AddSinkLinkage("viewProj", "editorGeometricPass.camera");
-				//dconfig.AddPass(editorLightPass);
+				//fconfig.AddPass(editorLightPass);
 
 				//add render2d
 			}

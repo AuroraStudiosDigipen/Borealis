@@ -99,8 +99,8 @@ namespace Borealis
 		{
 			drawCall.shaderID->Bind();
 			drawCall.shaderID->Set("materialIndex", materialMap[drawCall.materialHash]->GetIndex());
-			drawCall.shaderID->Set("u_HasAnimation", false);
-			drawCall.shaderID->Set("u_Transparent", false);
+			//drawCall.shaderID->Set("u_HasAnimation", false);
+			//drawCall.shaderID->Set("u_Transparent", false);
 
 			auto const& textureMap = materialMap[drawCall.materialHash]->GetTextureMaps();
 

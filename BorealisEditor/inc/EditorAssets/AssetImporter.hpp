@@ -36,6 +36,9 @@ namespace Borealis
 	class AssetImporter
 	{
 	public:
+		~AssetImporter() { StopFileWatch(); }
+
+
 		void Update();
 		/*!***********************************************************************
 			\brief
@@ -53,8 +56,10 @@ namespace Borealis
 
 		//TEMP
 		static void InsertAssetHandle(std::filesystem::path const& path, AssetHandle handle);
-
 	private:
+
+		static void StopFileWatch();
+
 		/*!***********************************************************************
 			\brief
 				Import Asset through compiler

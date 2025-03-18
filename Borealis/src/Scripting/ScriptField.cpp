@@ -68,7 +68,7 @@ namespace Borealis
 			mono_free((void*)str);
 			return output;
 		}
-
+		return "";
 	}
 
 	void ScriptField::SetAudioName(MonoObject* object, std::string name) const

@@ -51,6 +51,9 @@ namespace Borealis
 		*************************************************************************/
 		bool SerialiseScene(const std::string& filepath);
 
+		void SerialiseBackupScriptData(const std::string& filepath);
+		void DeserialiseBackupScriptData(const std::string& filepath);
+
 		/*!***********************************************************************
 			\brief
 				
@@ -86,10 +89,13 @@ namespace Borealis
 		static bool DeserialiseEditorStyle();
 
 		entt::entity DeserialiseEntity(YAML::detail::iterator_value& node, entt::registry& registry, UUID& uuid);
+		void DeserialiseEntityScript(YAML::detail::iterator_value& entity, entt::registry& registry, UUID& uuid);
 
 	private:
 
 		void SerializeEntity(YAML::Emitter& out, Entity& entity);
+		void SerializeEntityScript(YAML::Emitter& out, Entity& entity);
+
 
 		Ref<Scene> mScene;
 

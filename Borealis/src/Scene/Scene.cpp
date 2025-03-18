@@ -827,7 +827,7 @@ namespace Borealis
 
 					if (audio.channelID)
 					{
-						AudioEngine::UpdateChannelPosition(audio.channelID, transform.GetGlobalTranslate());
+						AudioEngine::UpdateChannelPosition(audio.channelID, transform.GetGlobalTransform());
 					}
 				}
 			}

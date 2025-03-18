@@ -99,7 +99,7 @@ namespace Borealis
         mpSystem = nullptr;
         mnNextChannelId = 1;
         ErrorCheck(FMOD::Studio::System::create(&mpStudioSystem));
-        ErrorCheck(mpStudioSystem->initialize(128, FMOD_STUDIO_INIT_LIVEUPDATE, FMOD_INIT_NORMAL, nullptr));
+        ErrorCheck(mpStudioSystem->initialize(128, FMOD_STUDIO_INIT_LIVEUPDATE, FMOD_INIT_3D_RIGHTHANDED, nullptr));
         // Create FMOD Core system
         ErrorCheck(mpStudioSystem->getCoreSystem(&mpSystem));
         // Initialize FMOD Core system
@@ -210,15 +210,23 @@ namespace Borealis
         ));
     }
 
-    int AudioEngine::PlayAudio(std::string audioPath, const glm::vec3& vPosition)
+    int AudioEngine::PlayAudio(std::string audioPath, const glm::mat4& transform)
     {
-
+        auto vPosition = glm::vec3(transform[3]);
+        glm::vec3 forward = glm::normalize(glm::vec3(transform[2]));
+        glm::vec3 up = glm::normalize(glm::vec3(transform[1]));
+        FMOD_VECTOR fmodForward = VectorToFmod(forward);
+        FMOD_VECTOR fmodUp = VectorToFmod(up);
         FMOD::Studio::EventInstance* eventInstance;
         FMOD::Studio::EventDescription* eventDesc;
         sgpImplementation->mpStudioSystem->getEvent(audioPath.c_str(), &eventDesc);
         eventDesc->createInstance(&eventInstance);
         FMOD_3D_ATTRIBUTES attr;
         attr.position = VectorToFmod(vPosition);
+        attr.forward = fmodForward;
+        attr.up = fmodUp;
+        attr.velocity = { 0.0f, 0.0f, 0.0f };
+
         ErrorCheck(eventInstance->set3DAttributes(&attr));
         ErrorCheck(eventInstance->setPaused(false));
         ErrorCheck(eventInstance->start());
@@ -333,7 +341,7 @@ namespace Borealis
     }
 
 #pragma optimize("", off) 
-    void AudioEngine::UpdateChannelPosition(int channelID, glm::vec3 position)
+    void AudioEngine::UpdateChannelPosition(int channelID, const glm::mat4& transform)
     {
         auto it = sgpImplementation->mChannels.find(channelID);
         if (it == sgpImplementation->mChannels.end())
@@ -346,9 +354,18 @@ namespace Borealis
             return;
         }
 
+        glm::vec3 position = glm::vec3(transform[3]);
+        glm::vec3 forward = glm::normalize(glm::vec3(transform[2]));
+        glm::vec3 up = glm::normalize(glm::vec3(transform[1]));
+
+        FMOD_VECTOR fmodForward = VectorToFmod(forward);
+        FMOD_VECTOR fmodUp = VectorToFmod(up);
         FMOD_VECTOR fmodPosition = VectorToFmod(position);
         FMOD_VECTOR velocity = { 0.0f, 0.0f, 0.0f };
         FMOD_3D_ATTRIBUTES attr;
+        attr.forward = fmodForward;
+        attr.up = fmodUp;
+        attr.velocity = velocity;
         attr.position = VectorToFmod(position);
         ErrorCheck(channel->set3DAttributes(&attr));
     }
@@ -454,8 +471,14 @@ namespace Borealis
 		}
     }
 
-    int AudioEngine::Play(std::string audioPath, const glm::vec3& position)
+    int AudioEngine::Play(std::string audioPath, const glm::mat4& transform)
     {
+        auto position = glm::vec3(transform[3]);
+        glm::vec3 forward = glm::normalize(glm::vec3(transform[2]));
+        glm::vec3 up = glm::normalize(glm::vec3(transform[1]));
+        FMOD_VECTOR fmodForward = VectorToFmod(forward);
+        FMOD_VECTOR fmodUp = VectorToFmod(up);
+
 
         FMOD::Studio::EventInstance* eventInstance;
         FMOD::Studio::EventDescription* eventDesc;
@@ -463,6 +486,9 @@ namespace Borealis
         eventDesc->createInstance(&eventInstance);
         FMOD_3D_ATTRIBUTES attr;
         attr.position = VectorToFmod(position);
+        attr.forward = fmodForward;
+        attr.up = fmodUp;
+        attr.velocity = { 0.0f, 0.0f, 0.0f };
         ErrorCheck(eventInstance->set3DAttributes(&attr));
         ErrorCheck(eventInstance->setPaused(false));
         ErrorCheck(eventInstance->start());
@@ -473,9 +499,9 @@ namespace Borealis
     }
 
 //#pragma optimize("", off)
-    int AudioEngine::PlayOneShot(std::string audioPath, const glm::vec3& position)
+    int AudioEngine::PlayOneShot(std::string audioPath, const glm::mat4& transform)
     {
-       return Play(audioPath, position);
+       return Play(audioPath, transform);
     }
 
 

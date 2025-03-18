@@ -123,7 +123,7 @@ namespace Borealis
         \return
             The ID of the channel where the sound is played.
         *************************************************************************/
-        static int PlayAudio(std::string audioPath, const glm::vec3& vPosition = glm::vec3{ 0, 0, 0 });
+        static int PlayAudio(std::string audioPath, const glm::mat4& transform = glm::mat4(1.0f));
 
         /*!***********************************************************************
         \brief
@@ -257,7 +257,7 @@ namespace Borealis
         \return
             The ID of the playing channel.
         *************************************************************************/
-        static int Play(std::string audioPath, const glm::vec3& position);
+        static int Play(std::string audioPath, const glm::mat4& transform = glm::mat4{ 1.f });
 
         /*!***********************************************************************
         \brief
@@ -271,11 +271,11 @@ namespace Borealis
         \param groupName
             The name of the audio group.
         *************************************************************************/
-        static int PlayOneShot(std::string audioPath, const glm::vec3& position);
+        static int PlayOneShot(std::string audioPath, const glm::mat4& transform = glm::mat4{ 1.f });
         
         static float dbToVolume2(float sliderValue);
 
-        static void UpdateChannelPosition(int channelID, glm::vec3 position);
+        static void UpdateChannelPosition(int channelID, const glm::mat4& transform = glm::mat4{ 1.f });
 
         static std::set<std::string> GetAudioList();
 

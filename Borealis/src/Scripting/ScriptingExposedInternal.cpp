@@ -1634,14 +1634,13 @@ namespace Borealis
 			Entity entity = scene->GetEntityByUUID(ID);
 			BOREALIS_CORE_ASSERT(entity, "Entity is null");
 			auto& transform = entity.GetComponent<TransformComponent>();
-			auto translate = transform.GetGlobalTranslate();
 			auto& audioSource = entity.GetComponent<AudioSourceComponent>();
 
 			char* message = mono_string_to_utf8(str);
 			std::string audioName = message;
 			mono_free(message);
 
-			audioSource.channelID = AudioEngine::PlayOneShot(audioName, translate);
+			audioSource.channelID = AudioEngine::PlayOneShot(audioName, transform.GetGlobalTransform());
 			return audioSource.channelID;
 			
 	}
@@ -1658,7 +1657,9 @@ namespace Borealis
 		std::string audioName = message;
 		mono_free(message);
 
-		audioSource.channelID = AudioEngine::PlayOneShot(audioName, *pos);
+		glm::mat4 transform = glm::translate(glm::mat4(1.0f), *pos);
+
+		audioSource.channelID = AudioEngine::PlayOneShot(audioName, transform);
 		return audioSource.channelID;
 	}
 

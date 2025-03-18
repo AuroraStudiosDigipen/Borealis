@@ -21,9 +21,31 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <vector>
 #include <sstream>
 #include <cctype>
+#include <windows.h>
 
 namespace Borealis
 {
+    static bool HasFileChanged(const std::wstring& filePath, FILETIME& lastWriteTime) {
+        HANDLE hFile = CreateFileW(filePath.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
+            NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+        if (hFile == INVALID_HANDLE_VALUE) {
+            std::wcerr << L"Failed to open file: " << filePath << std::endl;
+            return false;
+        }
+
+        FILETIME ftWrite;
+        if (GetFileTime(hFile, NULL, NULL, &ftWrite)) {
+            if (CompareFileTime(&ftWrite, &lastWriteTime) != 0) {
+                lastWriteTime = ftWrite;
+                CloseHandle(hFile);
+                return true; // File has been modified
+            }
+        }
+
+        CloseHandle(hFile);
+        return false; // No change detected
+    }
+
 
     static bool HasInit = false;
     struct Implementation {
@@ -67,6 +89,11 @@ namespace Borealis
         return 0;
     }
 
+    static FILETIME lastWriteTime1 = {};
+    static FILETIME lastWriteTime2 = {};
+    static bool stringFileChanged = false;
+    static bool masterFileChanged = false;
+
     Implementation::Implementation(std::string path)
     {
         mpSystem = nullptr;
@@ -78,8 +105,8 @@ namespace Borealis
         // Initialize FMOD Core system
         ErrorCheck(mpSystem->set3DSettings(1.0, 1.f, 1.0f));
 
-        ErrorCheck(mpStudioSystem->loadBankFile((path + "/" + "Master.bank").c_str(), FMOD_STUDIO_LOAD_BANK_NORMAL, &mpMasterBank));
-        mpStudioSystem->loadBankFile((path + "/" + "Master.strings.bank").c_str(), FMOD_STUDIO_LOAD_BANK_NORMAL, &mpStringsBank);
+        ErrorCheck(mpStudioSystem->loadBankFile((path + "\\" + "Master.bank").c_str(), FMOD_STUDIO_LOAD_BANK_NORMAL, &mpMasterBank));
+        ErrorCheck(mpStudioSystem->loadBankFile((path + "\\" + "Master.strings.bank").c_str(), FMOD_STUDIO_LOAD_BANK_NORMAL, &mpStringsBank));
         DirectoryTree tree;
         FMOD::Studio::EventDescription** eventArray;
         int eventCount = 0;
@@ -94,6 +121,9 @@ namespace Borealis
             treeData.insertPath(eventPath.substr(7));
         }
         delete[] eventArray;
+
+        HasFileChanged(std::filesystem::path(path + "\\" + "Master.bank"), lastWriteTime1);
+        HasFileChanged(std::filesystem::path(path + "\\" + "Master.strings.bank"), lastWriteTime2);
     }
 
     Implementation::~Implementation()
@@ -115,6 +145,31 @@ namespace Borealis
     {
         sgpImplementation = new Implementation(path);
         HasInit = true;
+    }
+
+    void AudioEngine::Reload(std::string path)
+    {
+        sgpImplementation->mAudioList.clear();
+        sgpImplementation->treeData.clear();
+        sgpImplementation->mChannels.clear();
+        sgpImplementation->mnNextChannelId = 1;
+        ErrorCheck(sgpImplementation->mpStudioSystem->unloadAll());
+        ErrorCheck(sgpImplementation->mpStudioSystem->loadBankFile((path + "\\" + "Master.bank").c_str(), FMOD_STUDIO_LOAD_BANK_NORMAL, &sgpImplementation->mpMasterBank));
+        ErrorCheck(sgpImplementation->mpStudioSystem->loadBankFile((path + "\\" + "Master.strings.bank").c_str(), FMOD_STUDIO_LOAD_BANK_NORMAL, &sgpImplementation->mpStringsBank));
+        DirectoryTree tree;
+        FMOD::Studio::EventDescription** eventArray;
+        int eventCount = 0;
+        ErrorCheck(sgpImplementation->mpMasterBank->getEventCount(&eventCount));
+        eventArray = new FMOD::Studio::EventDescription * [eventCount];
+        ErrorCheck(sgpImplementation->mpMasterBank->getEventList(eventArray, eventCount, &eventCount));
+        for (int i = 0; i < eventCount; i++) {
+            char path[256];
+            eventArray[i]->getPath(path, sizeof(path), nullptr);
+            sgpImplementation->mAudioList.insert(path);
+            std::string eventPath(path);
+            sgpImplementation->treeData.insertPath(eventPath.substr(7));
+        }
+        delete[] eventArray;
     }
 
 
@@ -302,26 +357,20 @@ namespace Borealis
         return sgpImplementation->mAudioList;
 
     }
+
     void AudioEngine::EditorUpdate()
     {
-        if (sgpImplementation == nullptr) return;
-        int eventCount;
-        sgpImplementation->mpMasterBank->getEventCount(&eventCount);
 
-        if (eventCount != sgpImplementation->mAudioList.size())
+        if (sgpImplementation == nullptr) return;
+        
+        if (HasFileChanged(std::filesystem::path(Project::GetProjectPath() + "\\master.bank"), lastWriteTime1)) masterFileChanged = true;
+        if (HasFileChanged(std::filesystem::path(Project::GetProjectPath() + "\\master.strings.bank"), lastWriteTime2)) stringFileChanged = true;
+
+        if (masterFileChanged && stringFileChanged)
         {
-			FMOD::Studio::EventDescription** eventArray;
-			eventArray = new FMOD::Studio::EventDescription * [eventCount];
-			sgpImplementation->mpMasterBank->getEventList(eventArray, eventCount, &eventCount);
-			sgpImplementation->mAudioList.clear();
-            for (int i = 0; i < eventCount; i++) {
-				char path[256];
-				eventArray[i]->getPath(path, sizeof(path), nullptr);
-				sgpImplementation->mAudioList.insert(path);
-                std::string eventPath(path);
-                sgpImplementation->treeData.insertPath(eventPath.substr(7));
-			}
-			delete[] eventArray;
+			Reload(Project::GetProjectPath());
+			masterFileChanged = false;
+			stringFileChanged = false;
 		}
     }
     std::set<std::string> AudioEngine::GetAudioListInDirectory(const std::string& directory)

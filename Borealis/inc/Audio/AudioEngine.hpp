@@ -73,6 +73,8 @@ namespace Borealis
         *************************************************************************/
         static void Init(std::string path);
 
+        static void Reload(std::string path);
+
         /*!***********************************************************************
         \brief
             Updates the audio engine, managing the state of currently playing sounds.

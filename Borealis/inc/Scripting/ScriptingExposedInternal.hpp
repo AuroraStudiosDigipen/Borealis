@@ -437,6 +437,7 @@ namespace Borealis
 	void AudioSource_StopID(uint64_t Uid, int ID);
 	void AudioSource_IsPlaying(uint64_t ID,  bool* playing);
 	void AudioListener_SetListener(uint64_t ID);
+	bool AudioSource_IsChannelPlaying(uint64_t uiD, int ID);
 
 }
 

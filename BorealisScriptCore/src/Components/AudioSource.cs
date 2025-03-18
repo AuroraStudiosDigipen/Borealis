@@ -38,5 +38,10 @@ namespace Borealis
                 return playing;
             }
         }
+
+        public bool IsSoundPlaying(int ID)
+        {
+            return InternalCalls.AudioSource_IsChannelPlaying(GetInstanceID(), ID);
+        }
     }
 }

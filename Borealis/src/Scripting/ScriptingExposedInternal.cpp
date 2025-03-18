@@ -170,6 +170,7 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_IsPlaying );
 		BOREALIS_ADD_INTERNAL_CALL(AudioListener_SetListener);
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_StopID);
+		BOREALIS_ADD_INTERNAL_CALL(AudioSource_IsChannelPlaying);
 
 		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_SetNextAnimation);
 		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_GetNextAnimation);
@@ -1715,5 +1716,14 @@ namespace Borealis
 		}
 
 		entity.GetComponent<AudioListenerComponent>().isAudioListener = true;
+	}
+	bool AudioSource_IsChannelPlaying(uint64_t uiD, int ID)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(ID);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		if (entity.HasComponent<AudioSourceComponent>())
+			return AudioEngine::isSoundPlaying(ID);
 	}
 }

@@ -370,6 +370,9 @@ namespace Borealis
         #region AudioListener
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void AudioListener_SetListener(ulong ID);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+
+        internal extern static bool AudioSource_IsChannelPlaying(ulong uiD, int ID);
 
         #endregion
 

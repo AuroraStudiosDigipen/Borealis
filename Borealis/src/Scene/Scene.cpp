@@ -82,7 +82,7 @@ namespace Borealis
 					continue;
 				}
 				auto [transform, text] = group.get<TransformComponent, TextComponent>(entity);
-				Renderer2D::DrawString(text.text, text.font, transform, (int)entity, 1, { 1,1,1,1 }, text.align == TextComponent::TextAlign::Left ? false : true);
+				Renderer2D::DrawString(text.text, text.font, transform, (int)entity, 1, { 1,1,1,1 }, text.align == TextComponent::TextAlign::Left ? false : true, text.outline, text.width);
 			}
 		}
 	}
@@ -898,20 +898,19 @@ namespace Borealis
 			correctionPass.AddSinkLinkage("renderTarget", "bloomPass.renderTarget");
 			mRenderConfig.AddPass(correctionPass);
 
-			RenderPassConfig Render2D(RenderPassType::Render2D, "Render2D");
-			Render2D.AddSinkLinkage("renderTarget", "correctionPass.renderTarget");
-			Render2D.AddSinkLinkage("camera", "RunTimeCamera");
-			mRenderConfig.AddPass(Render2D);
-
-
 			RenderPassConfig skyBoxPass(RenderPassType::SkyboxPass, "skyBox");
-			skyBoxPass.AddSinkLinkage("renderTarget", "Render2D.renderTarget");
+			skyBoxPass.AddSinkLinkage("renderTarget", "correctionPass.renderTarget");
 			skyBoxPass.AddSinkLinkage("camera", "RunTimeCamera");
 			mRenderConfig.AddPass(skyBoxPass);
 
+			RenderPassConfig Render2D(RenderPassType::Render2D, "Render2D");
+			Render2D.AddSinkLinkage("renderTarget", "skyBox.renderTarget");
+			Render2D.AddSinkLinkage("camera", "RunTimeCamera");
+			mRenderConfig.AddPass(Render2D);
+
 			RenderPassConfig particleSystemPass(RenderPassType::ParticleSystemPass, "ParticleSystem");
 			particleSystemPass.AddSinkLinkage("accumulaionTarget", "accumulaionBuffer")
-				.AddSinkLinkage("renderTarget", "skyBox.renderTarget")
+				.AddSinkLinkage("renderTarget", "Render2D.renderTarget")
 				.AddSinkLinkage("camera", "RunTimeCamera");
 			mRenderConfig.AddPass(particleSystemPass);
 

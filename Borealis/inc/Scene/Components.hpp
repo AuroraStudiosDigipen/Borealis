@@ -403,6 +403,8 @@ namespace Borealis
 		std::string text{};
 		uint32_t fontSize = 16; //change to float?
 		glm::vec4 colour{ 1.f,1.f,1.f,1.f };
+		bool outline = false;
+		float width = 5.f;
 		Ref<Font> font;
 		TextAlign align = TextAlign::Left;
 

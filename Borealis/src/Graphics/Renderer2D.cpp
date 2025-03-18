@@ -69,6 +69,9 @@ namespace Borealis
 
 		//Editor only
 		int EntityID;
+
+		int outline;
+		float width;
 	};
 
 	struct Renderer2DData
@@ -235,7 +238,9 @@ namespace Borealis
 			{ ShaderDataType::Float3, "a_Position" },
 			{ ShaderDataType::Float4, "a_Colour" },
 			{ ShaderDataType::Float2, "a_TexCoord"},
-			{ ShaderDataType::Int, "a_EntityID"}
+			{ ShaderDataType::Int, "a_EntityID"},
+			{ ShaderDataType::Int, "a_Outline"},
+			{ ShaderDataType::Float, "a_Width"}
 			});
 		sData->mFontVAO->AddVertexBuffer(sData->mFontVBO);
 
@@ -262,6 +267,7 @@ namespace Borealis
 		sData->mCircleShader = Shader::Create("engineResources/shaders/Renderer2D_Circle.glsl");
 		sData->mLineShader = Shader::Create("engineResources/shaders/Renderer2D_Line.glsl");
 		sData->mFontShader = Shader::Create("engineResources/shaders/Renderer2D_Font.glsl");
+		UniformBufferObject::BindToShader(sData->mFontShader->GetID(), "SceneRenderUBO", SCENE_RENDER_BIND);
 
 		sData->TextureSlots[0] = sData->mWhiteTexture;
 
@@ -719,7 +725,7 @@ namespace Borealis
 
 	void Renderer2D::DrawString(const std::string& string, Ref<Font> font,
 		const glm::mat4& transform, int entityID,
-		float size, glm::vec4 colour, bool alignCenter)
+		float size, glm::vec4 colour, bool alignCenter, bool outline, float outlineWidth)
 	{
 		if (!font)
 			font = Font::GetDefaultFont();
@@ -764,7 +770,7 @@ namespace Borealis
 			// Offset x so that the text is centered around 0.
 			x = -totalWidth / 2.0;
 		}
-
+		outlineWidth *= 0.01f;
 		// Render each glyph in the string.
 		for (size_t i = 0; i < string.size(); ++i)
 		{
@@ -803,24 +809,32 @@ namespace Borealis
 			sData->FontBufferPtr->Colour = colour;
 			sData->FontBufferPtr->TexCoord = texCoordMin;
 			sData->FontBufferPtr->EntityID = entityID;
+			sData->FontBufferPtr->outline = outline;
+			sData->FontBufferPtr->width = outlineWidth;
 			sData->FontBufferPtr++;
 
 			sData->FontBufferPtr->Position = transform * glm::vec4(quadMin.x, quadMax.y, 0.0f, 1.0f);
 			sData->FontBufferPtr->Colour = colour;
 			sData->FontBufferPtr->TexCoord = { texCoordMin.x, texCoordMax.y };
 			sData->FontBufferPtr->EntityID = entityID;
+			sData->FontBufferPtr->outline = outline;
+			sData->FontBufferPtr->width = outlineWidth;
 			sData->FontBufferPtr++;
 
 			sData->FontBufferPtr->Position = transform * glm::vec4(quadMax, 0.0f, 1.0f);
 			sData->FontBufferPtr->Colour = colour;
 			sData->FontBufferPtr->TexCoord = texCoordMax;
 			sData->FontBufferPtr->EntityID = entityID;
+			sData->FontBufferPtr->outline = outline;
+			sData->FontBufferPtr->width = outlineWidth;
 			sData->FontBufferPtr++;
 
 			sData->FontBufferPtr->Position = transform * glm::vec4(quadMax.x, quadMin.y, 0.0f, 1.0f);
 			sData->FontBufferPtr->Colour = colour;
 			sData->FontBufferPtr->TexCoord = { texCoordMax.x, texCoordMin.y };
 			sData->FontBufferPtr->EntityID = entityID;
+			sData->FontBufferPtr->outline = outline;
+			sData->FontBufferPtr->width = outlineWidth;
 			sData->FontBufferPtr++;
 
 			sData->FontIndexCount += 6;
@@ -846,7 +860,7 @@ namespace Borealis
 
 	void Renderer2D::DrawString(TextComponent& text, TransformComponent& trans, int entityID, bool alignCenter)
 	{
-		DrawString(text.text, text.font, trans.GetTransform(), entityID, (float)text.fontSize, text.colour, alignCenter);
+		DrawString(text.text, text.font, trans.GetTransform(), entityID, (float)text.fontSize, text.colour, alignCenter, text.outline, text.width);
 	}
 
 	void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const glm::vec4& colour)

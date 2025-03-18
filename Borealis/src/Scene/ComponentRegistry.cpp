@@ -319,6 +319,8 @@ namespace Borealis
             .property("Font Size", &TextComponent::fontSize)
             .property("Colour", &TextComponent::colour)
             (metadata("Colour", true))
+            .property("Outline", &TextComponent::outline)
+            .property("Outline Width", &TextComponent::width)
 			.property("Align", &TextComponent::align)
             (metadata("Colour", true));
 

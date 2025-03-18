@@ -189,15 +189,16 @@ namespace BorealisAssetCompiler
 						charSet.add(c);
 					}
 				}
-				double fontScale = 4.0; // let meta decide in the future
+				double fontScale = 8.0; // let meta decide in the future
 				msdf_atlas::FontGeometry fontGeometry = msdf_atlas::FontGeometry(&glyphs);
 				int loadedGlyphs = fontGeometry.loadCharset(font, fontScale, charSet);
 
 
 				msdf_atlas::TightAtlasPacker packer;
-				packer.setPixelRange(2.0);
+				//packer.setPixelRange(6.5);
+				packer.setUnitRange(0.5);
 				packer.setMiterLimit(1.0);
-				packer.setScale(40.0);
+				packer.setScale(48.0);
 				int remain = packer.pack(glyphs.data(), (int)glyphs.size());
 
 				int width, height;

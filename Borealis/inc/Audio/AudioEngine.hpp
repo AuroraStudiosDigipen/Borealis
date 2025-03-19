@@ -95,6 +95,10 @@ namespace Borealis
         *************************************************************************/
         static void UnLoadAudio(const std::string& strAudioName);
 
+        static std::array<uint8_t, 16>  GetGUIDFromEventName(const std::string& strAudioName);
+
+        static std::string GetEventNameFromGUID(std::array<uint8_t, 16>  id);
+
         /*!***********************************************************************
         \brief
             Sets the 3D listener's position and orientation.
@@ -123,7 +127,7 @@ namespace Borealis
         \return
             The ID of the channel where the sound is played.
         *************************************************************************/
-        static int PlayAudio(std::string audioPath, const glm::mat4& transform = glm::mat4(1.0f));
+        static int PlayAudio(std::array<uint8_t, 16> id, const glm::mat4& transform = glm::mat4(1.0f));
 
         /*!***********************************************************************
         \brief
@@ -257,7 +261,7 @@ namespace Borealis
         \return
             The ID of the playing channel.
         *************************************************************************/
-        static int Play(std::string audioPath, const glm::mat4& transform = glm::mat4{ 1.f });
+        static int Play(std::array<uint8_t, 16> id, const glm::mat4& transform = glm::mat4{ 1.f });
 
         /*!***********************************************************************
         \brief
@@ -271,8 +275,7 @@ namespace Borealis
         \param groupName
             The name of the audio group.
         *************************************************************************/
-        static int PlayOneShot(std::string audioPath, const glm::mat4& transform = glm::mat4{ 1.f });
-        
+        static int PlayOneShot(std::array<uint8_t, 16> id, const glm::mat4& transform = glm::mat4{ 1.f });        
         static float dbToVolume2(float sliderValue);
 
         static void UpdateChannelPosition(int channelID, const glm::mat4& transform = glm::mat4{ 1.f });
@@ -285,6 +288,11 @@ namespace Borealis
         static std::set<std::string> GetFoldersInDirectory(const std::string& directory);
 
         static std::set<std::string> GetAudioListSearch( std::string keyword);
+        static std::array<uint8_t, 16> StringToGuid(const std::string& str);
+        static std::string GuidToString(const std::array<uint8_t, 16>& id);
+        static bool DoesEventExist(const std::string& strAudioName);
+        static bool DoesEventExist(const std::array<uint8_t, 16>& id);
+
 
     };
 } // End of namespace Borealis

@@ -211,10 +211,10 @@ namespace Borealis
 					{
 						MonoObject* Data = script->GetFieldValue<MonoObject*>(name);
 						if (!Data) continue;
-						auto assetID = field.GetAudioName(Data);
+						auto assetID = field.GetAudioID(Data);
 						out << YAML::Key << field.mName << YAML::BeginMap;
 						out << YAML::Key << "Type" << field.mFieldClassName().c_str();
-						out << YAML::Key << "Data" << YAML::Value << assetID;
+						out << YAML::Key << "Data" << YAML::Value << AudioEngine::GuidToString(assetID);
 						out << YAML::EndMap;
 					}
 
@@ -428,10 +428,10 @@ namespace Borealis
 					{
 						MonoObject* Data = script->GetFieldValue<MonoObject*>(name);
 						if (!Data) continue;
-						auto assetID = field.GetAudioName(Data);
+						auto assetID = field.GetAudioID(Data);
 						out << YAML::Key << field.mName << YAML::BeginMap;
 						out << YAML::Key << "Type" << field.mFieldClassName().c_str();
-						out << YAML::Key << "Data" << YAML::Value << assetID;
+						out << YAML::Key << "Data" << YAML::Value << AudioEngine::GuidToString(assetID);
 						out << YAML::EndMap;
 					}
 
@@ -745,7 +745,7 @@ namespace Borealis
 						{
 							std::string data = fieldData["Data"].as<std::string>();
 							MonoObject* field = nullptr;
-							InitStringObject(field, data, fieldData["Type"].as<std::string>());
+							InitAudioObject(field, AudioEngine::StringToGuid(data), fieldData["Type"].as<std::string>());
 							scriptInstance->SetFieldValue(fieldName, field);
 
 							continue;
@@ -986,7 +986,7 @@ namespace Borealis
 						{
 							std::string data = fieldData["Data"].as<std::string>();
 							MonoObject* field = nullptr;
-							InitStringObject(field, data, fieldData["Type"].as<std::string>());
+							InitAudioObject(field, AudioEngine::StringToGuid(data), fieldData["Type"].as<std::string>());
 							scriptInstance->SetFieldValue(fieldName, field);
 							
 							continue;

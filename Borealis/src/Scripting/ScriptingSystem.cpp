@@ -583,8 +583,8 @@ namespace Borealis
 	{
 		mono_domain_set(mono_get_root_domain(), false);
 
-		mono_domain_unload(sData->mAppDomain);
-		sData->mAppDomain = nullptr;
+		//mono_domain_unload(sData->mAppDomain);
+		//sData->mAppDomain = nullptr;
 
 		mono_jit_cleanup(sData->mRootDomain);
 		sData->mRootDomain = nullptr;

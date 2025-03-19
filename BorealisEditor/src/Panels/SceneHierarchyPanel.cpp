@@ -1959,7 +1959,7 @@ namespace Borealis
 				MonoObject* Data = component->GetFieldValue<MonoObject*>(name);
 				if (Data == nullptr)
 				{
-					InitStringObject(Data, "", "AudioClip");
+					InitAudioObject(Data, {}, "AudioClip");
 				}
 				auto fieldData = field.GetAudioName(Data);
 				static std::string currentDir = "/";
@@ -2005,7 +2005,7 @@ namespace Borealis
 							ImGui::SameLine();
 							if (ImGui::Selectable(audioName.c_str(), isSelected))
 							{
-								ActionManager::execute(std::make_unique<ModifyScriptAudioCommand>(field, Data, fieldData, audioFile));
+								ActionManager::execute(std::make_unique<ModifyScriptAudioCommand>(field, Data, AudioEngine::GetGUIDFromEventName(fieldData), AudioEngine::GetGUIDFromEventName(audioFile)));
 								currentDir = "/";
 								memset(searchBufferAudioClip, 0, 128);
 								comboIsOpen = false;
@@ -2052,7 +2052,7 @@ namespace Borealis
 							if (ImGui::Selectable(audioName.c_str(), isSelected))
 							{
 								std::string audioFile = "event:" + currentDir + audioName;
-								ActionManager::execute(std::make_unique<ModifyScriptAudioCommand>(field, Data, fieldData, audioFile));
+								ActionManager::execute(std::make_unique<ModifyScriptAudioCommand>(field, Data, AudioEngine::GetGUIDFromEventName(fieldData), AudioEngine::GetGUIDFromEventName(audioFile)));
 								currentDir = "/";
 								comboIsOpen = false;
 							}

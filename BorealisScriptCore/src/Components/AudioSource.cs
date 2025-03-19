@@ -13,12 +13,12 @@ namespace Borealis
 
         public int PlayOneShot(AudioClip clip)
         {
-            return InternalCalls.AudioSource_PlayOneShot(InstanceID, clip.audioName);
+            return InternalCalls.AudioSource_PlayOneShot(InstanceID, clip.GetAudioID());
         }
 
         public int PlayOneShotPosition( AudioClip clip, Vector3 position)
         {
-            return InternalCalls.AudioSource_PlayOneShotPosition(InstanceID, clip.audioName, ref position);
+            return InternalCalls.AudioSource_PlayOneShotPosition(InstanceID, clip.GetAudioID(), ref position);
         }
         public void Stop()
         {

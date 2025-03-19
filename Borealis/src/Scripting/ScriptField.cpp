@@ -20,6 +20,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scripting/ScriptingSystem.hpp>
 #include <Scripting/ScriptClass.hpp>
 #include <Scripting/ScriptingUtils.hpp>
+#include <Audio/AudioEngine.hpp>
 namespace Borealis
 {
 	std::string ScriptField::mFieldClassName() const
@@ -77,6 +78,33 @@ namespace Borealis
 		MonoString* monoString = mono_string_new(mono_domain_get(), name.c_str());
 		void* args[1] = { monoString };
 		mono_runtime_invoke(Method, object, args, nullptr);
+	}
+
+	void ScriptField::SetAudioID(MonoObject* object, std::array<uint8_t, 16> id) const
+	{
+		if (!AudioEngine::DoesEventExist(id)) return;
+		MonoArray* monoArray = mono_array_new(mono_domain_get(), mono_get_byte_class(), 16);
+		for (int i = 0; i < 16; i++)
+		{
+			mono_array_set(monoArray, uint8_t, i, id[i]);
+		}
+		auto Method = mono_class_get_method_from_name(GetScriptClassUtils("AudioClip")->GetMonoClass(), "SetAudioID", 1);
+		void* args[1] = { monoArray };
+		mono_runtime_invoke(Method, object, args, nullptr);
+	}
+
+	std::array<uint8_t, 16> ScriptField::GetAudioID(MonoObject* object) const
+	{
+		auto Method = mono_class_get_method_from_name(GetScriptClassUtils("AudioClip")->GetMonoClass(), "GetAudioID", 0);
+		MonoObject* result = mono_runtime_invoke(Method, object, nullptr, nullptr);
+		MonoArray* monoArray = reinterpret_cast<MonoArray*>(result);
+		std::array<uint8_t, 16> id;
+		for (int i = 0; i < 16; i++)
+		{
+			id[i] = mono_array_get(monoArray, uint8_t, i);
+		}
+		return id;
+		
 	}
 
 

@@ -184,6 +184,65 @@ namespace Borealis
         // Here you can add your logic for unloading sounds
     }
 
+    std::string AudioEngine::GuidToString(const std::array<uint8_t, 16>& id) {
+        std::ostringstream oss;
+        oss << std::hex << std::setfill('0');
+
+        for (size_t i = 0; i < id.size(); i++) {
+            if (i == 4 || i == 6 || i == 8 || i == 10) {
+                oss << "-";
+            }
+            oss << std::setw(2) << static_cast<int>(id[i]);
+        }
+        return oss.str();
+    }
+
+    std::array<uint8_t, 16> AudioEngine::StringToGuid(const std::string& str) {
+        std::array<uint8_t, 16> id = {};
+
+        std::stringstream ss;
+        ss << std::hex;
+
+        int values[16];
+        if (std::sscanf(str.c_str(),
+            "%02x%02x%02x%02x-"
+            "%02x%02x-"
+            "%02x%02x-"
+            "%02x%02x-"
+            "%02x%02x%02x%02x%02x%02x",
+            &values[0], &values[1], &values[2], &values[3],
+            &values[4], &values[5],
+            &values[6], &values[7],
+            &values[8], &values[9],
+            &values[10], &values[11], &values[12], &values[13], &values[14], &values[15]) != 16) {
+        }
+
+        for (size_t i = 0; i < 16; i++) {
+            id[i] = static_cast<uint8_t>(values[i]);
+        }
+
+        return id;
+    }
+
+    std::array<uint8_t, 16>  AudioEngine::GetGUIDFromEventName(const std::string& strAudioName)
+    {
+        FMOD::Studio::EventDescription* eventDesc;
+        sgpImplementation->mpStudioSystem->getEvent(strAudioName.c_str(), &eventDesc);
+        FMOD_GUID id;
+        eventDesc->getID(&id);
+        return std::bit_cast<std::array<uint8_t, 16>>(id);
+    }
+
+    std::string AudioEngine::GetEventNameFromGUID(std::array<uint8_t, 16> id)
+    {
+        FMOD_GUID guid = std::bit_cast<FMOD_GUID>(id);
+		FMOD::Studio::EventDescription* eventDesc;
+		sgpImplementation->mpStudioSystem->getEventByID(&guid, &eventDesc);
+        char name[256];
+		eventDesc->getPath(name, 256, nullptr);
+		return std::string(name);
+    }
+
     glm::vec3 CalculateVelocity(const glm::vec3& previousPosition, const glm::vec3& currentPosition, float deltaTime) {
         return (currentPosition - previousPosition) / deltaTime;
     }
@@ -209,7 +268,7 @@ namespace Borealis
         ));
     }
 
-    int AudioEngine::PlayAudio(std::string audioPath, const glm::mat4& transform)
+    int AudioEngine::PlayAudio(std::array<uint8_t, 16> id , const glm::mat4& transform)
     {
         auto vPosition = glm::vec3(transform[3]);
         glm::vec3 forward = glm::normalize(glm::vec3(transform[2]));
@@ -218,7 +277,8 @@ namespace Borealis
         FMOD_VECTOR fmodUp = VectorToFmod(up);
         FMOD::Studio::EventInstance* eventInstance;
         FMOD::Studio::EventDescription* eventDesc;
-        sgpImplementation->mpStudioSystem->getEvent(audioPath.c_str(), &eventDesc);
+        FMOD_GUID guid = std::bit_cast<FMOD_GUID>(id);
+        sgpImplementation->mpStudioSystem->getEventByID(&guid, &eventDesc);
         eventDesc->createInstance(&eventInstance);
         FMOD_3D_ATTRIBUTES attr;
         attr.position = VectorToFmod(vPosition);
@@ -418,6 +478,15 @@ namespace Borealis
         }
         return list;
     }
+    bool AudioEngine::DoesEventExist(const std::string& strAudioName)
+    {
+        return sgpImplementation->mpStudioSystem->getEvent(strAudioName.c_str(), nullptr) == FMOD_OK;
+    }
+    bool AudioEngine::DoesEventExist(const std::array<uint8_t, 16>& id)
+    {
+        FMOD_GUID guid = std::bit_cast<FMOD_GUID>(id);
+        return sgpImplementation->mpStudioSystem->getEventByID(&guid, nullptr) == FMOD_OK;
+    }
 #pragma optimize("", on)
 
     float AudioEngine::VolumeTodb(float volume)
@@ -470,7 +539,7 @@ namespace Borealis
 		}
     }
 
-    int AudioEngine::Play(std::string audioPath, const glm::mat4& transform)
+    int AudioEngine::Play(std::array<uint8_t, 16> id, const glm::mat4& transform)
     {
         auto position = glm::vec3(transform[3]);
         glm::vec3 forward = glm::normalize(glm::vec3(transform[2]));
@@ -481,7 +550,8 @@ namespace Borealis
 
         FMOD::Studio::EventInstance* eventInstance;
         FMOD::Studio::EventDescription* eventDesc;
-        ErrorCheck(sgpImplementation->mpStudioSystem->getEvent(audioPath.c_str(), &eventDesc));
+        FMOD_GUID guid = std::bit_cast<FMOD_GUID>(id);
+        ErrorCheck(sgpImplementation->mpStudioSystem->getEventByID(&guid, &eventDesc));
         eventDesc->createInstance(&eventInstance);
         FMOD_3D_ATTRIBUTES attr;
         attr.position = VectorToFmod(position);
@@ -498,9 +568,9 @@ namespace Borealis
     }
 
 //#pragma optimize("", off)
-    int AudioEngine::PlayOneShot(std::string audioPath, const glm::mat4& transform)
+    int AudioEngine::PlayOneShot(std::array<uint8_t, 16> id, const glm::mat4& transform)
     {
-       return Play(audioPath, transform);
+       return Play(id, transform);
     }
 
 

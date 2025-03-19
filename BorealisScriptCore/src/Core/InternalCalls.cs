@@ -353,9 +353,9 @@ namespace Borealis
         #region AudioSource
       
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static int AudioSource_PlayOneShot(ulong id, string clipName);
+        internal extern static int AudioSource_PlayOneShot(ulong id, byte[] audioID);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static int AudioSource_PlayOneShotPosition(ulong id, string clipName, ref Vector3 position);
+        internal extern static int AudioSource_PlayOneShotPosition(ulong id, byte[] audioID, ref Vector3 position);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void AudioSource_Stop(ulong ID);
@@ -425,6 +425,14 @@ namespace Borealis
         internal extern static void SceneManager_Quit();
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void SceneManager_SetMainCamera(ulong ID);
+        #endregion
+        #region AudioClip
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static string GetAudioClipName(out byte[] guid);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void SetAudioClipName(string name, ref byte[] guid);
+
         #endregion
     }
 }

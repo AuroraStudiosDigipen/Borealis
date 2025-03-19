@@ -155,19 +155,19 @@ namespace Borealis
     private:
         ScriptField field;
         MonoObject* data;
-        std::string newValue;
-        std::string oldValue;
+        std::array<uint8_t, 16> newValue;
+        std::array<uint8_t, 16> oldValue;
 
     public:
-        ModifyScriptAudioCommand(ScriptField fi, MonoObject* obj, std::string oldVal, std::string newVal)
+        ModifyScriptAudioCommand(ScriptField fi, MonoObject* obj, std::array<uint8_t, 16>  oldVal, std::array<uint8_t, 16>  newVal)
             : field(fi), data(obj), oldValue(oldVal), newValue(newVal) {}
 
         void execute() override {
-            field.SetAudioName(data, newValue);
+            field.SetAudioID(data, newValue);
         }
 
         void undo() override {
-            field.SetAudioName(data, oldValue);
+            field.SetAudioID(data, oldValue);
         }
     };
 

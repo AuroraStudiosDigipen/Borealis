@@ -8,24 +8,32 @@ namespace Borealis
 {
     public class AudioClip : Object
     {
-        public string audioName;
-        public AudioClip(string name)
+        public byte[] guid;
+        public AudioClip(byte[] id)
         {
-            audioName = name;
+            guid = id;
         }
 
         public string GetAudioName()
         {
-            return audioName;
+            return InternalCalls.GetAudioClipName(out guid);
+        }
+        public void SetAudioID(byte[] bytes)
+        {
+            guid = bytes;
         }
 
+        public byte[] GetAudioID()
+        {
+            return guid;
+        }
         public void SetAudioName(string name)
         {
-            audioName = name;
+            InternalCalls.SetAudioClipName(name, ref guid);
         }
         public AudioClip()
         {
-            audioName = "";
+            guid = new byte[16];
         }
     }
 }

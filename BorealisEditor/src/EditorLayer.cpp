@@ -1539,7 +1539,7 @@ namespace Borealis {
 		{
 			material->SerializeMaterial(AssetManager::GetMetaData(material->mAssetHandle).SourcePath);
 		}
-
+		ActionManager::modifiedMaterials.clear();
 
 	}
 

@@ -6,7 +6,7 @@
 
 #include "glm/gtc/type_ptr.hpp"
 #include "Graphics/Material.hpp"
-
+#include <Commands.hpp>
 namespace Borealis
 {
     AssetHandle MaterialEditor::mMaterialHandle{};
@@ -124,8 +124,12 @@ namespace Borealis
 
         bool isModified = false;
 
-
-        ImGui::Checkbox("Is Transparent", &material->isTransparent);
+        bool transparency = material->isTransparent;
+        auto old = transparency;
+        if (ImGui::Checkbox("Is Transparent", &transparency))
+        {
+            ActionManager::execute(std::make_unique<ModifyMaterialTransparent>(material, old, transparency));
+        }
 
         for (int i = Material::Albedo; i <= Material::Emission; ++i)
         {
@@ -145,7 +149,8 @@ namespace Borealis
                 {
                     if (ImGui::MenuItem("Remove Texture"))
                     {
-                        material->RemoveTextureMap(matMap);
+                        ActionManager::execute(std::make_unique<EraseMaterialTextureMap>(material, matMap));
+						isModified = true;
                     }
                     ImGui::EndPopup();
                 }
@@ -159,7 +164,7 @@ namespace Borealis
                 if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropImageItem"))
                 {
                     AssetHandle data = *(const uint64_t*)payload->Data;
-                    material->SetTextureMap(matMap, AssetManager::GetAsset<Texture2D>(data));
+                    ActionManager::execute(std::make_unique<ModifyMaterialTextureMap>(material, (Material::TextureMaps)i, material->GetTextureMaps()[matMap], AssetManager::GetAsset<Texture2D>(data)));
                     isModified = true;
                 }
                 ImGui::EndDragDropTarget();
@@ -171,18 +176,20 @@ namespace Borealis
             if (colorMaps.contains(matMap))
             {
                 glm::vec4 albedoColor = material->GetTextureMapColor()[matMap];
+                auto oldData = albedoColor;
                 if (ImGui::ColorEdit4(("##" + label).c_str(), glm::value_ptr(albedoColor)))
                 {
-                    material->SetTextureMapColor((Material::TextureMaps)i, albedoColor);
+                    ActionManager::execute(std::make_unique<ModifyMaterialTextureMapColor>(material, matMap, oldData, albedoColor));
                     isModified = true;
                 }
             }
             else if(floatMaps.contains(matMap))
             {
                 float floatValue = material->GetTextureMapFloats()[matMap];
-                if (DrawFloatSlider("##", &floatValue))
+                auto oldValue = floatValue;
+                if (DrawFloatSlider(("##" + label).c_str(), &floatValue))
                 {
-                    material->SetTextureMapFloat(matMap, floatValue);
+                    ActionManager::execute(std::make_unique<ModifyMaterialTextureMapFloat>(material, matMap, oldValue, floatValue));
                     isModified = true;
                 }
             }
@@ -204,9 +211,10 @@ namespace Borealis
             case Material::Tiling:
             {
                 glm::vec2 tilingValue = material->GetPropertiesVec2()[Material::Tiling];
+                auto oldValue = tilingValue;
                 if(DrawVec2Control("Tiling", tilingValue))
                 {
-                    material->SetPropertyVec2(Material::Tiling, tilingValue);
+                    ActionManager::execute(std::make_unique<ModifyMaterialPropertyVec2Command>(material, Material::Tiling, oldValue, tilingValue));
                     isModified = true;
                 }
                 break;
@@ -214,9 +222,10 @@ namespace Borealis
             case Material::Offset:
             {
                 glm::vec2 offsetValue = material->GetPropertiesVec2()[Material::Offset];
+                auto oldValue = offsetValue;
                 if(DrawVec2Control("Offset", offsetValue))
                 {
-                    material->SetPropertyVec2(Material::Offset, offsetValue);
+                    ActionManager::execute(std::make_unique<ModifyMaterialPropertyVec2Command>(material, Material::Offset, oldValue, offsetValue));
                     isModified = true;
                 }
                 break;
@@ -224,9 +233,10 @@ namespace Borealis
             case Material::Smoothness:
             {
                 float smoothnessValue = material->GetPropertiesFloats()[Material::Smoothness];
+                auto oldValue = smoothnessValue;
                 if(DrawFloatSlider("Smoothness", &smoothnessValue))
                 {
-                    material->SetPropertyFloat(Material::Smoothness, smoothnessValue);
+                    ActionManager::execute(std::make_unique<ModifyMaterialPropertyFloatCommand>(material, Material::Smoothness, oldValue, smoothnessValue));
                     isModified = true;
                 }
                 break;
@@ -234,9 +244,10 @@ namespace Borealis
             case Material::Shininess:
             {
                 float shininessValue = material->GetPropertiesFloats()[Material::Shininess];
+                auto oldValue = shininessValue;
                 if(DrawFloatSlider("Shininess", &shininessValue, 0.f, 128.f))
                 {
-                    material->SetPropertyFloat(Material::Shininess, shininessValue);
+                    ActionManager::execute(std::make_unique<ModifyMaterialPropertyFloatCommand>(material, Material::Shininess, oldValue, shininessValue));
                     isModified = true;
                 }
                 break;
@@ -244,9 +255,10 @@ namespace Borealis
             case Material::HexSize:
             {
                 float hexSize = material->GetPropertiesFloats()[Material::HexSize];
+                auto oldValue = hexSize;
                 if (DrawFloatSlider("Hex Size", &hexSize, 0.f, 128.f))
                 {
-                    material->SetPropertyFloat(Material::HexSize, hexSize);
+                    ActionManager::execute(std::make_unique<ModifyMaterialPropertyFloatCommand>(material, Material::HexSize, oldValue, hexSize));
                     isModified = true;
                 }
                 break;
@@ -254,9 +266,10 @@ namespace Borealis
             case Material::Sharpness:
             {
                 float sharpness = material->GetPropertiesFloats()[Material::Sharpness];
+                auto oldValue = sharpness;
                 if (DrawFloatSlider("Sharpness", &sharpness, 0.f, 128.f))
                 {
-                    material->SetPropertyFloat(Material::Sharpness, sharpness);
+                    ActionManager::execute(std::make_unique<ModifyMaterialPropertyFloatCommand>(material, Material::Sharpness, oldValue, sharpness));
                     isModified = true;
                 }
                 break;
@@ -268,7 +281,13 @@ namespace Borealis
             ImGui::Spacing();
         }
 
-        ImGui::Checkbox("Non Repeating Tiles", &material->mNonRepeatingTiles);
+        bool checkMark = material->mNonRepeatingTiles;
+        auto oldVal = checkMark;
+        if (ImGui::Checkbox("Non Repeating Tiles", &checkMark))
+        {
+            ActionManager::execute(std::make_unique<ModifyMaterialRepeatingTiles>(material, oldVal, checkMark));
+            isModified = true;
+        }
 
         material->isModified = isModified;
 

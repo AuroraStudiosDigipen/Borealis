@@ -23,6 +23,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/HierarchyLayerManager.hpp>
 #include <Scripting/ScriptingUtils.hpp>
 #include <Scripting/ScriptingSystem.hpp>
+#include <Graphics/Material.hpp>
 namespace Borealis
 {
     // Interface
@@ -31,6 +32,28 @@ namespace Borealis
         virtual ~ICommand() = default;
         virtual void execute() = 0;
         virtual void undo() = 0;
+    };
+
+    class ActionManager {
+    private:
+        static constexpr size_t MAX_HISTORY = 150;
+
+        static void TrimStack(std::stack<std::unique_ptr<ICommand>>& stack) {
+            while (stack.size() > MAX_HISTORY) {
+                stack.pop();  // Remove the oldest command
+            }
+        }
+
+        static std::stack<std::unique_ptr<ICommand>> undoStack;
+        static std::stack<std::unique_ptr<ICommand>> redoStack;
+    public:
+        static std::unordered_set<Ref<Material>> modifiedMaterials;
+
+        static void execute(std::unique_ptr<ICommand> command);
+
+        static void undo();
+
+        static void redo();
     };
 
     class GizmoCommand : public ICommand
@@ -103,6 +126,184 @@ namespace Borealis
 
         void undo() override {
             property.set_value(rInstance, oldValue);
+        }
+    };
+
+
+    class ModifyMaterialTextureMap : public ICommand
+    {
+    private:
+        Ref<Material> material;
+        Material::TextureMaps textureMap;
+        Ref<Texture2D> oldValue, newValue;
+
+    public:
+        ModifyMaterialTextureMap(Ref<Material> mat, Material::TextureMaps textMap, Ref<Texture2D> oldVal, Ref<Texture2D> newVal)
+            : material(mat), textureMap(textMap), oldValue(oldVal), newValue(newVal) {}
+
+        void execute() override {
+            material->SetTextureMap(textureMap, newValue);
+            ActionManager::modifiedMaterials.insert(material);
+        }
+
+        void undo() override {
+            material->SetTextureMap(textureMap, oldValue);
+        }
+    };
+
+    class EraseMaterialTextureMap : public ICommand
+    {
+    private:
+        Ref<Material> material;
+        Material::TextureMaps textureMap;
+        Ref<Texture2D> oldValue;
+
+    public:
+        EraseMaterialTextureMap(Ref<Material> mat, Material::TextureMaps textMap) : material(mat), textureMap(textMap), oldValue(material->GetTextureMaps()[textMap]) {}
+
+        void execute() override {
+            material->RemoveTextureMap(textureMap);
+            ActionManager::modifiedMaterials.insert(material);
+
+        }
+
+        void undo() override {
+			material->SetTextureMap(textureMap, oldValue);
+		}
+
+    };
+
+
+    class ModifyMaterialTextureMapFloat : public ICommand
+    {
+    private:
+        Ref<Material> material;
+        Material::TextureMaps textureMap;
+        float oldValue, newValue;
+
+    public:
+        ModifyMaterialTextureMapFloat(Ref<Material> mat, Material::TextureMaps textMap, float oldVal, float newVal)
+            : material(mat), textureMap(textMap), oldValue(oldVal), newValue(newVal) {}
+
+        void execute() override {
+            material->SetTextureMapFloat(textureMap, newValue);
+            ActionManager::modifiedMaterials.insert(material);
+
+        }
+
+        void undo() override {
+            material->SetTextureMapFloat(textureMap, oldValue);
+        }
+    };
+
+    class ModifyMaterialTextureMapColor : public ICommand
+    {
+    private:
+        Ref<Material> material;
+        Material::TextureMaps textureMap;
+        glm::vec4 oldValue, newValue;
+
+    public:
+        ModifyMaterialTextureMapColor(Ref<Material> mat, Material::TextureMaps textMap, glm::vec4 oldVal, glm::vec4 newVal)
+            : material(mat), textureMap(textMap), oldValue(oldVal), newValue(newVal) {}
+
+        void execute() override {
+            material->SetTextureMapColor(textureMap, newValue);
+            ActionManager::modifiedMaterials.insert(material);
+
+        }
+
+        void undo() override {
+            material->SetTextureMapColor(textureMap, oldValue);
+        }
+    };
+
+    class ModifyMaterialTransparent : public ICommand
+    {
+    private:
+        Ref<Material> material;
+        bool oldValue, newValue;
+
+    public:
+        ModifyMaterialTransparent(Ref<Material> mat, bool oldVal, bool newVal)
+            : material(mat), oldValue(oldVal), newValue(newVal) {}
+
+        void execute() override {
+            material->isTransparent = newValue;
+            ActionManager::modifiedMaterials.insert(material);
+
+        }
+
+        void undo() override {
+            material->isTransparent = oldValue;
+        }
+    };
+
+
+    class ModifyMaterialRepeatingTiles : public ICommand
+    {
+    private:
+        Ref<Material> material;
+        bool oldValue, newValue;
+
+        public:
+            ModifyMaterialRepeatingTiles(Ref<Material> mat, bool oldVal, bool newVal)
+			: material(mat), oldValue(oldVal), newValue(newVal) {}
+
+        void execute() override {
+		    material->mNonRepeatingTiles = newValue;
+            ActionManager::modifiedMaterials.insert(material);
+
+	    }
+
+        void undo() override {
+            material->mNonRepeatingTiles = oldValue;
+        }
+    };
+
+    class ModifyMaterialPropertyVec2Command : public ICommand
+    {
+    private:
+        Ref<Material> material;
+        Material::Props prope;
+        glm::vec2 oldValue, newValue;
+
+    public:
+        ModifyMaterialPropertyVec2Command(Ref<Material> mat, Material::Props prop, glm::vec2 oldVal, glm::vec2 newVal)
+		: material(mat), prope(prop), oldValue(oldVal), newValue(newVal) {}
+
+        void execute() override {
+            ActionManager::modifiedMaterials.insert(material);
+
+			material->SetPropertyVec2(prope, newValue);
+		}
+
+        void undo() override
+        {
+            material->SetPropertyVec2(prope, oldValue);
+        }
+    };
+
+    class ModifyMaterialPropertyFloatCommand : public ICommand
+    {
+    private:
+        Ref<Material> material;
+        Material::Props prope;
+        float oldValue, newValue;
+
+    public:
+        ModifyMaterialPropertyFloatCommand(Ref<Material> mat, Material::Props prop, float oldVal, float newVal)
+            : material(mat), prope(prop), oldValue(oldVal), newValue(newVal) {}
+
+        void execute() override {
+            ActionManager::modifiedMaterials.insert(material);
+
+            material->SetPropertyFloat(prope, newValue);
+        }
+
+        void undo() override
+        {
+            material->SetPropertyFloat(prope, oldValue);
         }
     };
 
@@ -391,26 +592,7 @@ namespace Borealis
     };
 
 
-    class ActionManager {
-    private:
-        static constexpr size_t MAX_HISTORY = 150;
 
-        static void TrimStack(std::stack<std::unique_ptr<ICommand>>& stack) {
-            while (stack.size() > MAX_HISTORY) {
-                stack.pop();  // Remove the oldest command
-            }
-        }
-
-        static std::stack<std::unique_ptr<ICommand>> undoStack;
-        static std::stack<std::unique_ptr<ICommand>> redoStack;
-
-    public:
-        static void execute(std::unique_ptr<ICommand> command);
-
-        static void undo();
-
-        static void redo();
-    };
 }
 
 #endif

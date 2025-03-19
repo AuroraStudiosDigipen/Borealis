@@ -1535,6 +1535,12 @@ namespace Borealis {
 		SceneManager::SaveActiveScene(serialiser);
 		serialiser.SerializeEditorCameraProp(mEditorCamera, Project::GetProjectPath() + "/cameras.props");
 
+		for (auto& material : ActionManager::modifiedMaterials)
+		{
+			material->SerializeMaterial(AssetManager::GetMetaData(material->mAssetHandle).SourcePath);
+		}
+
+
 	}
 
 	void EditorLayer::UIToolbar()

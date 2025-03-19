@@ -442,6 +442,55 @@ namespace Borealis {
 
 		mHoveredEntity = { (entt::entity)entityID , SceneManager::GetActiveScene().get() };
 
+
+		//mSceneState = SceneState::Edit;
+		//SceneManager::GetActiveScene()->RuntimeEnd();
+		//SCPanel.SetSelectedEntity({});
+		//std::string tmpName = SceneManager::GetActiveScene()->GetName();
+		//SceneManager::SetActiveScene(mEditorScene);
+		//EditorSerialiser serialiser(nullptr);
+		//SceneManager::RemoveScene(tmpName, serialiser);
+		//SCPanel.SetContext(SceneManager::GetActiveScene());
+
+		//auto view = SceneManager::GetActiveScene()->GetRegistry().view<CameraComponent>();
+		//for (auto entity : view)
+		//{
+		//	auto& cameraComponent = view.get<CameraComponent>(entity);
+		//	if (cameraComponent.Primary)
+		//	{
+		//		mRuntimeCamera = Entity(entity, SceneManager::GetActiveScene().get());
+		//	}
+		//}
+
+		//Ref<Scene> copiedScene = Scene::Copy(SceneManager::GetActiveScene());
+		//copiedScene->SetName(copiedScene->GetName() + "-runtime");
+		//SceneManager::AddScene(copiedScene->GetName(), "");
+		//mEditorScene = SceneManager::GetActiveScene();
+		//SceneManager::SetActiveScene(copiedScene);
+		//SCPanel.SetContext(SceneManager::GetActiveScene());
+		//SceneManager::GetActiveScene()->RuntimeStart();
+		if (SceneManager::ToNextScene)
+		{
+			if (mSceneState != SceneState::Edit)
+			{
+				Borealis::SceneManager::GetActiveScene()->RuntimeEnd();
+				SCPanel.SetSelectedEntity({});
+				std::string tmpName = SceneManager::GetActiveScene()->GetName();
+				EditorSerialiser serialiser(nullptr);
+				SceneManager::SetActiveScene(SceneManager::NextSceneName, serialiser);
+				SceneManager::RemoveScene(tmpName, serialiser);
+				SceneManager::GetActiveScene()->ResizeViewport((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
+				SCPanel.SetContext(SceneManager::GetActiveScene());
+				SceneManager::GetActiveScene()->RuntimeStart();
+				serialiser.DeserializeEditorCameraProp(mEditorCamera, Project::GetProjectPath() + "/cameras.props");
+				SceneManager::GetActiveScene()->SetName(SceneManager::NextSceneName + "-runtime");
+
+				AddScene(SceneManager::GetActiveScene()->GetName(), "");
+
+			}
+			Borealis::SceneManager::ToNextScene = false;
+			Borealis::SceneManager::NextSceneName = "";
+		}
 	}
 
 	void EditorLayer::EventFn(Event& e)

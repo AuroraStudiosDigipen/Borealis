@@ -227,7 +227,7 @@ namespace Borealis
     std::array<uint8_t, 16>  AudioEngine::GetGUIDFromEventName(const std::string& strAudioName)
     {
         FMOD::Studio::EventDescription* eventDesc;
-        sgpImplementation->mpStudioSystem->getEvent(strAudioName.c_str(), &eventDesc);
+        sgpImplementation->mpStudioSystem->getEvent(strAudioName.c_str(), &eventDesc) ;
         FMOD_GUID id;
         eventDesc->getID(&id);
         return std::bit_cast<std::array<uint8_t, 16>>(id);
@@ -255,14 +255,14 @@ namespace Borealis
 
         glm::vec3 forward = glm::normalize(glm::vec3(transform[2]));
         glm::vec3 up = glm::normalize(glm::vec3(transform[1]));     
-
+        FMOD_VECTOR velocity = { 0,0,0 };
         FMOD_VECTOR fmodForward = VectorToFmod(forward);
         FMOD_VECTOR fmodUp = VectorToFmod(up);
         ErrorCheck(sgpImplementation->mpSystem->set3DNumListeners(1));
         ErrorCheck(sgpImplementation->mpSystem->set3DListenerAttributes(
             0,
             &fmodPosition,
-            nullptr,
+            &velocity,
             &fmodForward,
             &fmodUp
         ));
@@ -337,8 +337,9 @@ namespace Borealis
         FMOD_VECTOR pos = VectorToFmod(position);
         FMOD_VECTOR fwd = VectorToFmod(forward);
         FMOD_VECTOR upVec = VectorToFmod(up);
+        FMOD_VECTOR velocity = { 0.0f, 0.0f, 0.0f };
 
-        ErrorCheck(sgpImplementation->mpSystem->set3DListenerAttributes(0, &pos, nullptr, &fwd, &upVec));
+        ErrorCheck(sgpImplementation->mpSystem->set3DListenerAttributes(0, &pos, &velocity, &fwd, &upVec));
     }
 
     float AudioEngine::dbToVolume(float dB)
@@ -452,12 +453,14 @@ namespace Borealis
     }
     bool AudioEngine::DoesEventExist(const std::string& strAudioName)
     {
-        return sgpImplementation->mpStudioSystem->getEvent(strAudioName.c_str(), nullptr) == FMOD_OK;
+        FMOD::Studio::EventDescription* eventDesc;
+        return sgpImplementation->mpStudioSystem->getEvent(strAudioName.c_str(), &eventDesc) == FMOD_OK;
     }
     bool AudioEngine::DoesEventExist(const std::array<uint8_t, 16>& id)
     {
+        FMOD::Studio::EventDescription* eventDesc;
         FMOD_GUID guid = std::bit_cast<FMOD_GUID>(id);
-        return sgpImplementation->mpStudioSystem->getEventByID(&guid, nullptr) == FMOD_OK;
+        return sgpImplementation->mpStudioSystem->getEventByID(&guid, &eventDesc) == FMOD_OK;
     }
 #pragma optimize("", on)
 

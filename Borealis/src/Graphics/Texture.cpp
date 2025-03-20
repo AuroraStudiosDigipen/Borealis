@@ -75,9 +75,29 @@ namespace Borealis
 		return mDefault;
 	}
 
+
 	Ref<Asset> Texture2D::Load(std::filesystem::path const& cachePath, AssetMetaData const& assetMetaData)
 	{
 		return Create((cachePath / std::to_string(assetMetaData.Handle)).string(), GetConfig<TextureConfig>(assetMetaData.Config));
+	}
+
+	void Texture2D::Reload(AssetMetaData const& assetMetaData, Ref<Asset> const& asset)
+	{
+		Ref<Texture2D> newAsset = Create(assetMetaData.CachePath.string(), GetConfig<TextureConfig>(assetMetaData.Config));
+		newAsset->swap(*asset);
+	}
+
+	void Texture2D::swap(Asset& o)
+	{
+		switch (Renderer::GetAPI())
+		{
+		case RendererAPI::API::None: BOREALIS_CORE_ASSERT(false, "RendererAPI::None is not supported");
+		case RendererAPI::API::OpenGL:
+			OpenGLTexture2D& original = dynamic_cast<OpenGLTexture2D&>(*this);
+			OpenGLTexture2D& other = dynamic_cast<OpenGLTexture2D&>(o);
+			original.swap(other);
+			break;
+		}
 	}
 
 	//void Texture2D::Reload(AssetMetaData const& assetMetaData)
@@ -131,5 +151,17 @@ namespace Borealis
 			mDefaultCubeMap = Create(std::filesystem::path("engineResources/Textures/SkyBoxPng4k.dds"));
 		}
 		return mDefaultCubeMap;
+	}
+	void TextureCubeMap::swap(Asset& o)
+	{
+		switch (Renderer::GetAPI())
+		{
+		case RendererAPI::API::None: BOREALIS_CORE_ASSERT(false, "RendererAPI::None is not supported"); break;
+		case RendererAPI::API::OpenGL:
+			TextureCubeMap& self = dynamic_cast<TextureCubeMap&>(*this);
+			TextureCubeMap& other = dynamic_cast<TextureCubeMap&>(o);
+			self.swap(other);
+			break;
+		}
 	}
 }

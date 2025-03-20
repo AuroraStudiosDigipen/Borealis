@@ -46,7 +46,7 @@ namespace Borealis
 	public:
 		AssetHandle mAssetHandle{};
 		AssetType mAssetType{AssetType::None};
-
+		virtual void swap(Asset& other) = 0;
 
 
 		RTTR_ENABLE()

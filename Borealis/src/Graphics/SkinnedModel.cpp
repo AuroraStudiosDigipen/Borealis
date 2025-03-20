@@ -173,6 +173,15 @@ namespace Borealis
 		outFile.close();
 	}
 
+	void SkinnedModel::swap(Asset& o)
+	{
+		SkinnedModel& other = dynamic_cast<SkinnedModel&>(o);
+		std::swap(mMeshes, other.mMeshes);
+		std::swap(mBoneDataMap, other.mBoneDataMap);
+		std::swap(mBoneCounter, other.mBoneCounter);
+		std::swap(mAnimation, other.mAnimation);
+	}
+
 	
 }
 

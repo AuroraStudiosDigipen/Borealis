@@ -27,7 +27,7 @@ namespace Borealis
 	using AssetRegistry = std::unordered_map<AssetHandle, AssetMetaData>;
 	using AssetRegistrySrcLoc = std::unordered_map<std::string, AssetHandle>;
 	using AssetLoaderFunc = std::function<Ref<Asset>(std::filesystem::path const&, AssetMetaData const&)>;
-	using AssetReloadFunc = std::function<void(AssetMetaData const&)>;
+	using AssetReloadFunc = std::function<void(AssetMetaData const&, Ref<Asset> const&)>;
 
 	class EditorAssetManager : public IAssetManager
 	{

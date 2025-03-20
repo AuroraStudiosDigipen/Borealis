@@ -105,4 +105,11 @@ namespace Borealis
     {
         return mTreeName;
     }
+    void BehaviourTree::swap(Asset& o)
+    {
+        BehaviourTree& other = dynamic_cast<BehaviourTree&>(o);
+        std::swap(mRootNode, other.mRootNode);
+        std::swap(mPreviousNode, other.mPreviousNode);
+        std::swap(mTreeName, other.mTreeName);
+    }
 }

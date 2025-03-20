@@ -1732,6 +1732,7 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		if (entity.HasComponent<AudioSourceComponent>())
 			return AudioEngine::isSoundPlaying(ID);
+		return false;
 	}
 	MonoString* GetAudioClipName(MonoArray** guid)
 	{

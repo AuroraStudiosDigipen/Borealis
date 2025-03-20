@@ -420,4 +420,17 @@ namespace Borealis
         Material material(cachePath/std::to_string(assetMetaData.Handle));
         return MakeRef<Material>(material);
     }
+    void Material::Reload(AssetMetaData const& assetMetaData, Ref<Asset> const& asset)
+    {
+        Material material(assetMetaData.CachePath);
+        Ref<Material> newMat = MakeRef<Material>(material);
+        newMat->swap(*asset);
+    }
+
+    void Material::swap(Asset& o)
+    {
+        Material& original = dynamic_cast<Material&>(*this);
+		Material& other = dynamic_cast<Material&>(o);
+		std::swap(original, other);
+    }
 }

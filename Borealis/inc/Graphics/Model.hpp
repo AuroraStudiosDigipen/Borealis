@@ -56,11 +56,14 @@ namespace Borealis
 		void GenerateAABB();
 
 		static Ref<Asset> Load(std::filesystem::path const& cachePath, AssetMetaData const& assetMetaData);
+		static void Reload(AssetMetaData const& assetMetaData, Ref<Asset> asset);
 
 		BoundingSphere mBoundingSphere{};
 		AABB mAABB;
 
 		std::vector<Mesh> mMeshes;
+
+		void swap(Asset& other) override;
 	private:
 
 		RTTR_ENABLE(Asset)

@@ -590,7 +590,7 @@ namespace Borealis
 		sData->mRootDomain = nullptr;
 	}
 
-	void ScriptingSystem::Reload(AssetMetaData const& assetMetaData)
+	void ScriptingSystem::Reload(AssetMetaData const& assetMetaData, Ref<Asset> const& reload)
 	{
 		for (auto [assetHandle, assetMetaDataFromRegistry] : Project::GetEditorAssetsManager()->GetAssetRegistry())
 		{

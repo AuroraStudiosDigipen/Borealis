@@ -256,7 +256,10 @@ namespace Borealis
 
 		static Ref<Asset> Load(std::filesystem::path const& cachePath, AssetMetaData const& assetMetaData);
 
+		static void Reload(AssetMetaData const& assetMetaData, Ref<Asset> const& asset);
 		bool mNonRepeatingTiles = false;
+
+		void swap(Asset& o) override;
 	private:
 		/*!***********************************************************************
 			\brief

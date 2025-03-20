@@ -11,9 +11,14 @@ namespace Borealis
             gameObject = new GameObject(id);
         }
 
-        public int PlayOneShot(AudioClip clip)
+        public int PlayOneShot(AudioClip clip, float[] paramValues = null, string[] parameters = null)
         {
-            return InternalCalls.AudioSource_PlayOneShot(InstanceID, clip.GetAudioID());
+            return InternalCalls.AudioSource_PlayOneShot(InstanceID, clip.GetAudioID(), paramValues, parameters);
+        }
+
+        public int PlayOneShot(AudioClip clip, string[] paramValues, string[] parameters = null)
+        {
+            return InternalCalls.AudioSource_PlayOneShotLabel(InstanceID, clip.GetAudioID(), paramValues, parameters);
         }
 
         public int PlayOneShotPosition( AudioClip clip, Vector3 position)

@@ -268,34 +268,6 @@ namespace Borealis
         ));
     }
 
-    int AudioEngine::PlayAudio(std::array<uint8_t, 16> id , const glm::mat4& transform)
-    {
-        auto vPosition = glm::vec3(transform[3]);
-        glm::vec3 forward = glm::normalize(glm::vec3(transform[2]));
-        glm::vec3 up = glm::normalize(glm::vec3(transform[1]));
-        FMOD_VECTOR fmodForward = VectorToFmod(forward);
-        FMOD_VECTOR fmodUp = VectorToFmod(up);
-        FMOD::Studio::EventInstance* eventInstance;
-        FMOD::Studio::EventDescription* eventDesc;
-        FMOD_GUID guid = std::bit_cast<FMOD_GUID>(id);
-        sgpImplementation->mpStudioSystem->getEventByID(&guid, &eventDesc);
-        eventDesc->createInstance(&eventInstance);
-        FMOD_3D_ATTRIBUTES attr;
-        attr.position = VectorToFmod(vPosition);
-        attr.forward = fmodForward;
-        attr.up = fmodUp;
-        attr.velocity = { 0.0f, 0.0f, 0.0f };
-
-        ErrorCheck(eventInstance->set3DAttributes(&attr));
-        ErrorCheck(eventInstance->setPaused(false));
-        ErrorCheck(eventInstance->start());
-        
-        sgpImplementation->mChannels[sgpImplementation->mnNextChannelId++] = eventInstance;
-
-
-        return sgpImplementation->mnNextChannelId - 1;
-    }
-
     bool AudioEngine::isSoundPlaying(int channelID)
     {
         auto tFoundIt = sgpImplementation->mChannels.find(channelID);
@@ -539,7 +511,7 @@ namespace Borealis
 		}
     }
 
-    int AudioEngine::Play(std::array<uint8_t, 16> id, const glm::mat4& transform)
+    int AudioEngine::Play(std::array<uint8_t, 16> id, const glm::mat4& transform, std::unordered_map<std::string, float> parameterMap)
     {
         auto position = glm::vec3(transform[3]);
         glm::vec3 forward = glm::normalize(glm::vec3(transform[2]));
@@ -560,17 +532,69 @@ namespace Borealis
         attr.velocity = { 0.0f, 0.0f, 0.0f };
         ErrorCheck(eventInstance->set3DAttributes(&attr));
         ErrorCheck(eventInstance->setPaused(false));
+        for (auto& [paramName, value] : parameterMap)
+        {
+            FMOD_STUDIO_PARAMETER_DESCRIPTION paramDesc;
+            if (ErrorCheck(eventDesc->getParameterDescriptionByName(paramName.c_str(), &paramDesc)) == 0)
+            {
+                ErrorCheck(eventInstance->setParameterByName(paramName.c_str(), value));
+            }
+        }
         ErrorCheck(eventInstance->start());
+
+       
+
+        
 
         sgpImplementation->mChannels[sgpImplementation->mnNextChannelId++] = eventInstance;
 
         return sgpImplementation->mnNextChannelId-1; // Return the channel ID for tracking
     }
 
-//#pragma optimize("", off)
-    int AudioEngine::PlayOneShot(std::array<uint8_t, 16> id, const glm::mat4& transform)
+    int AudioEngine::Play(std::array<uint8_t, 16> id, const glm::mat4& transform, std::unordered_map<std::string, std::string> parameterMap)
     {
-       return Play(id, transform);
+        auto position = glm::vec3(transform[3]);
+        glm::vec3 forward = glm::normalize(glm::vec3(transform[2]));
+        glm::vec3 up = glm::normalize(glm::vec3(transform[1]));
+        FMOD_VECTOR fmodForward = VectorToFmod(forward);
+        FMOD_VECTOR fmodUp = VectorToFmod(up);
+
+
+        FMOD::Studio::EventInstance* eventInstance;
+        FMOD::Studio::EventDescription* eventDesc;
+        FMOD_GUID guid = std::bit_cast<FMOD_GUID>(id);
+        ErrorCheck(sgpImplementation->mpStudioSystem->getEventByID(&guid, &eventDesc));
+        eventDesc->createInstance(&eventInstance);
+        FMOD_3D_ATTRIBUTES attr;
+        attr.position = VectorToFmod(position);
+        attr.forward = fmodForward;
+        attr.up = fmodUp;
+        attr.velocity = { 0.0f, 0.0f, 0.0f };
+        ErrorCheck(eventInstance->set3DAttributes(&attr));
+        ErrorCheck(eventInstance->setPaused(false));
+        for (auto& [paramName, value] : parameterMap)
+        {
+            FMOD_STUDIO_PARAMETER_DESCRIPTION paramDesc;
+            if (ErrorCheck(eventDesc->getParameterDescriptionByName(paramName.c_str(), &paramDesc)) == 0)
+            {
+                ErrorCheck(eventInstance->setParameterByNameWithLabel(paramName.c_str(), value.c_str()));
+            }
+        }
+        ErrorCheck(eventInstance->start());
+
+        sgpImplementation->mChannels[sgpImplementation->mnNextChannelId++] = eventInstance;
+        return sgpImplementation->mnNextChannelId - 1; // Return the channel ID for tracking
+    }
+
+//#pragma optimize("", off)
+    int AudioEngine::PlayOneShot(std::array<uint8_t, 16> id, std::unordered_map<std::string, std::string> paramMap, const glm::mat4& transform)
+    {
+       return Play(id, transform, paramMap);
+    }
+
+    int AudioEngine::PlayOneShot(std::array<uint8_t, 16> id, std::unordered_map<std::string, float> paramMap, const glm::mat4& transform)
+    {
+        return Play(id, transform, paramMap);
     }
 
 

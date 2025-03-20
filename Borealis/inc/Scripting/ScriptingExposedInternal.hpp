@@ -431,7 +431,9 @@ namespace Borealis
 	void CharacterController_GetLinearVelocity(uint64_t id, glm::vec3* vel);
 	void CharacterController_SetLinearVelocity(uint64_t id, glm::vec3* vel);
 
-	int AudioSource_PlayOneShot(uint64_t ID, MonoArray* arr);
+	int AudioSource_PlayOneShot(uint64_t ID, MonoArray* arr, MonoArray* values, MonoArray* param);
+	int AudioSource_PlayOneShotLabel(uint64_t ID, MonoArray* arr, MonoArray* values, MonoArray* param);
+
 	int AudioSource_PlayOneShotPosition(uint64_t ID, MonoArray* ar, glm::vec3* pos);
 	void AudioSource_Stop(uint64_t ID);
 	void AudioSource_StopID(uint64_t Uid, int ID);

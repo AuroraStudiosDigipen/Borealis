@@ -112,7 +112,7 @@ namespace Borealis
         hash = std::hash<std::string>{}(path.string());
         //temp until add to material meta config
         mShader = Shader::GetDefault3DMaterialShader();
-
+        if (!std::filesystem::is_regular_file(path)) return;
         YAML::Node data = YAML::LoadFile(path.string());
 
         mName = data["Name"].as<std::string>();

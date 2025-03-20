@@ -353,7 +353,9 @@ namespace Borealis
         #region AudioSource
       
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static int AudioSource_PlayOneShot(ulong id, byte[] audioID);
+        internal extern static int AudioSource_PlayOneShot(ulong id, byte[] audioID, float[] paramValues, string[] param);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static int AudioSource_PlayOneShotLabel(ulong id, byte[] audioID, string[] paramValues, string[] param);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static int AudioSource_PlayOneShotPosition(ulong id, byte[] audioID, ref Vector3 position);
 

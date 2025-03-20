@@ -1697,7 +1697,7 @@ namespace Borealis
 								UUID data = *(const uint64_t*)payload->Data;
 								MonoObject* newObject = nullptr;
 								InitGameObject(newObject, data, field.mFieldClassName());
-								ActionManager::execute(std::make_unique<ModifyScriptMonoCommand<MonoObject*>>(*globalMSelectedEntity, component->GetScriptClass()->GetKlassName(), name, ObjData, newObject));
+								ActionManager::execute(std::make_unique<ModifyScriptMonoCommand<MonoObject*>>(component, name, ObjData, newObject));
 							}
 							ImGui::EndDragDropTarget();
 						}
@@ -1710,7 +1710,7 @@ namespace Borealis
 								UUID data = *(const uint64_t*)payload->Data;
 								MonoObject* newObject = nullptr;
 								InitGameObject(newObject, data, field.mFieldClassName());
-								ActionManager::execute(std::make_unique<ModifyScriptMonoCommand<MonoObject*>>(*globalMSelectedEntity, component->GetScriptClass()->GetKlassName(), name, ObjData, newObject));
+								ActionManager::execute(std::make_unique<ModifyScriptMonoCommand<MonoObject*>>(component, name, ObjData, newObject));
 							}
 							ImGui::EndDragDropTarget();
 						}
@@ -1723,7 +1723,7 @@ namespace Borealis
 								UUID data = *(const uint64_t*)payload->Data;
 								MonoObject* newObject = nullptr;
 								InitGameObject(newObject, data, field.mFieldClassName());
-								ActionManager::execute(std::make_unique<ModifyScriptMonoCommand<MonoObject*>>(*globalMSelectedEntity, component->GetScriptClass()->GetKlassName(), name, ObjData, newObject));
+								ActionManager::execute(std::make_unique<ModifyScriptMonoCommand<MonoObject*>>(component, name, ObjData, newObject));
 							}
 							ImGui::EndDragDropTarget();
 						}
@@ -1773,7 +1773,7 @@ namespace Borealis
 							UUID entityID = ID;
 							MonoObject* newData = nullptr;
 							InitGameObject(newData, entityID, field.mFieldClassName());
-							ActionManager::execute(std::make_unique<ModifyScriptMonoCommand<MonoObject*>>(*globalMSelectedEntity, component->GetScriptClass()->GetKlassName(), name, Data, newData));
+							ActionManager::execute(std::make_unique<ModifyScriptMonoCommand<MonoObject*>>(component, name, Data, newData));
 						}
 						if (isSelected)
 						{
@@ -1795,8 +1795,8 @@ namespace Borealis
 						UUID data = *(const uint64_t*)payload->Data;
 						MonoObject* newData = Data;
 						InitGameObject(newData, data, field.mFieldClassName());
-						ActionManager::execute(std::make_unique<ModifyScriptMonoCommand<MonoObject*>>(*globalMSelectedEntity, component->GetScriptClass()->GetKlassName(), name, Data, newData));
-						component->SetFieldValue(name, Data);
+						ActionManager::execute(std::make_unique<ModifyScriptMonoCommand<MonoObject*>>(component, name, Data, newData));
+						//component->SetFieldValue(name, newData);
 						// Init game object
 					}
 					ImGui::EndDragDropTarget();
@@ -1847,8 +1847,9 @@ namespace Borealis
 							UUID entityID = ID;
 							MonoObject* newData = nullptr;
 							InitGameObject(newData, entityID, field.mFieldClassName());
-							ActionManager::execute(std::make_unique<ModifyScriptMonoCommand<MonoObject*>>(*globalMSelectedEntity, component->GetScriptClass()->GetKlassName(), name, Data, newData));
-							component->SetFieldValue(name, Data);
+							//ActionManager::execute(std::make_unique<ModifyScriptMonoCommand<MonoObject*>>(component, name, Data, newData));
+							component->SetFieldValue(name, newData);
+
 						}
 						if (isSelected)
 						{
@@ -1870,7 +1871,9 @@ namespace Borealis
 						UUID data = *(const uint64_t*)payload->Data;
 						MonoObject* newData = nullptr;
 						InitGameObject(newData, data, field.mFieldClassName());
-						ActionManager::execute(std::make_unique<ModifyScriptMonoCommand<MonoObject*>>(*globalMSelectedEntity, component->GetScriptClass()->GetKlassName(), name, Data, newData));
+						ActionManager::execute(std::make_unique<ModifyScriptMonoCommand<MonoObject*>>(component, name, Data, newData));
+						//component->SetFieldValue(name, newData);
+
 						// Init game object
 					}
 					ImGui::EndDragDropTarget();
@@ -1919,7 +1922,7 @@ namespace Borealis
 							{
 								auto& scriptComponent = entity.GetComponent<ScriptComponent>();
 								auto script = scriptComponent.mScripts.find(field.mFieldClassName());
-								ActionManager::execute(std::make_unique<ModifyScriptMonoCommand<MonoObject*>>(*globalMSelectedEntity, component->GetScriptClass()->GetKlassName(), name, Data, script->second->GetInstance()));
+								ActionManager::execute(std::make_unique<ModifyScriptMonoCommand<MonoObject*>>(component, name, Data, script->second->GetInstance()));
 							}
 						}
 						if (isSelected)
@@ -1946,7 +1949,7 @@ namespace Borealis
 						{
 							auto& scriptComponent = entity.GetComponent<ScriptComponent>();
 							auto script = scriptComponent.mScripts.find(field.mFieldClassName());
-							ActionManager::execute(std::make_unique<ModifyScriptMonoCommand<MonoObject*>>(*globalMSelectedEntity, component->GetScriptClass()->GetKlassName(), name, Data, script->second->GetInstance()));
+							ActionManager::execute(std::make_unique<ModifyScriptMonoCommand<MonoObject*>>(component, name, Data, script->second->GetInstance()));
 						}
 					}
 					ImGui::EndDragDropTarget();
@@ -1960,6 +1963,7 @@ namespace Borealis
 				if (Data == nullptr)
 				{
 					InitAudioObject(Data, {}, "AudioClip");
+					component->SetFieldValue(name, Data);
 				}
 				auto fieldData = field.GetAudioName(Data);
 				static std::string currentDir = "/";

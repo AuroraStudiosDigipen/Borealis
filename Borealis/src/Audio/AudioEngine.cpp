@@ -99,12 +99,10 @@ namespace Borealis
         mpSystem = nullptr;
         mnNextChannelId = 1;
         ErrorCheck(FMOD::Studio::System::create(&mpStudioSystem));
-        ErrorCheck(mpStudioSystem->initialize(128, FMOD_STUDIO_INIT_LIVEUPDATE, FMOD_INIT_3D_RIGHTHANDED, nullptr));
-        // Create FMOD Core system
         ErrorCheck(mpStudioSystem->getCoreSystem(&mpSystem));
-        // Initialize FMOD Core system
-        ErrorCheck(mpSystem->set3DSettings(1.0, 1.f, 1.0f));
-
+        ErrorCheck(mpSystem->set3DSettings(1.0, 1000, 1.0f));
+        ErrorCheck(mpStudioSystem->initialize(128, FMOD_STUDIO_INIT_LIVEUPDATE, FMOD_INIT_NORMAL, nullptr));
+        // Create FMOD Core system
         ErrorCheck(mpStudioSystem->loadBankFile((path + "\\" + "Master.bank").c_str(), FMOD_STUDIO_LOAD_BANK_NORMAL, &mpMasterBank));
         ErrorCheck(mpStudioSystem->loadBankFile((path + "\\" + "Master.strings.bank").c_str(), FMOD_STUDIO_LOAD_BANK_NORMAL, &mpStringsBank));
         DirectoryTree tree;
@@ -258,14 +256,12 @@ namespace Borealis
         FMOD_VECTOR velocity = { 0,0,0 };
         FMOD_VECTOR fmodForward = VectorToFmod(forward);
         FMOD_VECTOR fmodUp = VectorToFmod(up);
-        ErrorCheck(sgpImplementation->mpSystem->set3DNumListeners(1));
-        ErrorCheck(sgpImplementation->mpSystem->set3DListenerAttributes(
-            0,
-            &fmodPosition,
-            &velocity,
-            &fmodForward,
-            &fmodUp
-        ));
+        FMOD_3D_ATTRIBUTES attr;
+        attr.position = fmodPosition;
+        attr.forward = fmodForward;
+        attr.up = fmodUp;
+        attr.velocity = velocity;
+        sgpImplementation->mpStudioSystem->setListenerAttributes(0, &attr);
     }
 
     bool AudioEngine::isSoundPlaying(int channelID)
@@ -338,8 +334,9 @@ namespace Borealis
         FMOD_VECTOR fwd = VectorToFmod(forward);
         FMOD_VECTOR upVec = VectorToFmod(up);
         FMOD_VECTOR velocity = { 0.0f, 0.0f, 0.0f };
+        FMOD_3D_ATTRIBUTES attr { pos, velocity, fwd, upVec };
 
-        ErrorCheck(sgpImplementation->mpSystem->set3DListenerAttributes(0, &pos, &velocity, &fwd, &upVec));
+        sgpImplementation->mpStudioSystem->setListenerAttributes(0, &attr);
     }
 
     float AudioEngine::dbToVolume(float dB)
@@ -375,31 +372,6 @@ namespace Borealis
 #pragma optimize("", off) 
     void AudioEngine::UpdateChannelPosition(int channelID, const glm::mat4& transform)
     {
-        auto it = sgpImplementation->mChannels.find(channelID);
-        if (it == sgpImplementation->mChannels.end())
-        {
-            return;
-        }
-
-        FMOD::Studio::EventInstance* channel = it->second;
-        if (!channel) {
-            return;
-        }
-
-        glm::vec3 position = glm::vec3(transform[3]);
-        glm::vec3 forward = glm::normalize(glm::vec3(transform[2]));
-        glm::vec3 up = glm::normalize(glm::vec3(transform[1]));
-
-        FMOD_VECTOR fmodForward = VectorToFmod(forward);
-        FMOD_VECTOR fmodUp = VectorToFmod(up);
-        FMOD_VECTOR fmodPosition = VectorToFmod(position);
-        FMOD_VECTOR velocity = { 0.0f, 0.0f, 0.0f };
-        FMOD_3D_ATTRIBUTES attr;
-        attr.forward = fmodForward;
-        attr.up = fmodUp;
-        attr.velocity = velocity;
-        attr.position = VectorToFmod(position);
-        ErrorCheck(channel->set3DAttributes(&attr));
     }
     std::set<std::string> AudioEngine::GetAudioList()
     {
@@ -530,9 +502,9 @@ namespace Borealis
         eventDesc->createInstance(&eventInstance);
         FMOD_3D_ATTRIBUTES attr;
         attr.position = VectorToFmod(position);
-        attr.forward = fmodForward;
-        attr.up = fmodUp;
-        attr.velocity = { 0.0f, 0.0f, 0.0f };
+        //attr.forward = fmodForward;
+        //attr.up = fmodUp;
+        //attr.velocity = { 0.0f, 0.0f, 0.0f };
         ErrorCheck(eventInstance->set3DAttributes(&attr));
         ErrorCheck(eventInstance->setPaused(false));
         for (auto& [paramName, value] : parameterMap)
@@ -570,9 +542,9 @@ namespace Borealis
         eventDesc->createInstance(&eventInstance);
         FMOD_3D_ATTRIBUTES attr;
         attr.position = VectorToFmod(position);
-        attr.forward = fmodForward;
-        attr.up = fmodUp;
-        attr.velocity = { 0.0f, 0.0f, 0.0f };
+       // attr.forward = fmodForward;
+        //attr.up = fmodUp;
+       // attr.velocity = { 0.0f, 0.0f, 0.0f };
         ErrorCheck(eventInstance->set3DAttributes(&attr));
         ErrorCheck(eventInstance->setPaused(false));
         for (auto& [paramName, value] : parameterMap)

@@ -332,22 +332,21 @@ namespace Borealis
     template <typename PropVal>
     class ModifyScriptMonoCommand : public ICommand {
     private:
-        Entity entity;
-        std::string className;
+        Ref<ScriptInstance> component;
         PropVal newValue;
         PropVal oldValue;
         std::string name;
 
     public:
-        ModifyScriptMonoCommand(Entity entt, std::string klass, std::string prop, PropVal oldVal, PropVal newVal)
-            : entity(entt), className(klass), name(prop), oldValue(oldVal), newValue(newVal) {}
+        ModifyScriptMonoCommand(Ref<ScriptInstance> entt, std::string prop, PropVal oldVal, PropVal newVal)
+            : component(entt), name(prop), oldValue(oldVal), newValue(newVal) {}
 
         void execute() override {
-            entity.GetComponent<ScriptComponent>().mScripts[className]->SetFieldValue(name, newValue);
+           component->SetFieldValue(name, newValue);
         }
 
         void undo() override {
-            entity.GetComponent<ScriptComponent>().mScripts[className]->SetFieldValue(name, oldValue);
+            component->SetFieldValue(name, oldValue);
         }
     };
 

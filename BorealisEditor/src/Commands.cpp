@@ -12,8 +12,6 @@ namespace Borealis
 		command->execute();
 		undoStack.push(std::move(command));
 		while (!redoStack.empty()) redoStack.pop();
-
-        TrimStack(undoStack);
 	}
     void ActionManager::undo() {
         if (!undoStack.empty()) {
@@ -22,8 +20,6 @@ namespace Borealis
             command->undo();
             redoStack.push(std::move(command));
         }
-
-        TrimStack(redoStack);
     }
 
     void ActionManager::redo() {
@@ -33,7 +29,5 @@ namespace Borealis
             command->execute();
             undoStack.push(std::move(command));
         }
-
-        TrimStack(undoStack);
     }
 }

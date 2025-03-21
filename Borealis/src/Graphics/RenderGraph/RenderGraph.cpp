@@ -1058,9 +1058,10 @@ namespace Borealis
 				}
 			}
 		}
-		Frustum frustum = ComputeFrustum(viewProjMatrix);
 		//mesh pass
 		{
+			Frustum frustum = ComputeFrustum(viewProjMatrix);
+
 			auto group = registryPtr->group<>(entt::get<TransformComponent, MeshFilterComponent, MeshRendererComponent>);
 			for (auto& entity : group)
 			{
@@ -1083,6 +1084,32 @@ namespace Borealis
 				}
 
 				Renderer3D::DrawMesh(transform.GetGlobalTransform(), meshFilter, meshRenderer, shader, (int)entity);
+			}
+		}
+
+		//skinned mesh pass
+		{
+			auto group = registryPtr->group<>(entt::get<TransformComponent, SkinnedMeshRendererComponent>);
+			for (auto& entity : group)
+			{
+				Entity brEntity = { entity, SceneManager::GetActiveScene().get() };
+				if (!brEntity.IsActive())
+				{
+					continue;
+				}
+
+				auto [transform, skinnedMesh] = group.get<TransformComponent, SkinnedMeshRendererComponent>(entity);
+
+				if (!skinnedMesh.SkinnnedModel || !skinnedMesh.Material) continue;
+
+				Renderer3D::DrawSkinnedMesh(transform.GetGlobalTransform(), skinnedMesh, shader, (int)entity, skinnedMesh.AnimationIndex);
+
+				if (skinnedMesh.AnimationIndex > 6)
+				{
+					gBuffer->Bind();
+					Renderer3D::End();
+					gBuffer->Unbind();
+				}
 			}
 		}
 
@@ -2546,6 +2573,7 @@ namespace Borealis
 			geometryShader = Shader::Create("engineResources/Shaders/Renderer3D_DeferredGeometry.glsl");
 			UniformBufferObject::BindToShader(geometryShader->GetID(), "Camera", CAMERA_BIND);
 			UniformBufferObject::BindToShader(geometryShader->GetID(), "MaterialUBO", MATERIAL_ARRAY_BIND);
+			UniformBufferObject::BindToShader(geometryShader->GetID(), "AnimationUBO", ANIMATION_BIND);
 		}
 
 		if (!lightingShader)

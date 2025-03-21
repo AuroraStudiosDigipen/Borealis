@@ -435,6 +435,10 @@ namespace Borealis {
 				editorLightPass.AddSinkLinkage("viewProj", "editorGeometricPass.camera");
 				fconfig.AddPass(editorLightPass);
 
+				RenderPassConfig editorCorrectionPass(RenderPassType::CorrectionPass, "editorCorrectionPass");
+				editorCorrectionPass.AddSinkLinkage("renderTarget", "EditorBuffer");
+				fconfig.AddPass(editorCorrectionPass);
+
 				//add render2d
 			}
 

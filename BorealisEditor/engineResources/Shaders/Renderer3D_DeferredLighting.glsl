@@ -93,40 +93,6 @@ vec3 NewFresnelSchlick(float LdotH, vec3 F0)
     return F0 + (vec3(1.0) - F0) * pow(1.0 - LdotH, 5.0);
 }
 
-// vec3 ComputeSpotLight(Light light, vec3 fragPos, vec3 normal, vec3 viewDir, vec3 albedo, float metallic, float smoothness, vec3 specular)
-// {
-// 	vec3 lightDir = normalize(light.position - fragPos);
-
-// 	float distance = length(light.position - fragPos);
-//     float attenuation = 1.0 / (1.0 + light.linear * distance + light.quadratic * distance * distance);
-
-// 	vec3 ambient = light.ambient * albedo;
-// 	vec3 color = ambient;
-
-// 	vec3 halfwayDir = normalize(lightDir + viewDir);
-
-//     float diff = max(dot(normal, lightDir), 0.0);
-
-// 	if (diff > 0.0)
-//     {
-//         float spec = pow(max(dot(normal, halfwayDir), 0.0), /* "u_Material.shininess *" */ smoothness);
-
-//         float theta = dot(lightDir, normalize(-light.direction)); 
-//         float epsilon = light.innerOuterAngle.x - light.innerOuterAngle.y;
-//         float intensity = clamp((theta - light.innerOuterAngle.y) / epsilon, 0.0, 1.0); 
-
-//         vec3 diffuse = light.diffuse * diff * (1.0 - metallic);
-//         vec3 specVec = light.specular * spec * specular * metallic;
-
-// 		ambient *= intensity * attenuation;
-// 		diffuse *= intensity * attenuation;
-// 		specVec *= intensity * attenuation;
-//         color = ambient + diffuse + specVec;// + emission;
-//     }
-
-// 	return color;
-// }
-
 vec3 ComputeLight(vec3 albedo, float roughness,
     float metallic, vec3 lightDiffuse,
     vec3 lightDir,
@@ -173,32 +139,46 @@ vec3 ComputeDirectionalLight(Light light, vec3 fragPos, vec3 normal, vec3 viewDi
     return color;
 }
 
-// vec3 ComputePointLight(Light light, vec3 fragPos, vec3 normal, vec3 viewDir, vec3 albedo,float metallic, float smoothness, vec3 specular)
-// {
-// 	vec3 lightDir = normalize(light.position - fragPos);
+vec3 ComputeSpotLight(Light light, vec3 fragPos, vec3 normal, vec3 viewDir, vec3 albedo, float metallic, float roughness)
+{
+	vec3 lightDir = normalize(light.position - fragPos);
+    
+	float distance = length(light.position - fragPos);
 
-// 	float distance = length(light.position - fragPos);
-//     float attenuation = 1.0 / (1.0 + light.linear * distance + light.quadratic * distance * distance);
+    // Angular attenuation (spotlight cone)
+    float theta = dot(lightDir, normalize(-light.direction));
+    float epsilon = light.innerOuterAngle.x - light.innerOuterAngle.y;
+    float intensity = clamp((theta - light.innerOuterAngle.y) / epsilon, 0.0, 1.0);
+    intensity *= intensity; // Quadratic falloff
+    
+    // Distance attenuation
+    float attenuation = 1.0 / (1.0 + light.linear * distance + light.quadratic * distance * distance);
+    
+    // Combined attenuation
+    float totalAttenuation = attenuation * intensity;
 
-// 	vec3 ambient = light.ambient * albedo;
-// 	vec3 color = ambient;
+    vec3 color = ComputeLight(albedo, roughness, metallic, light.diffuse, lightDir, viewDir, normal);
 
-// 	float diff = max(dot(normal, lightDir), 0.0);
+    color *= totalAttenuation;
 
-// 	if (diff > 0.0) 
-// 	{
-//         vec3 halfwayDir = normalize(lightDir + viewDir);
+	return color;
+}
 
-//         float spec = pow(max(dot(normal, halfwayDir), 0.0), /* "u_Material.shininess *" */ smoothness);
+vec3 ComputePointLight(Light light, vec3 fragPos, vec3 normal, vec3 viewDir, vec3 albedo, float metallic, float roughness)
+{
+	vec3 lightDir = normalize(light.position - fragPos);
 
-//         vec3 diffuse = light.diffuse * diff * attenuation * (1.0 - metallic);
-//         vec3 specular = light.specular * spec * specular * attenuation * metallic;
+	float distance = length(light.position - fragPos);
+    float attenuation = 1.0 / (1.0 + light.linear * distance + light.quadratic * distance * distance);
 
-//         color += diffuse + specular; /*+ emission*/
-//     }
+	float diff = max(dot(normal, lightDir), 0.0);
 
-// 	return color;
-// }
+    vec3 color = ComputeLight(albedo, roughness, metallic, light.diffuse, lightDir, viewDir, normal);
+
+    color *= attenuation;
+
+	return color;
+}
 
 void LightPass()
 {
@@ -218,7 +198,7 @@ void LightPass()
     {
 		if(u_Lights[i].type == 0) // Spot light
 		{
-			//finalColor += ComputeSpotLight(u_Lights[i], fragPos, normal, viewDir, albedo.rgb, metallic, smoothness, specular);
+			finalColor += ComputeSpotLight(u_Lights[i], fragPos, normal, viewDir, albedo.rgb, metallic, roughness);
 		}
         else if (u_Lights[i].type == 1) // Directional Light
         {
@@ -226,7 +206,7 @@ void LightPass()
         }
 		else if (u_Lights[i].type == 2) // Point Light
         {
-            //finalColor += ComputePointLight(u_Lights[i], fragPos, normal, viewDir, albedo.rgb, metallic, smoothness, specular);
+            finalColor += ComputePointLight(u_Lights[i], fragPos, normal, viewDir, albedo.rgb, metallic, roughness);
         }
     }
 

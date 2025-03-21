@@ -968,7 +968,7 @@ namespace Borealis
 			{
 				FramebufferTextureFormat::RGBA16F,  // Albedo + Alpha
 				FramebufferTextureFormat::RedInteger,  // entity id
-				FramebufferTextureFormat::RGBA8,   // Normal
+				FramebufferTextureFormat::RGBA16F,   // Normal
 				FramebufferTextureFormat::RGBA8,   // Emissive
 				FramebufferTextureFormat::RGBA8,   // Roughness + Metallic
 				FramebufferTextureFormat::Depth     // Depth buffer/Stencil

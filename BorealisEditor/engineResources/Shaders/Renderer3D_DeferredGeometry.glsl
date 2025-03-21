@@ -109,6 +109,7 @@ layout(location = 3) out vec4 gEmissive;     		// Emissive
 layout(location = 4) out vec4 gRoughnessMetallic;   // Roughness + Metallic
 
 in vec2 v_TexCoord;
+in vec3 v_FragPos;
 in vec3 v_Normal;
 in vec3 v_Tangent;
 in vec3 v_Bitangent;
@@ -199,11 +200,11 @@ void GeometryPass()
     {
         normal = normalize(v_Normal);
     }
-    gNormal = vec4(normal,1.f);
+    gNormal = vec4(normal,v_FragPos.r);
 
-	gEmissive = vec4(GetEmission(), 1.f);
+	gEmissive = vec4(GetEmission(), v_FragPos.g);
 
-	gRoughnessMetallic = vec4(GetRoughness(), GetMetallic(), 1.f,1.f);
+	gRoughnessMetallic = vec4(GetRoughness(), GetMetallic(), 1.f,v_FragPos.b);
 	entityIDs = v_EntityID;
 }
 

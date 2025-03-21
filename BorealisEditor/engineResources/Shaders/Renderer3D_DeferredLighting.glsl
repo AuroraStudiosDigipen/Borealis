@@ -65,6 +65,18 @@ layout(std140) uniform LightsUBO
 
 const float PI = 3.14159265359;
 
+//Shadow Variables
+uniform mat4 u_View;
+
+uniform sampler2D u_ShadowMap;
+uniform sampler2DArray u_CascadeShadowMap;
+uniform sampler2DArray u_CascadeShadowMapDynamic;
+uniform bool shadowPass = false;
+uniform bool u_HasShadow = false;
+uniform mat4 u_LightSpaceMatrices[4];
+uniform float u_CascadePlaneDistances[4];
+uniform int cascadeCount;
+
 vec3 GetWorldPosition(vec2 texCoord, float depth)
 {
     vec4 ndcPos = vec4(texCoord * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);  // NDC coordinates
@@ -73,6 +85,59 @@ vec3 GetWorldPosition(vec2 texCoord, float depth)
     return worldPos.xyz;     // Return the world-space position
 }
 
+//Shadow
+float GetCascadeShadowFactor(vec3 lightDir, vec3 normal, vec3 fragPos)
+{
+    vec4 fragPosViewSpace = u_View * vec4(fragPos, 1.0);
+    float depthValue = abs(fragPosViewSpace.z);
+
+    int layer = -1;
+    for (int i = 0; i < cascadeCount; ++i)
+    {
+        if (depthValue < u_CascadePlaneDistances[i])
+        {
+            layer = i;
+            break;
+        }
+    }
+    if (layer == -1)
+    {
+        layer = cascadeCount;
+    }
+
+    vec4 LightPos = u_LightSpaceMatrices[layer] * vec4(fragPos, 1.0);
+
+    vec3 projCoord = LightPos.xyz / LightPos.w;
+    vec2 UVCoord;
+    UVCoord.x = 0.5 * projCoord.x + 0.5;
+    UVCoord.y = 0.5 * projCoord.y + 0.5;
+    float z = 0.5 * projCoord.z + 0.5;
+
+    float currentDepth = projCoord.z;
+
+    // Keep the shadow at 0.0 when outside the far_plane region of the light's frustum.
+    if (currentDepth > 1.0)
+    {
+        return 0.0;
+    }
+
+    float depth = texture(u_CascadeShadowMap, vec3(UVCoord, layer)).x;
+    float depth2 = texture(u_CascadeShadowMapDynamic, vec3(UVCoord, layer)).x;
+
+    float diffuseFactor = dot(normal, -lightDir);
+    float bias = 0.01f;//max(0.0005, 0.005 * (1.0 - diffuseFactor));
+
+    if ((depth + bias < z) || (depth2 + bias < z))
+    {
+        return 0.5;
+    }
+    else
+    {
+        return 1.0;
+    }
+}
+
+//PBR
 float NewDistributionGGX(float NdotH, float a) 
 {
     float a2 = a * a;
@@ -128,14 +193,14 @@ vec3 ComputeDirectionalLight(Light light, vec3 fragPos, vec3 normal, vec3 viewDi
 
     lightDir = normalize(-light.direction);
 
-    //float shadowFactor = GetCascadeShadowFactor(lightDir, normal);
+    float shadowFactor = GetCascadeShadowFactor(lightDir, normal, fragPos);
 
     vec3 color = ComputeLight(albedo, roughness, metallic, light.diffuse, lightDir, viewDir, normal);
 
-    // if(u_HasShadow)
-    // {
-    //     color *= shadowFactor;
-    // }
+    if(u_HasShadow)
+    {
+        color *= shadowFactor;
+    }
     return color;
 }
 

@@ -424,6 +424,11 @@ namespace Borealis {
 			if (editorView)
 			//deferred rendering editor
 			{
+				RenderPassConfig editorShadowPass(RenderPassType::Shadow, "editorShadowPass");
+				editorShadowPass.AddSinkLinkage("shadowMap", "ShadowMapBuffer")
+					.AddSinkLinkage("camera", "EditorCamera");
+				fconfig.AddPass(editorShadowPass);
+
 				RenderPassConfig editorGeometricPass(RenderPassType::Geometry, "editorGeometricPass");
 				editorGeometricPass.AddSinkLinkage("gBuffer", "gBuffer");
 				editorGeometricPass.AddSinkLinkage("camera", "EditorCamera");
@@ -432,7 +437,8 @@ namespace Borealis {
 				RenderPassConfig editorLightPass(RenderPassType::Lighting, "editorLightPass");
 				editorLightPass.AddSinkLinkage("gBuffer", "editorGeometricPass.gBuffer");
 				editorLightPass.AddSinkLinkage("renderTarget", "EditorBuffer");
-				editorLightPass.AddSinkLinkage("viewProj", "editorGeometricPass.camera");
+				editorLightPass.AddSinkLinkage("camera", "EditorCamera");
+				editorLightPass.AddSinkLinkage("shadowMap", "editorShadowPass.shadowMap");
 				fconfig.AddPass(editorLightPass);
 
 				RenderPassConfig editorCorrectionPass(RenderPassType::CorrectionPass, "editorCorrectionPass");

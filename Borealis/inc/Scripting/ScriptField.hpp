@@ -45,6 +45,8 @@ namespace Borealis
 		UUID GetGameObjectID(MonoObject* object) const;
 		std::string GetAudioName(MonoObject* object) const;
 		void SetAudioName(MonoObject* object, std::string name) const;
+		void SetAudioID(MonoObject*, std::array<uint8_t, 16> id) const;
+		std::array<uint8_t, 16> GetAudioID(MonoObject* object) const;
 		bool isPublic() const;
 		bool isPrivate() const;
 		bool hasHideInInspector(MonoClass* klass) const;

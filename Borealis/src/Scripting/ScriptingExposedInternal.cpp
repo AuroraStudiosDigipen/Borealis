@@ -166,9 +166,12 @@ namespace Borealis
 
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_Stop);
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_PlayOneShot);
+		BOREALIS_ADD_INTERNAL_CALL(AudioSource_PlayOneShotLabel);
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_PlayOneShotPosition);
 		BOREALIS_ADD_INTERNAL_CALL(AudioSource_IsPlaying );
 		BOREALIS_ADD_INTERNAL_CALL(AudioListener_SetListener);
+		BOREALIS_ADD_INTERNAL_CALL(AudioSource_StopID);
+		BOREALIS_ADD_INTERNAL_CALL(AudioSource_IsChannelPlaying);
 
 		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_SetNextAnimation);
 		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_GetNextAnimation);
@@ -188,6 +191,9 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(SceneManager_SetActiveScene);
 		BOREALIS_ADD_INTERNAL_CALL(SceneManager_Quit);
 		BOREALIS_ADD_INTERNAL_CALL(SceneManager_SetMainCamera);
+
+		BOREALIS_ADD_INTERNAL_CALL(SetAudioClipName);
+		BOREALIS_ADD_INTERNAL_CALL(GetAudioClipName);
 	}
 	uint64_t GenerateUUID()
 	{
@@ -1626,25 +1632,68 @@ namespace Borealis
 		PhysicsSystem::SetLinearVelocity(entity.GetComponent<CharacterControllerComponent>().controller, *vel);
 	}
 
-	void AudioSource_PlayOneShot(uint64_t ID, MonoString* str)
+	int AudioSource_PlayOneShot(uint64_t ID, MonoArray* arr, MonoArray* values, MonoArray* param)
 	{
 			Scene* scene = SceneManager::GetActiveScene().get();
 			BOREALIS_CORE_ASSERT(scene, "Scene is null");
 			Entity entity = scene->GetEntityByUUID(ID);
 			BOREALIS_CORE_ASSERT(entity, "Entity is null");
 			auto& transform = entity.GetComponent<TransformComponent>();
-			auto translate = transform.GetGlobalTranslate();
 			auto& audioSource = entity.GetComponent<AudioSourceComponent>();
 
-			char* message = mono_string_to_utf8(str);
-			std::string audioName = message;
-			mono_free(message);
+			std::array<uint8_t, 16>  id;
+			for (int i = 0; i < 16; i++)
+			{
+				id[i] = mono_array_get(arr, uint8_t, i);
+			}
 
-			audioSource.channelID = AudioEngine::PlayOneShot(audioName, translate);
+			std::unordered_map<std::string, float> floatMap;
+			if (param != nullptr)
+			for (int i = 0; i <  mono_array_length(param); i++)
+			{
+				MonoString* monoStr = (MonoString*)mono_array_get(param, MonoObject*, i);
+				float val = mono_array_get(values, float, i);
+				const char* cStr = mono_string_to_utf8(monoStr);
+				floatMap[cStr] = val;
+			}
+
+			audioSource.channelID = AudioEngine::PlayOneShot(id, floatMap, transform.GetGlobalTransform());
+			return audioSource.channelID;
 			
 	}
 
-	void AudioSource_PlayOneShotPosition(uint64_t ID, MonoString* str, glm::vec3* pos)
+	int AudioSource_PlayOneShotLabel(uint64_t ID, MonoArray* arr, MonoArray* values, MonoArray* param)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(ID);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		auto& transform = entity.GetComponent<TransformComponent>();
+		auto& audioSource = entity.GetComponent<AudioSourceComponent>();
+
+		std::array<uint8_t, 16>  id;
+		for (int i = 0; i < 16; i++)
+		{
+			id[i] = mono_array_get(arr, uint8_t, i);
+		}
+
+		std::unordered_map<std::string, std::string> stringMap;
+		if (param != nullptr)
+		for (int i = 0; i < mono_array_length(param); i++)
+		{
+			MonoString* monoStr = (MonoString*)mono_array_get(param, MonoObject*, i);
+			MonoString* valStr = (MonoString*)mono_array_get(values, MonoObject*, i);
+			const char* cStr = mono_string_to_utf8(monoStr);
+			const char* val = mono_string_to_utf8(valStr);
+			stringMap[cStr] = val;
+		}
+
+		audioSource.channelID = AudioEngine::PlayOneShot(id, stringMap, transform.GetGlobalTransform());
+		return audioSource.channelID;
+
+	}
+
+	int AudioSource_PlayOneShotPosition(uint64_t ID, MonoArray* arr, glm::vec3* pos)
 	{
 		Scene* scene = SceneManager::GetActiveScene().get();
 		BOREALIS_CORE_ASSERT(scene, "Scene is null");
@@ -1652,11 +1701,16 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		auto& audioSource = entity.GetComponent<AudioSourceComponent>();
 
-		char* message = mono_string_to_utf8(str);
-		std::string audioName = message;
-		mono_free(message);
+		std::array<uint8_t, 16>  id;
+		for (int i = 0; i < 16; i++)
+		{
+			id[i] = mono_array_get(arr, uint8_t, i);
+		}
 
-		audioSource.channelID = AudioEngine::PlayOneShot(audioName, *pos);
+		glm::mat4 transform = glm::translate(glm::mat4(1.0f), *pos);
+
+		audioSource.channelID = AudioEngine::PlayOneShot(id, std::unordered_map<std::string, float>(), transform);
+		return audioSource.channelID;
 	}
 
 	void AudioSource_Stop(uint64_t ID)
@@ -1671,6 +1725,17 @@ namespace Borealis
 		{
 			auto& audioSource = entity.GetComponent<AudioSourceComponent>();
 			AudioEngine::StopChannel(audioSource.channelID);
+		}
+	}
+	void AudioSource_StopID(uint64_t Uid, int ID)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(ID);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		if (entity.HasComponent<AudioSourceComponent>())
+		{
+			AudioEngine::StopChannel(ID);
 		}
 	}
 	void AudioSource_IsPlaying(uint64_t ID, bool* playing)
@@ -1700,5 +1765,39 @@ namespace Borealis
 		}
 
 		entity.GetComponent<AudioListenerComponent>().isAudioListener = true;
+	}
+	bool AudioSource_IsChannelPlaying(uint64_t uiD, int ID)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(ID);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		if (entity.HasComponent<AudioSourceComponent>())
+			return AudioEngine::isSoundPlaying(ID);
+		return false;
+	}
+	MonoString* GetAudioClipName(MonoArray** guid)
+	{
+		std::array<uint8_t, 16>  id;
+		for (int i = 0; i < 16; i++)
+		{
+			id[i] = mono_array_get(*guid, uint8_t, i);
+		}
+
+		auto str = AudioEngine::GetEventNameFromGUID(id);
+		return mono_string_new(mono_domain_get(), str.c_str());
+	}
+	void SetAudioClipName(MonoString* name, MonoArray** guid)
+	{
+		// get the name
+		char* message = mono_string_to_utf8(name);
+		std::string audioName = message;
+		std::array<uint8_t, 16>  id = AudioEngine::GetGUIDFromEventName(audioName);
+		*guid = mono_array_new(mono_domain_get(), mono_get_object_class(), 16); // 16 bytes
+		for (int i = 0; i < 16; i++)
+		{
+			mono_array_set(*guid, uint8_t, i, id[i]);
+		}
+
 	}
 }

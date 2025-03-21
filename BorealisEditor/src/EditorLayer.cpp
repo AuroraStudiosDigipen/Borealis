@@ -45,6 +45,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include<EditorSerialiser.hpp>
 #include <Panels/CubemapPanel.hpp>
+#include <Commands.hpp>
 
 namespace ImGui
 {
@@ -129,8 +130,9 @@ namespace Borealis {
 
 		SCPanel.SetContext(SceneManager::GetActiveScene());
 		SCPanel.mEditorScene = &mEditorScene;
-
+		
 		mEditorCamera = EditorCamera(60.0f, 1.778f, 0.3f, 1000.0f);
+		SCPanel.editorCamera = &mEditorCamera;
 		ScriptingSystem::InitCoreAssembly();
 		ResourceManager::Init();
 
@@ -146,6 +148,8 @@ namespace Borealis {
 	void EditorLayer::Free()
 	{
 		PROFILE_FUNCTION();
+		EditorSerialiser serialiser(nullptr);
+		serialiser.SerializeEditorCameraProp(mEditorCamera, Project::GetProjectPath() + "/cameras.props");
 		ResourceManager::Free();
 
 	}
@@ -440,6 +444,55 @@ namespace Borealis {
 
 		mHoveredEntity = { (entt::entity)entityID , SceneManager::GetActiveScene().get() };
 
+
+		//mSceneState = SceneState::Edit;
+		//SceneManager::GetActiveScene()->RuntimeEnd();
+		//SCPanel.SetSelectedEntity({});
+		//std::string tmpName = SceneManager::GetActiveScene()->GetName();
+		//SceneManager::SetActiveScene(mEditorScene);
+		//EditorSerialiser serialiser(nullptr);
+		//SceneManager::RemoveScene(tmpName, serialiser);
+		//SCPanel.SetContext(SceneManager::GetActiveScene());
+
+		//auto view = SceneManager::GetActiveScene()->GetRegistry().view<CameraComponent>();
+		//for (auto entity : view)
+		//{
+		//	auto& cameraComponent = view.get<CameraComponent>(entity);
+		//	if (cameraComponent.Primary)
+		//	{
+		//		mRuntimeCamera = Entity(entity, SceneManager::GetActiveScene().get());
+		//	}
+		//}
+
+		//Ref<Scene> copiedScene = Scene::Copy(SceneManager::GetActiveScene());
+		//copiedScene->SetName(copiedScene->GetName() + "-runtime");
+		//SceneManager::AddScene(copiedScene->GetName(), "");
+		//mEditorScene = SceneManager::GetActiveScene();
+		//SceneManager::SetActiveScene(copiedScene);
+		//SCPanel.SetContext(SceneManager::GetActiveScene());
+		//SceneManager::GetActiveScene()->RuntimeStart();
+		if (SceneManager::ToNextScene)
+		{
+			if (mSceneState != SceneState::Edit)
+			{
+				Borealis::SceneManager::GetActiveScene()->RuntimeEnd();
+				SCPanel.SetSelectedEntity({});
+				std::string tmpName = SceneManager::GetActiveScene()->GetName();
+				EditorSerialiser serialiser(nullptr);
+				SceneManager::SetActiveScene(SceneManager::NextSceneName, serialiser);
+				SceneManager::RemoveScene(tmpName, serialiser);
+				SceneManager::GetActiveScene()->ResizeViewport((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
+				SCPanel.SetContext(SceneManager::GetActiveScene());
+				SceneManager::GetActiveScene()->RuntimeStart();
+				serialiser.DeserializeEditorCameraProp(mEditorCamera, Project::GetProjectPath() + "/cameras.props");
+				SceneManager::GetActiveScene()->SetName(SceneManager::NextSceneName + "-runtime");
+
+				AddScene(SceneManager::GetActiveScene()->GetName(), "");
+
+			}
+			Borealis::SceneManager::ToNextScene = false;
+			Borealis::SceneManager::NextSceneName = "";
+		}
 	}
 
 	void EditorLayer::EventFn(Event& e)
@@ -519,6 +572,7 @@ namespace Borealis {
 
 				EditorSerialiser serialiser(nullptr);
 				SceneManager::SetActiveScene(activeScName, serialiser);
+				serialiser.DeserializeEditorCameraProp(mEditorCamera, Project::GetProjectPath()+"/cameras.props");
 
 				for (auto [handle, meta] : Project::GetEditorAssetsManager()->GetAssetRegistry())
 				{
@@ -710,6 +764,14 @@ namespace Borealis {
 			
 			BTNEPanel.ImGuiRender();
 
+			if (InputSystem::IsKeyPressed(Key::LeftControl))
+			{
+				if (InputSystem::IsKeyTriggered(Key::Z))
+					ActionManager::undo();
+				if (InputSystem::IsKeyTriggered(Key::Y))
+					ActionManager::redo();
+			}
+
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0,0 });
 
 			if (ImGui::Begin("Viewport"))
@@ -853,9 +915,8 @@ namespace Borealis {
 								{
 									ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(globalTransform), glm::value_ptr(translation), glm::value_ptr(rotation), glm::value_ptr(scale));
 								}
-								tc.Rotation = rotation;
-								tc.Translate = translation;
-								tc.Scale = scale;
+								ActionManager::execute(std::make_unique<GizmoCommand>(tc.Translate, tc.Rotation, tc.Scale, translation, rotation, scale, selectedEntity));
+				
 							}
 						}
 				}
@@ -1231,6 +1292,7 @@ namespace Borealis {
 			break;
 		}
 
+
 		}
 
 		return true;
@@ -1261,7 +1323,10 @@ namespace Borealis {
 			EditorSerialiser serialiser(mEditorScene);
 			serialiser.DeserialiseScene(filepath);
 
+
 			SceneManager::GetActiveScene() = mEditorScene;
+			serialiser.DeserializeEditorCameraProp(mEditorCamera, Project::GetProjectPath() + "/cameras.props");
+
 			if (hasRuntimeCamera)
 			{
 				SceneManager::GetActiveScene()->GetRegistry().get<CameraComponent>(mRuntimeCamera).Camera.SetViewportSize((uint32_t)mRuntimeSize.x, (uint32_t)mRuntimeSize.y);
@@ -1292,6 +1357,8 @@ namespace Borealis {
 			BOREALIS_CORE_INFO(SceneManager::GetActiveScene()->GetName());
 
 			DeserialiseEditorScene();
+			serialiser.DeserializeEditorCameraProp(mEditorCamera, Project::GetProjectPath() + "/cameras.props");
+
 		}
 		for (auto& item : SceneManager::GetActiveScene()->GetRegistry().view<entt::entity>()) {
 			Entity entity{ item, SceneManager::GetActiveScene().get() }; // Use GetActiveScene() here
@@ -1517,6 +1584,14 @@ namespace Borealis {
 		Project::SaveProject();
 		EditorSerialiser serialiser(mEditorScene);
 		SceneManager::SaveActiveScene(serialiser);
+		serialiser.SerializeEditorCameraProp(mEditorCamera, Project::GetProjectPath() + "/cameras.props");
+
+		for (auto& material : ActionManager::modifiedMaterials)
+		{
+			material->SerializeMaterial(AssetManager::GetMetaData(material->mAssetHandle).SourcePath);
+		}
+		ActionManager::modifiedMaterials.clear();
+
 	}
 
 	void EditorLayer::UIToolbar()

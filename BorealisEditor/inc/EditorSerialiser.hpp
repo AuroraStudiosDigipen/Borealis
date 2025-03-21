@@ -24,6 +24,8 @@ namespace Borealis
 		EditorSerialiser(const Ref<Scene>& scene) : Serialiser(scene) {}
 		void SerialiseAbstractItems(YAML::Emitter& out, Entity& entity) override;
 		void DeserialiseAbstractItems(YAML::detail::iterator_value& data, Entity& entity) override;
+		void SerializeEditorCameraProp(EditorCamera camera, std::string filepath);
+		void DeserializeEditorCameraProp(EditorCamera& camera, std::string filepath);
 	};
 }
 

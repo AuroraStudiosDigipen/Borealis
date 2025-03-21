@@ -798,7 +798,11 @@ namespace Borealis
 				auto [transform, audioListener] = group.get<TransformComponent, AudioListenerComponent>(entity);
 
 				if (!audioListener.isAudioListener) continue;
-				AudioEngine::Set3DListenerAndOrientation(transform.GetGlobalTransform());
+				{
+					AudioEngine::Set3DListenerAndOrientation(transform.GetGlobalTransform());
+					BOREALIS_CORE_INFO(brEntity.GetName());
+				}
+
 
 				listener += 1;
 
@@ -827,7 +831,7 @@ namespace Borealis
 
 					if (audio.channelID)
 					{
-						AudioEngine::UpdateChannelPosition(audio.channelID, transform.GetGlobalTranslate());
+						//AudioEngine::UpdateChannelPosition(audio.channelID, transform.GetGlobalTransform());
 					}
 				}
 			}

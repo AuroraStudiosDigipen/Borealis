@@ -88,7 +88,7 @@ namespace Borealis
 		static std::unordered_map<std::string, Ref<ScriptClass>> mScriptClasses; // Library of available scripts
 		static std::unordered_map<std::string, std::unordered_set<UUID>> mEntityScriptMap; // Scripts attached to entities
 
-		static void Reload(AssetMetaData const& assetMetaData);
+		static void Reload(AssetMetaData const& assetMetaData, Ref<Asset> const& reload = nullptr);
 
 		static void* GetScriptDomain();
 

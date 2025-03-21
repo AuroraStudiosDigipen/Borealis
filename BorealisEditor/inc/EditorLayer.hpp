@@ -48,7 +48,7 @@ namespace Borealis {
 			\brief
 				Destructor for the EditorLayer
 		*************************************************************************/
-		~EditorLayer() {}
+		~EditorLayer() { Free(); }
 
 		/*!***********************************************************************
 			\brief

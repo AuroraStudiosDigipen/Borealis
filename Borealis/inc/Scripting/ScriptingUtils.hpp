@@ -142,7 +142,7 @@ namespace Borealis
 
 	void InitGameObject(MonoObject*& object, UUID id, std::string objectType, bool pin = true);
 
-	void InitStringObject(MonoObject*& object, std::string str, std::string objectType, bool pin = true);
+	void InitAudioObject(MonoObject*& object, std::array<uint8_t, 16> id, std::string objectType, bool pin = true);
 
 }
 

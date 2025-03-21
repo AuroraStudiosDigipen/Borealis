@@ -751,6 +751,12 @@ namespace Borealis
 				if (character == '\r' || character == '\n')
 					continue;  // Skip non-renderable characters
 
+				if (!fontInfo.glyphs.contains(character)) 
+				{
+					BOREALIS_CORE_INFO("Unsupported character : {}", character);
+					BOREALIS_CORE_INFO("From line : {}", string);
+					continue;
+				}
 				const FontGlyph& glyph = fontInfo.glyphs.at(character);
 				double advance = glyph.advance;
 
@@ -778,6 +784,10 @@ namespace Borealis
 			if (character == '\r' || character == '\n')
 				continue;
 
+			if (!fontInfo.glyphs.contains(character))
+			{
+				continue;
+			}
 			const FontGlyph& glyph = fontInfo.glyphs.at(character);
 
 			// Determine texture coordinates.

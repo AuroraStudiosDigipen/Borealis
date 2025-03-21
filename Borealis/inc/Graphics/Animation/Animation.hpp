@@ -41,6 +41,9 @@ namespace Borealis
 		std::map<std::string, BoneData> mBoneDataMap;
 
 		static Ref<Asset> Load(std::filesystem::path const& cachePath, AssetMetaData const& assetMetaData);
+		static void Reload(AssetMetaData const& assetMetaData, Ref<Asset> const& asset);
+
+		void swap (Asset& other) override;
 
 	private:
 

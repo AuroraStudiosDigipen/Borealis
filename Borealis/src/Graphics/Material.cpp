@@ -112,7 +112,7 @@ namespace Borealis
         hash = std::hash<std::string>{}(path.string());
         //temp until add to material meta config
         mShader = Shader::GetDefault3DMaterialShader();
-
+        if (!std::filesystem::is_regular_file(path)) return;
         YAML::Node data = YAML::LoadFile(path.string());
 
         mName = data["Name"].as<std::string>();
@@ -419,5 +419,18 @@ namespace Borealis
     {
         Material material(cachePath/std::to_string(assetMetaData.Handle));
         return MakeRef<Material>(material);
+    }
+    void Material::Reload(AssetMetaData const& assetMetaData, Ref<Asset> const& asset)
+    {
+        Material material(assetMetaData.CachePath);
+        Ref<Material> newMat = MakeRef<Material>(material);
+        newMat->swap(*asset);
+    }
+
+    void Material::swap(Asset& o)
+    {
+        Material& original = dynamic_cast<Material&>(*this);
+		Material& other = dynamic_cast<Material&>(o);
+		std::swap(original, other);
     }
 }

@@ -229,16 +229,14 @@ namespace Borealis
 
 		if (mAssetReloaders.contains(assetMetaData.Type))
 		{
-			mAssetReloaders[assetMetaData.Type](assetMetaData);
+			if (mLoadedAssets.contains(assetHandle))
+			{
+				mAssetReloaders[assetMetaData.Type](assetMetaData, mLoadedAssets[assetHandle]);
+				return mLoadedAssets[assetHandle];
+			}
 		}
-
 		//if not already loaded, no need to load it
-		if (!mLoadedAssets.contains(assetHandle)) return nullptr;
-
-		Ref<Asset> asset = LoadAsset(assetHandle);
-		mLoadedAssets.at(assetHandle).swap(asset);// TODO: Temp until reload function is up
-
-		return asset;
+		return Ref<Asset>();
 	}
 
 	AssetMetaData const& EditorAssetManager::GetMetaData(AssetHandle assetHandle) const

@@ -21,6 +21,17 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 namespace Borealis
 {
+
+	struct EditorCameraProps
+	{
+		float mDistance = 10.0f; /*!< Distance of Editor Camera */
+		float mPitch = 0.0f; /*!< Pitch of Editor Camera */
+		float mYaw = 0.0f; /*!< Yaw of Editor Camera */
+		glm::vec3 mPosition = { 0.0f, 0.0f, 0.0f }; /*!< Position of Editor Camera */
+		glm::vec3 mFocalPoint = { 0.0f, 0.0f, 0.0f }; /*!< Focal Point of Editor Camera */
+	};
+
+
 	class EditorCamera : public Camera
 	{
 	public:
@@ -167,6 +178,8 @@ namespace Borealis
 
 		float GetAspectRatio() const override { return mAspectRatio; }
 
+		EditorCameraProps GetProperties();
+		void SetProperties(EditorCameraProps prop);
 	private:
 
 		/*!***********************************************************************

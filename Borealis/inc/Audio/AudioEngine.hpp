@@ -95,6 +95,10 @@ namespace Borealis
         *************************************************************************/
         static void UnLoadAudio(const std::string& strAudioName);
 
+        static std::array<uint8_t, 16>  GetGUIDFromEventName(const std::string& strAudioName);
+
+        static std::string GetEventNameFromGUID(std::array<uint8_t, 16>  id);
+
         /*!***********************************************************************
         \brief
             Sets the 3D listener's position and orientation.
@@ -105,25 +109,6 @@ namespace Borealis
         *************************************************************************/
         static void Set3DListenerAndOrientation(const glm::mat4& transform = glm::mat4{ 1.f }, float fVolumedB = 0.0f);
 
-        /*!***********************************************************************
-        \brief
-            Plays an audio file at the specified position, assigned to a group.
-        \param strSoundName
-            The name of the sound file.
-        \param vPosition
-            The 3D position where the sound will be played.
-        \param fVolumedB
-            The volume in decibels.
-        \param bMute
-            Whether the sound should be muted.
-        \param bLoop
-            Whether the sound should loop.
-        \param groupId
-            The ID of the audio group.
-        \return
-            The ID of the channel where the sound is played.
-        *************************************************************************/
-        static int PlayAudio(std::string audioPath, const glm::vec3& vPosition = glm::vec3{ 0, 0, 0 });
 
         /*!***********************************************************************
         \brief
@@ -257,7 +242,10 @@ namespace Borealis
         \return
             The ID of the playing channel.
         *************************************************************************/
-        static int Play(std::string audioPath, const glm::vec3& position);
+        static int Play(std::array<uint8_t, 16> id, const glm::mat4& transform = glm::mat4{ 1.f }, std::unordered_map<std::string, float> = {});
+
+        static int Play(std::array<uint8_t, 16> id, const glm::mat4& transform = glm::mat4{ 1.f }, std::unordered_map<std::string, std::string> = {});
+
 
         /*!***********************************************************************
         \brief
@@ -271,11 +259,12 @@ namespace Borealis
         \param groupName
             The name of the audio group.
         *************************************************************************/
-        static int PlayOneShot(std::string audioPath, const glm::vec3& position);
-        
+        static int PlayOneShot(std::array<uint8_t, 16> id, std::unordered_map<std::string, float> = {}, const glm::mat4& transform = glm::mat4{ 1.f });
+        static int PlayOneShot(std::array<uint8_t, 16> id, std::unordered_map <std::string, std::string>, const glm::mat4& transform = glm::mat4{ 1.f });
+
         static float dbToVolume2(float sliderValue);
 
-        static void UpdateChannelPosition(int channelID, glm::vec3 position);
+        static void UpdateChannelPosition(int channelID, const glm::mat4& transform = glm::mat4{ 1.f });
 
         static std::set<std::string> GetAudioList();
 
@@ -285,6 +274,11 @@ namespace Borealis
         static std::set<std::string> GetFoldersInDirectory(const std::string& directory);
 
         static std::set<std::string> GetAudioListSearch( std::string keyword);
+        static std::array<uint8_t, 16> StringToGuid(const std::string& str);
+        static std::string GuidToString(const std::array<uint8_t, 16>& id);
+        static bool DoesEventExist(const std::string& strAudioName);
+        static bool DoesEventExist(const std::array<uint8_t, 16>& id);
+
 
     };
 } // End of namespace Borealis

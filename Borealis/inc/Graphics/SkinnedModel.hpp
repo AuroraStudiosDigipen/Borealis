@@ -51,6 +51,8 @@ namespace Borealis
 		std::map<std::string, BoneData> mBoneDataMap{};
 		int mBoneCounter{};
 		Ref<Animation> mAnimation;
+
+		void swap(Asset& other) override;
 	private:
 		RTTR_ENABLE(Asset)
 	};

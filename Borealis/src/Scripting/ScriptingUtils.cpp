@@ -20,7 +20,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scripting/ScriptingUtils.hpp>
 #include <Scripting/ScriptingSystem.hpp>
 #include <Scripting/ScriptClass.hpp>
-
+#include <Audio/AudioEngine.hpp>
 namespace Borealis
 {
 	char* ReadBytes(const std::string& path, uint32_t* outSize)
@@ -255,13 +255,17 @@ namespace Borealis
 
 	}
 
-	void InitStringObject(MonoObject*& object, std::string str, std::string objectType, bool pin)
+	void InitAudioObject(MonoObject*& object, std::array<uint8_t, 16> id, std::string objectType, bool pin)
 	{
 		object = mono_object_new(mono_domain_get(), ScriptingSystem::GetScriptClass(objectType)->GetMonoClass());
 		void* args[1];
 		MonoMethod* ctor = mono_class_get_method_from_name(ScriptingSystem::GetScriptClass(objectType)->GetMonoClass(), ".ctor", 1);
-		MonoString* monoStr = mono_string_new(mono_domain_get(), str.c_str());
-		args[0] = monoStr;
+		MonoArray* guid = mono_array_new(mono_domain_get(), mono_get_object_class(), 16); // 16 bytes
+		for (int i = 0; i < 16; i++)
+		{
+			mono_array_set(guid, uint8_t, i, id[i]);
+		}
+		args[0] = guid;
 		if (pin)
 			mono_gchandle_new(object, true);
 		mono_runtime_invoke(ctor, object, args, NULL);

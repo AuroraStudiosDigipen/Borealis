@@ -205,5 +205,32 @@ namespace Borealis
 		}
 	}
 
+	void Model::Reload(AssetMetaData const& assetMetaData, Ref<Asset> asset)
+	{
+		MeshConfig config = GetConfig<MeshConfig>(assetMetaData.Config);
+		if (config.skinMesh)
+		{
+			SkinnedModel skinnedModel;
+			skinnedModel.LoadModel(assetMetaData.CachePath);
+			auto newModel = MakeRef<SkinnedModel>(skinnedModel);
+			newModel->swap(*asset);
+		}
+		else
+		{
+			Model model;
+			model.LoadModel(assetMetaData.CachePath);
+			auto newModel = MakeRef<Model>(model);
+			newModel->swap(*asset);
+		}
+	}
+
+	void Model::swap(Asset& other)
+	{
+		Model& otherModel = dynamic_cast<Model&>(other);
+		std::swap(mMeshes, otherModel.mMeshes);
+		std::swap(mBoundingSphere, otherModel.mBoundingSphere);
+		std::swap(mAABB, otherModel.mAABB);
+	}
+
 	
 }

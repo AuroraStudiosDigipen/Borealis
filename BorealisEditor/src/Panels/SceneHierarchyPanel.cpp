@@ -44,6 +44,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include "MaterialEditor.hpp"
 #include <EditorSerialiser.hpp>
 #include <AI/BehaviourTree/BTreeFactory.hpp>
+#include <Commands.hpp>
 
 namespace ImGui
 {
@@ -71,6 +72,8 @@ namespace ImGui
 
 namespace Borealis
 {
+	static Entity* globalMSelectedEntity = nullptr;
+
 	static bool DrawVec3Controller(const std::string& label, glm::vec3& values, float resetValue = 0.f, float columnWidth = 10.f)
 	{
 		bool output = false;
@@ -207,7 +210,8 @@ namespace Borealis
 		if (propType == rttr::type::get<glm::vec3>())
 		{
 			rttr::variant value = Property.get_value(rInstance);
-			glm::vec3 Data = value.get_value<glm::vec3>();
+			glm::vec3 oldValue = value.get_value<glm::vec3>();
+			auto newValue = oldValue;
 
 			float min = 0;
 
@@ -225,16 +229,16 @@ namespace Borealis
 				ImGui::NextColumn();
 				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 10, 0 }); // Spacing between Items
 				*propertyDrawn = true;
-				if (ImGui::ColorEdit3(("##" + name + propName).c_str(), glm::value_ptr(Data)))
+				if (ImGui::ColorEdit3(("##" + name + propName).c_str(), glm::value_ptr(newValue)))
 				{
-					Property.set_value(rInstance, Data);
+					ActionManager::execute(std::make_unique<ModifyPropertyCommand<glm::vec3>>(rInstance, Property, oldValue, newValue));
 					return true;
 				}
 			}
 
-			else if (DrawVec3Controller(propName, Data, min))
+			else if (DrawVec3Controller(propName, newValue, min))
 			{
-				Property.set_value(rInstance, Data);
+				ActionManager::execute(std::make_unique<ModifyPropertyCommand<glm::vec3>>(rInstance, Property, oldValue, newValue));
 				return true;
 			}
 			return false;
@@ -260,8 +264,8 @@ namespace Borealis
 			{
 				enumMap[value] = Property.get_enumeration().name_to_value(value);
 			}
-			auto currentEnum = Property.get_value(rInstance);
-			auto currentEnumString = Property.get_enumeration().value_to_name(currentEnum);
+			auto oldValue = Property.get_value(rInstance);
+			auto currentEnumString = Property.get_enumeration().value_to_name(oldValue);
 			bool isTrue = false;
 
 			if (ImGui::BeginCombo(("##" + name + propName).c_str(), currentEnumString.to_string().c_str()))
@@ -269,10 +273,10 @@ namespace Borealis
 				for (int i = 0; i < enumMap.size(); i++)
 				{
 					auto& [enumName, enumValue] = *std::next(enumMap.begin(), i);
-					bool isSelected = currentEnum == enumValue;
+					bool isSelected = oldValue == enumValue;
 					if (ImGui::Selectable(enumName.to_string().c_str(), isSelected))
 					{
-						Property.set_value(rInstance, enumValue);
+						ActionManager::execute(std::make_unique<ModifyPropertyCommand<rttr::variant>>(rInstance, Property, oldValue, enumValue));
 						isTrue = true;
 					}
 					if (isSelected)
@@ -287,10 +291,11 @@ namespace Borealis
 
 		if (propType == rttr::type::get<bool>())
 		{
-			bool Data = Property.get_value(rInstance).to_bool();
-			if (ImGui::Checkbox(("##" + name + propName).c_str(), &Data))
+			bool oldValue = Property.get_value(rInstance).to_bool();
+			bool newValue = oldValue;
+			if (ImGui::Checkbox(("##" + name + propName).c_str(), &newValue))
 			{
-				Property.set_value(rInstance, Data);
+				ActionManager::execute(std::make_unique<ModifyPropertyCommand<bool>>(rInstance, Property, oldValue, newValue));
 				// if is tracking
 				// PrefabComponent::TrackProperty(Property.get_name().to_string())
 				return true;
@@ -299,10 +304,11 @@ namespace Borealis
 		}
 		if (propType == rttr::type::get<float>())
 		{
-			float Data = Property.get_value(rInstance).to_float();
-			if (ImGui::DragFloat(("##" + name + propName).c_str(), &Data))
+			float oldValue = Property.get_value(rInstance).to_float();
+			float newValue = oldValue;
+			if (ImGui::DragFloat(("##" + name + propName).c_str(), &newValue))
 			{
-				Property.set_value(rInstance, Data);
+				ActionManager::execute(std::make_unique<ModifyPropertyCommand<float>>(rInstance, Property, oldValue, newValue));
 				return true;
 			}
 			return false;
@@ -310,10 +316,11 @@ namespace Borealis
 
 		if (propType == rttr::type::get<int>())
 		{
-			int Data = Property.get_value(rInstance).to_int();
-			if (ImGui::DragInt(("##" + name + propName).c_str(), &Data))
+			int oldValue = Property.get_value(rInstance).to_int();
+			int newValue = oldValue;
+			if (ImGui::DragInt(("##" + name + propName).c_str(), &newValue))
 			{
-				Property.set_value(rInstance, Data);
+				ActionManager::execute(std::make_unique<ModifyPropertyCommand<int>>(rInstance, Property, oldValue, newValue));
 				return true;
 			}
 			return false;
@@ -321,14 +328,15 @@ namespace Borealis
 
 		if (propType == rttr::type::get<std::string>())
 		{
-			std::string Data = Property.get_value(rInstance).to_string();
+			auto oldValue = Property.get_value(rInstance).to_string();
+			auto newValue = oldValue;
 			char buffer[256];
 			memset(buffer, 0, sizeof(buffer));
-			strcpy_s(buffer, sizeof(buffer), Data.c_str());
+			strcpy_s(buffer, sizeof(buffer), oldValue.c_str());
 			if (ImGui::InputText(("##" + name + propName).c_str(), buffer, sizeof(buffer)))
 			{
-				Data = std::string(buffer);
-				Property.set_value(rInstance, Data);
+				newValue = std::string(buffer);
+				ActionManager::execute(std::make_unique<ModifyPropertyCommand<std::string>>(rInstance, Property, oldValue, newValue));
 				return true;
 			}
 			return false;
@@ -336,11 +344,13 @@ namespace Borealis
 
 		if (propType == rttr::type::get<glm::vec2>())
 		{
+			
 			rttr::variant value = Property.get_value(rInstance);
-			glm::vec2 Data = value.get_value<glm::vec2>();
-			if (ImGui::DragFloat2(("##" + name + propName).c_str(), glm::value_ptr(Data)))
+			auto oldValue = value.get_value<glm::vec2>();
+			auto newValue = oldValue;
+			if (ImGui::DragFloat2(("##" + name + propName).c_str(), glm::value_ptr(newValue)))
 			{
-				Property.set_value(rInstance, Data);
+				ActionManager::execute(std::make_unique<ModifyPropertyCommand<glm::vec2>>(rInstance, Property, oldValue, newValue));
 				return true;
 			}
 			return false;
@@ -349,20 +359,21 @@ namespace Borealis
 		if (propType == rttr::type::get<glm::vec4>())
 		{
 			rttr::variant value = Property.get_value(rInstance);
-			glm::vec4 Data = value.get_value<glm::vec4>();
+			auto oldValue = value.get_value<glm::vec4>();
+			auto newValue = oldValue;
 
 			if (Property.get_metadata("Colour").is_valid())
 			{
-				if (ImGui::ColorEdit4(("##" + name + propName).c_str(), glm::value_ptr(Data)))
+				if (ImGui::ColorEdit4(("##" + name + propName).c_str(), glm::value_ptr(newValue)))
 				{
-					Property.set_value(rInstance, Data);
+					ActionManager::execute(std::make_unique<ModifyPropertyCommand<glm::vec4>>(rInstance, Property, oldValue, newValue));
 					return true;
 				}
 			}
 
-			else if (ImGui::DragFloat4(("##" + name + propName).c_str(), glm::value_ptr(Data)))
+			else if (ImGui::DragFloat4(("##" + name + propName).c_str(), glm::value_ptr(newValue)))
 			{
-				Property.set_value(rInstance, Data);
+				ActionManager::execute(std::make_unique<ModifyPropertyCommand<glm::vec4>>(rInstance, Property, oldValue, newValue));
 				return true;
 			}
 
@@ -372,9 +383,10 @@ namespace Borealis
 		if (propType == rttr::type::get<unsigned char>())
 		{
 			unsigned char Data = Property.get_value(rInstance).to_uint8();
-			if (ImGui::DragScalar(("##" + name + propName).c_str(), ImGuiDataType_U8, &Data))
+			auto newValue = Data;
+			if (ImGui::DragScalar(("##" + name + propName).c_str(), ImGuiDataType_U8, &newValue))
 			{
-				Property.set_value(rInstance, Data);
+				ActionManager::execute(std::make_unique<ModifyPropertyCommand<unsigned char>>(rInstance, Property, Data, newValue));
 				return true;
 			}
 			return false;
@@ -383,9 +395,10 @@ namespace Borealis
 		if (propType == rttr::type::get<char>())
 		{
 			char Data = Property.get_value(rInstance).to_int8();
-			if (ImGui::DragScalar(("##" + name + propName).c_str(), ImGuiDataType_S8, &Data))
+			auto newValue = Data;
+			if (ImGui::DragScalar(("##" + name + propName).c_str(), ImGuiDataType_S8, &newValue))
 			{
-				Property.set_value(rInstance, Data);
+				ActionManager::execute(std::make_unique<ModifyPropertyCommand<char>>(rInstance, Property, Data, newValue));
 				return true;
 			}
 			return false;
@@ -394,9 +407,10 @@ namespace Borealis
 		if (propType == rttr::type::get<unsigned short>())
 		{
 			unsigned short Data = Property.get_value(rInstance).to_uint16();
-			if (ImGui::DragScalar(("##" + name + propName).c_str(), ImGuiDataType_U16, &Data))
+			auto newValue = Data;
+			if (ImGui::DragScalar(("##" + name + propName).c_str(), ImGuiDataType_U16, &newValue))
 			{
-				Property.set_value(rInstance, Data);
+				ActionManager::execute(std::make_unique<ModifyPropertyCommand<unsigned short>>(rInstance, Property, Data, newValue));
 				return true;
 			}
 			return false;
@@ -405,9 +419,10 @@ namespace Borealis
 		if (propType == rttr::type::get<short>())
 		{
 			short Data = Property.get_value(rInstance).to_int16();
-			if (ImGui::DragScalar(("##" + name + propName).c_str(), ImGuiDataType_S16, &Data))
+			auto newValue = Data;
+			if (ImGui::DragScalar(("##" + name + propName).c_str(), ImGuiDataType_S16, &newValue))
 			{
-				Property.set_value(rInstance, Data);
+				ActionManager::execute(std::make_unique<ModifyPropertyCommand<short>>(rInstance, Property, Data, newValue));
 				return true;
 			}
 			return false;
@@ -416,9 +431,10 @@ namespace Borealis
 		if (propType == rttr::type::get<unsigned int>())
 		{
 			unsigned int Data = Property.get_value(rInstance).to_uint32();
-			if (ImGui::DragScalar(("##" + name + propName).c_str(), ImGuiDataType_U32, &Data))
+			auto newValue = Data;
+			if (ImGui::DragScalar(("##" + name + propName).c_str(), ImGuiDataType_U32, &newValue))
 			{
-				Property.set_value(rInstance, Data);
+				ActionManager::execute(std::make_unique<ModifyPropertyCommand<unsigned int>>(rInstance, Property, Data, newValue));
 				return true;
 			}
 			return false;
@@ -427,9 +443,10 @@ namespace Borealis
 		if (propType == rttr::type::get<long long>())
 		{
 			long long Data = Property.get_value(rInstance).to_int64();
-			if (ImGui::DragScalar(("##" + name + propName).c_str(), ImGuiDataType_S64, &Data))
+			auto newValue = Data;
+			if (ImGui::DragScalar(("##" + name + propName).c_str(), ImGuiDataType_S64, &newValue))
 			{
-				Property.set_value(rInstance, Data);
+				ActionManager::execute(std::make_unique<ModifyPropertyCommand<long long>>(rInstance, Property, Data, newValue));
 				return true;
 			}
 			return false;
@@ -438,9 +455,10 @@ namespace Borealis
 		if (propType == rttr::type::get<unsigned long long>())
 		{
 			unsigned long long Data = Property.get_value(rInstance).to_uint64();
-			if (ImGui::DragScalar(("##" + name + propName).c_str(), ImGuiDataType_U64, &Data))
+			auto newValue = Data;
+			if (ImGui::DragScalar(("##" + name + propName).c_str(), ImGuiDataType_U64, &newValue))
 			{
-				Property.set_value(rInstance, Data);
+				ActionManager::execute(std::make_unique<ModifyPropertyCommand<unsigned long long>>(rInstance, Property, Data, newValue));
 				return true;
 			}
 			return false;
@@ -449,9 +467,10 @@ namespace Borealis
 		if (propType == rttr::type::get<double>())
 		{
 			double Data = Property.get_value(rInstance).to_double();
-			if (ImGui::DragScalar(("##" + name + propName).c_str(), ImGuiDataType_Double, &Data))
+			auto newValue = Data;
+			if (ImGui::DragScalar(("##" + name + propName).c_str(), ImGuiDataType_Double, &newValue))
 			{
-				Property.set_value(rInstance, Data);
+				ActionManager::execute(std::make_unique<ModifyPropertyCommand<double>>(rInstance, Property, Data, newValue));
 				return true;
 			}
 			return false;
@@ -471,7 +490,7 @@ namespace Borealis
 				{
 					if (ImGui::MenuItem("Remove Model"))
 					{
-						Property.set_value(rInstance, Ref<Model>());
+						ActionManager::execute(std::make_unique<ModifyPropertyCommand<rttr::variant>>(rInstance, Property, rttr::variant(Data), rttr::variant(Ref<Model>())));
 					}
 					ImGui::EndPopup();
 				}
@@ -491,7 +510,7 @@ namespace Borealis
 				{
 					AssetHandle data = *(const uint64_t*)payload->Data;
 					rttr::variant setValue(AssetManager::GetAsset<Model>(data));
-					Property.set_value(rInstance, setValue);
+					ActionManager::execute(std::make_unique<ModifyPropertyCommand<rttr::variant>>(rInstance, Property, rttr::variant(Data), setValue));
 					return true;
 				}
 				ImGui::EndDragDropTarget();
@@ -514,7 +533,7 @@ namespace Borealis
 				{
 					if (ImGui::MenuItem("Remove Model"))
 					{
-						Property.set_value(rInstance, Ref<SkinnedModel>());
+						ActionManager::execute(std::make_unique<ModifyPropertyCommand<rttr::variant>>(rInstance, Property, rttr::variant(Data), rttr::variant(Ref<SkinnedModel>())));
 					}
 					ImGui::EndPopup();
 				}
@@ -537,8 +556,8 @@ namespace Borealis
 					rttr::variant setValue(AssetManager::GetAsset<SkinnedModel>(data));
 					if (!config.skinMesh) 
 						return false;
-					Property.set_value(rInstance, setValue);
-						return true;
+					ActionManager::execute(std::make_unique<ModifyPropertyCommand<rttr::variant>>(rInstance, Property, rttr::variant(Data), setValue));
+					return true;
 				}
 				ImGui::EndDragDropTarget();
 			}
@@ -559,7 +578,7 @@ namespace Borealis
 				{
 					if (ImGui::MenuItem("Remove Animation"))
 					{
-						Property.set_value(rInstance, Ref<Animation>());
+						ActionManager::execute(std::make_unique<ModifyPropertyCommand<rttr::variant>>(rInstance, Property, rttr::variant(Data), rttr::variant(Ref<Animation>())));
 					}
 					ImGui::EndPopup();
 				}
@@ -579,7 +598,7 @@ namespace Borealis
 				{
 					AssetHandle data = *(const uint64_t*)payload->Data;
 					rttr::variant setValue(AssetManager::GetAsset<Animation>(data));
-					Property.set_value(rInstance, setValue);
+					ActionManager::execute(std::make_unique<ModifyPropertyCommand<rttr::variant>>(rInstance, Property, rttr::variant(Data), setValue));
 					return true;
 				}
 				ImGui::EndDragDropTarget();
@@ -601,7 +620,7 @@ namespace Borealis
 				{
 					if (ImGui::MenuItem("Remove Material"))
 					{
-						Property.set_value(rInstance, Ref<Material>());
+						ActionManager::execute(std::make_unique<ModifyPropertyCommand<rttr::variant>>(rInstance, Property, rttr::variant(Data), rttr::variant(Ref<Material>())));
 					}
 					ImGui::EndPopup();
 				}
@@ -621,7 +640,7 @@ namespace Borealis
 				{
 					AssetHandle data = *(const uint64_t*)payload->Data;
 					rttr::variant setValue(AssetManager::GetAsset<Material>(data));
-					Property.set_value(rInstance, setValue);
+					ActionManager::execute(std::make_unique<ModifyPropertyCommand<rttr::variant>>(rInstance, Property, rttr::variant(Data), setValue));
 					return true;
 				}
 				ImGui::EndDragDropTarget();
@@ -642,7 +661,7 @@ namespace Borealis
 				{
 					if (ImGui::MenuItem("Remove Texture"))
 					{
-						Property.set_value(rInstance, Ref<Texture2D>());
+						ActionManager::execute(std::make_unique<ModifyPropertyCommand<rttr::variant>>(rInstance, Property, rttr::variant(Data), rttr::variant(Ref<Texture2D>())));
 					}
 					ImGui::EndPopup();
 				}
@@ -662,7 +681,7 @@ namespace Borealis
 				{
 					AssetHandle data = *(const uint64_t*)payload->Data;
 					rttr::variant setValue(AssetManager::GetAsset<Texture2D>(data));
-					Property.set_value(rInstance, setValue);
+					ActionManager::execute(std::make_unique<ModifyPropertyCommand<rttr::variant>>(rInstance, Property, rttr::variant(Data), setValue));
 					return true;
 				}
 				ImGui::EndDragDropTarget();
@@ -684,7 +703,7 @@ namespace Borealis
 				{
 					if (ImGui::MenuItem("Remove Behaviour Tree"))
 					{
-						Property.set_value(rInstance, Ref<BehaviourTreeData>());
+						ActionManager::execute(std::make_unique<ModifyPropertyCommand<rttr::variant>>(rInstance, Property, rttr::variant(Data), rttr::variant(Ref<BehaviourTreeData>())));
 					}
 					ImGui::EndPopup();
 				}
@@ -704,7 +723,7 @@ namespace Borealis
 				{
 					AssetHandle data = *(const uint64_t*)payload->Data;
 					rttr::variant setValue(AssetManager::GetAsset<BehaviourTreeData>(data));
-					Property.set_value(rInstance, setValue);
+					ActionManager::execute(std::make_unique<ModifyPropertyCommand<rttr::variant>>(rInstance, Property, rttr::variant(Data), setValue));
 					return true;
 				}
 				ImGui::EndDragDropTarget();
@@ -717,6 +736,7 @@ namespace Borealis
 			
 			auto properties = propType.get_properties();
 			rttr::variant oldVariant = Property.get_value(rInstance);
+			rttr::variant dup(oldVariant);
 			rttr::instance oldInstance(oldVariant);
 			if (oldInstance.is_valid())
 			{
@@ -732,8 +752,7 @@ namespace Borealis
 						ImGui::Dummy(ImVec2(0,5));
 					}
 				}
-
-				Property.set_value(rInstance, oldVariant);
+				ActionManager::execute(std::make_unique<ModifyPropertyCommand<rttr::variant>>(rInstance, Property, dup, oldVariant));
 				return true;
 
 			}
@@ -818,7 +837,7 @@ namespace Borealis
 
 			if (deleteComponent)
 			{
-				entity.RemoveComponent<T>();
+				ActionManager::execute(std::make_unique<RemoveComponentCommand<T>>(entity, entity.GetComponent<T>()));
 			}
 		}
 		return isEdited;
@@ -1146,6 +1165,7 @@ namespace Borealis
 	{
 		mContext = scene;
 		mSelectedEntity = {};
+		globalMSelectedEntity = &mSelectedEntity;
 		ClearSelectedEntities();
 		
 		// Load all entities into the HierarchyLayerManager
@@ -1303,6 +1323,7 @@ namespace Borealis
 								SceneManager::SetActiveScene(name, serialiser);
 								mContext = SceneManager::GetActiveScene();
 								*mEditorScene = SceneManager::GetActiveScene();
+								serialiser.DeserializeEditorCameraProp(*editorCamera, Project::GetProjectPath() + "/cameras.prop");
 								mSelectedEntity = {};
 								ClearSelectedEntities();
 							}
@@ -1454,8 +1475,7 @@ namespace Borealis
 			if (payload) {
 				UUID data = *(const uint64_t*)payload->Data;
 				Entity childEntity = SceneManager::GetActiveScene()->GetEntityByUUID(data);
-				childEntity.GetComponent<TransformComponent>().ResetParent(childEntity);
-				childEntity.GetComponent<TransformComponent>().SetParent(childEntity, entity);
+				ActionManager::execute(std::make_unique<ParentEntityCommand>(childEntity, entity));
 			}
 			ImGui::EndDragDropTarget();
 		}
@@ -1515,17 +1535,16 @@ namespace Borealis
 
 			if (ImGui::MenuItem("Create Empty Entity"))
 			{
-				mContext->CreateEntity("Empty");
+				ActionManager::execute(std::make_unique<CreateEntityCommand>("Empty"));
 			}
 
 			if (ImGui::MenuItem("Duplicate Entity"))
 			{
-				mContext->DuplicateEntity(mSelectedEntity);
+				ActionManager::execute(std::make_unique<DuplicateEntityCommand>(entity));
 			}
 			if (ImGui::MenuItem("Unparent Entity"))
 			{
-				mSelectedEntity.GetComponent<TransformComponent>().ResetParent(mSelectedEntity);
-				HierarchyLayerManager::GetInstance().LoadEntitiesIntoLayerManager(SceneManager::GetActiveScene());
+				ActionManager::execute(std::make_unique<UnparentEntityCommand>(entity));
 			}
 			ImGui::EndPopup();
 		}
@@ -1548,8 +1567,7 @@ namespace Borealis
 
 		if(entityDeleted)
 		{
-			HierarchyLayerManager::GetInstance().RemoveEntity(mSelectedEntity.GetUUID());
-			mContext->DestroyEntity(mSelectedEntity);
+			ActionManager::execute(std::make_unique<DestroyEntityCommand>(mSelectedEntity));
 			mSelectedEntity = {};
 		}
 	}
@@ -1565,7 +1583,7 @@ namespace Borealis
 			{
 				if (!mSelectedEntity.HasComponent<T>())
 				{
-					mSelectedEntity.AddComponent<T>();
+					ActionManager::execute(std::make_unique<AddComponentCommand<T>>(mSelectedEntity));
 					
 					if (std::is_same<T, CameraComponent>::value)
 					{
@@ -1575,14 +1593,7 @@ namespace Borealis
 						mSelectedEntity.GetComponent<CameraComponent>().Camera.SetCameraType(SceneCamera::CameraType::Perspective);
 					}
 
-					if (std::is_same<T, MeshFilterComponent>::value)
-					{
-						if (!mSelectedEntity.HasComponent<MeshRendererComponent>())
-						{
-							mSelectedEntity.AddComponent<MeshRendererComponent>();
-							isEdited = true;
-						}
-					}
+					isEdited = true;
 				}
 				ImGui::CloseCurrentPopup();
 				memset(search_buffer, 0, sizeof(search_buffer));
@@ -1614,9 +1625,10 @@ namespace Borealis
 			if (field.mType == ScriptFieldType::Vector3)
 			{
 				glm::vec3 Data = component->GetFieldValue<glm::vec3>(name);
+				auto oldValue = Data;
 				if (DrawVec3Controller(name, Data))
 				{
-					component->SetFieldValue(name, &Data);
+					ActionManager::execute(std::make_unique<ModifyScriptPropertyCommand<glm::vec3>>(*globalMSelectedEntity, component->GetScriptClass()->GetKlassName(), name, oldValue, Data));
 					isEdited = true;
 				}
 
@@ -1683,8 +1695,9 @@ namespace Borealis
 							if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropImageItem"))
 							{
 								UUID data = *(const uint64_t*)payload->Data;
-								InitGameObject(ObjData, data, field.mFieldClassName());
-								component->SetFieldValue(name, ObjData);
+								MonoObject* newObject = nullptr;
+								InitGameObject(newObject, data, field.mFieldClassName());
+								ActionManager::execute(std::make_unique<ModifyScriptMonoCommand<MonoObject*>>(component, name, ObjData, newObject));
 							}
 							ImGui::EndDragDropTarget();
 						}
@@ -1695,8 +1708,9 @@ namespace Borealis
 							if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropMaterialItem"))
 							{
 								UUID data = *(const uint64_t*)payload->Data;
-								InitGameObject(ObjData, data, field.mFieldClassName());
-								component->SetFieldValue(name, ObjData);
+								MonoObject* newObject = nullptr;
+								InitGameObject(newObject, data, field.mFieldClassName());
+								ActionManager::execute(std::make_unique<ModifyScriptMonoCommand<MonoObject*>>(component, name, ObjData, newObject));
 							}
 							ImGui::EndDragDropTarget();
 						}
@@ -1707,8 +1721,9 @@ namespace Borealis
 							if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropAnimationItem"))
 							{
 								UUID data = *(const uint64_t*)payload->Data;
-								InitGameObject(ObjData, data, field.mFieldClassName());
-								component->SetFieldValue(name, ObjData);
+								MonoObject* newObject = nullptr;
+								InitGameObject(newObject, data, field.mFieldClassName());
+								ActionManager::execute(std::make_unique<ModifyScriptMonoCommand<MonoObject*>>(component, name, ObjData, newObject));
 							}
 							ImGui::EndDragDropTarget();
 						}
@@ -1756,8 +1771,9 @@ namespace Borealis
 						{
 							currentEntityName = entityNames[i];
 							UUID entityID = ID;
-							InitGameObject(Data, entityID, field.mFieldClassName());
-							component->SetFieldValue(name, Data);
+							MonoObject* newData = nullptr;
+							InitGameObject(newData, entityID, field.mFieldClassName());
+							ActionManager::execute(std::make_unique<ModifyScriptMonoCommand<MonoObject*>>(component, name, Data, newData));
 						}
 						if (isSelected)
 						{
@@ -1777,8 +1793,10 @@ namespace Borealis
 					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropEntityItem"))
 					{
 						UUID data = *(const uint64_t*)payload->Data;
-						InitGameObject(Data, data, field.mFieldClassName());
-						component->SetFieldValue(name, Data);
+						MonoObject* newData = Data;
+						InitGameObject(newData, data, field.mFieldClassName());
+						ActionManager::execute(std::make_unique<ModifyScriptMonoCommand<MonoObject*>>(component, name, Data, newData));
+						//component->SetFieldValue(name, newData);
 						// Init game object
 					}
 					ImGui::EndDragDropTarget();
@@ -1827,8 +1845,11 @@ namespace Borealis
 						{
 							currentEntityName = entityNames[i];
 							UUID entityID = ID;
-							InitGameObject(Data, entityID, field.mFieldClassName());
-							component->SetFieldValue(name, Data);
+							MonoObject* newData = nullptr;
+							InitGameObject(newData, entityID, field.mFieldClassName());
+							//ActionManager::execute(std::make_unique<ModifyScriptMonoCommand<MonoObject*>>(component, name, Data, newData));
+							component->SetFieldValue(name, newData);
+
 						}
 						if (isSelected)
 						{
@@ -1848,8 +1869,11 @@ namespace Borealis
 					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DragDropEntityItem"))
 					{
 						UUID data = *(const uint64_t*)payload->Data;
-						InitGameObject(Data, data, field.mFieldClassName());
-						component->SetFieldValue(name, Data);
+						MonoObject* newData = nullptr;
+						InitGameObject(newData, data, field.mFieldClassName());
+						ActionManager::execute(std::make_unique<ModifyScriptMonoCommand<MonoObject*>>(component, name, Data, newData));
+						//component->SetFieldValue(name, newData);
+
 						// Init game object
 					}
 					ImGui::EndDragDropTarget();
@@ -1894,9 +1918,12 @@ namespace Borealis
 							currentEntityName = entityNames[i];
 							UUID entityID = ID;
 							Entity entity = SceneManager::GetActiveScene()->GetEntityByUUID(entityID);
-							auto& scriptComponent = entity.GetComponent<ScriptComponent>();
-							auto script = scriptComponent.mScripts.find(field.mFieldClassName());
-							component->SetFieldValue(name, script->second->GetInstance());
+							if (entity.HasComponent<ScriptComponent>())
+							{
+								auto& scriptComponent = entity.GetComponent<ScriptComponent>();
+								auto script = scriptComponent.mScripts.find(field.mFieldClassName());
+								ActionManager::execute(std::make_unique<ModifyScriptMonoCommand<MonoObject*>>(component, name, Data, script->second->GetInstance()));
+							}
 						}
 						if (isSelected)
 						{
@@ -1918,9 +1945,12 @@ namespace Borealis
 					{
 						UUID data = *(const uint64_t*)payload->Data;
 						Entity entity = SceneManager::GetActiveScene()->GetEntityByUUID(data);
-						auto& scriptComponent = entity.GetComponent<ScriptComponent>();
-						auto script = scriptComponent.mScripts.find(field.mFieldClassName());
-						component->SetFieldValue(name, script->second->GetInstance());
+						if (entity.HasComponent<ScriptComponent>())
+						{
+							auto& scriptComponent = entity.GetComponent<ScriptComponent>();
+							auto script = scriptComponent.mScripts.find(field.mFieldClassName());
+							ActionManager::execute(std::make_unique<ModifyScriptMonoCommand<MonoObject*>>(component, name, Data, script->second->GetInstance()));
+						}
 					}
 					ImGui::EndDragDropTarget();
 				}
@@ -1932,7 +1962,8 @@ namespace Borealis
 				MonoObject* Data = component->GetFieldValue<MonoObject*>(name);
 				if (Data == nullptr)
 				{
-					InitStringObject(Data, "", "AudioClip");
+					InitAudioObject(Data, {}, "AudioClip");
+					component->SetFieldValue(name, Data);
 				}
 				auto fieldData = field.GetAudioName(Data);
 				static std::string currentDir = "/";
@@ -1978,8 +2009,7 @@ namespace Borealis
 							ImGui::SameLine();
 							if (ImGui::Selectable(audioName.c_str(), isSelected))
 							{
-								fieldData = audioFile;
-								field.SetAudioName(Data, fieldData);
+								ActionManager::execute(std::make_unique<ModifyScriptAudioCommand>(field, Data, AudioEngine::GetGUIDFromEventName(fieldData), AudioEngine::GetGUIDFromEventName(audioFile)));
 								currentDir = "/";
 								memset(searchBufferAudioClip, 0, 128);
 								comboIsOpen = false;
@@ -2025,8 +2055,8 @@ namespace Borealis
 							ImGui::SameLine();
 							if (ImGui::Selectable(audioName.c_str(), isSelected))
 							{
-								fieldData = "event:" + currentDir + audioName;
-								field.SetAudioName(Data, fieldData);
+								std::string audioFile = "event:" + currentDir + audioName;
+								ActionManager::execute(std::make_unique<ModifyScriptAudioCommand>(field, Data, AudioEngine::GetGUIDFromEventName(fieldData), AudioEngine::GetGUIDFromEventName(audioFile)));
 								currentDir = "/";
 								comboIsOpen = false;
 							}
@@ -2046,18 +2076,20 @@ namespace Borealis
 			if (field.mType == ScriptFieldType::Bool)
 			{
 				bool Data = component->GetFieldValue<bool>(name);
+				auto oldValue = Data;
 				if (ImGui::Checkbox(("##" + component->GetKlassName() + name).c_str(), &Data))
 				{
-					component->SetFieldValue(name, &Data);
+					ActionManager::execute(std::make_unique<ModifyScriptPropertyCommand<bool>>(*globalMSelectedEntity, component->GetScriptClass()->GetKlassName(), name, oldValue, Data));
 					isEdited = true;
 				}
 			}
 			if (field.mType == ScriptFieldType::Float)
 			{
 				float Data = component->GetFieldValue<float>(name);
+				auto oldValue = Data;
 				if (ImGui::DragFloat(("##" + component->GetKlassName() + name).c_str(), &Data))
 				{
-					component->SetFieldValue(name, &Data);
+					ActionManager::execute(std::make_unique<ModifyScriptPropertyCommand<float>>(*globalMSelectedEntity, component->GetScriptClass()->GetKlassName(), name, oldValue, Data));
 					isEdited = true;
 				}
 			}
@@ -2065,9 +2097,10 @@ namespace Borealis
 			if (field.mType == ScriptFieldType::Int)
 			{
 				int Data = component->GetFieldValue<int>(name);
+				auto oldValue = Data;
 				if (ImGui::DragInt(("##" + component->GetKlassName() + name).c_str(), &Data))
 				{
-					component->SetFieldValue(name, &Data);
+					ActionManager::execute(std::make_unique<ModifyScriptPropertyCommand<int>>(*globalMSelectedEntity, component->GetScriptClass()->GetKlassName(), name, oldValue, Data));
 					isEdited = true;
 				}
 			}
@@ -2075,13 +2108,14 @@ namespace Borealis
 			if (field.mType == ScriptFieldType::String)
 			{
 				std::string Data = component->GetFieldValue<std::string>(name);
+				auto oldValue = Data;
 				char buffer[256];
 				memset(buffer, 0, sizeof(buffer));
 				strcpy_s(buffer, sizeof(buffer), Data.c_str());
 				if (ImGui::InputText(("##" + component->GetKlassName() + name).c_str(), buffer, sizeof(buffer)))
 				{
 					Data = std::string(buffer);
-					component->SetFieldValue(name, &Data);
+					ActionManager::execute(std::make_unique<ModifyScriptPropertyCommand<std::string>>(*globalMSelectedEntity, component->GetScriptClass()->GetKlassName(), name, oldValue, Data));
 					isEdited = true;
 				}
 			}
@@ -2089,9 +2123,10 @@ namespace Borealis
 			if (field.mType == ScriptFieldType::Vector2)
 			{
 				glm::vec2 Data = component->GetFieldValue<glm::vec2>(name);
+				auto oldValue = Data;
 				if (ImGui::DragFloat2(("##" + component->GetKlassName() + name).c_str(), glm::value_ptr(Data)))
 				{
-					component->SetFieldValue(name, &Data);
+					ActionManager::execute(std::make_unique<ModifyScriptPropertyCommand<glm::vec2>>(*globalMSelectedEntity, component->GetScriptClass()->GetKlassName(), name, oldValue, Data));
 					isEdited = true;
 				}
 			}
@@ -2101,9 +2136,10 @@ namespace Borealis
 			if (field.mType == ScriptFieldType::Vector4)
 			{
 				glm::vec4 Data = component->GetFieldValue<glm::vec4>(name);
+				auto oldValue = Data;
 				if (ImGui::DragFloat4(("##" + component->GetKlassName() + name).c_str(), glm::value_ptr(Data)))
 				{
-					component->SetFieldValue(name, &Data);
+					ActionManager::execute(std::make_unique<ModifyScriptPropertyCommand<glm::vec4>>(*globalMSelectedEntity, component->GetScriptClass()->GetKlassName(), name, oldValue, Data));
 					isEdited = true;
 
 				}
@@ -2112,9 +2148,10 @@ namespace Borealis
 			if (field.mType == ScriptFieldType::UChar)
 			{
 				unsigned char Data = component->GetFieldValue<unsigned char>(name);
+				auto oldValue = Data;
 				if (ImGui::DragScalar(("##" + component->GetKlassName() + name).c_str(), ImGuiDataType_U8, &Data))
 				{
-					component->SetFieldValue(name, &Data);
+					ActionManager::execute(std::make_unique<ModifyScriptPropertyCommand<unsigned char>>(*globalMSelectedEntity, component->GetScriptClass()->GetKlassName(), name, oldValue, Data));
 					isEdited = true;
 
 				}
@@ -2123,9 +2160,10 @@ namespace Borealis
 			if (field.mType == ScriptFieldType::Char)
 			{
 				char Data = component->GetFieldValue<char>(name);
+				auto oldValue = Data;
 				if (ImGui::DragScalar(("##" + component->GetKlassName() + name).c_str(), ImGuiDataType_S8, &Data))
 				{
-					component->SetFieldValue(name, &Data);
+					ActionManager::execute(std::make_unique<ModifyScriptPropertyCommand<char>>(*globalMSelectedEntity, component->GetScriptClass()->GetKlassName(), name, oldValue, Data));
 					isEdited = true;
 
 				}
@@ -2134,9 +2172,10 @@ namespace Borealis
 			if (field.mType == ScriptFieldType::UShort)
 			{
 				unsigned short Data = component->GetFieldValue<unsigned short>(name);
+				auto oldValue = Data;
 				if (ImGui::DragScalar(("##" + component->GetKlassName() + name).c_str(), ImGuiDataType_U16, &Data))
 				{
-					component->SetFieldValue(name, &Data);
+					ActionManager::execute(std::make_unique<ModifyScriptPropertyCommand<unsigned short>>(*globalMSelectedEntity, component->GetScriptClass()->GetKlassName(), name, oldValue, Data));
 					isEdited = true;
 
 				}
@@ -2145,9 +2184,10 @@ namespace Borealis
 			if (field.mType == ScriptFieldType::Short)
 			{
 				short Data = component->GetFieldValue<short>(name);
+				auto oldValue = Data;
 				if (ImGui::DragScalar(("##" + component->GetKlassName() + name).c_str(), ImGuiDataType_S16, &Data))
 				{
-					component->SetFieldValue(name, &Data);
+					ActionManager::execute(std::make_unique<ModifyScriptPropertyCommand<short>>(*globalMSelectedEntity, component->GetScriptClass()->GetKlassName(), name, oldValue, Data));
 					isEdited = true;
 
 				}
@@ -2156,9 +2196,10 @@ namespace Borealis
 			if (field.mType == ScriptFieldType::UInt)
 			{
 				unsigned int Data = component->GetFieldValue<unsigned int>(name);
+				auto oldValue = Data;
 				if (ImGui::DragScalar(("##" + component->GetKlassName() + name).c_str(), ImGuiDataType_U32, &Data))
 				{
-					component->SetFieldValue(name, &Data);
+					ActionManager::execute(std::make_unique<ModifyScriptPropertyCommand<unsigned int>>(*globalMSelectedEntity, component->GetScriptClass()->GetKlassName(), name, oldValue, Data));
 					isEdited = true;
 
 				}
@@ -2167,9 +2208,10 @@ namespace Borealis
 			if (field.mType == ScriptFieldType::Long)
 			{
 				long long Data = component->GetFieldValue<long long>(name);
+				auto oldValue = Data;
 				if (ImGui::DragScalar(("##" + component->GetKlassName() + name).c_str(), ImGuiDataType_S64, &Data))
 				{
-					component->SetFieldValue(name, &Data);
+					ActionManager::execute(std::make_unique<ModifyScriptPropertyCommand<long long >>(*globalMSelectedEntity, component->GetScriptClass()->GetKlassName(), name, oldValue, Data));
 					isEdited = true;
 
 				}
@@ -2178,9 +2220,10 @@ namespace Borealis
 			if (field.mType == ScriptFieldType::ULong)
 			{
 				unsigned long long Data = component->GetFieldValue<unsigned long long>(name);
+				auto oldValue = Data;
 				if (ImGui::DragScalar(("##" + component->GetKlassName() + name).c_str(), ImGuiDataType_U64, &Data))
 				{
-					component->SetFieldValue(name, &Data);
+					ActionManager::execute(std::make_unique<ModifyScriptPropertyCommand<unsigned long long>>(*globalMSelectedEntity, component->GetScriptClass()->GetKlassName(), name, oldValue, Data));
 					isEdited = true;
 
 				}
@@ -2189,9 +2232,10 @@ namespace Borealis
 			if (field.mType == ScriptFieldType::Double)
 			{
 				double Data = component->GetFieldValue<double>(name);
+				auto oldValue = Data;
 				if (ImGui::DragScalar(("##" + component->GetKlassName() + name).c_str(), ImGuiDataType_Double, &Data))
 				{
-					component->SetFieldValue(name, &Data);
+					ActionManager::execute(std::make_unique<ModifyScriptPropertyCommand<double>>(*globalMSelectedEntity, component->GetScriptClass()->GetKlassName(), name, oldValue, Data));
 					isEdited = true;
 
 				}
@@ -2280,8 +2324,7 @@ namespace Borealis
 		{
 			while (!deleteQueue.empty())
 			{
-				ScriptingSystem::mEntityScriptMap[deleteQueue.front()].erase(entity.GetUUID());
-				component.RemoveScript(deleteQueue.front());
+				ActionManager::execute(std::make_unique<RemoveScriptComponentCommand>(deleteQueue.front(), entity));
 				deleteQueue.pop();
 				if (component.mScripts.empty())
 				{
@@ -2308,7 +2351,8 @@ namespace Borealis
 			ImGui::SetNextItemWidth(ImGui::GetFontSize() * 8);
 			if (ImGui::InputText("##Name", buffer, sizeof(buffer)))
 			{
-				tag = std::string(buffer);
+				ActionManager::execute(std::make_unique<ModifyNameCommand>(entity, tag, std::string(buffer)));
+				isEdited = true;
 			}
 
 			ImGui::SameLine();
@@ -2488,9 +2532,7 @@ namespace Borealis
 						{
 							mSelectedEntity.AddComponent<ScriptComponent>();
 						}
-						auto scriptInstance = MakeRef<ScriptInstance>(klass);
-						mSelectedEntity.GetComponent<ScriptComponent>().AddScript(name, scriptInstance);
-						scriptInstance->Init(entity.GetUUID());
+						ActionManager::execute(std::make_unique<AddScriptComponentCommand>(name,mSelectedEntity));
 						ImGui::CloseCurrentPopup();
 						memset(search_buffer, 0, sizeof(search_buffer));
 						isEdited = true;

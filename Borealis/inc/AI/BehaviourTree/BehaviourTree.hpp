@@ -91,6 +91,9 @@ namespace Borealis
                 The name of the tree as a string.
         *************************************************************************/
         std::string GetBehaviourTreeName() const;
+
+        void swap(Asset& o) override;
+
         BehaviourNode mRootNode;  // The root node of the behavior tree
 
     private:

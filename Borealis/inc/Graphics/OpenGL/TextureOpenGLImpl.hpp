@@ -88,6 +88,8 @@ namespace Borealis
 		*************************************************************************/
 		uint32_t GetRendererID() const override { return mRendererID; }
 
+		void SetRendererID(uint32_t ID) override {mRendererID = ID;}
+
 		/*!***********************************************************************
 			\brief
 				Bind the texture
@@ -97,6 +99,9 @@ namespace Borealis
 		void Bind(uint32_t unit = 0) const override;
 
 		bool IsValid() const override;
+
+		void swap(Asset& other) override;
+
 
 		/*!***********************************************************************
 			\brief
@@ -165,6 +170,8 @@ namespace Borealis
 				Renderer ID of the texture
 		*************************************************************************/
 		uint32_t GetRendererID() const override { return mRendererID; }
+
+		void SetRendererID(uint32_t id) override{mRendererID = id;}
 
 		/*!***********************************************************************
 			\brief

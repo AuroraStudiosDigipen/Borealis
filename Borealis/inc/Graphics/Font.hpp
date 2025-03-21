@@ -58,6 +58,8 @@ namespace Borealis
 		static void SetDefaultFont(Ref<Font> defaultFont);
 		static Ref<Font> GetDefaultFont();
 
+		void swap(Asset& other) override;
+
 	private:
 		FontInfo mFontInfo;
 	};

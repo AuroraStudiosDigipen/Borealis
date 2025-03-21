@@ -353,21 +353,28 @@ namespace Borealis
         #region AudioSource
       
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void AudioSource_PlayOneShot(ulong id, string clipName);
+        internal extern static int AudioSource_PlayOneShot(ulong id, byte[] audioID, float[] paramValues, string[] param);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void AudioSource_PlayOneShotPosition(ulong id, string clipName, ref Vector3 position);
+        internal extern static int AudioSource_PlayOneShotLabel(ulong id, byte[] audioID, string[] paramValues, string[] param);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static int AudioSource_PlayOneShotPosition(ulong id, byte[] audioID, ref Vector3 position);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void AudioSource_Stop(ulong ID);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void AudioSource_IsPlaying(ulong ID, out bool playing);
-       
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void AudioSource_StopID(ulong UID, int ID);
+
 
         #endregion
 
         #region AudioListener
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void AudioListener_SetListener(ulong ID);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+
+        internal extern static bool AudioSource_IsChannelPlaying(ulong uiD, int ID);
 
         #endregion
 
@@ -420,6 +427,14 @@ namespace Borealis
         internal extern static void SceneManager_Quit();
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void SceneManager_SetMainCamera(ulong ID);
+        #endregion
+        #region AudioClip
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static string GetAudioClipName(out byte[] guid);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void SetAudioClipName(string name, ref byte[] guid);
+
         #endregion
     }
 }

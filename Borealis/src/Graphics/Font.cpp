@@ -106,5 +106,10 @@ namespace Borealis
 			return nullptr;
 		return font;
 	}
+	void Font::swap(Asset& other)
+	{
+		Font& o = static_cast<Font&>(other);
+		std::swap(mFontInfo, o.mFontInfo);
+	}
 }
 

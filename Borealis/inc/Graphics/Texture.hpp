@@ -106,6 +106,8 @@ namespace Borealis
 				bool - True if the Textures are the same, False otherwise
 		*************************************************************************/
 		virtual bool operator== (const Texture& other) const = 0;
+	protected:
+		virtual void SetRendererID(uint32_t id) = 0;
 	}; // Class Texture
 
 	// Virtual Class for 2D Textures
@@ -130,12 +132,17 @@ namespace Borealis
 
 		static Ref<Texture2D> GetDefaultTexture();
 
+
+
 		static Ref<Asset> Load(std::filesystem::path const& cachePath, AssetMetaData const& assetMetaData);
+		static void Reload(AssetMetaData const& assetMetaData, Ref<Asset> const&);
 
 		//static void Reload(AssetMetaData const& assetMetaData);
+		void swap(Asset& o) override;
 
 	private:
 		static Ref<Texture2D> mDefault;
+
 	}; // Class Texture2D
 
 	class TextureCubeMap : public Texture
@@ -150,6 +157,7 @@ namespace Borealis
 		static void SetDefaultCubeMap(AssetMetaData const& assetMetaData);
 
 		static Ref<TextureCubeMap> GetDefaultCubeMap2();
+		void swap(Asset& o) override;
 
 	private:
 

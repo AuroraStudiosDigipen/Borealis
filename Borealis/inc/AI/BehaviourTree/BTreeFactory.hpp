@@ -32,6 +32,15 @@ namespace Borealis
         int RootNodeID; // ID of the root node
         std::unordered_map<int, std::string> NodeNames; // Map of node ID to node name
         std::unordered_map<int, std::vector<int>> NodeRelationships; // Parent ID to child IDs
+
+        void swap(Asset& other) override
+        {
+            auto& otherData = dynamic_cast<BehaviourTreeData&>(other);
+			std::swap(TreeName, otherData.TreeName);
+			std::swap(RootNodeID, otherData.RootNodeID);
+			std::swap(NodeNames, otherData.NodeNames);
+			std::swap(NodeRelationships, otherData.NodeRelationships);
+        }
     };
 
 

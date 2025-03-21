@@ -159,7 +159,7 @@ namespace Borealis
 
 
 		GLuint linearMode{};
-		config.filterMode = TextureFilter::_NEAREST;
+		config.filterMode = TextureFilter::_LINEAR;
 		switch (config.filterMode)
 		{
 		case TextureFilter::_LINEAR:
@@ -302,6 +302,20 @@ namespace Borealis
 	{
 		return mValid;
 	}
+
+	void OpenGLTexture2D::swap(Asset& o)
+	{
+		OpenGLTexture2D& other = dynamic_cast<OpenGLTexture2D&>(o);
+		std::swap(mRendererID, other.mRendererID);
+		std::swap(mWidth, other.mWidth);
+		std::swap(mHeight, other.mHeight);
+		std::swap(mInternalFormat, other.mInternalFormat);
+		std::swap(mDataFormat, other.mDataFormat);
+		std::swap(mChannels, other.mChannels);
+		std::swap(mValid, other.mValid);
+		std::swap(mPath, other.mPath);
+	}
+
 
 	OpenGLTextureCubeMap::OpenGLTextureCubeMap(const std::filesystem::path& path)
 	{

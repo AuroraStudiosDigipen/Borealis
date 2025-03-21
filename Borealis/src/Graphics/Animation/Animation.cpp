@@ -197,4 +197,20 @@ namespace Borealis
 		anim.LoadAnimation(cachePath/std::to_string(assetMetaData.Handle));
 		return MakeRef<Animation>(anim);
 	}
+	void Animation::Reload(AssetMetaData const& assetMetaData, Ref<Asset> const& asset)
+	{
+		Animation anim;
+		anim.LoadAnimation(assetMetaData.CachePath);
+		Ref<Animation> newAsset = MakeRef<Animation>(anim);
+		newAsset->swap(*asset);
+	}
+	void Animation::swap(Asset& other)
+	{
+		Animation& o = static_cast<Animation&>(other);
+		std::swap(mDuration, o.mDuration);
+		std::swap(mTicksPerSecond, o.mTicksPerSecond);
+		std::swap(mBones, o.mBones);
+		std::swap(mRootNode, o.mRootNode);
+		std::swap(mBoneDataMap, o.mBoneDataMap);
+	}
 }

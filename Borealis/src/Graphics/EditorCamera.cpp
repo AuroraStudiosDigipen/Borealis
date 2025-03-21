@@ -41,6 +41,21 @@ namespace Borealis
 		mPosition = point - GetForwardDirection() * mDistance;
 	}
 
+	EditorCameraProps EditorCamera::GetProperties()
+	{
+		return { mDistance, mPitch, mYaw, mPosition, mFocalPoint };
+	}
+
+	void EditorCamera::SetProperties(EditorCameraProps prop)
+	{
+		mDistance = prop.mDistance;
+		mPitch = prop.mPitch;
+		mYaw = prop.mYaw;
+		mPosition = prop.mPosition;
+		mFocalPoint = prop.mFocalPoint;
+		UpdateView();
+	}
+
 	void EditorCamera::UpdateProjection()
 	{
 		mAspectRatio = mViewportWidth / mViewportHeight;

@@ -808,11 +808,11 @@ namespace Borealis
 			}
 		}
 
-		//RenderCommand::EnableBlend();
+		RenderCommand::EnableBlend();
 		RenderCommand::ConfigureBlendForTransparency(TransparencyStage::REVEALAGE);
 		Renderer2D::DrawLineFromQueue();
 		Renderer2D::End();
-		//RenderCommand::DisableBlend();
+		RenderCommand::DisableBlend();
 
 		renderTarget->Unbind();
 
@@ -1240,6 +1240,9 @@ namespace Borealis
 		Renderer3D::DrawQuad();
 
 		renderTarget->Unbind();
+
+		uint32_t depthTexture = gBuffer->buffer->DetachDepthBuffer();
+		renderTarget->AttachDepthBuffer(depthTexture);
 
 		shader->Unbind();
 	}

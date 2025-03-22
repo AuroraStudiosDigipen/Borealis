@@ -125,7 +125,7 @@ float GetCascadeShadowFactor(vec3 lightDir, vec3 normal, vec3 fragPos)
     float depth2 = texture(u_CascadeShadowMapDynamic, vec3(UVCoord, layer)).x;
 
     float diffuseFactor = dot(normal, -lightDir);
-    float bias = 0.01f;//max(0.0005, 0.005 * (1.0 - diffuseFactor));
+    float bias = 0.0025f;//max(0.0005, 0.005 * (1.0 - diffuseFactor));
 
     if ((depth + bias < z) || (depth2 + bias < z))
     {
@@ -279,6 +279,7 @@ void LightPass()
 
     gAlbedo = vec4(finalColor, albedo.a);
 	entityIDs = texture(lEntityID, v_TexCoord).r;
+    
 }
 
 void main()

@@ -202,7 +202,7 @@ namespace Borealis
 		FogPass
 	};
 
-	class RenderPass 
+	class RenderPass
 	{
 	public:
 		RenderPass(std::string name);

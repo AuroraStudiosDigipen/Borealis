@@ -254,67 +254,6 @@ namespace Borealis {
 			BoolSource bloomBoolSource("bloomBool", SceneManager::GetActiveScene()->GetSceneRenderConfig().bloom);
 			fconfig.AddGlobalSource(MakeRef<BoolSource>(bloomBoolSource));
 
-			////forward rendering
-			//if(runtimeView)
-			//{
-			//	RenderPassConfig shadowPass(RenderPassType::Shadow, "ShadowPass");
-			//	shadowPass.AddSinkLinkage("shadowMap", "ShadowMapBuffer");
-			//	shadowPass.AddSinkLinkage("camera", "RunTimeCamera");
-			//	fconfig.AddPass(shadowPass);
-
-			//	RenderPassConfig Render3D(RenderPassType::Render3D, "Render3D");
-			//	Render3D.AddSinkLinkage("renderTarget", "RunTimeBuffer");
-			//	Render3D.AddSinkLinkage("accumulaionTarget", "accumulaionBuffer");
-			//	Render3D.AddSinkLinkage("shadowMap", "ShadowPass.shadowMap");
-			//	Render3D.AddSinkLinkage("camera", "RunTimeCamera");
-			//	fconfig.AddPass(Render3D);
-
-			//	RenderPassConfig Render2D(RenderPassType::Render2D, "Render2D");
-			//	Render2D.AddSinkLinkage("renderTarget", "Render3D.renderTarget");
-			//	Render2D.AddSinkLinkage("camera", "RunTimeCamera");
-			//	fconfig.AddPass(Render2D);
-
-			//	RenderPassConfig bloomPass(RenderPassType::BloomPass, "bloomPass");
-			//	bloomPass.AddSinkLinkage("renderTarget", "Render2D.renderTarget");
-			//	bloomPass.AddSinkLinkage("bloomBool", "bloomBool");
-			//	fconfig.AddPass(bloomPass);
-
-			//	RenderPassConfig correctionPass(RenderPassType::CorrectionPass, "correctionPass");
-			//	correctionPass.AddSinkLinkage("renderTarget", "bloomPass.renderTarget");
-			//	fconfig.AddPass(correctionPass);
-
-			//	RenderPassConfig skyBoxPass(RenderPassType::SkyboxPass, "skyBox");
-			//	skyBoxPass.AddSinkLinkage("renderTarget", "correctionPass.renderTarget");
-			//	skyBoxPass.AddSinkLinkage("camera", "RunTimeCamera");
-			//	fconfig.AddPass(skyBoxPass);
-
-			//	RenderPassConfig particleSystemPass(RenderPassType::ParticleSystemPass, "ParticleSystem");
-			//	particleSystemPass.AddSinkLinkage("accumulaionTarget", "accumulaionBuffer")
-			//		.AddSinkLinkage("renderTarget", "skyBox.renderTarget")
-			//		.AddSinkLinkage("camera", "RunTimeCamera");
-			//	fconfig.AddPass(particleSystemPass);
-
-			//	RenderPassConfig UIWorldPass(RenderPassType::UIWorldPass, "UIWorldPass");
-			//	UIWorldPass.AddSinkLinkage("renderTarget", "ParticleSystem.renderTarget");
-			//	UIWorldPass.AddSinkLinkage("camera", "RunTimeCamera");
-			//	fconfig.AddPass(UIWorldPass);
-
-			//	RenderPassConfig RunTimeHighlight(RenderPassType::HighlightPass, "RunTimeHighlight");
-			//	RunTimeHighlight.AddSinkLinkage("camera", "RunTimeCamera");
-			//	RunTimeHighlight.AddSinkLinkage("renderTarget", "UIWorldPass.renderTarget");
-			//	fconfig.AddPass(RunTimeHighlight);
-
-			//	RenderPassConfig UIPass(RenderPassType::UIPass, "UIPass");
-			//	UIPass.AddSinkLinkage("renderTarget", "RunTimeHighlight.renderTarget");
-			//	UIPass.AddSinkLinkage("camera", "RunTimeCamera");
-			//	fconfig.AddPass(UIPass);
-
-			//	RenderPassConfig bloomCompositePass(RenderPassType::BloomCompositePass, "bloomComposite");
-			//	bloomCompositePass.AddSinkLinkage("renderTarget", "UIPass.renderTarget");
-			//	bloomCompositePass.AddSinkLinkage("bloomBool", "bloomBool");
-			//	fconfig.AddPass(bloomCompositePass);
-			//}
-
 			//forward rendering editor
 			if(false)
 			{
@@ -405,22 +344,6 @@ namespace Borealis {
 
 			}
 
-			//deferred rendering
-			{
-				RenderPassConfig geometryPass(RenderPassType::Geometry, "geometricPass");
-				geometryPass.AddSinkLinkage("gBuffer", "gBuffer");
-				geometryPass.AddSinkLinkage("camera", "RunTimeCamera");
-				dconfig.AddPass(geometryPass);
-
-				RenderPassConfig lightingPass(RenderPassType::Lighting, "lightPass");
-				lightingPass.AddSinkLinkage("gBuffer", "geometricPass.gBuffer");
-				lightingPass.AddSinkLinkage("renderTarget", "RunTimeBuffer");
-				lightingPass.AddSinkLinkage("viewProj", "geometricPass.camera");
-				dconfig.AddPass(lightingPass);
-
-				//add render2d
-			}
-
 			if (editorView)
 			//deferred rendering editor
 			{
@@ -445,7 +368,28 @@ namespace Borealis {
 				editorCorrectionPass.AddSinkLinkage("renderTarget", "EditorBuffer");
 				fconfig.AddPass(editorCorrectionPass);
 
-				//add render2d
+				RenderPassConfig editorSkyBoxPass(RenderPassType::SkyboxPass, "editorSkyBox");
+				editorSkyBoxPass.AddSinkLinkage("renderTarget", "editorCorrectionPass.renderTarget");
+				editorSkyBoxPass.AddSinkLinkage("camera", "EditorCamera");
+				fconfig.AddPass(editorSkyBoxPass);
+
+				RenderPassConfig editorRender2D(RenderPassType::Render2D, "editorRender2D");
+				editorRender2D.AddSinkLinkage("renderTarget", "editorSkyBox.renderTarget")
+					.AddSinkLinkage("camera", "EditorCamera");
+				fconfig.AddPass(editorRender2D);
+
+				if (particlesForEditor)
+				{
+					RenderPassConfig particleSystemPass(RenderPassType::ParticleSystemPass, "ParticleSystemEditor");
+					particleSystemPass.AddSinkLinkage("camera", "EditorCamera")
+						.AddSinkLinkage("particlesWireFrame", "particlesWireFrame")
+						.AddSinkLinkage("accumulaionTarget", "accumulaionBuffer")
+						.AddSinkLinkage("renderTarget", "EditorBuffer")
+						.AddSinkLinkage("camera", "EditorCamera");
+					fconfig.AddPass(particleSystemPass);
+				}
+
+				//move rest later, check for bugs
 			}
 
 			SceneManager::GetActiveScene()->SetRenderGraphConfig(fconfig);

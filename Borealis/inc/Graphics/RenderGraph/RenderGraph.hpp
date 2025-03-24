@@ -118,7 +118,8 @@ namespace Borealis
 			EntityID,
 			Normal,
 			Emissive,
-			RoughMetallic
+			RoughMetallic,
+			Position
 		};
 		GBufferSource(std::string name, Ref<FrameBuffer> framebuffer);
 

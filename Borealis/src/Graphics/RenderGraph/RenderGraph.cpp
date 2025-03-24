@@ -50,6 +50,7 @@ namespace Borealis
 	Ref<Shader> cube_map_shader = nullptr;
 	Ref<Shader> bloom_shader = nullptr;
 	Ref<Shader> ssao_shader = nullptr;
+	Ref<Shader> ssao_blur_shader = nullptr;
 
 
 	Ref<FrameBuffer> mCascadeShadowMapBuffer = nullptr;
@@ -1211,7 +1212,7 @@ namespace Borealis
 		shader->Set("lEmissive",			3);
 		shader->Set("lRoughnessMetallic",	4);
 		shader->Set("lDepthBuffer",			5);
-		ssaoBuffer->BindTexture(0, 9);
+		ssaoBlurBuffer->BindTexture(0, 9);
 		shader->Set("lSSAO", 9);
 
 		{
@@ -2114,6 +2115,7 @@ namespace Borealis
 		if (renderTarget->GetProperties().Width != ssaoBuffer->GetProperties().Width || renderTarget->GetProperties().Height != ssaoBuffer->GetProperties().Height)
 		{
 			ssaoBuffer->Resize(renderTarget->GetProperties().Width, renderTarget->GetProperties().Height);
+			ssaoBlurBuffer->Resize(renderTarget->GetProperties().Width, renderTarget->GetProperties().Height);
 		}
 
 		if (noiseTexture == nullptr)
@@ -2149,12 +2151,11 @@ namespace Borealis
 			noiseTexture->SetData(ssaoNoise.data(), ssaoNoise.size());
 		}
 
-		shader->Bind();
-		ssaoBuffer->Bind();
-		RenderCommand::Clear();
-
 		if(ssao)
 		{
+			shader->Bind();
+			ssaoBuffer->Bind();
+			RenderCommand::Clear();
 			//set texture
 			gBuffer->BindTexture(GBufferSource::Normal, 0);
 			shader->Set("gNormalTexture", 0);
@@ -2168,10 +2169,31 @@ namespace Borealis
 			//set projection uniform if not camera proj
 
 			Renderer3D::DrawQuad();
-		}
 
-		ssaoBuffer->Unbind();
-		shader->Unbind();
+			ssaoBuffer->Unbind();
+			shader->Unbind();
+
+			shader = ssao_blur_shader;
+
+			ssaoBlurBuffer->Bind();
+			shader->Bind();
+			RenderCommand::Clear();
+			ssaoBuffer->BindTexture(0, 0);
+			shader->Set("ssaoTexture", 0);
+			Renderer3D::DrawQuad();
+			shader->Unbind();
+			ssaoBlurBuffer->Unbind();
+		}
+		else
+		{
+			ssaoBuffer->Bind();
+			RenderCommand::Clear();
+			ssaoBuffer->Unbind();
+
+			ssaoBlurBuffer->Bind();
+			ssaoBlurBuffer->ClearAttachment(0, glm::vec4(1.f));
+			ssaoBlurBuffer->Unbind();
+		}
 	}
 
 	RenderToTarget::RenderToTarget(std::string name) : RenderPass(name)
@@ -2780,6 +2802,11 @@ namespace Borealis
 			UniformBufferObject::BindToShader(ssao_shader->GetID(), "NoiseSample", SSAO_BIND);
 		}
 
+		if (!ssao_blur_shader)
+		{
+			ssao_blur_shader = Shader::Create("engineResources/Shaders/Renderer3D_SSAO_Blur.glsl");
+		}
+
 		if (!mCascadeShadowMapBuffer)
 		{
 			FrameBufferProperties propsShadowMapBuffer{ 2024, 2024, false };
@@ -2834,7 +2861,7 @@ namespace Borealis
 		if (!ssaoBuffer)
 		{
 			FrameBufferProperties propsSSAOBuffer{ 1280, 720, false };
-			propsSSAOBuffer.Attachments = { FramebufferTextureFormat::RGBA16F };
+			propsSSAOBuffer.Attachments = { FramebufferTextureFormat::R16F };
 			ssaoBuffer = FrameBuffer::Create(propsSSAOBuffer);
 			ssaoBlurBuffer = FrameBuffer::Create(propsSSAOBuffer);
 		}

@@ -19,7 +19,7 @@ void main()
 #type fragment
 #version 410 core
 
-layout(location = 0) out vec4 FragColor;
+layout(location = 0) out float FragColor;
 
 in vec2 v_TexCoord;
 
@@ -80,12 +80,13 @@ void SSAOPass()
         
         // project sample position (to sample texture) (to get position on screen/texture)
         vec4 offset = vec4(samplePos, 1.0);
-        offset = u_projection * offset; // from view to clip-space
+        offset = u_ViewProjection * offset; // from view to clip-space
         offset.xyz /= offset.w; // perspective divide
         offset.xyz = offset.xyz * 0.5 + 0.5; // transform to range 0.0 - 1.0
         
         // get sample depth
-        float sampleDepth = texture(gDepthTexture, offset.xy).r;
+        float sampleDepthBuffer = texture(gDepthTexture, offset.xy).r;
+        float sampleDepth = GetWorldPosition(offset.xy, sampleDepthBuffer).z;
         
         // range check & accumulate
         float rangeCheck = smoothstep(0.0, 1.0, radius / abs(fragPos.z - sampleDepth));
@@ -93,8 +94,8 @@ void SSAOPass()
     }
     occlusion = 1.0 - (occlusion / kernelSize);
     
-    //FragColor = occlusion;
-    FragColor = vec4(fragPos, 1.f);
+    FragColor = occlusion;
+    //FragColor = texture(gPosition, v_TexCoord);
 }
 
 void main()

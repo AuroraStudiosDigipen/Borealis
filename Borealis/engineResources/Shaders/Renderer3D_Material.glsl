@@ -331,7 +331,7 @@ float GetRoughness()
 
 vec3 GetEmission()
 {
-    return  materials[materialIndex].hasEmissionMap ? texture(emissionMap, GetTexCoord()).rgb + materials[materialIndex].emissionColor.rgb: materials[materialIndex].emissionColor.rgb;
+    return  materials[materialIndex].hasEmissionMap ? texture(emissionMap, GetTexCoord()).rgb * materials[materialIndex].emissionColor.rgb: materials[materialIndex].emissionColor.rgb;
 }
 
 float NewDistributionGGX(float NdotH, float a) 

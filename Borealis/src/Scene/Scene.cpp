@@ -800,7 +800,6 @@ namespace Borealis
 				if (!audioListener.isAudioListener) continue;
 				{
 					AudioEngine::Set3DListenerAndOrientation(transform.GetGlobalTransform());
-					BOREALIS_CORE_INFO(brEntity.GetName());
 				}
 
 

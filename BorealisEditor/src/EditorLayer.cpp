@@ -357,6 +357,12 @@ namespace Borealis {
 				editorGeometricPass.AddSinkLinkage("camera", "EditorCamera");
 				fconfig.AddPass(editorGeometricPass);
 
+				RenderPassConfig editorSSAOPass(RenderPassType::SSAOPass, "editorSSAOPass");
+				editorSSAOPass.AddSinkLinkage("gBuffer", "editorGeometricPass.gBuffer");
+				editorSSAOPass.AddSinkLinkage("renderTarget", "EditorBuffer");
+				editorSSAOPass.AddSinkLinkage("bloomBool", "bloomBool");
+				fconfig.AddPass(editorSSAOPass);
+
 				RenderPassConfig editorLightPass(RenderPassType::Lighting, "editorLightPass");
 				editorLightPass.AddSinkLinkage("gBuffer", "editorGeometricPass.gBuffer");
 				editorLightPass.AddSinkLinkage("renderTarget", "EditorBuffer");
@@ -378,16 +384,16 @@ namespace Borealis {
 					.AddSinkLinkage("camera", "EditorCamera");
 				fconfig.AddPass(editorRender2D);
 
-				if (particlesForEditor)
-				{
-					RenderPassConfig particleSystemPass(RenderPassType::ParticleSystemPass, "ParticleSystemEditor");
-					particleSystemPass.AddSinkLinkage("camera", "EditorCamera")
-						.AddSinkLinkage("particlesWireFrame", "particlesWireFrame")
-						.AddSinkLinkage("accumulaionTarget", "accumulaionBuffer")
-						.AddSinkLinkage("renderTarget", "EditorBuffer")
-						.AddSinkLinkage("camera", "EditorCamera");
-					fconfig.AddPass(particleSystemPass);
-				}
+				//if (particlesForEditor)
+				//{
+				//	RenderPassConfig particleSystemPass(RenderPassType::ParticleSystemPass, "ParticleSystemEditor");
+				//	particleSystemPass.AddSinkLinkage("camera", "EditorCamera")
+				//		.AddSinkLinkage("particlesWireFrame", "particlesWireFrame")
+				//		.AddSinkLinkage("accumulaionTarget", "accumulaionBuffer")
+				//		.AddSinkLinkage("renderTarget", "EditorBuffer")
+				//		.AddSinkLinkage("camera", "EditorCamera");
+				//	fconfig.AddPass(particleSystemPass);
+				//}
 
 				//move rest later, check for bugs
 			}

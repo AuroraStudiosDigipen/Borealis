@@ -199,7 +199,8 @@ namespace Borealis
 		CorrectionPass,
 		BloomPass,
 		BloomCompositePass,
-		FogPass
+		FogPass,
+		SSAOPass
 	};
 
 	class RenderPass
@@ -272,6 +273,14 @@ namespace Borealis
 	{
 	public:
 		FogPass(std::string name);
+
+		void Execute() override;
+	};
+
+	class SSAOPass : public RenderPass
+	{
+	public:
+		SSAOPass(std::string name);
 
 		void Execute() override;
 	};
@@ -448,6 +457,11 @@ namespace Borealis
 		};
 
 		SceneRenderConfig sceneRenderConfig{};
+
+		struct SSAOSamplesUBO
+		{
+			std::array<glm::vec4, 64> samples;
+		};
 	};
 }
 

@@ -49,6 +49,7 @@ namespace Borealis
 	Ref<Shader> quad_shader = nullptr;
 	Ref<Shader> cube_map_shader = nullptr;
 	Ref<Shader> bloom_shader = nullptr;
+	Ref<Shader> ssao_shader = nullptr;
 
 
 	Ref<FrameBuffer> mCascadeShadowMapBuffer = nullptr;
@@ -69,6 +70,11 @@ namespace Borealis
 	Ref<FrameBuffer> upSample_2 = nullptr;
 	Ref<FrameBuffer> compositeBuffer = nullptr;
 
+	//SSAO
+	Ref<Texture> noiseTexture = nullptr;
+	Ref<FrameBuffer> ssaoBuffer = nullptr;
+	Ref<FrameBuffer> ssaoBlurBuffer = nullptr;
+
 	struct RenderData
 	{
 		struct CameraData
@@ -76,6 +82,9 @@ namespace Borealis
 			glm::mat4 ViewProjection;
 			glm::vec4 CameraPos;
 			glm::mat4 invViewProj;
+			glm::mat4 Projection;
+			float ScreenWidth{};
+			float ScreenHeight{};
 		};
 		CameraData cameraData;
 		Ref<UniformBufferObject> CameraUBO;
@@ -85,6 +94,8 @@ namespace Borealis
 		Ref<UniformBufferObject> LightsUBO;
 
 		Ref<UniformBufferObject> SceneRenderUBO;
+
+		Ref<UniformBufferObject> SSAOUBO;
 	};
 
 	static std::unique_ptr<RenderData> sData;
@@ -1053,6 +1064,9 @@ namespace Borealis
 					sData->cameraData.ViewProjection = viewProjMatrix;
 					sData->cameraData.CameraPos = glm::vec4(std::dynamic_pointer_cast<CameraSource>(sink->source)->position, 0.f);
 					sData->cameraData.invViewProj = glm::inverse(viewProjMatrix);
+					sData->cameraData.Projection = std::dynamic_pointer_cast<CameraSource>(sink->source)->projMtx;
+					sData->cameraData.ScreenWidth = gBuffer->GetProperties().Width;
+					sData->cameraData.ScreenHeight = gBuffer->GetProperties().Height;
 					sData->CameraUBO->SetData(&sData->cameraData, sizeof(RenderData::CameraData));
 				}
 			}
@@ -1158,8 +1172,6 @@ namespace Borealis
 					if (sink->sinkName == "renderTarget")
 					{
 						renderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sourcePtr)->buffer;
-
-						renderTarget->ClearAttachment(1, -1);
 					}
 
 					if (sink->sinkName == "shadowMap")
@@ -1199,6 +1211,8 @@ namespace Borealis
 		shader->Set("lEmissive",			3);
 		shader->Set("lRoughnessMetallic",	4);
 		shader->Set("lDepthBuffer",			5);
+		ssaoBuffer->BindTexture(0, 9);
+		shader->Set("lSSAO", 9);
 
 		{
 			Renderer3D::Begin({}, nullptr);
@@ -2050,6 +2064,116 @@ namespace Borealis
 
 	}
 
+	SSAOPass::SSAOPass(std::string name) : RenderPass(name)
+	{
+		shader = ssao_shader;
+	}
+
+	float lerp(float a, float b, float f)
+	{
+		return a + f * (b - a);
+	}
+
+	void SSAOPass::Execute()
+	{
+		Ref<GBufferSource> gBuffer = nullptr;
+		Ref<FrameBuffer> renderTarget = nullptr;
+
+		Ref<CameraSource> camera = nullptr;
+
+		bool ssao = true;
+
+		for (auto sink : sinkList)
+		{
+			if (sink->source)
+			{
+				auto sourcePtr = sink->source;
+				if (sourcePtr->sourceType == RenderSourceType::GBuffer)
+				{
+					gBuffer = std::dynamic_pointer_cast<GBufferSource>(sourcePtr);
+				}
+
+				if (sourcePtr->sourceType == RenderSourceType::RenderTargetColor)
+				{
+					if (sink->sinkName == "renderTarget")
+					{
+						renderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sourcePtr)->buffer;
+					}
+				}
+
+				if (sink->source->sourceType == RenderSourceType::Bool)
+				{
+					if (sink->sinkName == "bloomBool")
+					{
+						ssao = std::dynamic_pointer_cast<BoolSource>(sink->source)->mRef;
+					}
+				}
+			}
+		}
+
+		if (renderTarget->GetProperties().Width != ssaoBuffer->GetProperties().Width || renderTarget->GetProperties().Height != ssaoBuffer->GetProperties().Height)
+		{
+			ssaoBuffer->Resize(renderTarget->GetProperties().Width, renderTarget->GetProperties().Height);
+		}
+
+		if (noiseTexture == nullptr)
+		{
+			std::uniform_real_distribution<float> randomFloats(0.0, 1.0);
+			std::default_random_engine generator;
+			RenderGraph::SSAOSamplesUBO ssaoKernel{};
+			for (unsigned int i = 0; i < 64; ++i)
+			{
+				glm::vec3 sample(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, randomFloats(generator));
+				sample = glm::normalize(sample);
+				sample *= randomFloats(generator);
+				float scale = float(i) / 64.0f;
+
+				scale = lerp(0.1f, 1.0f, scale * scale);
+				sample *= scale;
+				ssaoKernel.samples[i] = glm::vec4(sample, 1.f);
+			}
+
+			sData->SSAOUBO->SetData(ssaoKernel.samples.data(), ssaoKernel.samples.size());
+
+			std::vector<glm::vec3> ssaoNoise;
+			for (unsigned int i = 0; i < 16; i++)
+			{
+				glm::vec3 noise(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, 0.0f);
+				ssaoNoise.push_back(noise);
+			}
+
+			TextureInfo textureInfo;
+			textureInfo.height = 4;
+			textureInfo.width = 4;
+			noiseTexture = Texture2D::Create(textureInfo);
+			noiseTexture->SetData(ssaoNoise.data(), ssaoNoise.size());
+		}
+
+		shader->Bind();
+		ssaoBuffer->Bind();
+		RenderCommand::Clear();
+
+		if(ssao)
+		{
+			//set texture
+			gBuffer->BindTexture(GBufferSource::Normal, 0);
+			shader->Set("gNormalTexture", 0);
+
+			gBuffer->BindDepthBuffer(1);
+			shader->Set("gDepthTexture", 1);
+
+			noiseTexture->Bind(2);
+			shader->Set("noiseTexture", 2);
+
+			//set projection uniform if not camera proj
+
+			Renderer3D::DrawQuad();
+		}
+
+		ssaoBuffer->Unbind();
+		shader->Unbind();
+	}
+
 	RenderToTarget::RenderToTarget(std::string name) : RenderPass(name)
 	{
 		shader = quad_shader;
@@ -2648,6 +2772,14 @@ namespace Borealis
 			UniformBufferObject::BindToShader(bloom_shader->GetID(), "SceneRenderUBO", SCENE_RENDER_BIND);
 		}
 
+		if (!ssao_shader)
+		{
+			ssao_shader = Shader::Create("engineResources/Shaders/Renderer3D_SSAO.glsl");
+
+			UniformBufferObject::BindToShader(ssao_shader->GetID(), "Camera", CAMERA_BIND);
+			UniformBufferObject::BindToShader(ssao_shader->GetID(), "NoiseSample", SSAO_BIND);
+		}
+
 		if (!mCascadeShadowMapBuffer)
 		{
 			FrameBufferProperties propsShadowMapBuffer{ 2024, 2024, false };
@@ -2699,6 +2831,14 @@ namespace Borealis
 			compositeBuffer = FrameBuffer::Create(propsThresholdBuffer);
 		}
 
+		if (!ssaoBuffer)
+		{
+			FrameBufferProperties propsSSAOBuffer{ 1280, 720, false };
+			propsSSAOBuffer.Attachments = { FramebufferTextureFormat::RGBA16F };
+			ssaoBuffer = FrameBuffer::Create(propsSSAOBuffer);
+			ssaoBlurBuffer = FrameBuffer::Create(propsSSAOBuffer);
+		}
+
 		if(!sData)
 		{
 			sData = std::make_unique<RenderData>();
@@ -2709,6 +2849,8 @@ namespace Borealis
 			sData->LightsUBO = UniformBufferObject::Create(sizeof(LightUBO) * 32 + sizeof(int), LIGHTING_BIND);
 
 			sData->SceneRenderUBO = UniformBufferObject::Create(sizeof(RenderGraph::SceneRenderConfigUBO), SCENE_RENDER_BIND);
+
+			sData->SSAOUBO = UniformBufferObject::Create(sizeof(RenderGraph::SSAOSamplesUBO), SSAO_BIND);
 		}
 	}
 
@@ -2915,6 +3057,7 @@ namespace Borealis
 			case RenderPassType::BloomPass:
 			case RenderPassType::BloomCompositePass:
 			case RenderPassType::FogPass:
+			case RenderPassType::SSAOPass:
 				AddRenderPassConfig(passesConfig);
 				break;
 			default:
@@ -2972,6 +3115,9 @@ namespace Borealis
 			break;
 		case RenderPassType::FogPass:
 			renderPass = MakeRef<FogPass>(renderPassConfig.mPassName);
+			break;
+		case RenderPassType::SSAOPass:
+			renderPass = MakeRef<SSAOPass>(renderPassConfig.mPassName);
 			break;
 		case RenderPassType::RenderToTarget:
 			renderPass = MakeRef<RenderToTarget>(renderPassConfig.mPassName);

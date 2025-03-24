@@ -30,6 +30,7 @@ uniform sampler2D lNormal;
 uniform sampler2D lEmissive;
 uniform sampler2D lRoughnessMetallic;
 uniform sampler2D lDepthBuffer;
+uniform sampler2D lSSAO;
 
 layout(std140) uniform Camera
 {
@@ -259,6 +260,8 @@ void LightPass()
 	vec3 viewDir = normalize(CameraPos.xyz - fragPos);
     vec3 finalColor = vec3(0.0);
 
+    float AmbientOcclusion = texture(lSSAO, v_TexCoord).r;
+
 	for (int i = 0; i < u_LightsCount; ++i)
     {
 		if(u_Lights[i].type == 0) // Spot light
@@ -275,6 +278,7 @@ void LightPass()
         }
     }
 
+    finalColor *= AmbientOcclusion;
 	finalColor += emission;
 
     gAlbedo = vec4(finalColor, albedo.a);

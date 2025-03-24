@@ -267,7 +267,7 @@ namespace Borealis
 	{
 		MovementType movement = MovementType::Static;
 		float friction = 0.5f;
-		float bounciness = 0f;
+		float bounciness = 0.f;
 		float gravityScale = 1.0f;
 		bool dynamicBody = false;
 		// not serialised

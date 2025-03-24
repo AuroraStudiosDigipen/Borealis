@@ -971,7 +971,6 @@ namespace Borealis
 				FramebufferTextureFormat::RGBA16F,   // Normal
 				FramebufferTextureFormat::RGBA8,   // Emissive
 				FramebufferTextureFormat::RGBA8,   // Roughness + Metallic
-				FramebufferTextureFormat::RGBA8,   // Roughness + Metallic
 				FramebufferTextureFormat::Depth     // Depth buffer/Stencil
 			};
 			mGFrameBuffer = FrameBuffer::Create(propsGBuffer);

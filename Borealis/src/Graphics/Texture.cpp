@@ -84,6 +84,8 @@ namespace Borealis
 	void Texture2D::Reload(AssetMetaData const& assetMetaData, Ref<Asset> const& asset)
 	{
 		Ref<Texture2D> newAsset = Create(assetMetaData.CachePath.string(), GetConfig<TextureConfig>(assetMetaData.Config));
+		newAsset->mAssetHandle = assetMetaData.Handle;
+
 		newAsset->swap(*asset);
 	}
 

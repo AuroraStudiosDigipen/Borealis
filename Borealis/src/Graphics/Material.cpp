@@ -226,6 +226,7 @@ namespace Borealis
         out << YAML::EndMap;
 
         std::ofstream fout(path);
+        BOREALIS_CORE_INFO(path);
         fout << out.c_str();
     }
 
@@ -424,6 +425,7 @@ namespace Borealis
     {
         Material material(assetMetaData.CachePath);
         Ref<Material> newMat = MakeRef<Material>(material);
+        newMat->mAssetHandle = assetMetaData.Handle;
         newMat->swap(*asset);
     }
 

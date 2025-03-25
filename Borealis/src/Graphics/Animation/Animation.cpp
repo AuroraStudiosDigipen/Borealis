@@ -202,6 +202,8 @@ namespace Borealis
 		Animation anim;
 		anim.LoadAnimation(assetMetaData.CachePath);
 		Ref<Animation> newAsset = MakeRef<Animation>(anim);
+		newAsset->mAssetHandle = assetMetaData.Handle;
+
 		newAsset->swap(*asset);
 	}
 	void Animation::swap(Asset& other)

@@ -213,6 +213,7 @@ namespace Borealis
 			SkinnedModel skinnedModel;
 			skinnedModel.LoadModel(assetMetaData.CachePath);
 			auto newModel = MakeRef<SkinnedModel>(skinnedModel);
+			newModel->mAssetHandle = assetMetaData.Handle;
 			newModel->swap(*asset);
 		}
 		else
@@ -220,6 +221,7 @@ namespace Borealis
 			Model model;
 			model.LoadModel(assetMetaData.CachePath);
 			auto newModel = MakeRef<Model>(model);
+			newModel->mAssetHandle = assetMetaData.Handle;
 			newModel->swap(*asset);
 		}
 	}

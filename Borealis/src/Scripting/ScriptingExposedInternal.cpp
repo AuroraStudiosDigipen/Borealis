@@ -194,6 +194,75 @@ namespace Borealis
 
 		BOREALIS_ADD_INTERNAL_CALL(SetAudioClipName);
 		BOREALIS_ADD_INTERNAL_CALL(GetAudioClipName);
+
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_GetDuration);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetDuration);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_GetLooping);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetLooping);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_GetStartDelay);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetStartDelay);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_GetStartLifeTime);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetStartLifeTime);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_GetStartSpeed);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetStartSpeed);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_Get3DStartSizeBool);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_Set3DStartSizeBool);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_GetRandomStartSize);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetRandomStartSize);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_GetStartSize);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetStartSize);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_GetStartSize2);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetStartSize2);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_Get3DRandomStartRotation);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_Set3DRandomStartRotation);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_GetRandomStartRotation);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetRandomStartRotation);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_GetStartRotation);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetStartRotation);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_GetStartRotation2);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetStartRotation2);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_GetRandomStartColor);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetRandomStartColor);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_GetStartColor);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetStartColor);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_GetStartColor2);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetStartColor2);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_GetEndColorBool);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetEndColorBool);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_GetEndColor);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetEndColor);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_GetGravityModifier);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetGravityModifier);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_GetSimulationSpeed);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetSimulationSpeed);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_GetMaxParticles);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetMaxParticles);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_GetRateOverTime);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetRateOverTime);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_GetAngle);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetAngle);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_GetRadius);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetRadius);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_GetRadiusThickness);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetRadiusThickness);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_GetScale);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetScale);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_GetRotation);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetRotation);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_GetBillboard);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetBillboard);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_GetUseNoise);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetUseNoise);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_GetNoiseStrength);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetNoiseStrength);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_GetNoiseFrequency);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetNoiseFrequency);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_GetNoiseScrollSpeed);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetNoiseScrollSpeed); 
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_GetTexture);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetTexture);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_GetShape);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetShape);
 	}
 	uint64_t GenerateUUID()
 	{
@@ -1800,4 +1869,561 @@ namespace Borealis
 		}
 
 	}
-}
+	void ParticleSystem_GetDuration(uint64_t v, float* duration)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*duration = entity.GetComponent<ParticleSystemComponent>().duration;
+	}
+	void ParticleSystem_SetDuration(uint64_t v, float* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().duration = *value;
+	}
+	void ParticleSystem_GetLooping(uint64_t v, bool* looping)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*looping = entity.GetComponent<ParticleSystemComponent>().looping;
+	}
+	void ParticleSystem_SetLooping(uint64_t v, bool* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().looping = *value;
+	}
+	void ParticleSystem_GetStartDelay(uint64_t v, float* delay)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*delay = entity.GetComponent<ParticleSystemComponent>().startDelay;
+	}
+	void ParticleSystem_SetStartDelay(uint64_t v, float* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().startDelay = *value;
+	}
+	void ParticleSystem_GetStartLifeTime(uint64_t v, float* lifetime)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*lifetime = entity.GetComponent<ParticleSystemComponent>().startLifeTime;
+	}
+	void ParticleSystem_SetStartLifeTime(uint64_t v, float* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().startLifeTime = *value;
+	}
+	void ParticleSystem_GetStartSpeed(uint64_t v, float* speed)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*speed = entity.GetComponent<ParticleSystemComponent>().startSpeed;
+	}
+	void ParticleSystem_SetStartSpeed(uint64_t v, float* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().startSpeed = *value;
+	}
+	void ParticleSystem_Get3DStartSizeBool(uint64_t v, bool* startSize)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*startSize = entity.GetComponent<ParticleSystemComponent>()._3DStartSizeBool;
+	}
+	void ParticleSystem_Set3DStartSizeBool(uint64_t v, bool* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>()._3DStartSizeBool = *value;
+	}
+	void ParticleSystem_GetRandomStartSize(uint64_t v, bool* startSize)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*startSize = entity.GetComponent<ParticleSystemComponent>().randomStartSize;
+	}
+	void ParticleSystem_SetRandomStartSize(uint64_t v, bool* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().randomStartSize = *value;
+	}
+	void ParticleSystem_GetStartSize(uint64_t v, glm::vec3* startSize)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*startSize = entity.GetComponent<ParticleSystemComponent>().startSize;
+	}
+	void ParticleSystem_SetStartSize(uint64_t v, glm::vec3* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().startSize = *value;
+	}
+	void ParticleSystem_GetStartSize2(uint64_t v, glm::vec3* startSize)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*startSize = entity.GetComponent<ParticleSystemComponent>().startSize2;
+	}
+	void ParticleSystem_SetStartSize2(uint64_t v, glm::vec3* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().startSize2 = *value;
+	}
+	void ParticleSystem_Get3DRandomStartRotation(uint64_t v, bool* startRotation)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*startRotation = entity.GetComponent<ParticleSystemComponent>()._3DStartRotationBool;
+	}
+	void ParticleSystem_Set3DRandomStartRotation(uint64_t v, bool* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>()._3DStartRotationBool = *value;
+	}
+	void ParticleSystem_GetRandomStartRotation(uint64_t v, bool* startRotation)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*startRotation = entity.GetComponent<ParticleSystemComponent>().randomStartRotation;
+	}
+	void ParticleSystem_SetRandomStartRotation(uint64_t v, bool* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().randomStartRotation = *value;
+	}
+	void ParticleSystem_GetStartRotation(uint64_t v, glm::vec3* startSize)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*startSize = entity.GetComponent<ParticleSystemComponent>().startRotation;
+	}
+	void ParticleSystem_SetStartRotation(uint64_t v, glm::vec3* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().startRotation = *value;
+	}
+	void ParticleSystem_GetStartRotation2(uint64_t v, glm::vec3* startSize)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*startSize = entity.GetComponent<ParticleSystemComponent>().startRotation2;
+	}
+	void ParticleSystem_SetStartRotation2(uint64_t v, glm::vec3* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().startRotation2 = *value;
+	}
+	void ParticleSystem_GetRandomStartColor(uint64_t v, bool* color)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*color = entity.GetComponent<ParticleSystemComponent>().randomStartColor;
+	}
+	void ParticleSystem_SetRandomStartColor(uint64_t v, bool* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().randomStartColor = *value;
+	}
+	void ParticleSystem_GetStartColor(uint64_t v, glm::vec4* startColor2)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*startColor2 = entity.GetComponent<ParticleSystemComponent>().startColor;
+	}
+	void ParticleSystem_SetStartColor(uint64_t v, glm::vec4* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().startColor = *value;
+	}
+	void ParticleSystem_GetStartColor2(uint64_t v, glm::vec4* startColor2)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*startColor2 = entity.GetComponent<ParticleSystemComponent>().startColor2;
+	}
+	void ParticleSystem_SetStartColor2(uint64_t v, glm::vec4* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().startColor2 = *value;
+	}
+	void ParticleSystem_GetEndColorBool(uint64_t v, bool* color)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*color = entity.GetComponent<ParticleSystemComponent>().endColorBool;
+	}
+	void ParticleSystem_SetEndColorBool(uint64_t v, bool* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().endColorBool = *value;
+	}
+	void ParticleSystem_GetEndColor(uint64_t v, glm::vec4* startColor2)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*startColor2 = entity.GetComponent<ParticleSystemComponent>().endColor;
+	}
+	void ParticleSystem_SetEndColor(uint64_t v, glm::vec4* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().endColor = *value;
+	}
+	void ParticleSystem_GetGravityModifier(uint64_t v, float* gravity)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*gravity = entity.GetComponent<ParticleSystemComponent>().gravityModifer;
+	}
+	void ParticleSystem_SetGravityModifier(uint64_t v, float* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().gravityModifer = *value;
+	}
+	void ParticleSystem_GetSimulationSpeed(uint64_t v, float* speed)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*speed = entity.GetComponent<ParticleSystemComponent>().simulationSpeed;
+	}
+	void ParticleSystem_SetSimulationSpeed(uint64_t v, float* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().simulationSpeed = *value;
+	}
+	void ParticleSystem_GetMaxParticles(uint64_t v, unsigned* max)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*max = entity.GetComponent<ParticleSystemComponent>().maxParticles;
+	}
+	void ParticleSystem_SetMaxParticles(uint64_t v, unsigned* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().maxParticles = *value;
+	}
+	void ParticleSystem_GetRateOverTime(uint64_t v, float* speed)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*speed = entity.GetComponent<ParticleSystemComponent>().rateOverTime;
+	}
+	void ParticleSystem_SetRateOverTime(uint64_t v, float* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().rateOverTime = *value;
+	}
+	void ParticleSystem_GetAngle(uint64_t v, float* angle)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*angle = entity.GetComponent<ParticleSystemComponent>().angle;
+	}
+	void ParticleSystem_SetAngle(uint64_t v, float* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().angle = *value;
+	}
+	void ParticleSystem_GetRadius(uint64_t v, float* radius)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*radius = entity.GetComponent<ParticleSystemComponent>().radius;
+	}
+	void ParticleSystem_SetRadius(uint64_t v, float* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().radius = *value;
+	}
+	void ParticleSystem_GetRadiusThickness(uint64_t v, float* thickness)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*thickness = entity.GetComponent<ParticleSystemComponent>().radiusThickness;
+	}
+	void ParticleSystem_SetRadiusThickness(uint64_t v, float* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().radiusThickness = *value;
+	}
+	void ParticleSystem_GetScale(uint64_t v, glm::vec3* scale)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*scale = entity.GetComponent<ParticleSystemComponent>().scale;
+	}
+	void ParticleSystem_SetScale(uint64_t v, glm::vec3* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().scale = *value;
+	}
+	void ParticleSystem_GetRotation(uint64_t v, glm::vec3* rotation)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*rotation = entity.GetComponent<ParticleSystemComponent>().rotation;
+	}
+	void ParticleSystem_SetRotation(uint64_t v, glm::vec3* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().rotation = *value;
+	}
+	void ParticleSystem_GetBillboard(uint64_t v, bool* bill)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*bill = entity.GetComponent<ParticleSystemComponent>().billboard;
+	}
+	void ParticleSystem_SetBillboard(uint64_t v, bool* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().billboard = *value;
+	}
+	void ParticleSystem_GetUseNoise(uint64_t v, bool* noise)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*noise = entity.GetComponent<ParticleSystemComponent>().useNoise;
+	}
+	void ParticleSystem_SetUseNoise(uint64_t v, bool* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().useNoise = *value;
+	}
+	void ParticleSystem_GetNoiseStrength(uint64_t v, float* noise)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*noise = entity.GetComponent<ParticleSystemComponent>().noiseStrength;
+	}
+	void ParticleSystem_SetNoiseStrength(uint64_t v, float* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().noiseStrength = *value;
+	}
+	void ParticleSystem_GetNoiseFrequency(uint64_t v, float* noise)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*noise = entity.GetComponent<ParticleSystemComponent>().noiseFrequency;
+	}
+	void ParticleSystem_SetNoiseFrequency(uint64_t v, float* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().noiseFrequency = *value;
+	}
+	void ParticleSystem_GetNoiseScrollSpeed(uint64_t v, float* noise)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*noise = entity.GetComponent<ParticleSystemComponent>().noiseScrollSpeed;
+	}
+	void ParticleSystem_SetNoiseScrollSpeed(uint64_t v, float* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().noiseScrollSpeed = *value;
+	}
+	void ParticleSystem_GetTexture(uint64_t v, uint64_t* textureID)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		if (entity.GetComponent<ParticleSystemComponent>().texture)
+		{
+			*textureID = entity.GetComponent<ParticleSystemComponent>().texture->mAssetHandle;
+		}
+		else
+		{
+			*textureID = 0;
+		}
+	}
+
+	void ParticleSystem_SetTexture(uint64_t v1, uint64_t v2)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v1);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().texture = AssetManager::GetAsset<Texture2D>(v2);
+	}
+
+	void ParticleSystem_GetShape(uint64_t v, int* shape)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*shape = (int)entity.GetComponent<ParticleSystemComponent>().emitterShape;
+	}
+
+	void ParticleSystem_SetShape(uint64_t v, int* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().emitterShape = (EmitterShape)*value;
+	}
+
+
+} // End of namespace Borealis
+

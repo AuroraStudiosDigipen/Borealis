@@ -436,5 +436,145 @@ namespace Borealis
         internal extern static void SetAudioClipName(string name, ref byte[] guid);
 
         #endregion
+
+        #region ParticleSystem
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_GetDuration(ulong v, out float duration);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_SetDuration(ulong v, ref float value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_GetLooping(ulong v, out bool looping);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_SetLooping(ulong v, ref bool value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_GetStartDelay(ulong v, out float delay);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_SetStartDelay(ulong v, ref float value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_GetStartLifeTime(ulong v, out float lifetime);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_SetStartLifeTime(ulong v, ref float value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_GetStartSpeed(ulong v, out float speed);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_SetStartSpeed(ulong v, ref float value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_Get3DStartSizeBool(ulong v, out bool startSize);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_Set3DStartSizeBool(ulong v, ref bool value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_GetRandomStartSize(ulong v, out bool startSize);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_SetRandomStartSize(ulong v, ref bool value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_GetStartSize(ulong v, out Vector3 startSize);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_SetStartSize(ulong v, ref Vector3 value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_GetStartSize2(ulong v, out Vector3 startSize);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_SetStartSize2(ulong v, ref Vector3 value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_Get3DRandomStartRotation(ulong v, out bool startRotation);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_Set3DRandomStartRotation(ulong v, ref bool value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_GetRandomStartRotation(ulong v, out bool startRotation);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_SetRandomStartRotation(ulong v, ref bool value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_GetStartRotation(ulong v, out Vector3 startSize);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_SetStartRotation(ulong v, ref Vector3 value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_GetStartRotation2(ulong v, out Vector3 startSize);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_SetStartRotation2(ulong v, ref Vector3 value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_GetRandomStartColor(ulong v, out bool color);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_SetRandomStartColor(ulong v, ref bool value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_GetStartColor(ulong v, out Color startColor2);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_SetStartColor(ulong v, ref Color value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_GetStartColor2(ulong v, out Color startColor2);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_SetStartColor2(ulong v, ref Color value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_GetEndColorBool(ulong v, out bool color);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_SetEndColorBool(ulong v, ref bool value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_GetEndColor(ulong v, out Color startColor2);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_SetEndColor(ulong v, ref Color value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_GetGravityModifier(ulong v, out float gravity);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_SetGravityModifier(ulong v, ref float value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_GetSimulationSpeed(ulong v, out float speed);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_SetSimulationSpeed(ulong v, ref float value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_GetMaxParticles(ulong v, out uint max);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_SetMaxParticles(ulong v, ref uint value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_GetRateOverTime(ulong v, out float speed);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_SetRateOverTime(ulong v, ref float value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_GetAngle(ulong v, out float angle);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_SetAngle(ulong v, ref float value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_GetRadius(ulong v, out float radius);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_SetRadius(ulong v, ref float value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_GetRadiusThickness(ulong v, out float thickness);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_SetRadiusThickness(ulong v, ref float value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_GetScale(ulong v, out Vector3 scale);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_SetScale(ulong v, ref Vector3 value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_GetRotation(ulong v, out Vector3 rotation);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_SetRotation(ulong v, ref Vector3 value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_GetBillboard(ulong v, out bool bill);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_SetBillboard(ulong v, ref bool value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_GetUseNoise(ulong v, out bool noise);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_SetUseNoise(ulong v, ref bool value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_GetNoiseStrength(ulong v, out float noise);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_SetNoiseStrength(ulong v, ref float value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_GetNoiseFrequency(ulong v, out float noise);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_SetNoiseFrequency(ulong v, ref float value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_GetNoiseScrollSpeed(ulong v, out float noise);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_SetNoiseScrollSpeed(ulong v, ref float value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_GetTexture(ulong v, out ulong textureID);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_SetTexture(ulong v1, ulong v2);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_GetShape(ulong v, out int shape);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_SetShape(ulong v, ref EmitterShape value);
+
+        #endregion
     }
 }

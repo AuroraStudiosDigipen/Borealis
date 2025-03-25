@@ -529,6 +529,7 @@ namespace Borealis
 		RegisterComponent<RigidbodyComponent>();
 		RegisterComponent<TextComponent>();
 		RegisterComponent<AnimatorComponent>();
+		RegisterComponent<ParticleSystemComponent>();
 
 
 		//RegisterComponent<LightComponent>();

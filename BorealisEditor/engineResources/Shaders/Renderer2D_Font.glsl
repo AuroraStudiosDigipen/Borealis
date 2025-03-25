@@ -90,7 +90,7 @@ void main()
     float outer = width * (sd - u_bias + outlineWidth) + u_bias;
 
     float inner_opacity = clamp(inner, 0.0, 1.0);
-    vec4 inner_color = vec4(1, 1, 1, 1);
+    vec4 inner_color = v_Color;
     float outer_opacity = clamp(outer, 0.0, 1.0);
     vec4 outer_color = vec4(0, 0, 0, 1); 
 

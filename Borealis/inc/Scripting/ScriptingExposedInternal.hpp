@@ -444,6 +444,75 @@ namespace Borealis
 	MonoString* GetAudioClipName(MonoArray** guid);
 
 	void SetAudioClipName(MonoString* name, MonoArray** guid);
-}
+	
+	void ParticleSystem_GetDuration(uint64_t v, float* duration);	
+	void ParticleSystem_SetDuration(uint64_t v, float* value);	
+	void ParticleSystem_GetLooping(uint64_t v, bool* looping);	
+	void ParticleSystem_SetLooping(uint64_t v, bool* value);	
+	void ParticleSystem_GetStartDelay(uint64_t v, float* delay);	
+	void ParticleSystem_SetStartDelay(uint64_t v, float* value);	
+	void ParticleSystem_GetStartLifeTime(uint64_t v, float* lifetime);	
+	void ParticleSystem_SetStartLifeTime(uint64_t v, float* value);	
+	void ParticleSystem_GetStartSpeed(uint64_t v, float* speed);	
+	void ParticleSystem_SetStartSpeed(uint64_t v, float* value);	
+	void ParticleSystem_Get3DStartSizeBool(uint64_t v, bool* startSize);	
+	void ParticleSystem_Set3DStartSizeBool(uint64_t v, bool* value);	
+	void ParticleSystem_GetRandomStartSize(uint64_t v, bool* startSize);	
+	void ParticleSystem_SetRandomStartSize(uint64_t v, bool* value);	
+	void ParticleSystem_GetStartSize(uint64_t v, glm::vec3* startSize);	
+	void ParticleSystem_SetStartSize(uint64_t v, glm::vec3* value);	
+	void ParticleSystem_GetStartSize2(uint64_t v, glm::vec3* startSize);	
+	void ParticleSystem_SetStartSize2(uint64_t v, glm::vec3* value);	
+	void ParticleSystem_Get3DRandomStartRotation(uint64_t v, bool* startRotation);	
+	void ParticleSystem_Set3DRandomStartRotation(uint64_t v, bool* value);
+	void ParticleSystem_GetRandomStartRotation(uint64_t v, bool* startRotation);	
+	void ParticleSystem_SetRandomStartRotation(uint64_t v, bool* value);	
+	void ParticleSystem_GetStartRotation(uint64_t v, glm::vec3* startSize);	
+	void ParticleSystem_SetStartRotation(uint64_t v, glm::vec3* value);	
+	void ParticleSystem_GetStartRotation2(uint64_t v, glm::vec3* startSize);	
+	void ParticleSystem_SetStartRotation2(uint64_t v, glm::vec3* value);	
+	void ParticleSystem_GetRandomStartColor(uint64_t v, bool* color);	
+	void ParticleSystem_SetRandomStartColor(uint64_t v, bool* value);	
+	void ParticleSystem_GetStartColor(uint64_t v, glm::vec4* startColor2);	
+	void ParticleSystem_SetStartColor(uint64_t v, glm::vec4* value);	
+	void ParticleSystem_GetStartColor2(uint64_t v, glm::vec4* startColor2);	
+	void ParticleSystem_SetStartColor2(uint64_t v, glm::vec4* value);	
+	void ParticleSystem_GetEndColorBool(uint64_t v, bool* color);	
+	void ParticleSystem_SetEndColorBool(uint64_t v, bool* value);	
+	void ParticleSystem_GetEndColor(uint64_t v, glm::vec4* startColor2);	
+	void ParticleSystem_SetEndColor(uint64_t v, glm::vec4* value);	
+	void ParticleSystem_GetGravityModifier(uint64_t v, float* gravity);	
+	void ParticleSystem_SetGravityModifier(uint64_t v, float* value);	
+	void ParticleSystem_GetSimulationSpeed(uint64_t v, float* speed);	
+	void ParticleSystem_SetSimulationSpeed(uint64_t v, float* value);
+	void ParticleSystem_GetMaxParticles(uint64_t v, unsigned* max);	
+	void ParticleSystem_SetMaxParticles(uint64_t v, unsigned* value);	
+	void ParticleSystem_GetRateOverTime(uint64_t v, float* speed);	
+	void ParticleSystem_SetRateOverTime(uint64_t v, float* value);	
+	void ParticleSystem_GetAngle(uint64_t v, float* angle);	
+	void ParticleSystem_SetAngle(uint64_t v, float* value);	
+	void ParticleSystem_GetRadius(uint64_t v, float* radius);	
+	void ParticleSystem_SetRadius(uint64_t v, float* value);	
+	void ParticleSystem_GetRadiusThickness(uint64_t v, float* thickness);	
+	void ParticleSystem_SetRadiusThickness(uint64_t v, float* value);	
+	void ParticleSystem_GetScale(uint64_t v, glm::vec3* scale);	
+	void ParticleSystem_SetScale(uint64_t v, glm::vec3* value);	
+	void ParticleSystem_GetRotation(uint64_t v, glm::vec3* rotation);	
+	void ParticleSystem_SetRotation(uint64_t v, glm::vec3* value);	
+	void ParticleSystem_GetBillboard(uint64_t v, bool* bill);	
+	void ParticleSystem_SetBillboard(uint64_t v, bool* value);	
+	void ParticleSystem_GetUseNoise(uint64_t v, bool* noise);	
+	void ParticleSystem_SetUseNoise(uint64_t v, bool* value);	
+	void ParticleSystem_GetNoiseStrength(uint64_t v, float* noise);	
+	void ParticleSystem_SetNoiseStrength(uint64_t v, float* value);	
+	void ParticleSystem_GetNoiseFrequency(uint64_t v, float* noise);
+	void ParticleSystem_SetNoiseFrequency(uint64_t v, float* value);	
+	void ParticleSystem_GetNoiseScrollSpeed(uint64_t v, float* noise);	
+	void ParticleSystem_SetNoiseScrollSpeed(uint64_t v, float* value);
+	void ParticleSystem_GetTexture(uint64_t v, uint64_t* textureID);
+	void ParticleSystem_SetTexture(uint64_t v1, uint64_t v2);
+	void ParticleSystem_GetShape(uint64_t v, int* shape);
+	void ParticleSystem_SetShape(uint64_t v, int* value);
+	} // End of namespace Borealis
 
 #endif

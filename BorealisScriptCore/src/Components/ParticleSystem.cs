@@ -8,6 +8,7 @@ namespace Borealis
         Cone,
         Quad
     }
+    [NativeComponent]
     public class ParticleSystem : Component
     {
         public float duration

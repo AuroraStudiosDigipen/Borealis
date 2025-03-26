@@ -175,12 +175,36 @@ namespace Borealis
 
             if (colorMaps.contains(matMap))
             {
-                glm::vec4 albedoColor = material->GetTextureMapColor()[matMap];
-                auto oldData = albedoColor;
-                if (ImGui::ColorEdit4(("##" + label).c_str(), glm::value_ptr(albedoColor)))
+                if (matMap == Material::Emission)
                 {
-                    ActionManager::execute(std::make_unique<ModifyMaterialTextureMapColor>(material, matMap, oldData, albedoColor));
-                    isModified = true;
+                    glm::vec4 albedoColor = material->GetTextureMapColor()[matMap];
+                    auto oldData = albedoColor;
+                    if (ImGui::ColorEdit4(("##" + label).c_str(), glm::value_ptr(albedoColor), ImGuiColorEditFlags_NoAlpha))
+                    {
+                        isModified = true;
+                    }
+                    ImGui::Text("Intensity");
+                    ImGui::SameLine(125);
+                    if (DrawFloatSlider(("##" + std::string("Emission Intensity")).c_str(), &albedoColor.a,0.f,100.f))
+                    {
+                        isModified = true;
+                    }
+
+                    if (isModified)
+                    {
+                        ActionManager::execute(std::make_unique<ModifyMaterialTextureMapColor>(material, matMap, oldData, albedoColor));
+                    }
+                }
+                else
+                {
+
+                    glm::vec4 albedoColor = material->GetTextureMapColor()[matMap];
+                    auto oldData = albedoColor;
+                    if (ImGui::ColorEdit4(("##" + label).c_str(), glm::value_ptr(albedoColor)))
+                    {
+                        ActionManager::execute(std::make_unique<ModifyMaterialTextureMapColor>(material, matMap, oldData, albedoColor));
+                        isModified = true;
+                    }
                 }
             }
             else if(floatMaps.contains(matMap))

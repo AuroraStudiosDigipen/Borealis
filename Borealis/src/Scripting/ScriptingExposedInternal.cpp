@@ -187,6 +187,9 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_GetCurrentTime);
 		BOREALIS_ADD_INTERNAL_CALL(AnimatorComponent_GetAnimationDuration);
 
+		BOREALIS_ADD_INTERNAL_CALL(UIAnimator_SetPlaying);
+		BOREALIS_ADD_INTERNAL_CALL(UIAnimator_GetPlaying);
+		BOREALIS_ADD_INTERNAL_CALL(UIAnimator_GetEndLoop);
 
 		BOREALIS_ADD_INTERNAL_CALL(SceneManager_SetActiveScene);
 		BOREALIS_ADD_INTERNAL_CALL(SceneManager_Quit);
@@ -1457,6 +1460,34 @@ namespace Borealis
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		*duration = entity.GetComponent<AnimatorComponent>().animator.GetAnimationDuration();
 	}
+
+	void UIAnimator_SetPlaying(UUID uuid, bool playing)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<UIAnimatorComponent>().animator.mIsPlaying = playing;
+	}
+
+	void UIAnimator_GetPlaying(UUID uuid, bool* playing)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*playing = entity.GetComponent<UIAnimatorComponent>().animator.mIsPlaying;
+	}
+
+	void UIAnimator_GetEndLoop(UUID uuid, bool* endLoop)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(uuid);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*endLoop = entity.GetComponent<UIAnimatorComponent>().animator.mLoopEnd;
+	}
+
 	void SceneManager_SetMainCamera(uint64_t entityID)
 	{
 		Scene* scene = SceneManager::GetActiveScene().get();

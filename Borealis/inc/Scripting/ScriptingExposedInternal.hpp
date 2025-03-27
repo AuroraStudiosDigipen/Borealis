@@ -370,6 +370,9 @@ namespace Borealis
 	void AnimatorComponent_GetCurrentTime(UUID uuid, float* currentTime);
 	void AnimatorComponent_GetAnimationDuration(UUID uuid, float* duration);
 
+	void UIAnimator_SetPlaying(UUID uuid, bool playing);
+	void UIAnimator_GetPlaying(UUID uuid, bool* playing);
+	void UIAnimator_GetEndLoop(UUID uuid, bool* endLoop);
 
 	void SceneManager_SetMainCamera(uint64_t entityID);
 	void SceneManager_SetActiveScene(MonoString* sceneName);

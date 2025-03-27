@@ -7,7 +7,7 @@ namespace Borealis
 
 	void UIAnimator::UpdateAnimation(float dt)
 	{
-        if (!currentAnimation) return;
+        if (!currentAnimation || !mIsPlaying) return;
 
         int numSprites = currentAnimation->GetSprites().size();
         if (!numSprites) return;
@@ -16,9 +16,30 @@ namespace Borealis
         mCurrentTime += dt * mSpeed;
 
         if (mLoop)
-            mCurrentTime = fmod(mCurrentTime, animDuration);
-        else if (mCurrentTime > animDuration)
-            mCurrentTime = animDuration;
+        {
+            if (mCurrentTime >= animDuration)
+            {
+                mCurrentTime = fmod(mCurrentTime, animDuration);
+                mLoopEnd = true; // Loop just completed
+            }
+            else
+            {
+                mLoopEnd = false;
+            }
+        }
+        else
+        {
+            if (mCurrentTime >= animDuration)
+            {
+                mCurrentTime = animDuration;
+                mLoopEnd = true;
+                mIsPlaying = false;
+            }
+            else
+            {
+                mLoopEnd = false;
+            }
+        }
 
         float frameDuration = animDuration / numSprites;
         mCurrentSpriteIndex = static_cast<int>(mCurrentTime / frameDuration);

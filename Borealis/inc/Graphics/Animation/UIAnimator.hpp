@@ -12,11 +12,15 @@ namespace Borealis
 		UIAnimator();
 		void UpdateAnimation(float dt);
 		void PlayAnimation(Ref<UIAnimation> animation);
+		void StopAnimation() { mIsPlaying = false; }
 
 		void SetLoop(bool loop) { mLoop = loop; }
 		void SetSpeed(float speed) { mSpeed = speed; }
 		int GetCurrentSpriteIndex() const { return mCurrentSpriteIndex; }
 		Ref<UIAnimation> GetCurrentAnimation() const { return currentAnimation; }
+
+		bool mIsPlaying = true;
+		bool mLoopEnd = false;
 
 	private:
 		bool mLoop;

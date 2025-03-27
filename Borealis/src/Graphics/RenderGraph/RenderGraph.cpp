@@ -837,9 +837,16 @@ namespace Borealis
 
 			if (parent.HasComponent<TextComponent>())
 			{
+				float xScale = glm::length(glm::vec3(globalTansform[0]));
+				glm::mat4 noScale = globalTansform;
+				noScale[0] = glm::normalize(noScale[0]);
+				noScale[1] = glm::normalize(noScale[1]);
+				noScale[2] = glm::normalize(noScale[2]);
+				glm::mat4 uniformScale = glm::scale(glm::mat4(1.0f), glm::vec3(xScale, xScale, xScale));
+				glm::mat4 fixedtransform = canvasTransform * (noScale * uniformScale);
 				TextComponent const& text = parent.GetComponent<TextComponent>();
 
-				Renderer2D::DrawString(text.text, text.font, transform, (int)parent, (float)text.fontSize, text.colour, text.align == TextComponent::TextAlign::Left? false:true, text.outline, text.width);
+				Renderer2D::DrawString(text.text, text.font, fixedtransform, (int)parent, (float)text.fontSize, text.colour, text.align == TextComponent::TextAlign::Left? false:true, text.outline, text.width);
 			}
 
 			if (parent.HasComponent<ParticleSystemComponent>())

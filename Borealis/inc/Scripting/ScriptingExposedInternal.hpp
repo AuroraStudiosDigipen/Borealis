@@ -513,6 +513,8 @@ namespace Borealis
 	void ParticleSystem_SetTexture(uint64_t v1, uint64_t v2);
 	void ParticleSystem_GetShape(uint64_t v, int* shape);
 	void ParticleSystem_SetShape(uint64_t v, int* value);
+	void ParticleSystem_Start(uint64_t v);
+	void ParticleSystem_Stop(uint64_t v);
 	} // End of namespace Borealis
 
 #endif

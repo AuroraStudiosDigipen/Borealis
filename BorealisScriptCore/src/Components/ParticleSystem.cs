@@ -428,5 +428,14 @@ namespace Borealis
                 InternalCalls.ParticleSystem_SetTexture(GetInstanceID(), value.GetInstanceID());
             }
         }
+        public void Start()
+        {
+            InternalCalls.ParticleSystem_Start(InstanceID);
+        }
+
+        public void Stop()
+        {
+            InternalCalls.ParticleSystem_Stop(InstanceID);
+        }
     }
 }

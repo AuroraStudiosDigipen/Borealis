@@ -263,6 +263,8 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetTexture);
 		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_GetShape);
 		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetShape);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_Start);
+		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_Stop);
 	}
 	uint64_t GenerateUUID()
 	{
@@ -2424,6 +2426,22 @@ namespace Borealis
 		entity.GetComponent<ParticleSystemComponent>().emitterShape = (EmitterShape)*value;
 	}
 
+	void ParticleSystem_Start(uint64_t v)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().Start();
+	}
 
+	void ParticleSystem_Stop(uint64_t v)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<ParticleSystemComponent>().Stop();
+	}
 } // End of namespace Borealis
 

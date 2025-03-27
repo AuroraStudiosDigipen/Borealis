@@ -363,26 +363,29 @@ namespace Borealis {
 				editorSSAOPass.AddSinkLinkage("bloomBool", "bloomBool");
 				fconfig.AddPass(editorSSAOPass);
 
-				RenderPassConfig editorLightPass(RenderPassType::Lighting, "editorLightPass");
-				editorLightPass.AddSinkLinkage("gBuffer", "editorGeometricPass.gBuffer");
-				editorLightPass.AddSinkLinkage("renderTarget", "EditorBuffer");
-				editorLightPass.AddSinkLinkage("camera", "EditorCamera");
-				editorLightPass.AddSinkLinkage("shadowMap", "editorShadowPass.shadowMap");
-				fconfig.AddPass(editorLightPass);
+				if(SceneManager::GetActiveScene()->GetSceneRenderConfig().bloom)
+				{
+					RenderPassConfig editorLightPass(RenderPassType::Lighting, "editorLightPass");
+					editorLightPass.AddSinkLinkage("gBuffer", "editorGeometricPass.gBuffer");
+					editorLightPass.AddSinkLinkage("renderTarget", "EditorBuffer");
+					editorLightPass.AddSinkLinkage("camera", "EditorCamera");
+					editorLightPass.AddSinkLinkage("shadowMap", "editorShadowPass.shadowMap");
+					fconfig.AddPass(editorLightPass);
 
-				RenderPassConfig editorCorrectionPass(RenderPassType::CorrectionPass, "editorCorrectionPass");
-				editorCorrectionPass.AddSinkLinkage("renderTarget", "EditorBuffer");
-				fconfig.AddPass(editorCorrectionPass);
+					RenderPassConfig editorCorrectionPass(RenderPassType::CorrectionPass, "editorCorrectionPass");
+					editorCorrectionPass.AddSinkLinkage("renderTarget", "EditorBuffer");
+					fconfig.AddPass(editorCorrectionPass);
 
-				RenderPassConfig editorSkyBoxPass(RenderPassType::SkyboxPass, "editorSkyBox");
-				editorSkyBoxPass.AddSinkLinkage("renderTarget", "editorCorrectionPass.renderTarget");
-				editorSkyBoxPass.AddSinkLinkage("camera", "EditorCamera");
-				fconfig.AddPass(editorSkyBoxPass);
+					RenderPassConfig editorSkyBoxPass(RenderPassType::SkyboxPass, "editorSkyBox");
+					editorSkyBoxPass.AddSinkLinkage("renderTarget", "editorCorrectionPass.renderTarget");
+					editorSkyBoxPass.AddSinkLinkage("camera", "EditorCamera");
+					fconfig.AddPass(editorSkyBoxPass);
 
-				RenderPassConfig editorRender2D(RenderPassType::Render2D, "editorRender2D");
-				editorRender2D.AddSinkLinkage("renderTarget", "editorSkyBox.renderTarget")
-					.AddSinkLinkage("camera", "EditorCamera");
-				fconfig.AddPass(editorRender2D);
+					RenderPassConfig editorRender2D(RenderPassType::Render2D, "editorRender2D");
+					editorRender2D.AddSinkLinkage("renderTarget", "editorSkyBox.renderTarget")
+						.AddSinkLinkage("camera", "EditorCamera");
+					fconfig.AddPass(editorRender2D);
+				}
 
 				//if (particlesForEditor)
 				//{

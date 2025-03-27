@@ -261,6 +261,8 @@ void LightPass()
     vec3 finalColor = vec3(0.0);
 
     float AmbientOcclusion = texture(lSSAO, v_TexCoord).r;
+    float aoStrength = 2.f;
+    AmbientOcclusion = mix(1.0, AmbientOcclusion, aoStrength);
 
 	for (int i = 0; i < u_LightsCount; ++i)
     {
@@ -277,6 +279,7 @@ void LightPass()
             finalColor += ComputePointLight(u_Lights[i], fragPos, normal, viewDir, albedo.rgb, metallic, roughness);
         }
     }
+    
 
     finalColor *= AmbientOcclusion;
 	finalColor += emission;

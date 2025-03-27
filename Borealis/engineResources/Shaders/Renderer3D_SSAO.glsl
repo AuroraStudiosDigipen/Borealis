@@ -44,8 +44,8 @@ layout(std140) uniform NoiseSample
 };
 
 int kernelSize = 64;
-float radius = 0.5;
-float bias = 0.025;
+float bias = 0.05;
+float radius = 1.0;
 
 vec2 noiseScale = vec2(screenWidth/4.0, screenHeight/4.0); 
 
@@ -89,10 +89,12 @@ void SSAOPass()
         float sampleDepth = GetWorldPosition(offset.xy, sampleDepthBuffer).z;
         
         // range check & accumulate
-        float rangeCheck = smoothstep(0.0, 1.0, radius / abs(fragPos.z - sampleDepth));
+        //float rangeCheck = smoothstep(0.0, 1.0, radius / abs(fragPos.z - sampleDepth));
+        float rangeCheck = smoothstep(0.0, 1.0, radius / (abs(fragPos.z - sampleDepth) + 0.2));
         occlusion += (sampleDepth >= samplePos.z + bias ? 1.0 : 0.0) * rangeCheck;           
     }
     occlusion = 1.0 - (occlusion / kernelSize);
+    occlusion = pow(occlusion, 4.0);
     
     FragColor = occlusion;
     //FragColor = texture(gPosition, v_TexCoord);

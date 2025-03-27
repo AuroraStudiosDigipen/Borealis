@@ -19,7 +19,7 @@ void main()
 #type fragment
 #version 410 core
 
-layout(location = 0) out float FragColor;
+layout(location = 0) out vec4 FragColor;
 
 in vec2 v_TexCoord;
 
@@ -38,7 +38,8 @@ void SSAOBlurPass()
             result += texture(ssaoTexture, v_TexCoord + offset).r;
         }
     }
-    FragColor = result / (4.0 * 4.0);
+    vec4 color = vec4(vec3(result / (4.0 * 4.0)), 1.f);
+    FragColor = color;
 }
 
 void main()

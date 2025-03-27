@@ -530,7 +530,7 @@ namespace Borealis
 		RegisterComponent<TextComponent>();
 		RegisterComponent<AnimatorComponent>();
 		RegisterComponent<ParticleSystemComponent>();
-
+		RegisterComponent<UIAnimatorComponent>();
 
 		//RegisterComponent<LightComponent>();
 

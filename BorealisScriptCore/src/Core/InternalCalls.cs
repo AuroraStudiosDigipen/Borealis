@@ -419,6 +419,17 @@ namespace Borealis
         internal extern static void AnimatorComponent_GetCurrentTime(ulong uuid, out float duration);
         #endregion
 
+        #region UIAnimator
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void UIAnimator_SetPlaying(ulong uuid, bool playing);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+
+        internal extern static void UIAnimator_GetPlaying(ulong uuid, out bool playing);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+
+        internal extern static void UIAnimator_GetEndLoop(ulong uuid, out bool endLoop);
+        #endregion
+
         #region SceneManager
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
 

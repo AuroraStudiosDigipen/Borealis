@@ -159,7 +159,6 @@ namespace Borealis
 
 
 		GLuint linearMode{};
-		config.filterMode = TextureFilter::_LINEAR;
 		switch (config.filterMode)
 		{
 		case TextureFilter::_LINEAR:
@@ -199,7 +198,7 @@ namespace Borealis
 		}
 
 		glTexParameteri(Target, GL_TEXTURE_MIN_FILTER, linearMode);
-		glTexParameteri(Target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(Target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 
 		glTexParameteri(Target, GL_TEXTURE_WRAP_S, wrapMode);

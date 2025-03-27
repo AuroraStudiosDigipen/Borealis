@@ -289,6 +289,11 @@ namespace Borealis
 		Mesh::DrawQuad(transform, color, wireframe, s3dData->mCommonShader);
 	}
 
+	void Renderer3D::DrawCube(const glm::mat4& transform, glm::vec4 color, bool wireframe)
+	{
+		Mesh::DrawCube(transform, color, wireframe, s3dData->mCommonShader);
+	}
+
 	void Renderer3D::DrawCubeMap()
 	{
 		Mesh::DrawCubeMap();

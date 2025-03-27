@@ -407,6 +407,91 @@ namespace Borealis
 		shader->Unbind();
 	}
 
+	void Mesh::DrawCube(const glm::mat4& transform, glm::vec4 color, bool wireframe, Ref<Shader> shader)
+	{
+		PROFILE_FUNCTION();
+
+		static unsigned int CubeVAO = 0, CubeVBO = 0, CubeEBO = 0;
+
+		if (CubeVAO == 0)
+		{
+			const GLfloat cubeVertices[] =
+			{
+				-0.5f, -0.5f, -0.5f, 
+				 0.5f, -0.5f, -0.5f, 
+				 0.5f,  0.5f, -0.5f, 
+				-0.5f,  0.5f, -0.5f, 
+				-0.5f, -0.5f,  0.5f, 
+				 0.5f, -0.5f,  0.5f, 
+				 0.5f,  0.5f,  0.5f, 
+				-0.5f,  0.5f,  0.5f  
+			};
+
+			const GLuint cubeEdgeIndices[] =
+			{
+				0, 1,
+				1, 2,
+				2, 3,
+				3, 0,
+				4, 5,
+				5, 6,
+				6, 7,
+				7, 4,
+				0, 4,
+				1, 5,
+				2, 6,
+				3, 7 
+			};
+
+			glGenVertexArrays(1, &CubeVAO);
+			glGenBuffers(1, &CubeVBO);
+			glGenBuffers(1, &CubeEBO);
+
+			glBindVertexArray(CubeVAO);
+
+			glBindBuffer(GL_ARRAY_BUFFER, CubeVBO);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
+
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, CubeEBO);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cubeEdgeIndices), cubeEdgeIndices, GL_STATIC_DRAW);
+
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+			glEnableVertexAttribArray(0);
+
+			glBindVertexArray(0);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		}
+
+		glBindVertexArray(CubeVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, CubeVBO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, CubeEBO);
+
+		shader->Bind();
+
+		shader->Set("u_ModelTransform", transform);
+		shader->Set("u_Color", color);
+
+		if (wireframe) 
+		{
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		}
+		else 
+		{
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		}
+
+		if (wireframe) {
+			glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, 0);
+		}
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		shader->Unbind();
+	}
+
 	void Mesh::DrawCone(float height, float radius, float angle, const glm::mat4& transform, glm::vec4 color, bool wireframe, Ref<Shader> shader)
 	{
 		PROFILE_FUNCTION();

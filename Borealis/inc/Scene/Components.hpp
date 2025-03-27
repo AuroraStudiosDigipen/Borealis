@@ -530,7 +530,8 @@ namespace Borealis
 	enum class EmitterShape : int
 	{
 		Cone,
-		Quad
+		Quad,
+		Box
 	};
 
 	struct ParticleSystemComponent
@@ -565,7 +566,7 @@ namespace Borealis
 		float			radius = 1.f;
 		float			radiusThickness = 0.f; //0-1 based on radius
 
-		//quad
+		//quad and box
 		glm::vec3		scale = glm::vec3{ 1.f };
 		glm::vec3		rotation = glm::vec3{ 0.f };
 

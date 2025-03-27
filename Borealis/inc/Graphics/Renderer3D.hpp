@@ -86,6 +86,8 @@ namespace Borealis
 		static void DrawQuad();
 		static void DrawQuad(const glm::mat4& transform, glm::vec4 color, bool wireframe = true);
 
+		static void DrawCube(const glm::mat4& transform, glm::vec4 color, bool wireframe = true);
+
 		static void DrawCubeMap();
 		
 		static void BeginCommonShapes(glm::mat4 const& viewProj);

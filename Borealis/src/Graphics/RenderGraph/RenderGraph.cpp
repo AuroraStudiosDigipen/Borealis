@@ -2475,6 +2475,25 @@ namespace Borealis
 				RenderCommand::SetLineThickness(3.f);
 				Renderer3D::DrawQuad(quadTransform, { 1.f, 1.f, 1.f, 1.f });
 			}
+			else if (particleSystem.emitterShape == EmitterShape::Box)
+			{
+				glm::mat4 boxTransform = glm::mat4(1.0f);
+
+				glm::vec3 translation = brEntity.GetComponent<TransformComponent>().GetGlobalTranslate();
+				glm::vec3 scale = brEntity.GetComponent<TransformComponent>().GetGlobalScale();
+
+				glm::quat globalRotation = glm::radians(brEntity.GetComponent<TransformComponent>().GetGlobalRotation());
+
+				glm::quat additionalRotation = glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+				glm::quat finalRotation = globalRotation * additionalRotation;
+
+				boxTransform = glm::translate(boxTransform, translation);
+				boxTransform = boxTransform * glm::mat4_cast(finalRotation);
+				boxTransform = glm::scale(boxTransform, scale);
+
+				RenderCommand::SetLineThickness(3.f);
+				Renderer3D::DrawCube(boxTransform, { 1.f, 1.f, 1.f, 1.f }, true); 
+			}
 			else if (showWireFrame && editor && particleSystem.emitterShape == EmitterShape::Cone)
 			{
 				TransformComponent& transform = brEntity.GetComponent<TransformComponent>();

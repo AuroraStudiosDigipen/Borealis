@@ -130,6 +130,8 @@ namespace Borealis
 
 		static void DrawQuad(const glm::mat4& transform, glm::vec4 color, bool wireframe, Ref<Shader> shader);
 
+		static void DrawCube(const glm::mat4& transform, glm::vec4 color, bool wireframe, Ref<Shader> shader);
+
 		static void DrawCone(float height, float baseThickness, float angle, const glm::mat4& transform, glm::vec4 color, bool wireframe, Ref<Shader> shader);
 		/*!***********************************************************************
 			\brief

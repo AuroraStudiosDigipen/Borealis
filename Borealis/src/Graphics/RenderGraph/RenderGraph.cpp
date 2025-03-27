@@ -837,9 +837,16 @@ namespace Borealis
 
 			if (parent.HasComponent<TextComponent>())
 			{
+				float xScale = glm::length(glm::vec3(globalTansform[0]));
+				glm::mat4 noScale = globalTansform;
+				noScale[0] = glm::normalize(noScale[0]);
+				noScale[1] = glm::normalize(noScale[1]);
+				noScale[2] = glm::normalize(noScale[2]);
+				glm::mat4 uniformScale = glm::scale(glm::mat4(1.0f), glm::vec3(xScale, xScale, xScale));
+				glm::mat4 fixedtransform = canvasTransform * (noScale * uniformScale);
 				TextComponent const& text = parent.GetComponent<TextComponent>();
 
-				Renderer2D::DrawString(text.text, text.font, transform, (int)parent, (float)text.fontSize, text.colour, text.align == TextComponent::TextAlign::Left? false:true, text.outline, text.width);
+				Renderer2D::DrawString(text.text, text.font, fixedtransform, (int)parent, (float)text.fontSize, text.colour, text.align == TextComponent::TextAlign::Left? false:true, text.outline, text.width);
 			}
 
 			if (parent.HasComponent<ParticleSystemComponent>())
@@ -2474,6 +2481,25 @@ namespace Borealis
 
 				RenderCommand::SetLineThickness(3.f);
 				Renderer3D::DrawQuad(quadTransform, { 1.f, 1.f, 1.f, 1.f });
+			}
+			else if (particleSystem.emitterShape == EmitterShape::Box)
+			{
+				glm::mat4 boxTransform = glm::mat4(1.0f);
+
+				glm::vec3 translation = brEntity.GetComponent<TransformComponent>().GetGlobalTranslate();
+				glm::vec3 scale = brEntity.GetComponent<TransformComponent>().GetGlobalScale();
+
+				glm::quat globalRotation = glm::radians(brEntity.GetComponent<TransformComponent>().GetGlobalRotation());
+
+				glm::quat additionalRotation = glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+				glm::quat finalRotation = globalRotation * additionalRotation;
+
+				boxTransform = glm::translate(boxTransform, translation);
+				boxTransform = boxTransform * glm::mat4_cast(finalRotation);
+				boxTransform = glm::scale(boxTransform, scale);
+
+				RenderCommand::SetLineThickness(3.f);
+				Renderer3D::DrawCube(boxTransform, { 1.f, 1.f, 1.f, 1.f }, true); 
 			}
 			else if (showWireFrame && editor && particleSystem.emitterShape == EmitterShape::Cone)
 			{

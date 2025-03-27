@@ -239,6 +239,10 @@ namespace Borealis
 		 if (!durationExpired)
 		 {
 			 Accumulator += dt * rateOverTime;
+			 if (mParticlesCount > 100000000)
+			 {
+				 mParticlesCount = 0;
+			 }
 			 while (mParticlesCount < maxParticles && Accumulator >= 1.f)
 			 {
 				 Accumulator -= 1.f;
@@ -387,6 +391,37 @@ namespace Borealis
 
 			 glm::vec3 finalDirection = glm::normalize(quadNormal);
 
+			 particle.startVelocity = startSpeed * finalDirection;
+		 }
+		 else if (emitterShape == EmitterShape::Box)
+		 {
+			 glm::vec3 boxScale = transform.GetGlobalScale();
+			 float halfWidth = boxScale.x * 0.5f;
+			 float halfHeight = boxScale.y * 0.5f;
+			 float halfDepth = boxScale.z * 0.5f;
+
+			 float randX = static_cast<float>(rand()) / RAND_MAX;
+			 float randY = static_cast<float>(rand()) / RAND_MAX;
+			 float randZ = static_cast<float>(rand()) / RAND_MAX;
+
+			 glm::vec3 spawnOffset = glm::vec3(
+				 (randX - 0.5f) * boxScale.x,
+				 (randY - 0.5f) * boxScale.y,
+				 (randZ - 0.5f) * boxScale.z 
+			 );
+
+			 particle.position = emitterPos + (orientation * spawnOffset);
+
+			 float theta = static_cast<float>(rand()) / RAND_MAX * glm::two_pi<float>();
+			 float phi = glm::acos(1.0f - 2.0f * static_cast<float>(rand()) / RAND_MAX);
+
+			 glm::vec3 direction = glm::vec3(
+				 glm::sin(phi) * glm::cos(theta),
+				 glm::sin(phi) * glm::sin(theta),
+				 glm::cos(phi)
+			 );
+
+			 glm::vec3 finalDirection = glm::normalize(orientation * direction);
 			 particle.startVelocity = startSpeed * finalDirection;
 		 }
 

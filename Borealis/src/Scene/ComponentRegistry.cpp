@@ -257,7 +257,8 @@ namespace Borealis
         registration::enumeration<EmitterShape>("Emitter Shape")
             (
                 value("Cone", EmitterShape::Cone),
-                value("Quad", EmitterShape::Quad)
+                value("Quad", EmitterShape::Quad),
+                value("Box",  EmitterShape::Box)
                 );
 
         registration::class_<ParticleSystemComponent>("Particle System Component")
@@ -295,9 +296,9 @@ namespace Borealis
             .property("Radius Thickness", &ParticleSystemComponent::radiusThickness)
             (metadata("Dependency", "Shape"), metadata("Visible for", "Cone"))
             .property("Scale", &ParticleSystemComponent::scale)
-            (metadata("Dependency", "Shape"), metadata("Visible for", "Quad"))
+            (metadata("Dependency", "Shape"), metadata("Visible for", "Quad,Box"))
             .property("Rotation", &ParticleSystemComponent::rotation)
-            (metadata("Dependency", "Shape"), metadata("Visible for", "Quad"))
+            (metadata("Dependency", "Shape"), metadata("Visible for", "Quad,Box"))
             .property("Billboard", &ParticleSystemComponent::billboard)
             .property("Noise", &ParticleSystemComponent::useNoise)
             .property("Noise Strength", &ParticleSystemComponent::noiseStrength)

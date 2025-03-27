@@ -681,6 +681,7 @@ namespace Borealis
 					renderTarget->Bind();
 					Renderer3D::End();
 					renderTarget->Unbind();
+					RenderCommand::ResetTextureBinding();
 				}
 			}
 		}
@@ -700,6 +701,7 @@ namespace Borealis
 		Renderer3D::End();
 		renderTarget->Unbind();
 
+		RenderCommand::ResetTextureBinding();
 		//Transparency
 
 		uint32_t depthTexture = renderTarget->buffer->DetachDepthBuffer();
@@ -715,6 +717,7 @@ namespace Borealis
 		Renderer3D::RenderTransparentObjects(cubeMap);
 		accumulaionTarget->Unbind();
 
+		RenderCommand::ResetTextureBinding();
 		//Composite
 
 		RenderCommand::ConfigureDepthFunc(DepthFunc::DepthAlways);
@@ -736,6 +739,8 @@ namespace Borealis
 		RenderCommand::EnableDepthTest();
 
 		RenderCommand::GetError("Here");
+
+		RenderCommand::ResetTextureBinding();
 	}
 
 	void Render2D::Execute()
@@ -815,6 +820,7 @@ namespace Borealis
 
 		renderTarget->Unbind();
 
+		RenderCommand::ResetTextureBinding();
 		RenderCommand::GetError("Here");
 	}
 
@@ -1023,6 +1029,7 @@ namespace Borealis
 
 		Renderer2D::End();
 		renderTarget->Unbind();
+		RenderCommand::ResetTextureBinding();
 
 		RenderCommand::GetError("Here");
 	}
@@ -1342,6 +1349,7 @@ namespace Borealis
 				RenderCommand::EnableFrontFaceCull();
 				Renderer3D::End(true);
 				RenderCommand::EnableBackFaceCull();
+				RenderCommand::ResetTextureBinding();
 
 				shadowMap->Unbind();
 			}
@@ -1394,6 +1402,7 @@ namespace Borealis
 						RenderCommand::EnableFrontFaceCull();
 						Renderer3D::DrawHighlightedMesh(transform.GetGlobalTransform(), meshFilter, cascade_shadow_shader);
 						RenderCommand::EnableBackFaceCull();
+						RenderCommand::ResetTextureBinding();
 					}
 
 					CSMBuffer->Unbind();
@@ -1444,6 +1453,7 @@ namespace Borealis
 					RenderCommand::EnableFrontFaceCull();
 					Renderer3D::DrawHighlightedMesh(transform.GetGlobalTransform(), skinMeshFilter, cascade_shadow_shader);
 					RenderCommand::EnableBackFaceCull();
+					RenderCommand::ResetTextureBinding();
 				}
 				CSMBufferDynamic->Unbind();
 			}
@@ -1728,6 +1738,7 @@ namespace Borealis
 		RenderCommand::SetDepthMask(true);
 
 		RenderCommand::GetError("Here");
+		RenderCommand::ResetTextureBinding();
 	}
 
 	CorrectionPass::CorrectionPass(std::string name) : RenderPass(name)
@@ -1762,8 +1773,10 @@ namespace Borealis
 		shader->Set("u_Step", 5);
 		shader->Set("u_SceneTexture", 0);
 		Renderer3D::DrawQuad();
+		RenderCommand::ResetTextureBinding();
 		correctionBuffer->Unbind();
 		shader->Unbind();
+		RenderCommand::ResetTextureBinding();
 
 		//draw onto render target
 		renderTarget->Bind();
@@ -1773,9 +1786,11 @@ namespace Borealis
 		shader->Set("u_Step", 4);
 		shader->Set("u_SceneTexture", 0);
 		Renderer3D::DrawQuad();
+		RenderCommand::ResetTextureBinding();
 		RenderCommand::EnableDrawToSecondaryBuffer();
 		renderTarget->Unbind();
 		shader->Unbind();
+		RenderCommand::ResetTextureBinding();
 
 		RenderCommand::GetError("Here");
 	}
@@ -1842,6 +1857,7 @@ namespace Borealis
 		downSample_0->Unbind();
 		shader->Unbind();
 
+		RenderCommand::ResetTextureBinding();
 		downSample_1->Bind();
 		RenderCommand::Clear();
 		downSample_0->BindTexture(0, 0);
@@ -1853,6 +1869,7 @@ namespace Borealis
 		downSample_1->Unbind();
 		shader->Unbind();
 
+		RenderCommand::ResetTextureBinding();
 		downSample_2->Bind();
 		RenderCommand::Clear();
 		downSample_1->BindTexture(0, 0);
@@ -1864,6 +1881,7 @@ namespace Borealis
 		downSample_2->Unbind();
 		shader->Unbind();
 
+		RenderCommand::ResetTextureBinding();
 		//upsample and combine
 		upSample_0->Bind();
 		RenderCommand::Clear();
@@ -1876,6 +1894,7 @@ namespace Borealis
 		upSample_0->Unbind();
 		shader->Unbind();
 
+		RenderCommand::ResetTextureBinding();
 		upSample_1->Bind();
 		RenderCommand::Clear();
 		upSample_0->BindTexture(0, 0);
@@ -1888,6 +1907,7 @@ namespace Borealis
 		upSample_1->Unbind();
 		shader->Unbind();
 
+		RenderCommand::ResetTextureBinding();
 		//final bloom
 		upSample_2->Bind();
 		RenderCommand::Clear();
@@ -1901,6 +1921,7 @@ namespace Borealis
 		upSample_2->Unbind();
 		shader->Unbind();
 
+		RenderCommand::ResetTextureBinding();
 		////do after skybox is rendered
 		////composite onto render target
 		//compositeBuffer->Bind();
@@ -1973,6 +1994,7 @@ namespace Borealis
 		compositeBuffer->Unbind();
 		shader->Unbind();
 
+		RenderCommand::ResetTextureBinding();
 		//draw onto render target
 		renderTarget->Bind();
 		compositeBuffer->BindTexture(0, 0);
@@ -1982,6 +2004,7 @@ namespace Borealis
 		Renderer3D::DrawQuad();
 		renderTarget->Unbind();
 		shader->Unbind();
+		RenderCommand::ResetTextureBinding();
 	}
 
 	FogPass::FogPass(std::string name) : RenderPass(name)
@@ -2153,6 +2176,7 @@ namespace Borealis
 			}
 		}
 
+		RenderCommand::ResetTextureBinding();
 		RenderCommand::GetError("Here");
 	}
 
@@ -2274,6 +2298,7 @@ namespace Borealis
 				RenderCommand::DisableDepthTest();
 				Renderer2D::End();
 				uiFBO->Unbind();
+				RenderCommand::ResetTextureBinding();
 
 				//std::swap(UIFBO, renderTarget->buffer);
 
@@ -2289,6 +2314,7 @@ namespace Borealis
 
 				shader->Unbind();
 				RenderCommand::EnableDepthTest();
+				RenderCommand::ResetTextureBinding();
 				//RenderCommand::DisableBlend();
 			}
 		}
@@ -2361,6 +2387,7 @@ namespace Borealis
 		RenderCommand::ConfigureBlendForTransparency(TransparencyStage::REVEALAGE);
 		Renderer2D::End();
 		//RenderCommand::DisableBlend();
+		RenderCommand::ResetTextureBinding();
 
 		renderTarget->Unbind();
 
@@ -2529,6 +2556,7 @@ namespace Borealis
 		Renderer2D::EndParticles();
 		accumulaionTarget->Unbind();
 
+		RenderCommand::ResetTextureBinding();
 		//Composite
 
 		RenderCommand::ConfigureDepthFunc(DepthFunc::DepthAlways);
@@ -2543,6 +2571,7 @@ namespace Borealis
 		Renderer3D::DrawQuad();
 		renderTarget->Unbind();
 
+		RenderCommand::ResetTextureBinding();
 		RenderCommand::SetDepthMask(true);
 		RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLess);
 		RenderCommand::EnableDepthTest();
@@ -2727,10 +2756,9 @@ namespace Borealis
 
 						animatorComponent.animator.UpdateAnimation(dt);
 
-						if (skinnedMesh.SkinnnedModel->mAnimation)
+						if (skinnedMesh.SkinnnedModel->mAnimation && animationCount < MAX_ANIMATION_PER_UBO)
 						{
 							auto const& transforms = animatorComponent.animator.GetFinalBoneMatrices();
-
 							sData->AnimationUBO->SetData(transforms.data(), 128 * sizeof(glm::mat4), 128 * sizeof(glm::mat4) * animationCount);
 							animationCount++;
 							skinnedMesh.AnimationIndex = animationCount - 1;
@@ -2740,6 +2768,7 @@ namespace Borealis
 			}
 		}
 
+		RenderCommand::GetError("Here");
 		//UI animation
 		{
 			entt::basic_group group = registryPtr->group<>(entt::get<TransformComponent,UIAnimatorComponent>);
@@ -2797,6 +2826,8 @@ namespace Borealis
 		}
 
 		sData->SceneRenderUBO->SetData(&sceneRenderConfig.ubo, sizeof(SceneRenderConfigUBO));
+
+		RenderCommand::GetError("Here");
 	}
 
 	void RenderGraph::AddPass(Ref<RenderPass> pass)

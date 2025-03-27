@@ -244,6 +244,16 @@ namespace Borealis
 		//BOREALIS_CORE_WARN("Error with opengl no: {}", err);
 	}
 
+	void OpenGLRendererAPI::ResetTextureBinding()
+	{
+		for (int i = 0; i < 16; i++)
+		{
+			glActiveTexture(GL_TEXTURE0 + i);
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
+		glActiveTexture(GL_TEXTURE0);
+	}
+
 	void OpenGLRendererAPI::IgnoreNextError()
 	{
 		ignoreNextError = true;

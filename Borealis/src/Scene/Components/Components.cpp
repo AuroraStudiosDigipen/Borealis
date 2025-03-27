@@ -239,6 +239,10 @@ namespace Borealis
 		 if (!durationExpired)
 		 {
 			 Accumulator += dt * rateOverTime;
+			 if (mParticlesCount > 100000000)
+			 {
+				 mParticlesCount = 0;
+			 }
 			 while (mParticlesCount < maxParticles && Accumulator >= 1.f)
 			 {
 				 Accumulator -= 1.f;

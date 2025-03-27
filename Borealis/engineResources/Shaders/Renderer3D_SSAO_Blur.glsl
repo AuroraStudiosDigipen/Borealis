@@ -28,18 +28,32 @@ uniform sampler2D ssaoTexture;
 void SSAOBlurPass()
 {
     vec2 texelSize = 1.0 / vec2(textureSize(ssaoTexture, 0));
+    
+    // Define a 5x5 Gaussian kernel (weights sum to 1.0)
+    float kernel[25] = float[](
+        0.003, 0.013, 0.022, 0.013, 0.003,
+        0.013, 0.059, 0.097, 0.059, 0.013,
+        0.022, 0.097, 0.159, 0.097, 0.022,
+        0.013, 0.059, 0.097, 0.059, 0.013,
+        0.003, 0.013, 0.022, 0.013, 0.003
+    );
 
     float result = 0.0;
-    for (int x = -2; x < 2; ++x) 
+    int index = 0;
+    // Loop over a 5x5 region
+    int r = 5
+    for (int x = -r; x <= r; ++x)
     {
-        for (int y = -2; y < 2; ++y) 
+        for (int y = -r; y <= r; ++y)
         {
             vec2 offset = vec2(float(x), float(y)) * texelSize;
-            result += texture(ssaoTexture, v_TexCoord + offset).r;
+            float sample = texture(ssaoTexture, v_TexCoord + offset).r;
+            result += sample * kernel[index];
+            index++;
         }
     }
-    vec4 color = vec4(vec3(result / (4.0 * 4.0)), 1.f);
-    FragColor = color;
+    
+    FragColor = vec4(vec3(result), 1.0);
 }
 
 void main()

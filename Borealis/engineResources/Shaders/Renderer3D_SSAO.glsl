@@ -65,12 +65,21 @@ vec3 GetWorldPosition(vec2 texCoord, float depth)
     return worldPos.xyz;     // Return the world-space position
 }
 
+vec3 GetViewSpacePosition(vec2 uv, float depth)
+{
+    vec4 clipSpacePos = vec4(uv * 2.0 - 1.0, depth, 1.0);
+    mat4 u_invProjection = inverse(u_projection);
+    vec4 viewSpacePos = u_invProjection * clipSpacePos; // u_invProjection computed on CPU or using GLSL inverse()
+    viewSpacePos /= viewSpacePos.w;
+    return viewSpacePos.xyz;
+}
+
 void SSAOPass()
 {
     vec3 normal = texture(gNormalTexture, v_TexCoord).rgb;
 
 	float depth = texture(gDepthTexture, v_TexCoord).r;
-	vec3 fragPos = GetWorldPosition(v_TexCoord, depth);
+	vec3 fragPos = GetViewSpacePosition(v_TexCoord, depth);
 
     vec3 randomVec = normalize(texture(noiseTexture, v_TexCoord * noiseScale).xyz);
 
@@ -88,13 +97,13 @@ void SSAOPass()
         
         // project sample position (to sample texture) (to get position on screen/texture)
         vec4 offset = vec4(samplePos, 1.0);
-        offset = u_ViewProjection * offset; // from view to clip-space
+        offset = u_projection * offset; // from view to clip-space
         offset.xyz /= offset.w; // perspective divide
         offset.xyz = offset.xyz * 0.5 + 0.5; // transform to range 0.0 - 1.0
         
         // get sample depth
         float sampleDepthBuffer = texture(gDepthTexture, offset.xy).r;
-        float sampleDepth = GetWorldPosition(offset.xy, sampleDepthBuffer).z;
+        float sampleDepth = GetViewSpacePosition(offset.xy, sampleDepthBuffer).z;
         
         // range check & accumulate
         //float rangeCheck = smoothstep(0.0, 1.0, radius / abs(fragPos.z - sampleDepth));

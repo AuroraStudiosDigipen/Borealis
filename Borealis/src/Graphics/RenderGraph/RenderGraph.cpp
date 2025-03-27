@@ -2798,6 +2798,7 @@ namespace Borealis
 
 			UniformBufferObject::BindToShader(ssao_shader->GetID(), "Camera", CAMERA_BIND);
 			UniformBufferObject::BindToShader(ssao_shader->GetID(), "NoiseSample", SSAO_BIND);
+			UniformBufferObject::BindToShader(ssao_shader->GetID(), "SceneRenderUBO", SCENE_RENDER_BIND);
 		}
 
 		if (!ssao_blur_shader)

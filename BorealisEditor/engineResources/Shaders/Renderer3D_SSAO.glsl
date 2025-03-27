@@ -43,9 +43,17 @@ layout(std140) uniform NoiseSample
     vec4 samples[64]; //vec3 + padding
 };
 
+layout(std140) uniform SceneRenderUBO
+{
+    float u_Threshold;
+    float u_Knee;
+    float u_SampleScale;
+    float exposure;
+};
+
 int kernelSize = 64;
-float bias = 0.05;
-float radius = 1.0;
+float bias = u_Threshold;//0.05;
+float radius = u_Knee;//1.0;
 
 vec2 noiseScale = vec2(screenWidth/4.0, screenHeight/4.0); 
 
@@ -94,7 +102,7 @@ void SSAOPass()
         occlusion += (sampleDepth >= samplePos.z + bias ? 1.0 : 0.0) * rangeCheck;           
     }
     occlusion = 1.0 - (occlusion / kernelSize);
-    occlusion = pow(occlusion, 4.0);
+    occlusion = pow(occlusion, u_SampleScale);
     
     FragColor = occlusion;
     //FragColor = texture(gPosition, v_TexCoord);

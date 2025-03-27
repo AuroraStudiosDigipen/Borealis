@@ -60,15 +60,15 @@ namespace Borealis
 
 		ImGui::Checkbox("Enable Bloom", &config.bloom);
 		
-		if (ImGui::SliderFloat("Threshold", &config.ubo.threshold, 0.0f, 10.0f, "%.2f"))
+		if (ImGui::SliderFloat("Bias", &config.ubo.threshold, 0.0f, 10.0f, "%.2f"))
 		{
 			config.ubo.threshold = round(config.ubo.threshold * 100.0f) / 100.0f;
 		}
-		if (ImGui::SliderFloat("Knee", &config.ubo.knee, 0.0f, 10.0f, "%.2f"))
+		if (ImGui::SliderFloat("Radius", &config.ubo.knee, 0.0f, 10.0f, "%.2f"))
 		{
 			config.ubo.knee = round(config.ubo.knee * 100.0f) / 100.0f;
 		}
-		if (ImGui::SliderFloat("Bloom Scale", &config.ubo.bloomScale, 0.0f, 10.0f, "%.2f"))
+		if (ImGui::SliderFloat("Occulsion Strength", &config.ubo.bloomScale, 0.0f, 10.0f, "%.2f"))
 		{
 			config.ubo.bloomScale = round(config.ubo.bloomScale * 100.0f) / 100.0f;
 		}

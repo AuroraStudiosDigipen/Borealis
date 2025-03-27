@@ -11,7 +11,11 @@ namespace Borealis
         public byte[] guid;
         public AudioClip(byte[] id)
         {
-            guid = id;
+            guid = new byte[16];
+            for (int i = 0; i < 16; i++)
+            {
+                guid[i] = id[i];
+            }
         }
 
         public string GetAudioName()
@@ -20,7 +24,10 @@ namespace Borealis
         }
         public void SetAudioID(byte[] bytes)
         {
-            guid = bytes;
+            for (int i = 0; i < 16; i++)
+            {
+                guid[i] = bytes[i];
+            }
         }
 
         public byte[] GetAudioID()

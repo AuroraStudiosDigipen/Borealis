@@ -200,7 +200,7 @@ namespace Borealis
 				out << YAML::Key << name;
 				out << YAML::BeginMap;
 
-				for (auto [name, field] : script->GetScriptClass()->mFields)
+				for (auto [fieldName, field] : script->GetScriptClass()->mFields)
 				{
 					if ((field.isPrivate() && !field.hasSerializeField(script->GetMonoClass()) || field.hasHideInInspector(script->GetMonoClass())))
 					{
@@ -209,7 +209,7 @@ namespace Borealis
 
 					if (field.mFieldClassName() == "AudioClip")
 					{
-						MonoObject* Data = script->GetFieldValue<MonoObject*>(name);
+						MonoObject* Data = script->GetFieldValue<MonoObject*>(fieldName);
 						if (!Data) continue;
 						auto assetID = field.GetAudioID(Data);
 						out << YAML::Key << field.mName << YAML::BeginMap;
@@ -220,7 +220,7 @@ namespace Borealis
 
 					if (field.isAssetField() || field.isNativeComponent())
 					{
-						MonoObject* Data = script->GetFieldValue<MonoObject*>(name);
+						MonoObject* Data = script->GetFieldValue<MonoObject*>(fieldName);
 						if (!Data)
 						{
 							continue;
@@ -234,7 +234,7 @@ namespace Borealis
 
 					if (field.isGameObject())
 					{
-						MonoObject* Data = script->GetFieldValue<MonoObject*>(name);
+						MonoObject* Data = script->GetFieldValue<MonoObject*>(fieldName);
 						if (!Data)
 						{
 							continue;
@@ -248,7 +248,7 @@ namespace Borealis
 
 					if (field.isMonoBehaviour())
 					{
-						MonoObject* Data = script->GetFieldValue<MonoObject*>(name);
+						MonoObject* Data = script->GetFieldValue<MonoObject*>(fieldName);
 						if (!Data)
 						{
 							continue;
@@ -264,7 +264,7 @@ namespace Borealis
 					{
 						out << YAML::Key << field.mName << YAML::BeginMap;
 						out << YAML::Key << "Type" << YAML::Value << "Bool";
-						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<bool>(name);
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<bool>(fieldName);
 						out << YAML::EndMap;
 						continue;
 					}
@@ -272,7 +272,7 @@ namespace Borealis
 					{
 						out << YAML::Key << field.mName << YAML::BeginMap;
 						out << YAML::Key << "Type" << YAML::Value << "Float";
-						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<float>(name);
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<float>(fieldName);
 						out << YAML::EndMap;
 						continue;
 					}
@@ -280,7 +280,7 @@ namespace Borealis
 					{
 						out << YAML::Key << field.mName << YAML::BeginMap;
 						out << YAML::Key << "Type" << YAML::Value << "Int";
-						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<int>(name);
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<int>(fieldName);
 						out << YAML::EndMap;
 						continue;
 					}
@@ -288,7 +288,7 @@ namespace Borealis
 					{
 						out << YAML::Key << field.mName << YAML::BeginMap;
 						out << YAML::Key << "Type" << YAML::Value << "String";
-						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<std::string>(name);
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<std::string>(fieldName);
 						out << YAML::EndMap;
 						continue;
 					}
@@ -296,7 +296,7 @@ namespace Borealis
 					{
 						out << YAML::Key << field.mName << YAML::BeginMap;
 						out << YAML::Key << "Type" << YAML::Value << "Vector2";
-						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<glm::vec2>(name);
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<glm::vec2>(fieldName);
 						out << YAML::EndMap;
 						continue;
 					}
@@ -304,7 +304,7 @@ namespace Borealis
 					{
 						out << YAML::Key << field.mName << YAML::BeginMap;
 						out << YAML::Key << "Type" << YAML::Value << "Vector3";
-						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<glm::vec3>(name);
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<glm::vec3>(fieldName);
 						out << YAML::EndMap;
 						continue;
 					}
@@ -313,7 +313,7 @@ namespace Borealis
 					{
 						out << YAML::Key << field.mName << YAML::BeginMap;
 						out << YAML::Key << "Type" << YAML::Value << "Vector4";
-						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<glm::vec4>(name);
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<glm::vec4>(fieldName);
 						out << YAML::EndMap;
 						continue;
 					}
@@ -321,7 +321,7 @@ namespace Borealis
 					{
 						out << YAML::Key << field.mName << YAML::BeginMap;
 						out << YAML::Key << "Type" << YAML::Value << "UChar";
-						out << YAML::Key << "Data" << YAML::Value << static_cast<unsigned>(script->GetFieldValue<unsigned char>(name));
+						out << YAML::Key << "Data" << YAML::Value << static_cast<unsigned>(script->GetFieldValue<unsigned char>(fieldName));
 						out << YAML::EndMap;
 						continue;
 					}
@@ -329,7 +329,7 @@ namespace Borealis
 					{
 						out << YAML::Key << field.mName << YAML::BeginMap;
 						out << YAML::Key << "Type" << YAML::Value << "Char";
-						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<char>(name);
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<char>(fieldName);
 						out << YAML::EndMap;
 						continue;
 					}
@@ -337,7 +337,7 @@ namespace Borealis
 					{
 						out << YAML::Key << field.mName << YAML::BeginMap;
 						out << YAML::Key << "Type" << YAML::Value << "UShort";
-						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<unsigned short>(name);
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<unsigned short>(fieldName);
 						out << YAML::EndMap;
 						continue;
 					}
@@ -345,7 +345,7 @@ namespace Borealis
 					{
 						out << YAML::Key << field.mName << YAML::BeginMap;
 						out << YAML::Key << "Type" << YAML::Value << "Short";
-						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<short>(name);
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<short>(fieldName);
 						out << YAML::EndMap;
 						continue;
 					}
@@ -353,7 +353,7 @@ namespace Borealis
 					{
 						out << YAML::Key << field.mName << YAML::BeginMap;
 						out << YAML::Key << "Type" << YAML::Value << "UInt";
-						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<unsigned>(name);
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<unsigned>(fieldName);
 						out << YAML::EndMap;
 						continue;
 					}
@@ -361,7 +361,7 @@ namespace Borealis
 					{
 						out << YAML::Key << field.mName << YAML::BeginMap;
 						out << YAML::Key << "Type" << YAML::Value << "Long";
-						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<long long>(name);
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<long long>(fieldName);
 						out << YAML::EndMap;
 						continue;
 					}
@@ -369,7 +369,7 @@ namespace Borealis
 					{
 						out << YAML::Key << field.mName << YAML::BeginMap;
 						out << YAML::Key << "Type" << YAML::Value << "ULong";
-						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<unsigned long long>(name);
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<unsigned long long>(fieldName);
 						out << YAML::EndMap;
 						continue;
 					}
@@ -377,7 +377,7 @@ namespace Borealis
 					{
 						out << YAML::Key << field.mName << YAML::BeginMap;
 						out << YAML::Key << "Type" << YAML::Value << "Double";
-						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<double>(name);
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<double>(fieldName);
 						out << YAML::EndMap;
 						continue;
 					}
@@ -417,7 +417,7 @@ namespace Borealis
 				out << YAML::Key << name;
 				out << YAML::BeginMap;
 
-				for (auto [name, field] : script->GetScriptClass()->mFields)
+				for (auto [fieldName, field] : script->GetScriptClass()->mFields)
 				{
 					if ((field.isPrivate() && !field.hasSerializeField(script->GetMonoClass()) || field.hasHideInInspector(script->GetMonoClass())))
 					{
@@ -426,7 +426,7 @@ namespace Borealis
 
 					if (field.mFieldClassName() == "AudioClip")
 					{
-						MonoObject* Data = script->GetFieldValue<MonoObject*>(name);
+						MonoObject* Data = script->GetFieldValue<MonoObject*>(fieldName);
 						if (!Data) continue;
 						auto assetID = field.GetAudioID(Data);
 						out << YAML::Key << field.mName << YAML::BeginMap;
@@ -437,7 +437,7 @@ namespace Borealis
 
 					if (field.isAssetField() || field.isNativeComponent())
 					{
-						MonoObject* Data = script->GetFieldValue<MonoObject*>(name);
+						MonoObject* Data = script->GetFieldValue<MonoObject*>(fieldName);
 						if (!Data)
 						{
 							continue;
@@ -451,7 +451,7 @@ namespace Borealis
 
 					if (field.isGameObject())
 					{
-						MonoObject* Data = script->GetFieldValue<MonoObject*>(name);
+						MonoObject* Data = script->GetFieldValue<MonoObject*>(fieldName);
 						if (!Data)
 						{
 							continue;
@@ -465,7 +465,7 @@ namespace Borealis
 
 					if (field.isMonoBehaviour())
 					{
-						MonoObject* Data = script->GetFieldValue<MonoObject*>(name);
+						MonoObject* Data = script->GetFieldValue<MonoObject*>(fieldName);
 						if (!Data)
 						{
 							continue;
@@ -481,7 +481,7 @@ namespace Borealis
 					{
 						out << YAML::Key << field.mName << YAML::BeginMap;
 						out << YAML::Key << "Type" << YAML::Value << "Bool";
-						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<bool>(name);
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<bool>(fieldName);
 						out << YAML::EndMap;
 						continue;
 					}
@@ -489,7 +489,7 @@ namespace Borealis
 					{
 						out << YAML::Key << field.mName << YAML::BeginMap;
 						out << YAML::Key << "Type" << YAML::Value << "Float";
-						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<float>(name);
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<float>(fieldName);
 						out << YAML::EndMap;
 						continue;
 					}
@@ -497,7 +497,7 @@ namespace Borealis
 					{
 						out << YAML::Key << field.mName << YAML::BeginMap;
 						out << YAML::Key << "Type" << YAML::Value << "Int";
-						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<int>(name);
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<int>(fieldName);
 						out << YAML::EndMap;
 						continue;
 					}
@@ -505,7 +505,7 @@ namespace Borealis
 					{
 						out << YAML::Key << field.mName << YAML::BeginMap;
 						out << YAML::Key << "Type" << YAML::Value << "String";
-						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<std::string>(name);
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<std::string>(fieldName);
 						out << YAML::EndMap;
 						continue;
 					}
@@ -513,7 +513,7 @@ namespace Borealis
 					{
 						out << YAML::Key << field.mName << YAML::BeginMap;
 						out << YAML::Key << "Type" << YAML::Value << "Vector2";
-						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<glm::vec2>(name);
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<glm::vec2>(fieldName);
 						out << YAML::EndMap;
 						continue;
 					}
@@ -521,7 +521,7 @@ namespace Borealis
 					{
 						out << YAML::Key << field.mName << YAML::BeginMap;
 						out << YAML::Key << "Type" << YAML::Value << "Vector3";
-						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<glm::vec3>(name);
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<glm::vec3>(fieldName);
 						out << YAML::EndMap;
 						continue;
 					}
@@ -530,7 +530,7 @@ namespace Borealis
 					{
 						out << YAML::Key << field.mName << YAML::BeginMap;
 						out << YAML::Key << "Type" << YAML::Value << "Vector4";
-						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<glm::vec4>(name);
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<glm::vec4>(fieldName);
 						out << YAML::EndMap;
 						continue;
 					}
@@ -538,7 +538,7 @@ namespace Borealis
 					{
 						out << YAML::Key << field.mName << YAML::BeginMap;
 						out << YAML::Key << "Type" << YAML::Value << "UChar";
-						out << YAML::Key << "Data" << YAML::Value << static_cast<unsigned>(script->GetFieldValue<unsigned char>(name));
+						out << YAML::Key << "Data" << YAML::Value << static_cast<unsigned>(script->GetFieldValue<unsigned char>(fieldName));
 						out << YAML::EndMap;
 						continue;
 					}
@@ -546,7 +546,7 @@ namespace Borealis
 					{
 						out << YAML::Key << field.mName << YAML::BeginMap;
 						out << YAML::Key << "Type" << YAML::Value << "Char";
-						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<char>(name);
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<char>(fieldName);
 						out << YAML::EndMap;
 						continue;
 					}
@@ -554,7 +554,7 @@ namespace Borealis
 					{
 						out << YAML::Key << field.mName << YAML::BeginMap;
 						out << YAML::Key << "Type" << YAML::Value << "UShort";
-						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<unsigned short>(name);
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<unsigned short>(fieldName);
 						out << YAML::EndMap;
 						continue;
 					}
@@ -562,7 +562,7 @@ namespace Borealis
 					{
 						out << YAML::Key << field.mName << YAML::BeginMap;
 						out << YAML::Key << "Type" << YAML::Value << "Short";
-						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<short>(name);
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<short>(fieldName);
 						out << YAML::EndMap;
 						continue;
 					}
@@ -570,7 +570,7 @@ namespace Borealis
 					{
 						out << YAML::Key << field.mName << YAML::BeginMap;
 						out << YAML::Key << "Type" << YAML::Value << "UInt";
-						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<unsigned>(name);
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<unsigned>(fieldName);
 						out << YAML::EndMap;
 						continue;
 					}
@@ -578,7 +578,7 @@ namespace Borealis
 					{
 						out << YAML::Key << field.mName << YAML::BeginMap;
 						out << YAML::Key << "Type" << YAML::Value << "Long";
-						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<long long>(name);
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<long long>(fieldName);
 						out << YAML::EndMap;
 						continue;
 					}
@@ -586,7 +586,7 @@ namespace Borealis
 					{
 						out << YAML::Key << field.mName << YAML::BeginMap;
 						out << YAML::Key << "Type" << YAML::Value << "ULong";
-						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<unsigned long long>(name);
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<unsigned long long>(fieldName);
 						out << YAML::EndMap;
 						continue;
 					}
@@ -594,7 +594,7 @@ namespace Borealis
 					{
 						out << YAML::Key << field.mName << YAML::BeginMap;
 						out << YAML::Key << "Type" << YAML::Value << "Double";
-						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<double>(name);
+						out << YAML::Key << "Data" << YAML::Value << script->GetFieldValue<double>(fieldName);
 						out << YAML::EndMap;
 						continue;
 					}

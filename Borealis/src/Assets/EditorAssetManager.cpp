@@ -229,7 +229,11 @@ namespace Borealis
 
 		if (mAssetReloaders.contains(assetMetaData.Type))
 		{
-			if (mLoadedAssets.contains(assetHandle))
+			if (assetMetaData.Type == AssetType::Script)
+			{
+				ScriptingSystem::Reload(assetMetaData);
+			}
+			else if (mLoadedAssets.contains(assetHandle))
 			{
 				mAssetReloaders[assetMetaData.Type](assetMetaData, mLoadedAssets[assetHandle]);
 				return mLoadedAssets[assetHandle];

@@ -196,33 +196,63 @@ namespace Borealis
 		 mDeadParticles.resize(maxParticles);
 	 }
 
-	 void ParticleSystemComponent::Update(TransformComponent& transfrom, float dt)
+	 void ParticleSystemComponent::Start()
 	 {
+		 if (isActive)
+			 return;
+
+		 Timer = 0.f;
+		 Accumulator = 0.f;
+		 mDeadParticlesCount = 0;
+		 mDeadParticles.clear();
+
+		 isActive = true;
+	 }
+
+	 void ParticleSystemComponent::Stop()
+	 {
+		 if (!isActive)
+			 return;
+
+		 isActive = false;
+
+		 for (auto& particle : mParticles)
+		 {
+			 particle.isActive = false;
+		 }
+		 mParticles.resize(maxParticles);
+		 mDeadParticles.resize(maxParticles);
+		 mParticlesCount = 0;
+		 mDeadParticlesCount = 0;
+	 }
+
+	 void ParticleSystemComponent::Update(TransformComponent& transform, float dt)
+	 {
+		 if (!isActive)
+			 return;
+
 		 glm::vec3 gravity = glm::vec3(0.0f, -9.81f, 0.0f);
 		 Timer += dt;
 
-		 if (Timer >= duration)
-		 {
-			 if (looping)
-				 Timer = 0.f;
-			 else
-				 return;
-		 }
+		 bool durationExpired = !looping && Timer >= duration;
 
-		 Accumulator += dt * rateOverTime;
-		 while (mParticlesCount < maxParticles && Accumulator >= 1.f)
+		 if (!durationExpired)
 		 {
-			 Accumulator -= 1.f;
-			 if (mDeadParticlesCount > 0)
+			 Accumulator += dt * rateOverTime;
+			 while (mParticlesCount < maxParticles && Accumulator >= 1.f)
 			 {
-				 SpawnParticle(transfrom, *mDeadParticles[mDeadParticlesCount - 1]);
-				 mDeadParticlesCount--;
-				 mParticlesCount++;
-			 }
-			 else
-			 {
-				 SpawnParticle(transfrom, mParticles[mParticlesCount]);
-				 mParticlesCount++;
+				 Accumulator -= 1.f;
+				 if (mDeadParticlesCount > 0)
+				 {
+					 SpawnParticle(transform, *mDeadParticles[mDeadParticlesCount - 1]);
+					 mDeadParticlesCount--;
+					 mParticlesCount++;
+				 }
+				 else
+				 {
+					 SpawnParticle(transform, mParticles[mParticlesCount]);
+					 mParticlesCount++;
+				 }
 			 }
 		 }
 
@@ -239,7 +269,6 @@ namespace Borealis
 				 mParticlesCount--;
 				 continue;
 			 }
-
 			 glm::vec3 effectiveGravity = gravity * gravityModifer;
 			 particle.startVelocity += effectiveGravity * dt;
 
@@ -266,6 +295,11 @@ namespace Borealis
 				 float t = particle.life / startLifeTime; // Normalized lifetime (0 to 1)
 				 particle.currentColor = particle.startColor + t * (endColor - particle.startColor);
 			 }
+		 }
+
+		 if (durationExpired && mParticlesCount == 0)
+		 {
+			 isActive = false;
 		 }
 	 }
 

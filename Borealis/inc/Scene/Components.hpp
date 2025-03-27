@@ -587,7 +587,11 @@ namespace Borealis
 		uint32_t mDeadParticlesCount = 0;
 		std::vector<Particle*> mDeadParticles;
 
+		bool isActive = true;
+
 		void Init();
+		void Start();
+		void Stop();
 		void Update(TransformComponent& transfrom, float dt);
 		std::vector<Particle> const& GetParticles();
 		uint32_t GetParticlesCount();

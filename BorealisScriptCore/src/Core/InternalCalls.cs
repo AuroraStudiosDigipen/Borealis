@@ -574,6 +574,10 @@ namespace Borealis
         internal extern static void ParticleSystem_GetShape(ulong v, out int shape);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void ParticleSystem_SetShape(ulong v, ref EmitterShape value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_Start(ulong v);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ParticleSystem_Stop(ulong v);
 
         #endregion
     }

@@ -678,6 +678,7 @@ namespace Borealis
 
 				if (skinnedMesh.AnimationIndex > 6)
 				{
+					RenderCommand::ResetTextureBinding();
 					renderTarget->Bind();
 					Renderer3D::End();
 					renderTarget->Unbind();
@@ -698,6 +699,7 @@ namespace Borealis
 		RenderCommand::SetClearColor(glm::vec4(0.1f,0.1f,0.1f,1.f));
 		renderTarget->Bind();
 		//RenderCommand::Clear();
+		RenderCommand::ResetTextureBinding();
 		Renderer3D::End();
 		renderTarget->Unbind();
 

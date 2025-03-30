@@ -106,6 +106,7 @@ namespace Borealis
 
 			int textureUnit = 3;
 
+			RenderCommand::ResetTextureBinding();
 			if (textureMap.contains(Material::Albedo))
 			{
 				drawCall.shaderID->Set("albedoMap", textureUnit);

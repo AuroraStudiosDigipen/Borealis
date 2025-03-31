@@ -106,7 +106,6 @@ namespace Borealis
 
 			int textureUnit = 3;
 
-			RenderCommand::ResetTextureBinding();
 			if (textureMap.contains(Material::Albedo))
 			{
 				drawCall.shaderID->Set("albedoMap", textureUnit);
@@ -146,6 +145,8 @@ namespace Borealis
 
 				std::get<Ref<SkinnedModel>>(drawCall.model)->Draw(drawCall.transform, drawCall.shaderID, drawCall.entityID);
 			}
+
+			RenderCommand::ResetTextureBinding();
 		}
 
 		drawQueue.clear();
@@ -211,6 +212,7 @@ namespace Borealis
 
 				std::get<Ref<SkinnedModel>>(drawCall.model)->Draw(drawCall.transform, drawCall.shaderID, drawCall.entityID);
 			}
+			RenderCommand::ResetTextureBinding();
 		}
 
 		drawQueueTransparent.clear();

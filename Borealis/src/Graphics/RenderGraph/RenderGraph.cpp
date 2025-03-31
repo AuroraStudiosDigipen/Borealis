@@ -678,11 +678,9 @@ namespace Borealis
 
 				if (skinnedMesh.AnimationIndex > 6)
 				{
-					RenderCommand::ResetTextureBinding();
 					renderTarget->Bind();
 					Renderer3D::End();
 					renderTarget->Unbind();
-					RenderCommand::ResetTextureBinding();
 				}
 			}
 		}
@@ -699,11 +697,9 @@ namespace Borealis
 		RenderCommand::SetClearColor(glm::vec4(0.1f,0.1f,0.1f,1.f));
 		renderTarget->Bind();
 		//RenderCommand::Clear();
-		RenderCommand::ResetTextureBinding();
 		Renderer3D::End();
 		renderTarget->Unbind();
 
-		RenderCommand::ResetTextureBinding();
 		//Transparency
 
 		uint32_t depthTexture = renderTarget->buffer->DetachDepthBuffer();
@@ -718,8 +714,6 @@ namespace Borealis
 		accumulaionTarget->buffer->ClearAttachment(2, glm::vec4(1.f));
 		Renderer3D::RenderTransparentObjects(cubeMap);
 		accumulaionTarget->Unbind();
-
-		RenderCommand::ResetTextureBinding();
 		//Composite
 
 		RenderCommand::ConfigureDepthFunc(DepthFunc::DepthAlways);
@@ -1773,6 +1767,60 @@ namespace Borealis
 		renderTarget->buffer->BindTexture(0, 0);
 		shader->Bind();
 		shader->Set("u_Step", 5);
+		shader->Set("u_SceneTexture", 0);
+		Renderer3D::DrawQuad();
+		RenderCommand::ResetTextureBinding();
+		correctionBuffer->Unbind();
+		shader->Unbind();
+		RenderCommand::ResetTextureBinding();
+
+		//draw onto render target
+		renderTarget->Bind();
+		RenderCommand::DisableDrawToSecondaryBuffer();
+		correctionBuffer->BindTexture(0, 0);
+		shader->Bind();
+		shader->Set("u_Step", 4);
+		shader->Set("u_SceneTexture", 0);
+		Renderer3D::DrawQuad();
+		RenderCommand::ResetTextureBinding();
+		RenderCommand::EnableDrawToSecondaryBuffer();
+		renderTarget->Unbind();
+		shader->Unbind();
+		RenderCommand::ResetTextureBinding();
+
+		RenderCommand::GetError("Here");
+	}
+
+	GammaPass::GammaPass(std::string name) : RenderPass(name)
+	{
+		shader = bloom_shader;
+	}
+	
+	void GammaPass::Execute()
+	{
+		Ref<RenderTargetSource> renderTarget = nullptr;
+
+		for (auto sink : sinkList)
+		{
+			if (sink->source->sourceType == RenderSourceType::RenderTargetColor)
+			{
+				if (sink->sinkName == "renderTarget")
+				{
+					renderTarget = std::dynamic_pointer_cast<RenderTargetSource>(sink->source);
+				}
+			}
+		}
+
+		if (correctionBuffer->GetProperties().Width != renderTarget->Width || correctionBuffer->GetProperties().Height != renderTarget->Height)
+		{
+			correctionBuffer->Resize(renderTarget->Width, renderTarget->Height);
+		}
+
+		correctionBuffer->Bind();
+		RenderCommand::Clear();
+		renderTarget->buffer->BindTexture(0, 0);
+		shader->Bind();
+		shader->Set("u_Step", 6);
 		shader->Set("u_SceneTexture", 0);
 		Renderer3D::DrawQuad();
 		RenderCommand::ResetTextureBinding();
@@ -2895,6 +2943,7 @@ namespace Borealis
 			case RenderPassType::SkyboxPass:
 			case RenderPassType::RenderToTarget:
 			case RenderPassType::CorrectionPass:
+			case RenderPassType::GammaPass:
 			case RenderPassType::BloomPass:
 			case RenderPassType::BloomCompositePass:
 			case RenderPassType::FogPass:
@@ -2946,6 +2995,9 @@ namespace Borealis
 			break;
 		case RenderPassType::CorrectionPass:
 			renderPass = MakeRef<CorrectionPass>(renderPassConfig.mPassName);
+			break;
+		case RenderPassType::GammaPass:
+			renderPass = MakeRef<GammaPass>(renderPassConfig.mPassName);
 			break;
 		case RenderPassType::BloomPass:
 			renderPass = MakeRef<BloomPass>(renderPassConfig.mPassName);

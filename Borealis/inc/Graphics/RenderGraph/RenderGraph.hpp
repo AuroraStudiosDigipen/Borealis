@@ -199,6 +199,7 @@ namespace Borealis
 		RenderToTarget,
 		UIWorldPass,
 		CorrectionPass,
+		GammaPass,
 		BloomPass,
 		BloomCompositePass,
 		FogPass
@@ -250,6 +251,14 @@ namespace Borealis
 	{
 	public:
 		CorrectionPass(std::string name);
+
+		void Execute() override;
+	};
+
+	class GammaPass : public RenderPass
+	{
+	public:
+		GammaPass(std::string name);
 
 		void Execute() override;
 	};
@@ -439,6 +448,8 @@ namespace Borealis
 			float bloomScale = 1.f;
 
 			float exposure = 1.f;
+
+			float gamma = 2.2f;
 		};
 
 		struct SceneRenderConfig

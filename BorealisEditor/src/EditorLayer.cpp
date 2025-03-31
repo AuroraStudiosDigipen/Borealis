@@ -402,6 +402,10 @@ namespace Borealis {
 					fconfig.AddPass(editorBloomCompositePass);
 				}
 
+				RenderPassConfig editorGammaPass(RenderPassType::GammaPass, "editorGammaPass");
+				editorGammaPass.AddSinkLinkage("renderTarget", "EditorBuffer");
+				fconfig.AddPass(editorGammaPass);
+
 			}
 
 			//deferred rendering

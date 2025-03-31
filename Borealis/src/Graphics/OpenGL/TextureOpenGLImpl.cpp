@@ -343,6 +343,18 @@ namespace Borealis
 		mInternalFormat = Format.Internal;
 		mDataFormat = Format.External;
 
+		mInternalFormat = Format.Internal;
+
+		switch (Format.Internal)
+		{
+		case GL_RGB:  mInternalFormat = GL_SRGB8; break;
+		case GL_RGBA: mInternalFormat = GL_SRGB8_ALPHA8; break;
+		case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
+			mInternalFormat = GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT;
+			break;
+		default: break;
+		}
+
 		switch (Format.Internal)
 		{
 		case GL_RED: mChannels = 1; break;
@@ -377,7 +389,7 @@ namespace Borealis
 				glCompressedTexImage2D(
 					GL_TEXTURE_CUBE_MAP_POSITIVE_X + (GLenum)Face,
 					static_cast<GLint>(Level),
-					Format.Internal,
+					mInternalFormat,
 					Extent.x, Extent.y,
 					0,
 					static_cast<GLsizei>(Texture.size(Level)),

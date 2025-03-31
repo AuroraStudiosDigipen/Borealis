@@ -285,7 +285,7 @@ namespace Borealis
 		glm::vec4 specularColor;
 		glm::vec4 emissionColor;
 
-		glm::vec2 tiling;
+		glm::vec2 tiling = glm::vec2(1.f);
 		glm::vec2 offset;
 
 		float smoothness = 0;

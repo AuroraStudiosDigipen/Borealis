@@ -33,6 +33,7 @@ layout(std140) uniform SceneRenderUBO
     float u_Knee;
     float u_SampleScale;
     float exposure;
+    float gamma;
 };
 
 uniform vec2 u_TexelSize;
@@ -117,12 +118,17 @@ void main()
     {
         FragColor = vec4(texture(u_SceneTexture, v_TexCoord).rgb, 1.0);
     }
-    else
+    else if(u_Step == 5)
     {
         vec3 finalColor = texture(u_SceneTexture, v_TexCoord).rgb;
         finalColor = vec3(1.f) - exp(-finalColor * exposure);
         //finalColor = finalColor / (finalColor + vec3(1.0));
-        finalColor = pow(finalColor, vec3(1.0/2.2)); 
+        FragColor = vec4(finalColor, 1.0);
+    }
+    else 
+    {
+        vec3 finalColor = texture(u_SceneTexture, v_TexCoord).rgb;
+        finalColor = pow(finalColor, vec3(1.0/gamma)); 
         FragColor = vec4(finalColor, 1.0);
     }
 }

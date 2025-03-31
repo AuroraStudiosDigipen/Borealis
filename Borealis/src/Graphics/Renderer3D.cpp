@@ -145,6 +145,8 @@ namespace Borealis
 
 				std::get<Ref<SkinnedModel>>(drawCall.model)->Draw(drawCall.transform, drawCall.shaderID, drawCall.entityID);
 			}
+
+			RenderCommand::ResetTextureBinding();
 		}
 
 		drawQueue.clear();
@@ -210,6 +212,7 @@ namespace Borealis
 
 				std::get<Ref<SkinnedModel>>(drawCall.model)->Draw(drawCall.transform, drawCall.shaderID, drawCall.entityID);
 			}
+			RenderCommand::ResetTextureBinding();
 		}
 
 		drawQueueTransparent.clear();

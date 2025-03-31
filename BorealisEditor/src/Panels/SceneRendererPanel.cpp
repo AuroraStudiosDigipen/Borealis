@@ -56,6 +56,11 @@ namespace Borealis
 			config.ubo.exposure = round(config.ubo.exposure * 100.0f) / 100.0f;
 		}
 
+		if (ImGui::SliderFloat("Gamma", &config.ubo.gamma, 0.0f, 10.0f, "%.2f"))
+		{
+			config.ubo.gamma = round(config.ubo.gamma * 100.0f) / 100.0f;
+		}
+
 		ImGui::Text("Bloom Options");
 
 		ImGui::Checkbox("Enable Bloom", &config.bloom);

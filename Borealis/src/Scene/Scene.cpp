@@ -936,6 +936,10 @@ namespace Borealis
 			UIPass.AddSinkLinkage("camera", "RunTimeCamera");
 			mRenderConfig.AddPass(UIPass);
 
+			RenderPassConfig gammaPass(RenderPassType::GammaPass, "gammaPass");
+			gammaPass.AddSinkLinkage("renderTarget", "RunTimeBuffer");
+			mRenderConfig.AddPass(gammaPass);
+
 		}
 	}
 

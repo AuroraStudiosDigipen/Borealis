@@ -74,7 +74,6 @@ void main()
 {
     float tilingFactor = (v_BillBoarding == 1) ?  1.f : v_TilingFactor;
     vec4 finalColor = texture(u_Texture[v_TexIndex], v_TexCoord * tilingFactor) * v_Color;
-    finalColor = pow(finalColor, vec4(1.0/2.2)); 
 	
 	entityIDs = v_EntityID;
 

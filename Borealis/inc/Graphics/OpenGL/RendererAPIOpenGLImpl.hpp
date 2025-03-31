@@ -140,6 +140,8 @@ namespace Borealis
 
 		void EnableDrawToSecondaryBuffer() override;
 
+		void ResetTextureBinding() override;
+
 		void IgnoreNextError() override;
 
 		unsigned GetError(std::string const& errorMsg) override;

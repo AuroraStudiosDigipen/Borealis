@@ -22,6 +22,8 @@ namespace Borealis
 #define LIGHTING_BIND 2
 #define ANIMATION_BIND 3
 #define SCENE_RENDER_BIND 4
+
+#define MAX_ANIMATION_PER_UBO 6
 }
 
 #endif

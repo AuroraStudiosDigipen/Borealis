@@ -159,7 +159,10 @@ namespace Borealis
 		virtual void DisableDrawToSecondaryBuffer() = 0;
 		virtual void EnableDrawToSecondaryBuffer() = 0;
 
+		virtual void ResetTextureBinding() = 0;
+
 		virtual void IgnoreNextError() = 0;
+	
 		virtual unsigned GetError(std::string const& errorMsg) = 0;
 
 		/*!***********************************************************************

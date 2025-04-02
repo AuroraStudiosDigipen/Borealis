@@ -28,6 +28,14 @@
             }
         }
 
+        public static Vector3 mouseViewportPosition
+        {
+            get
+            {
+                return InternalCalls.Input_GetMouseViewportPosition();
+            }
+        }
+
         public static Vector2 mouseScrollDelta
         {
             get

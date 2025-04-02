@@ -28,6 +28,7 @@ namespace Borealis
 	float InputSystem::mouseDeltaX = 0;
 	std::pair<float, float> InputSystem::mouseCurrPos = { 0,0 };
 	std::pair < float, float> InputSystem::mousePrevPos = { 0,0 };
+	std::pair < float, float> InputSystem::mouseViewportPos = { 0,0 };
 
 	static std::vector<uint16_t> KeysToPoll
 	{

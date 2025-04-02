@@ -1055,6 +1055,7 @@ namespace Borealis {
 						float normalizedY = localY / (mRuntimeSize.y);
 
 						ButtonSystem::SetMousePos({ normalizedX, normalizedY });
+						InputSystem::SetMouseViewport(std::make_pair(normalizedX, normalizedY));
 						ImGui::SetTooltip("Mouse Centered: (%.2f, %.2f)", normalizedX, normalizedY);
 					}
 				}

@@ -87,6 +87,10 @@ namespace Borealis
 
 		static float GetMouseDeltaYRaw();
 
+		static void SetMouseViewport(std::pair<float, float> mousePos) { mouseViewportPos = mousePos; }
+
+		static std::pair<float, float> GetMouseViewport() { return mouseViewportPos; }
+
 	private:
 
 		static double ScrollY;
@@ -98,6 +102,8 @@ namespace Borealis
 
 		static std::pair<float, float> mouseCurrPos;
 		static std::pair<float, float> mousePrevPos;
+
+		static std::pair<float, float> mouseViewportPos;
 	};
 
 } // End of namespace Borealis

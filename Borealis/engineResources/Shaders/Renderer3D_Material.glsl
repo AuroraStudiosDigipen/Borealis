@@ -456,7 +456,13 @@ float GetCascadeShadowFactor(vec3 lightDir, vec3 normal)
     float depth2 = texture(u_CascadeShadowMapDynamic, vec3(UVCoord, layer)).x;
 
     float diffuseFactor = dot(normal, -lightDir);
-    float bias = max(0.0005, 0.005 * (1.0 - diffuseFactor));
+    // Compute derivatives to estimate the slope
+    float dx = dFdx(LightPos.z);
+    float dy = dFdy(LightPos.z);
+    float slope = sqrt(dx * dx + dy * dy);
+
+    // Calculate bias with clamping
+    float bias = clamp(slope * 0.005, 0.0006, 0.01);
 
     if ((depth + bias < z) || (depth2 + bias < z))
     {

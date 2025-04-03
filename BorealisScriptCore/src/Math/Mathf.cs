@@ -396,12 +396,6 @@ namespace Borealis
             return value + 1;
         }
 
-        public static float PerlinNoise(float x, float y)
-        {
-            // Implementing a simple 2D Perlin noise algorithm or using a library
-            return 0f; // Placeholder
-        }
-
         public static float PerlinNoise1D(float x)
         {
             // Implementing a simple 1D Perlin noise algorithm or using a library

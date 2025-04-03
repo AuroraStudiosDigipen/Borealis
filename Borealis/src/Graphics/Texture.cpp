@@ -75,6 +75,26 @@ namespace Borealis
 		return mDefault;
 	}
 
+	void Texture2D::VerifyTexture(Ref<Texture2D> texture)
+	{
+		switch (Renderer::GetAPI())
+		{
+		case RendererAPI::API::None: BOREALIS_CORE_ASSERT(false, "RendererAPI::None is not supported"); break;
+		case RendererAPI::API::OpenGL:
+			OpenGLTexture2D::CheckTexture(texture);
+			if (!texture->IsValid())
+			{
+				texture = nullptr;
+			}
+			break;
+		}
+		if (!texture)
+		{
+			BOREALIS_CORE_ASSERT(false, "Unknown RendererAPI");
+			texture = GetDefaultTexture();
+		}
+	}
+
 
 	Ref<Asset> Texture2D::Load(std::filesystem::path const& cachePath, AssetMetaData const& assetMetaData)
 	{

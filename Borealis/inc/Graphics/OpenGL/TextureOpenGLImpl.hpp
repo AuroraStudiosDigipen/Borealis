@@ -64,6 +64,8 @@ namespace Borealis
 		*************************************************************************/
 		void SetData(void* data, uint32_t size) override;
 
+		static void CheckTexture(Ref<Texture2D> texture);
+
 		/*!***********************************************************************
 			\brief
 				Get Width of the texture

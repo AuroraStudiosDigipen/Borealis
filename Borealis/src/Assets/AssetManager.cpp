@@ -89,6 +89,15 @@ namespace Borealis
 		return "AssetType::<Invalid>";
 	}
 
+	void AssetManager::VerifyTexture(AssetHandle handle)
+{
+		AssetMetaData& metaData = Project::GetEditorAssetsManager()->GetMetaData(handle);
+		if (metaData.Type == AssetType::Texture2D)
+		{
+			Texture2D::VerifyTexture(GetAsset<Texture2D>(handle));
+		}
+	}
+
 	AssetType AssetManager::StringToAssetType(const std::string& type)
 	{
 		auto it = stringToAssetType.find(type);

@@ -65,6 +65,8 @@ namespace Borealis
 
 		static AssetType StringToAssetType(std::string const& type);
 
+		static void VerifyTexture(AssetHandle handle);
+
 		//TEMP
 		//===============================================================
 		static void InsertMetaData(AssetMetaData data)

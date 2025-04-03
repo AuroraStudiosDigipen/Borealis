@@ -290,6 +290,24 @@ namespace Borealis
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
+	void OpenGLTexture2D::CheckTexture(Ref<Texture2D> texture)
+	{
+		auto rendererID = texture->GetRendererID();
+		if (rendererID == 0)
+		{
+			BOREALIS_CORE_ERROR("Texture is not valid!");
+			return;
+		}
+
+		BOREALIS_CORE_INFO("RendererID: {}", texture->GetRendererID());
+		int width, height, format;
+		texture->Bind();
+		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &format);
+		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
+		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
+		BOREALIS_CORE_INFO("Width: {}, Height: {}, Format: {}", width, height, format);
+	}
+
 	void OpenGLTexture2D::OpenGLTexture2D::Bind(uint32_t unit) const
 	{
 		PROFILE_FUNCTION();

@@ -144,13 +144,17 @@ namespace Borealis
             if (TextureMaps.contains(matMap))
             {
                 auto mapData = TextureMaps[matMap];
-                ImGui::InputText("##Texture", AssetManager::GetMetaData(mapData->mAssetHandle).name.data(), AssetManager::GetMetaData(mapData->mAssetHandle).name.size(), ImGuiInputTextFlags_ReadOnly);
+                ImGui::InputText((std::string("##Texture" + AssetManager::GetMetaData(mapData->mAssetHandle).name)).c_str(), AssetManager::GetMetaData(mapData->mAssetHandle).name.data(), AssetManager::GetMetaData(mapData->mAssetHandle).name.size(), ImGuiInputTextFlags_ReadOnly);
                 if (ImGui::BeginPopupContextItem(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverExistingPopup))
                 {
                     if (ImGui::MenuItem("Remove Texture"))
                     {
                         ActionManager::execute(std::make_unique<EraseMaterialTextureMap>(material, matMap));
 						isModified = true;
+                    }
+                    if (ImGui::MenuItem("Verify Texture"))
+                    {
+                        AssetManager::VerifyTexture(mapData->mAssetHandle);
                     }
                     ImGui::EndPopup();
                 }

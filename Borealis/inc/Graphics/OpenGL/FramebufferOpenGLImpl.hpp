@@ -121,12 +121,12 @@ namespace Borealis
 		void Recreate();
 	private:
 		FrameBufferProperties mProps; //!< Properties of the Frame Buffer
-		uint32_t mRendererID; //!< Renderer ID of the Frame Buffer
+		uint32_t mRendererID = 0; //!< Renderer ID of the Frame Buffer
 
 		std::vector<FrameBufferTextureProperties> mColorAttachmentProps; //!< Properties of the Color Attachments
 		FrameBufferTextureProperties mDepthAttachmentProp; //!< Properties of the Depth Attachment
 		std::vector<uint32_t> mColorAttachments; //!< Renderer IDs of the Color Attachments
-		uint32_t mDepthAttachment; //!< Renderer ID of the Depth Attachment
+		uint32_t mDepthAttachment = 0; //!< Renderer ID of the Depth Attachment
 
 	}; // class OpenGLFrameBuffer
 } // namespace Borealis

@@ -149,7 +149,7 @@ namespace Borealis
 		int GetUniformLocation(std::string const& uniformName);
 
 		std::string mName; // Name of the shader
-		unsigned int mRendererID; // ID of the shader
+		unsigned int mRendererID = 0; // ID of the shader
 		std::unordered_map<std::string, int> mUniformLocations{};
 
 	};

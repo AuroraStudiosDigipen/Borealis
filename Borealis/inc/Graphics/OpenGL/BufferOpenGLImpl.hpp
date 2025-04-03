@@ -128,7 +128,7 @@ namespace Borealis
 		*************************************************************************/
 		void Unbind() const override;
 	private:
-		uint32_t mRendererID; //!< Renderer ID of the buffer
+		uint32_t mRendererID = 0; //!< Renderer ID of the buffer
 		uint32_t mCount;	  //!< Count of the buffer
 	}; // class OpenGLElementBuffer
 

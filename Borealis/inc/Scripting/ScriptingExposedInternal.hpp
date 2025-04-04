@@ -379,6 +379,7 @@ namespace Borealis
 
 	void SceneManager_SetMainCamera(uint64_t entityID);
 	void SceneManager_SetActiveScene(MonoString* sceneName);
+	void SceneManager_SetGamma(float gamma);
 	void SceneManager_Quit();
 	
 

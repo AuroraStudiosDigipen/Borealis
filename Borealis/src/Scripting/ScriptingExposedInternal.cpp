@@ -195,6 +195,7 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(SceneManager_SetActiveScene);
 		BOREALIS_ADD_INTERNAL_CALL(SceneManager_Quit);
 		BOREALIS_ADD_INTERNAL_CALL(SceneManager_SetMainCamera);
+		BOREALIS_ADD_INTERNAL_CALL(SceneManager_SetGamma);
 
 		BOREALIS_ADD_INTERNAL_CALL(SetAudioClipName);
 		BOREALIS_ADD_INTERNAL_CALL(GetAudioClipName);
@@ -1517,6 +1518,10 @@ namespace Borealis
 		std::string sceneNme = mono_string_to_utf8(sceneName);
 		SceneManager::NextSceneName = sceneNme;
 		SceneManager::ToNextScene = true;
+	}
+	void SceneManager_SetGamma(float gamma)
+	{
+		SceneManager::GetActiveScene()->GetSceneRenderConfig().ubo.gamma = gamma;
 	}
 	void SceneManager_Quit()
 	{

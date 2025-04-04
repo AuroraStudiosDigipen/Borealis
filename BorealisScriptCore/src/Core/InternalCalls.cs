@@ -440,6 +440,8 @@ namespace Borealis
         internal extern static void SceneManager_Quit();
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void SceneManager_SetMainCamera(ulong ID);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void SceneManager_SetGamma(float gamma);
         #endregion
         #region AudioClip
         [MethodImplAttribute(MethodImplOptions.InternalCall)]

@@ -17,5 +17,10 @@ namespace Borealis
         {
             InternalCalls.SceneManager_SetMainCamera(ob.GetInstanceID());
         }
+
+        public static void SetGamma(float gamma)
+        {
+            InternalCalls.SceneManager_SetGamma(gamma);
+        }
     }
 }

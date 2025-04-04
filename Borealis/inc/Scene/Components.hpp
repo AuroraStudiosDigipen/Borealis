@@ -493,6 +493,7 @@ namespace Borealis
 	{
 		glm::vec2 canvasSize{};
 		float scaleFactor{};
+		float alpha = 1.f;
 		Ref<FrameBuffer> canvasFrameBuffer = nullptr;
 		enum class RenderMode : uint8_t
 		{

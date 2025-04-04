@@ -19,6 +19,7 @@ in vec2 v_TexCoord;
 out vec4 FragColor;
 
 uniform sampler2D u_Texture0;
+uniform float u_Alpha;
 
 void main()
 {
@@ -26,5 +27,11 @@ void main()
     if (isnan(color.r) || isnan(color.g) || isnan(color.b) || isnan(color.a)) {
         color = vec4(0.0); // Replace NaN with black
     }
+
+    if(color.a >= 0.5)
+    {
+        color.a = u_Alpha;
+    }
+    
     FragColor = color;
 }

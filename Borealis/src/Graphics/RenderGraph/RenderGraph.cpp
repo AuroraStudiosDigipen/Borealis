@@ -2158,6 +2158,7 @@ namespace Borealis
 				shader->Set("u_Filled", outline.filled);
 				shader->Set("u_HighlightPass", false);
 				shader->Set("u_Color", outline.color);
+				shader->Set("u_HasAnimation", false);
 				shader->Unbind();
 
 				renderTarget->Bind();
@@ -2167,6 +2168,7 @@ namespace Borealis
 				RenderCommand::ConfigureDepthFunc(DepthFunc::DepthLEqual);
 				RenderCommand::EnableStencilTest();
 				RenderCommand::EnablePolygonOffset();
+				
 				RenderCommand::SetPolygonOffset(-1.f, 1.f);
 
 				glm::mat4 transform = brEntity.GetComponent<TransformComponent>().GetGlobalTransform();
@@ -2183,12 +2185,21 @@ namespace Borealis
 				}
 				if (brEntity.HasComponent<SkinnedMeshRendererComponent>())
 				{
-
+					SkinnedMeshRendererComponent const& meshFilter = brEntity.GetComponent<SkinnedMeshRendererComponent>();
+					if (brEntity.HasComponent<AnimatorComponent>())
+					{
+						shader->Bind();
+						shader->Set("u_AnimationIndex", (int)meshFilter.AnimationIndex);
+						shader->Set("u_HasAnimation", true);
+						shader->Unbind();
+					}
+					Renderer3D::DrawHighlightedMesh(transform, meshFilter, shader);
 				}
 
 				shader->Bind();
 				shader->Set("u_Filled", false);
 				shader->Set("u_HighlightPass", true);
+				shader->Set("u_HasAnimation", false);
 				RenderCommand::EnableStencilTest();
 				RenderCommand::EnableFrontFaceCull();
 				RenderCommand::ConfigureStencilForHighlight();
@@ -2210,7 +2221,15 @@ namespace Borealis
 				}
 				if (brEntity.HasComponent<SkinnedMeshRendererComponent>())
 				{
-
+					SkinnedMeshRendererComponent const& meshFilter = brEntity.GetComponent<SkinnedMeshRendererComponent>();
+					if (brEntity.HasComponent<AnimatorComponent>())
+					{
+						shader->Bind();
+						shader->Set("u_AnimationIndex", (int)meshFilter.AnimationIndex);
+						shader->Set("u_HasAnimation", true);
+						shader->Unbind();
+					}
+					Renderer3D::DrawHighlightedMesh(transform, meshFilter, shader);
 				}
 
 				RenderCommand::DisablePolygonOffset();
@@ -2272,6 +2291,7 @@ namespace Borealis
 		sData->cameraData.ViewProjection = viewProjMatrix;
 		sData->CameraUBO->SetData(&sData->cameraData, sizeof(sData->cameraData));
 
+		float canvasAlpha = 1.f;
 
 		for (int i = 0; i < 10; ++i)
 		{
@@ -2289,6 +2309,8 @@ namespace Borealis
 				if (canvas.renderMode == CanvasComponent::RenderMode::WorldSpace) continue;
 				if (canvas.renderIndex != i) continue;
 				glm::vec3 currTransfrom = glm::vec3(((glm::mat4)transform)[3]);
+
+				canvasAlpha = canvas.alpha;
 
 				//This is to set the canvas transforms in run time
 				{
@@ -2357,7 +2379,7 @@ namespace Borealis
 				uiFBO->BindTexture(0, 0);
 				shader->Bind();
 				shader->Set("u_Texture0", 0);
-
+				shader->Set("u_Alpha", canvasAlpha);
 				renderTarget->Bind();
 				Renderer3D::DrawQuad();
 				renderTarget->Unbind();
@@ -2663,7 +2685,11 @@ namespace Borealis
 		}
 
 		if (!common_shader)
+		{
 			common_shader = Shader::Create("engineResources/Shaders/Renderer3D_Common.glsl");
+			UniformBufferObject::BindToShader(common_shader->GetID(), "Camera", CAMERA_BIND);
+			UniformBufferObject::BindToShader(common_shader->GetID(), "AnimationUBO", ANIMATION_BIND);
+		}
 
 		if (!quad_shader)
 			quad_shader = Shader::Create("engineResources/Shaders/Renderer3D_Quad.glsl");

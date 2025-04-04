@@ -69,13 +69,13 @@ namespace Borealis
 		{
 			config.ubo.threshold = round(config.ubo.threshold * 100.0f) / 100.0f;
 		}
-		if (ImGui::SliderFloat("Knee", &config.ubo.knee, 0.0f, 10.0f, "%.2f"))
+		if (ImGui::SliderFloat("Knee", &config.ubo.knee, 0.0f, 10.0f, "%.4f"))
 		{
-			config.ubo.knee = round(config.ubo.knee * 100.0f) / 100.0f;
+			config.ubo.knee = round(config.ubo.knee * 10000.0f) / 10000.0f;
 		}
-		if (ImGui::SliderFloat("Bloom Scale", &config.ubo.bloomScale, 0.0f, 10.0f, "%.2f"))
+		if (ImGui::SliderFloat("Bloom Scale", &config.ubo.bloomScale, 0.0f, 10.0f, "%.4f"))
 		{
-			config.ubo.bloomScale = round(config.ubo.bloomScale * 100.0f) / 100.0f;
+			config.ubo.bloomScale = round(config.ubo.bloomScale * 10000.0f) / 10000.0f;
 		}
 
 

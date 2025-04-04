@@ -151,6 +151,7 @@
     <Compile Include="src\Components\AnimatorComponent.cs" />
     <Compile Include="src\Components\AudioListener.cs" />
     <Compile Include="src\Components\AudioSource.cs" />
+    <Compile Include="src\Components\CanvasComponent.cs" />
     <Compile Include="src\Components\CharacterController.cs" />
     <Compile Include="src\Components\CircleRenderer.cs" />
     <Compile Include="src\Components\Collider.cs" />

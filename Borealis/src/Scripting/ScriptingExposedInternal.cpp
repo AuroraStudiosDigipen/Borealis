@@ -270,6 +270,8 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_SetShape);
 		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_Start);
 		BOREALIS_ADD_INTERNAL_CALL(ParticleSystem_Stop);
+		BOREALIS_ADD_INTERNAL_CALL(Canvas_GetAlpha);
+		BOREALIS_ADD_INTERNAL_CALL(Canvas_SetAlpha);
 	}
 	uint64_t GenerateUUID()
 	{
@@ -2483,6 +2485,23 @@ namespace Borealis
 		Entity entity = scene->GetEntityByUUID(v);
 		BOREALIS_CORE_ASSERT(entity, "Entity is null");
 		entity.GetComponent<ParticleSystemComponent>().Stop();
+	}
+
+	void Canvas_GetAlpha(uint64_t v, float* alphaValue)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		*alphaValue = entity.GetComponent<CanvasComponent>().alpha;
+	}
+	void Canvas_SetAlpha(uint64_t v, float* value)
+	{
+		Scene* scene = SceneManager::GetActiveScene().get();
+		BOREALIS_CORE_ASSERT(scene, "Scene is null");
+		Entity entity = scene->GetEntityByUUID(v);
+		BOREALIS_CORE_ASSERT(entity, "Entity is null");
+		entity.GetComponent<CanvasComponent>().alpha = *value;
 	}
 } // End of namespace Borealis
 

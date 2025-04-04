@@ -595,5 +595,12 @@ namespace Borealis
         internal extern static void ParticleSystem_Stop(ulong v);
 
         #endregion
+
+        #region Canvas
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void Canvas_GetAlpha(ulong v, out float alphaValue);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void Canvas_SetAlpha(ulong v, ref float value);
+        #endregion
     }
 }

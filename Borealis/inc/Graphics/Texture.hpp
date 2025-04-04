@@ -131,7 +131,7 @@ namespace Borealis
 		static Ref<Texture2D> Create(const std::string& path, std::optional<TextureConfig> textureConfig = std::nullopt);
 
 		static Ref<Texture2D> GetDefaultTexture();
-
+		static void VerifyTexture(Ref<Texture2D> texture);
 
 
 		static Ref<Asset> Load(std::filesystem::path const& cachePath, AssetMetaData const& assetMetaData);

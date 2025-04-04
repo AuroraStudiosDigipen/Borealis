@@ -71,6 +71,7 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(Time_GetTimeScale);
 
 		BOREALIS_ADD_INTERNAL_CALL(Input_GetMousePosition);
+		BOREALIS_ADD_INTERNAL_CALL(Input_GetMouseViewportPosition);
 		BOREALIS_ADD_INTERNAL_CALL(Input_GetMouseScrollDelta);
 		BOREALIS_ADD_INTERNAL_CALL(Input_GetKey);
 		BOREALIS_ADD_INTERNAL_CALL(Input_GetKeyDown);
@@ -678,6 +679,10 @@ namespace Borealis
 	glm::vec3 Input_GetMousePosition()
 	{
 		return {InputSystem::GetMouseX(), InputSystem::GetMouseY(), 0.0f};
+	}
+	glm::vec3 Input_GetMouseViewportPosition()
+	{
+		return { InputSystem::GetMouseViewport().first, InputSystem::GetMouseViewport().second, 0.0f };
 	}
 	glm::vec3 Input_GetMouseScrollDelta()
 	{

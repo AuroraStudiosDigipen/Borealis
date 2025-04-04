@@ -75,6 +75,8 @@ namespace Borealis
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static Vector3 Input_GetMousePosition();
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static Vector3 Input_GetMouseViewportPosition();
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static Vector3 Input_GetMouseScrollDelta();
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static bool Input_GetKey(int key);

@@ -25,6 +25,8 @@ namespace Borealis
 
 	OpenGLPixelBuffer::OpenGLPixelBuffer(PixelBufferProperties const& props) : mProps(props), mRendererID()
 	{
+		mRendererID[0] = 0;
+		mRendererID[1] = 0;
 		Recreate();
 	}
 

@@ -663,6 +663,10 @@ namespace Borealis
 					{
 						ActionManager::execute(std::make_unique<ModifyPropertyCommand<rttr::variant>>(rInstance, Property, rttr::variant(Data), rttr::variant(Ref<Texture2D>())));
 					}
+					if (ImGui::MenuItem("Verify Texture"))
+					{
+						AssetManager::VerifyTexture(Data->mAssetHandle);
+					}
 					ImGui::EndPopup();
 				}
 			}

@@ -64,6 +64,8 @@ namespace Borealis
 		*************************************************************************/
 		void SetData(void* data, uint32_t size) override;
 
+		static void CheckTexture(Ref<Texture2D> texture);
+
 		/*!***********************************************************************
 			\brief
 				Get Width of the texture
@@ -195,7 +197,7 @@ namespace Borealis
 	private:
 		bool mValid;
 		std::string mPath; // Path to the texture file
-		uint32_t mRendererID; // Renderer ID of the texture
+		uint32_t mRendererID = 0; // Renderer ID of the texture
 		uint32_t mWidth, mHeight, mChannels; // Width, Height and Channels of the texture
 		GLenum mInternalFormat, mDataFormat; // Internal Format and Data Format of the texture
 	};

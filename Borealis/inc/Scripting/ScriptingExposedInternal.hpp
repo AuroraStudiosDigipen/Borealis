@@ -136,6 +136,7 @@ namespace Borealis
 	*************************************************************************/
 	glm::vec3 Input_GetMousePosition();
 
+	glm::vec3 Input_GetMouseViewportPosition();
 	/*!***********************************************************************
 		\brief
 			Gets the mouse scroll delta
@@ -208,6 +209,8 @@ namespace Borealis
 	float Input_GetAxis(MonoString* axis);
 
 	float Input_GetAxisRaw(MonoString* axis);
+
+
 
 	void Cursor_GetVisibility(bool* outVisibility);
 	void Cursor_SetVisibility(bool* visibility);

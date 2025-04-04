@@ -82,7 +82,7 @@ namespace Borealis
 	private:
 		std::vector<Ref<VertexBuffer>> mVBOs; //!< The Vertex Buffers of the Vertex Array
 		Ref<ElementBuffer> mEBO; //!< The Element Buffer of the Vertex Array
-		uint32_t mRendererID; //!< The Renderer ID of the Vertex Array
+		uint32_t mRendererID = 0; //!< The Renderer ID of the Vertex Array
 	};
 }
 

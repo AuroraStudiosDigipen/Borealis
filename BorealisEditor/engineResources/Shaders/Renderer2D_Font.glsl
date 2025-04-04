@@ -91,6 +91,7 @@ void main()
 
     float inner_opacity = clamp(inner, 0.0, 1.0);
     vec4 inner_color = v_Color;
+    inner_color.a = 0.f;
     float outer_opacity = clamp(outer, 0.0, 1.0);
     vec4 outer_color = vec4(0, 0, 0, 1); 
 

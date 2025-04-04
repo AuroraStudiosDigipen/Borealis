@@ -436,9 +436,7 @@ float GetCascadeShadowFactor(vec3 lightDir, vec3 normal)
         layer = cascadeCount;
     }
 
-    vec3 normalOffsetPos = v_FragPos + normal * 0.0006;
-    vec4 LightPos = u_LightSpaceMatrices[layer] * vec4(normalOffsetPos, 1.0);
-    //vec4 LightPos = u_LightSpaceMatrices[layer] * vec4(v_FragPos, 1.0);
+    vec4 LightPos = u_LightSpaceMatrices[layer] * vec4(v_FragPos, 1.0);
 
     vec3 projCoord = LightPos.xyz / LightPos.w;
     vec2 UVCoord;

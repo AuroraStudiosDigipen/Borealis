@@ -522,6 +522,10 @@ namespace Borealis
 	void ParticleSystem_SetShape(uint64_t v, int* value);
 	void ParticleSystem_Start(uint64_t v);
 	void ParticleSystem_Stop(uint64_t v);
+
+	void Canvas_GetAlpha(uint64_t v, float* alphaValue);
+	void Canvas_SetAlpha(uint64_t v, float* value);
+
 	} // End of namespace Borealis
 
 #endif

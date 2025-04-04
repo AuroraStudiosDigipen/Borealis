@@ -246,6 +246,7 @@ namespace Borealis
             (metadata("Component", true))
             .constructor<>()
             .property("Render Mode", &CanvasComponent::renderMode)
+            .property("Alpha", &CanvasComponent::alpha)
             .property("Apply Canvas Scale", &CanvasComponent::applyCanvasScale)
             .property("Render Index", &CanvasComponent::renderIndex);
 

@@ -63,6 +63,10 @@ namespace Borealis
                 serialiser(newScene);
                 serialiser.DeserialiseScene(SceneManager::GetSceneLibrary()[sceneName]);
             }
+            if (mActiveScene)
+            {
+                newScene->GetSceneRenderConfig().ubo.gamma = mActiveScene->GetSceneRenderConfig().ubo.gamma;
+            }
             mActiveScene = newScene;
 		}
 		else

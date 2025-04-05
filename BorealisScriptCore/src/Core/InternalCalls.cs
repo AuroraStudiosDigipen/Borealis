@@ -257,6 +257,14 @@ namespace Borealis
         internal extern static void Material_GetSprite(ulong id, out ulong spriteID);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void Material_SetSprite(ulong id, ref ulong spriteID);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void Material_GetOffset(ulong id, out Vector2 Offset);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void Material_SetOffset(ulong id, ref Vector2 Offset);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void Material_GetTiling(ulong id, out Vector2 Tiling);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void Material_SetTiling(ulong id, ref Vector2 Tiling);
         #endregion
 
         #region ScriptComponent

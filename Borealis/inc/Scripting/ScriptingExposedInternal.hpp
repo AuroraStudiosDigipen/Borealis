@@ -348,6 +348,7 @@ namespace Borealis
 
 	void MeshRendererComponent_GetMaterial(UUID uuid, UUID* materialID);
 	void MeshRendererComponent_SetMaterial(UUID uuid, UUID* materialID);
+	
 
 	void MeshRendererComponent_GetEnabled(UUID uuid, bool* state);
 	void MeshRendererComponent_SetEnabled(UUID uuid, bool* state);
@@ -385,7 +386,10 @@ namespace Borealis
 
 	void Material_GetSprite(UUID uuid, UUID* spriteID);
 	void Material_SetSprite(UUID uuid, UUID* spriteID);
-
+	void Material_GetOffset(UUID id, glm::vec2* Offset);
+	void Material_SetOffset(UUID id, glm::vec2* Offset);
+	void Material_GetTiling(UUID id, glm::vec2* Tiling);
+	void Material_SetTiling(UUID id, glm::vec2* Tiling);
 
 	/*!***********************************************************************
 		\brief

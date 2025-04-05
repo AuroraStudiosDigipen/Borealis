@@ -132,6 +132,11 @@ namespace Borealis
 		BOREALIS_ADD_INTERNAL_CALL(ColliderComponent_UpdateScale);
 		BOREALIS_ADD_INTERNAL_CALL(ColliderComponent_SetActive);
 		BOREALIS_ADD_INTERNAL_CALL(Material_GetSprite);
+		BOREALIS_ADD_INTERNAL_CALL(Material_GetOffset);
+		BOREALIS_ADD_INTERNAL_CALL(Material_SetSprite);
+		BOREALIS_ADD_INTERNAL_CALL(Material_SetOffset);
+		BOREALIS_ADD_INTERNAL_CALL(Material_GetTiling);
+		BOREALIS_ADD_INTERNAL_CALL(Material_SetTiling);
 
 		BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_AddForce);
 		BOREALIS_ADD_INTERNAL_CALL(RigidbodyComponent_AddTorque);
@@ -1536,6 +1541,24 @@ namespace Borealis
 	void Material_SetSprite(UUID uuid, UUID* spriteID)
 	{
 		AssetManager::GetAsset<Material>(uuid)->SetTextureMap(Material::Albedo, AssetManager::GetAsset<Texture2D>(*spriteID));
+	}
+	void Material_GetOffset(UUID uuid, glm::vec2* Offset)
+	{
+		*Offset = AssetManager::GetAsset<Material>(uuid)->GetPropertiesVec2()[Material::Offset];
+	}
+	void Material_SetOffset(UUID uuid, glm::vec2* Offset)
+	{
+		AssetManager::GetAsset<Material>(uuid)->SetPropertyVec2(Material::Offset, *Offset);
+		AssetManager::GetAsset<Material>(uuid)->isModified = true;
+	}
+	void Material_GetTiling(UUID uuid, glm::vec2* Tiling)
+	{
+		*Tiling = AssetManager::GetAsset<Material>(uuid)->GetPropertiesVec2()[Material::Tiling];
+	}
+	void Material_SetTiling(UUID uuid, glm::vec2* Tiling)
+	{
+		AssetManager::GetAsset<Material>(uuid)->SetPropertyVec2(Material::Tiling, *Tiling);
+		AssetManager::GetAsset<Material>(uuid)->isModified = true;
 	}
 	void ScriptComponent_AddComponent(uint64_t entityID, MonoReflectionType* reflectionType)
 	{

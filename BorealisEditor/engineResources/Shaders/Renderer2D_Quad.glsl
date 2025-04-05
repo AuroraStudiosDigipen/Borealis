@@ -73,7 +73,65 @@ uniform sampler2D u_Texture[16];
 void main()
 {
     float tilingFactor = (v_BillBoarding == 1) ?  1.f : v_TilingFactor;
-    vec4 finalColor = texture(u_Texture[v_TexIndex], v_TexCoord * tilingFactor) * v_Color;
+    //vec4 finalColor = texture(u_Texture[v_TexIndex], v_TexCoord * tilingFactor) * v_Color;
+
+    vec2 safeUV = clamp(v_TexCoord * tilingFactor, vec2(0.0), vec2(1.0));
+    vec4 finalColor;
+    switch(v_TexIndex) {
+        case 0:
+            finalColor = texture(u_Texture[0], safeUV) * v_Color;
+            break;
+        case 1:
+            finalColor = texture(u_Texture[1], safeUV) * v_Color;
+            break;
+        case 2:
+            finalColor = texture(u_Texture[2], safeUV) * v_Color;
+            break;
+        case 3:
+            finalColor = texture(u_Texture[3], safeUV) * v_Color;
+            break;
+        case 4:
+            finalColor = texture(u_Texture[4], safeUV) * v_Color;
+            break;
+        case 5:
+            finalColor = texture(u_Texture[5], safeUV) * v_Color;
+            break;
+        case 6:
+            finalColor = texture(u_Texture[6], safeUV) * v_Color;
+            break;
+        case 7:
+            finalColor = texture(u_Texture[7], safeUV) * v_Color;
+            break;        
+        case 8:
+            finalColor = texture(u_Texture[8], safeUV) * v_Color;
+            break;
+        case 9:
+            finalColor = texture(u_Texture[9], safeUV) * v_Color;
+            break;
+        case 10:
+            finalColor = texture(u_Texture[10], safeUV) * v_Color;
+            break;
+        case 11:
+            finalColor = texture(u_Texture[11], safeUV) * v_Color;
+            break;
+        case 12:
+            finalColor = texture(u_Texture[12], safeUV) * v_Color;
+            break;
+        case 13:
+            finalColor = texture(u_Texture[13], safeUV) * v_Color;
+            break;
+        case 14:
+            finalColor = texture(u_Texture[14], safeUV) * v_Color;
+            break;
+        case 15:
+            finalColor = texture(u_Texture[15], safeUV) * v_Color;
+            break;
+        default:
+            finalColor = texture(u_Texture[0], safeUV) * v_Color;
+            break;
+    }
+
+
 	
 	entityIDs = v_EntityID;
 

@@ -97,6 +97,7 @@ namespace BorealisRuntime
 		float normalizedMouseX = Borealis::InputSystem::GetMouseX() / (float)windowWidth - 0.5f;
 		float normalizedMouseY = Borealis::InputSystem::GetMouseY() / (float)windowHeight - 0.5f;
 		Borealis::ButtonSystem::SetMousePos({ normalizedMouseX, normalizedMouseY });
+		Borealis::InputSystem::SetMouseViewport(std::make_pair(normalizedMouseX, normalizedMouseY));
 		Borealis::SceneManager::GetActiveScene()->UpdateRuntime(dt);
 
 		Borealis::Renderer2D::ResetStats();

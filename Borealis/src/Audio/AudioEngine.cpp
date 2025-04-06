@@ -275,7 +275,7 @@ namespace Borealis
         ErrorCheck(FMOD::Studio::System::create(&mpStudioSystem));
         ErrorCheck(mpStudioSystem->getCoreSystem(&mpSystem));
         ErrorCheck(mpSystem->set3DSettings(1.0, 1000, 1.0f));
-        ErrorCheck(mpStudioSystem->initialize(128, FMOD_STUDIO_INIT_LIVEUPDATE, FMOD_INIT_NORMAL, nullptr));
+        ErrorCheck(mpStudioSystem->initialize(256, FMOD_STUDIO_INIT_LIVEUPDATE, FMOD_INIT_NORMAL, nullptr));
         // Create FMOD Core system
         ErrorCheck(mpStudioSystem->loadBankFile((path + "\\" + "Master.bank").c_str(), FMOD_STUDIO_LOAD_BANK_NORMAL, &mpMasterBank));
         ErrorCheck(mpStudioSystem->loadBankFile((path + "\\" + "Master.strings.bank").c_str(), FMOD_STUDIO_LOAD_BANK_NORMAL, &mpStringsBank));

@@ -17,6 +17,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <AI/BehaviourTree/BTreeFactory.hpp>
 #include <Core/LoggerSystem.hpp>
 #include <Core/Project.hpp>
+
 namespace Borealis
 {
     Ref<Pin> BTNodeEditorPanel::FindPin(ed::PinId id)
@@ -1007,20 +1008,26 @@ namespace Borealis
                 return;
             }
 
-            // Open the files using ShellExecuteA
-            HINSTANCE hRes;
+            #ifdef MSVC
+                // Open the files using ShellExecuteA
+                HINSTANCE hRes;
 
-            hRes = ShellExecuteA(NULL, "open", headerAbsolutePath.string().c_str(), NULL, NULL, SW_SHOWMAXIMIZED);
-            if ((int)hRes <= 32)
-            {
-                BOREALIS_CORE_ERROR("Failed to open header file.Error code : {}", (int)hRes);
-            }
+                hRes = ShellExecuteA(NULL, "open", headerAbsolutePath.string().c_str(), NULL, NULL, SW_SHOWMAXIMIZED);
+                if ((int)hRes <= 32)
+                {
+                    BOREALIS_CORE_ERROR("Failed to open header file.Error code : {}", (int)hRes);
+                }
 
-            hRes = ShellExecuteA(NULL, "open", sourceAbsolutePath.string().c_str(), NULL, NULL, SW_SHOWMAXIMIZED);
-            if ((int)hRes <= 32)
-            {
-                BOREALIS_CORE_ERROR("Failed to open source file.Error code : {}", (int)hRes);
-            }
+                hRes = ShellExecuteA(NULL, "open", sourceAbsolutePath.string().c_str(), NULL, NULL, SW_SHOWMAXIMIZED);
+                if ((int)hRes <= 32)
+                {
+                    BOREALIS_CORE_ERROR("Failed to open source file.Error code : {}", (int)hRes);
+                }
+            #endif
+            #ifdef XCODE
+
+            #endif
+           
         }
     }
     void BTNodeEditorPanel::DeserializeNodes(const YAML::Node& rootNode)

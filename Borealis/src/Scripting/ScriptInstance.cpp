@@ -188,7 +188,7 @@ namespace Borealis
 			}
 			else if (field.mType == ScriptFieldType::UChar)
 			{
-				byte value = otherInstance->GetFieldValue<byte>(name);
+				unsigned char value = otherInstance->GetFieldValue<unsigned char>(name);
 				mono_field_set_value(GetInstance(), field.mMonoFieldType, &value);
 			}
 			else if (field.mType == ScriptFieldType::UInt)

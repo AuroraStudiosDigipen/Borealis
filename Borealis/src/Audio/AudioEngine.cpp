@@ -21,7 +21,6 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <vector>
 #include <sstream>
 #include <cctype>
-#include <windows.h>
 
 namespace Borealis
 {

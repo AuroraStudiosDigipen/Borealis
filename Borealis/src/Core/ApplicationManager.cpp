@@ -14,7 +14,6 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include <BorealisPCH.hpp>
 #define NOMINMAX
-#include <windows.h>
 #include <GLFW/glfw3.h>
 #include <Audio/AudioEngine.hpp>
 #include <Core/LoggerSystem.hpp>

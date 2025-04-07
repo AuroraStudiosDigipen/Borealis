@@ -602,7 +602,11 @@ namespace Borealis
 
 	void PhysicsSystem::Update(float dt)
 	{
+		std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 		sPhysicsData.mSystem->Update(dt, 1, sPhysicsData.temp_allocator, sPhysicsData.job_system);
+		std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<float> duration = std::chrono::duration_cast<std::chrono::duration<float>>(end - start);
+		BOREALIS_CORE_INFO(duration.count());
 	}
 
 	void PhysicsSystem::Free()

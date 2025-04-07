@@ -1,8 +1,15 @@
 
 workspace "Borealis"
-	architecture "x64"
+	filter "system:windows"
+		architecture "x64"
+
+	filter "system:macosx"
+		architecture "arm64"
+
+	filter {} 
 
 	startproject "BorealisEditor"
+	
 
 	configurations
 	{
@@ -248,6 +255,10 @@ workspace "Borealis"
 			postbuildcommands {
 				"{COPY} \"engineResources\" \"../BorealisEditor/engineResources\""
 			 }
+		filter "system:windows"
+			 defines "MSVC"
+		filter "system:macosx"
+			 defines "XCODE"
 
 	project "BorealisEditor"
 		location "BorealisEditor"
@@ -399,6 +410,11 @@ workspace "Borealis"
 				"Borealis/%{Library.YAML_Release}",
 				"Borealis/%{Library.Jolt_Release}"
 			}
+
+		filter "system:windows"
+			defines "MSVC"
+	   	filter "system:macosx"
+			defines "XCODE"
 
 	project "BorealisScriptCore"
 		location "BorealisScriptCore"

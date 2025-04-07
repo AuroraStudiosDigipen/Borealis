@@ -15,7 +15,12 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #ifndef BOREALIS_PCH_HPP
 #define BOREALIS_PCH_HPP
 #define NOMINMAX
+#ifdef MSVC
 #include <Windows.h>
+#endif
+#ifdef XCODE
+
+#endif
 #include <iostream>
 #include <sstream>
 #include <algorithm>

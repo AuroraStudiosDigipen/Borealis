@@ -25,6 +25,8 @@ namespace Borealis
 {
 	std::string FileDialogs::OpenFile(const char* filter)
 	{
+		
+#ifdef MSVC
 		OPENFILENAMEA ofn;
 		CHAR szFile[MAX_PATH] = { 0 };
 		ZeroMemory(&ofn, sizeof(ofn));
@@ -40,12 +42,18 @@ namespace Borealis
 		ofn.lpstrInitialDir = szInitialDir;
 		if (GetOpenFileNameA(&ofn))
 		{
+			
 			return ofn.lpstrFile;
 		}
+#endif
+#ifdef XCODE
+		
+#endif
 		return std::string();
 	}
 	std::string FileDialogs::SaveFile(const char* filter)
 	{
+#ifdef MSVC
 		OPENFILENAMEA ofn;
 		CHAR szFile[MAX_PATH] = { 0 };
 		ZeroMemory(&ofn, sizeof(ofn));
@@ -63,6 +71,11 @@ namespace Borealis
 		{
 			return ofn.lpstrFile;
 		}
+#endif
+#ifdef XCODE
+
+#endif
+		
 		return std::string();
 	}
 

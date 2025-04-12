@@ -31,13 +31,22 @@ namespace Borealis
 		std::stringstream inFile;
 		if (AssetManager::IsPakLoaded())
 		{
-			std::string subPath = path.filename().string();
-			uint64_t id = std::stoull(subPath);
-			char* buffer;
-			uint64_t size;
-			AssetManager::RetrieveFromPak(id, buffer, size);
-			inFile << std::string(buffer, size);
-			delete[] buffer;
+			try
+			{
+				std::string subPath = path.filename().string();
+				uint64_t id = std::stoull(subPath);
+				char* buffer;
+				uint64_t size;
+				AssetManager::RetrieveFromPak(id, buffer, size);
+				inFile << std::string(buffer, size);
+				delete[] buffer;
+			}
+			catch (const std::exception& e)
+			{
+				std::ifstream actualFile(path, std::ios::binary);
+				inFile << actualFile.rdbuf();
+				actualFile.close();
+			}
 		}
 		else
 		{

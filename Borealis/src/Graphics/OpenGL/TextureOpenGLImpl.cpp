@@ -26,13 +26,20 @@ namespace Borealis
 		if (AssetManager::IsPakLoaded())
 		{
 			// concat to the last path
-			std::string subPath = path.substr(path.find_last_of("/\\") + 1);
-			uint64_t id = std::stoull(subPath);
-			char* buffer;
-			uint64_t size;
-			AssetManager::RetrieveFromPak(id, buffer, size);
-			Texture = gli::load(buffer, size);
-			delete[] buffer;
+			try
+			{
+				std::string subPath = path.substr(path.find_last_of("/\\") + 1);
+				uint64_t id = std::stoull(subPath);
+				char* buffer;
+				uint64_t size;
+				AssetManager::RetrieveFromPak(id, buffer, size);
+				Texture = gli::load(buffer, size);
+				delete[] buffer;
+			}
+			catch (const std::exception& e)
+			{
+				Texture = gli::load(path);
+			}
 		}
 		else
 		{
@@ -117,13 +124,20 @@ namespace Borealis
 		if (AssetManager::IsPakLoaded())
 		{
 			// concat to the last path
-			std::string subPath = path.substr(path.find_last_of("/\\") + 1);
-			uint64_t id = std::stoull(subPath);
-			char* buffer;
-			uint64_t size;
-			AssetManager::RetrieveFromPak(id, buffer, size);
-			Texture = gli::load(buffer, size);
-			delete[] buffer;
+			try
+			{
+				std::string subPath = path.substr(path.find_last_of("/\\") + 1);
+				uint64_t id = std::stoull(subPath);
+				char* buffer;
+				uint64_t size;
+				AssetManager::RetrieveFromPak(id, buffer, size);
+				Texture = gli::load(buffer, size);
+				delete[] buffer;
+			}
+			catch(const std::exception& e)
+			{
+				Texture = gli::load(path);
+			}
 		}
 		else
 		{
@@ -374,14 +388,21 @@ namespace Borealis
 		gli::texture Texture;
 		if (AssetManager::IsPakLoaded())
 		{
-			// concat to the last path
-			std::string subPath = path.filename().string();
-			uint64_t id = std::stoull(subPath);
-			char* buffer;
-			uint64_t size;
-			AssetManager::RetrieveFromPak(id, buffer, size);
-			Texture = gli::load(buffer, size);
-			delete[] buffer;
+			try
+			{
+				// concat to the last path
+				std::string subPath = path.filename().string();
+				uint64_t id = std::stoull(subPath);
+				char* buffer;
+				uint64_t size;
+				AssetManager::RetrieveFromPak(id, buffer, size);
+				Texture = gli::load(buffer, size);
+				delete[] buffer;
+			}
+			catch (const std::exception& e)
+			{
+				Texture = gli::load(path.string());
+			}
 		}
 		else
 		{

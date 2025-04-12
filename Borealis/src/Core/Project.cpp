@@ -243,10 +243,6 @@ namespace Borealis
 			return;
 		}
 
-		// Create the destination directory if it doesn't exist
-		if (!std::filesystem::exists(destination)) {
-			std::filesystem::create_directory(destination);
-		}
 
 		// Iterate through the source directory
 		for (const auto& entry : std::filesystem::directory_iterator(source)) {
@@ -259,8 +255,14 @@ namespace Borealis
 			}
 			else {
 				// Copy the file
-				if (filter != "" && path.extension().string() == filter)
+				if (filter == "" || path.extension().string() == filter)
+				{
+					if (!std::filesystem::exists(dest_path.parent_path()))
+					{
+						std::filesystem::create_directories(dest_path.parent_path());
+					}
 					std::filesystem::copy(path, dest_path, std::filesystem::copy_options::overwrite_existing);
+				}
 			}
 
 

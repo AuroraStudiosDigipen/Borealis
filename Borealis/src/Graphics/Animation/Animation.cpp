@@ -46,14 +46,28 @@ namespace Borealis
 		std::stringstream inText;
 		if (AssetManager::IsPakLoaded())
 		{
+			try
 			// concat to the last path
-			std::string subPath = path.filename().string();
-			uint64_t id = std::stoull(subPath);
-			char* buffer;
-			uint64_t size;
-			AssetManager::RetrieveFromPak(id, buffer, size);
-			inText.write(buffer, size);
-			delete[] buffer;
+			{
+				std::string subPath = path.filename().string();
+				uint64_t id = std::stoull(subPath);
+				char* buffer;
+				uint64_t size;
+				AssetManager::RetrieveFromPak(id, buffer, size);
+				inText.write(buffer, size);
+				delete[] buffer;
+			}
+
+			catch (const std::exception&) {
+				std::ifstream inFile(path, std::ios::binary);
+				inFile >> inText.rdbuf();
+				if (!inFile.is_open())
+				{
+					BOREALIS_CORE_ASSERT(!inFile.is_open(), "File Not found");
+					return;
+				}
+				inFile.close();
+			}
 		}
 		else
 		{

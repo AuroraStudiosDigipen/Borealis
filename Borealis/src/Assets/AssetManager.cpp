@@ -28,18 +28,17 @@ namespace Borealis
 	{
 		uint64_t id;
 		uint64_t offset;
-		uint32_t size;
+		uint64_t size;
 	};
 
 	struct AssetEntryValue
 	{
 		uint64_t offset;
-		uint32_t size;
+		uint64_t size;
 	};
 
 	void AssetManager::BuildPak(std::filesystem::path folderPath, std::filesystem::path location)
 	{
-		
 		std::vector<AssetEntry> entries;
 		uint64_t offset = 0;
 		std::ofstream out(location, std::ios::binary);
@@ -47,14 +46,14 @@ namespace Borealis
 		for (const auto& entry : std::filesystem::directory_iterator(folderPath)) {
 			if (!entry.is_regular_file()) continue;
 
-			try
-			{
-				uint64_t hashId = std::stoull(entry.path().filename().string()); // assumes filename is hex
-	
+			try {
+				// Assume the filename is a valid hexadecimal string representing the ID
+				uint64_t hashId = std::stoull(entry.path().filename().string());
+
 				std::ifstream in(entry.path(), std::ios::binary | std::ios::ate);
 				if (!in) continue;
 
-				uint32_t size = static_cast<uint32_t>(in.tellg());
+				uint64_t size = static_cast<uint64_t>(in.tellg());
 				in.seekg(0);
 				std::vector<char> buffer(size);
 				in.read(buffer.data(), size);
@@ -63,42 +62,62 @@ namespace Borealis
 				entries.push_back({ hashId, offset, size });
 				offset += size;
 			}
-			catch (const std::invalid_argument& e)
-			{
-				continue; // Skip this file if the filename is not a valid hex string
+			catch (const std::invalid_argument& e) {
+				continue; // Skip if filename isn't a valid hex string
 			}
-			catch (const std::out_of_range& e)
-			{
-				continue; // Skip this file if the filename is out of range
+			catch (const std::out_of_range& e) {
+				continue; // Skip if filename is out of range
 			}
 		}
 
-		uint32_t count = entries.size();
-		out.write((char*)&count, sizeof(count));
-		out.write((char*)entries.data(), sizeof(AssetEntry)* entries.size());
+		uint64_t count = entries.size();
+		out.write(reinterpret_cast<char*>(entries.data()), sizeof(AssetEntry) * entries.size());
+		out.write(reinterpret_cast<char*>(&count), sizeof(count));
 		out.close();
 	}
 	std::map<uint64_t, AssetEntryValue> entryMap;
 
 	void AssetManager::ReadPak(std::filesystem::path folderPath)
 	{
-		std::vector<AssetEntry> entries;
 		std::ifstream in(folderPath, std::ios::binary);
 		if (!in) return;
+
+		// Seek to the end of the file to determine the total size
+		in.seekg(0, std::ios::end);
 		uint64_t fileSize = in.tellg();
-		in.seekg(fileSize -sizeof(uint32_t), std::ios::end);
-		uint32_t count;
+
+		// Ensure the file has at least the size for a count and entries
+		if (fileSize < sizeof(uint64_t)) return;
+
+		// Read count first (4 bytes) from the end of the file
+		in.seekg(-static_cast<std::streamoff>(sizeof(uint64_t)), std::ios::end);
+		uint64_t count = 0;
 		in.read(reinterpret_cast<char*>(&count), sizeof(count));
 
-		// Read asset entries into memor
-		in.seekg(fileSize - sizeof(uint32_t) - count * sizeof(AssetEntry));
-		entries.resize(count);
-		in.read(reinterpret_cast<char*>(entries.data()), count * sizeof(AssetEntry));
+		//in.seekg(-32, std::ios::end);  // 4 * sizeof(uint32_t) = 16 bytes
 
-		for (const AssetEntry& entry : entries)
-		{
+		// Read the last 4 integers (uint32_t values)
+		//uint6_t values[8] = { 0 };  // Array to hold the 4 integers
+		//in.read(reinterpret_cast<char*>(values), sizeof(values));
+
+
+		if (!in) return;
+
+		// Ensure there is enough room in the file for the entries (count * sizeof(AssetEntry))
+		uint64_t entriesSize = static_cast<uint64_t>(count) * sizeof(AssetEntry);
+		if (fileSize < sizeof(uint64_t) + entriesSize) return;
+
+		// Read the AssetEntry array (entries metadata) from the file, just before the count
+		in.seekg(-static_cast<std::streamoff>(sizeof(uint64_t) + entriesSize), std::ios::end);
+		std::vector<AssetEntry> entries(count);
+		in.read(reinterpret_cast<char*>(entries.data()), entriesSize);
+		if (!in) return;
+
+		// Map entries (id -> {offset, size})
+		for (const AssetEntry& entry : entries) {
 			entryMap[entry.id] = { entry.offset, entry.size };
 		}
+
 		PakPath = folderPath;
 		PakLoaded = true;
 	}

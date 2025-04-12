@@ -1402,6 +1402,7 @@ namespace Borealis {
 			std::filesystem::create_directory(filepath + "\\Assets");
 			Project::CopyFolder(Project::GetProjectPath() + "\\Assets", filepath + "\\Assets", ".sc");
 			AssetManager::BuildPak(Project::GetProjectPath() + "\\Cache", filepath + "\\Data.pak");
+			Project::CopyIndividualFile(Project::GetProjectPath() + "\\Cache\\CSharp_Assembly.dll", filepath + "\\CSharp_Assembly.dll");
 			Project::CopyIndividualFile(Project::GetProjectPath() + "\\AssetRegistry.brdb", filepath + "\\AssetRegistry.brdb");
 			Project::CopyIndividualFile(Project::GetProjectPath() + "\\Master.bank", filepath + "\\Master.bank");
 			Project::CopyIndividualFile(Project::GetProjectPath() + "\\Master.strings.bank", filepath + "\\Master.strings.bank");
@@ -1423,8 +1424,7 @@ namespace Borealis {
 			Project::CopyFolder(editorPath + "\\mono", filepath + "\\mono");
 			Project::CopyFolder(editorPath + "\\resources", filepath + "\\resources");
 			Project::CopyFolder(editorPath + "\\engineResources", filepath + "\\engineResources");
-			Project::CopyIndividualFile(editorPath + "\\BorealisRuntime.exe", filepath + "\\BorealisRuntime.exe");
-			Project::CopyIndividualFile(editorPath + "\\BorealisAssetCompiler.exe", filepath + "\\BorealisAssetCompiler.exe");
+			Project::CopyIndividualFile(editorPath + "\\BorealisRuntime.exe", filepath + "\\" + Project::GetProjectName() + ".exe");
 			Project::CopyIndividualFile(editorPath + "\\ispc_texcomp.dll", filepath + "\\" + "\\ispc_texcomp.dll");
 			// Copy and paste .exe file
 		}

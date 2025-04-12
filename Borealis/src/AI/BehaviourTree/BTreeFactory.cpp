@@ -58,13 +58,26 @@ namespace Borealis
         YAML::Node data;
         if (AssetManager::IsPakLoaded())
         {
-            char* buffer;
-            uint64_t size;
-            std::string subPath = filepath.substr(filepath.find_last_of("/\\") + 1);
-            AssetManager::RetrieveFromPak(std::stoull(subPath), buffer, size);
-            std::string yamlContent(buffer, size);
-            data = YAML::Load(yamlContent);
-            delete[] buffer;
+            try
+            {
+                char* buffer;
+                uint64_t size;
+                std::string subPath = filepath.substr(filepath.find_last_of("/\\") + 1);
+                AssetManager::RetrieveFromPak(std::stoull(subPath), buffer, size);
+                std::string yamlContent(buffer, size);
+                data = YAML::Load(yamlContent);
+                delete[] buffer;
+            }
+            catch (const std::exception& e)
+            {
+                try {
+                    data = YAML::LoadFile(filepath);
+                }
+                catch (const YAML::Exception& e) {
+                    BOREALIS_CORE_ERROR("Failed to load behaviour tree from {}: {}", filepath, e.what());
+                    return treeData;
+                }
+			}
         }
         else
         {

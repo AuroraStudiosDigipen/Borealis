@@ -116,13 +116,21 @@ namespace Borealis
 
         if (AssetManager::IsPakLoaded())
         {
-            char* buffer;
-            uint64_t size;
-            std::string subPath = path.filename().string();
-            AssetManager::RetrieveFromPak(std::stoull(subPath), buffer, size);
-            std::string yamlContent(buffer, size);
-            data = YAML::Load(yamlContent);
-            delete[] buffer;
+            try
+            {
+                char* buffer;
+                uint64_t size;
+                std::string subPath = path.filename().string();
+                AssetManager::RetrieveFromPak(std::stoull(subPath), buffer, size);
+                std::string yamlContent(buffer, size);
+                data = YAML::Load(yamlContent);
+                delete[] buffer;
+            }
+            catch(const std::exception& e)
+            {
+                if (!std::filesystem::is_regular_file(path)) return;
+                data = YAML::LoadFile(path.string());
+            }
         }
         else
         {

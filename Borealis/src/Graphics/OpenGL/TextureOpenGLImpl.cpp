@@ -14,7 +14,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <BorealisPCH.hpp>
 #include <Graphics/OpenGL/TextureOpenGLImpl.hpp>
 #include <Core/LoggerSystem.hpp>
-
+#include <Assets/AssetManager.hpp>
 #include <gli.hpp>
 namespace Borealis
 {
@@ -22,7 +22,22 @@ namespace Borealis
 	{
 		PROFILE_FUNCTION();
 
-		gli::texture Texture = gli::load(path);
+		gli::texture Texture;
+		if (AssetManager::IsPakLoaded())
+		{
+			// concat to the last path
+			std::string subPath = path.substr(path.find_last_of("/\\") + 1);
+			uint64_t id = std::stoull(subPath);
+			char* buffer;
+			uint64_t size;
+			AssetManager::RetrieveFromPak(id, buffer, size);
+			Texture = gli::load(buffer, size);
+			delete[] buffer;
+		}
+		else
+		{
+			Texture = gli::load(path);
+		}
 		if (Texture.empty())
 		{
 			BOREALIS_CORE_ASSERT(false,"Invalid texture file {}");
@@ -98,8 +113,22 @@ namespace Borealis
 	OpenGLTexture2D::OpenGLTexture2D(const std::string& path, std::optional<TextureConfig> textureConfig)
 	{
 		PROFILE_FUNCTION();
-
-		gli::texture Texture = gli::load(path);
+		gli::texture Texture;
+		if (AssetManager::IsPakLoaded())
+		{
+			// concat to the last path
+			std::string subPath = path.substr(path.find_last_of("/\\") + 1);
+			uint64_t id = std::stoull(subPath);
+			char* buffer;
+			uint64_t size;
+			AssetManager::RetrieveFromPak(id, buffer, size);
+			Texture = gli::load(buffer, size);
+			delete[] buffer;
+		}
+		else
+		{
+			Texture = gli::load(path);
+		}
 		if (Texture.empty())
 		{
 			BOREALIS_CORE_ASSERT(false, "Invalid texture file {}");
@@ -342,7 +371,23 @@ namespace Borealis
 		PROFILE_FUNCTION();
 
 		// Load the texture using gli
-		gli::texture Texture = gli::load(path.string());
+		gli::texture Texture;
+		if (AssetManager::IsPakLoaded())
+		{
+			// concat to the last path
+			std::string subPath = path.filename().string();
+			uint64_t id = std::stoull(subPath);
+			char* buffer;
+			uint64_t size;
+			AssetManager::RetrieveFromPak(id, buffer, size);
+			Texture = gli::load(buffer, size);
+			delete[] buffer;
+		}
+		else
+		{
+			Texture = gli::load(path.string());
+		}
+
 		if (Texture.empty())
 		{
 			BOREALIS_CORE_ASSERT(false, "Invalid texture file {}");

@@ -1,7 +1,7 @@
 #include <BorealisPCH.hpp>
 #include <Core/LoggerSystem.hpp>
 #include "Graphics/Animation/Animation.hpp"
-
+#include <Assets/AssetManager.hpp>
 namespace Borealis
 {
 	Bone* Animation::FindBone(std::string const& name)
@@ -19,7 +19,7 @@ namespace Borealis
 		return &(*i);
 	}
 
-	void LoadAssimpNodeData(std::ifstream& inFile, AssimpNodeData& node) 
+	void LoadAssimpNodeData(std::stringstream& inFile, AssimpNodeData& node) 
 	{
 		// Read transformation matrix
 		inFile.read(reinterpret_cast<char*>(&node.transformation), sizeof(node.transformation));
@@ -42,69 +42,89 @@ namespace Borealis
 
 	void Animation::LoadAnimation(std::filesystem::path const& path)
 	{
-		std::ifstream inFile(path, std::ios::binary);
-		if (!inFile.is_open()) 
+		
+		std::stringstream inText;
+		if (AssetManager::IsPakLoaded())
 		{
-			BOREALIS_CORE_ASSERT(!inFile.is_open(), "File Not found");
-			return;
+			// concat to the last path
+			std::string subPath = path.filename().string();
+			uint64_t id = std::stoull(subPath);
+			char* buffer;
+			uint64_t size;
+			AssetManager::RetrieveFromPak(id, buffer, size);
+			inText.write(buffer, size);
+			delete[] buffer;
+		}
+		else
+		{
+			std::ifstream inFile(path, std::ios::binary);
+			inFile >> inText.rdbuf();
+			if (!inFile.is_open())
+			{
+				BOREALIS_CORE_ASSERT(!inFile.is_open(), "File Not found");
+				return;
+			}
+			inFile.close();
 		}
 
+
+		
+		
+
 		// Load mDuration
-		inFile.read(reinterpret_cast<char*>(&mDuration), sizeof(mDuration));
+		inText.read(reinterpret_cast<char*>(&mDuration), sizeof(mDuration));
 
 		// Load mTicksPerSecond
-		inFile.read(reinterpret_cast<char*>(&mTicksPerSecond), sizeof(mTicksPerSecond));
+		inText.read(reinterpret_cast<char*>(&mTicksPerSecond), sizeof(mTicksPerSecond));
 
 		// Load the number of bones
 		uint32_t boneCount;
-		inFile.read(reinterpret_cast<char*>(&boneCount), sizeof(boneCount));
+		inText.read(reinterpret_cast<char*>(&boneCount), sizeof(boneCount));
 		mBones.resize(boneCount);
 
 		for (Bone& bone : mBones) 
 		{
 			// Load the length of the name and then the name itself
 			uint32_t nameLength;
-			inFile.read(reinterpret_cast<char*>(&nameLength), sizeof(nameLength));
+			inText.read(reinterpret_cast<char*>(&nameLength), sizeof(nameLength));
 			bone.mName.resize(nameLength);
-			inFile.read(&bone.mName[0], nameLength);
+			inText.read(&bone.mName[0], nameLength);
 
 			// Load bone ID
-			inFile.read(reinterpret_cast<char*>(&bone.mId), sizeof(bone.mId));
+			inText.read(reinterpret_cast<char*>(&bone.mId), sizeof(bone.mId));
 
 			// Load the number of keyframes for positions, rotations, and scales
-			inFile.read(reinterpret_cast<char*>(&bone.mNumPositions), sizeof(bone.mNumPositions));
-			inFile.read(reinterpret_cast<char*>(&bone.mNumRotations), sizeof(bone.mNumRotations));
-			inFile.read(reinterpret_cast<char*>(&bone.mNumScalings), sizeof(bone.mNumScalings));
+			inText.read(reinterpret_cast<char*>(&bone.mNumPositions), sizeof(bone.mNumPositions));
+			inText.read(reinterpret_cast<char*>(&bone.mNumRotations), sizeof(bone.mNumRotations));
+			inText.read(reinterpret_cast<char*>(&bone.mNumScalings), sizeof(bone.mNumScalings));
 
 			// Load all position keyframes
 			bone.mPositions.resize(bone.mNumPositions);
 			for (KeyPosition& pos : bone.mPositions) 
 			{
-				inFile.read(reinterpret_cast<char*>(&pos.position), sizeof(pos.position));
-				inFile.read(reinterpret_cast<char*>(&pos.timeStamp), sizeof(pos.timeStamp));
+				inText.read(reinterpret_cast<char*>(&pos.position), sizeof(pos.position));
+				inText.read(reinterpret_cast<char*>(&pos.timeStamp), sizeof(pos.timeStamp));
 			}
 
 			// Load all rotation keyframes
 			bone.mRotations.resize(bone.mNumRotations);
 			for (KeyRotation& rot : bone.mRotations) 
 			{
-				inFile.read(reinterpret_cast<char*>(&rot.orientation), sizeof(rot.orientation));
-				inFile.read(reinterpret_cast<char*>(&rot.timeStamp), sizeof(rot.timeStamp));
+				inText.read(reinterpret_cast<char*>(&rot.orientation), sizeof(rot.orientation));
+				inText.read(reinterpret_cast<char*>(&rot.timeStamp), sizeof(rot.timeStamp));
 			}
 
 			// Load all scale keyframes
 			bone.mScales.resize(bone.mNumScalings);
 			for (KeyScale& scale : bone.mScales) 
 			{
-				inFile.read(reinterpret_cast<char*>(&scale.scale), sizeof(scale.scale));
-				inFile.read(reinterpret_cast<char*>(&scale.timeStamp), sizeof(scale.timeStamp));
+				inText.read(reinterpret_cast<char*>(&scale.scale), sizeof(scale.scale));
+				inText.read(reinterpret_cast<char*>(&scale.timeStamp), sizeof(scale.timeStamp));
 			}
 		}
 
 		// Load AssimpNodeData structure (root node of the hierarchy)
-		LoadAssimpNodeData(inFile, mRootNode);
-
-		inFile.close();
+		LoadAssimpNodeData(inText, mRootNode);
 	}
 
 	void SaveAssimpNodeData(std::ofstream& outFile, const AssimpNodeData& node) {

@@ -16,7 +16,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/LoggerSystem.hpp>
 #include <AI/BehaviourTree/BTreeFactory.hpp>
 #include <yaml-cpp/yaml.h>
-
+#include <Assets/AssetManager.hpp>
 namespace Borealis
 {
     void BuildBehaviourTree(const YAML::Node& behaviourTreeNode, std::shared_ptr<BehaviourTreeData>& treeData) {
@@ -56,12 +56,25 @@ namespace Borealis
 
         // Load and parse the YAML file
         YAML::Node data;
-        try {
-            data = YAML::LoadFile(filepath);
+        if (AssetManager::IsPakLoaded())
+        {
+            char* buffer;
+            uint64_t size;
+            std::string subPath = filepath.substr(filepath.find_last_of("/\\") + 1);
+            AssetManager::RetrieveFromPak(std::stoull(subPath), buffer, size);
+            std::string yamlContent(buffer, size);
+            data = YAML::Load(yamlContent);
+            delete[] buffer;
         }
-        catch (const YAML::Exception& e) {
-            BOREALIS_CORE_ERROR("Failed to load behaviour tree from {}: {}", filepath, e.what());
-            return treeData;
+        else
+        {
+            try {
+                data = YAML::LoadFile(filepath);
+            }
+            catch (const YAML::Exception& e) {
+                BOREALIS_CORE_ERROR("Failed to load behaviour tree from {}: {}", filepath, e.what());
+                return treeData;
+            }
         }
 
         // Extract the BehaviourTreeComponent

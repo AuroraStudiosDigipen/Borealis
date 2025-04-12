@@ -34,9 +34,18 @@ namespace Borealis
 	class AssetManager
 	{
 	public:
+		static void BuildPak(std::filesystem::path folderPath, std::filesystem::path location);
+		static void ReadPak(std::filesystem::path filePath);
+		static void RetrieveFromPak(uint64_t id, char*& buffer, uint64_t& size);
 		static void RegisterAllAssetType();
 
 		static void RegisterAsset(AssetInfo const& assetInfo);
+
+		static bool IsPakLoaded()
+		{
+			return PakLoaded;
+		}
+
 		
 
 		/*!***********************************************************************
@@ -79,10 +88,13 @@ namespace Borealis
 			AssetManager::RegisterAllAssetType();
 			Project::GetEditorAssetsManager()->Init(Project::GetProjectInfo());
 			Project::GetEditorAssetsManager()->LoadAssetRegistryRunTime("AssetRegistry.brdb");
+			AssetManager::ReadPak(Project::GetProjectInfo().ProjectPath.string() + "\\Data.pak");
 			ScriptingSystem::LoadScriptAssembliesNonThreaded("Cache/CSharp_Assembly.dll");
 		}
 
 	private:
+		inline static std::filesystem::path PakPath;
+		inline static bool PakLoaded = false;
 		inline static std::unordered_map<std::string, AssetType> extensionToAssetType;
 		inline static std::unordered_map<AssetType, std::string> assetTypeToString;
 		inline static std::unordered_map<std::string, AssetType> stringToAssetType;

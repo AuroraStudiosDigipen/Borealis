@@ -17,7 +17,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include "Core/LoggerSystem.hpp"
 #include "Graphics/Material.hpp"
 #include <yaml-cpp/yaml.h>
-
+#include <Assets/AssetManager.hpp>
 namespace YAML
 {
     template<>
@@ -112,8 +112,23 @@ namespace Borealis
         hash = std::hash<std::string>{}(path.string());
         //temp until add to material meta config
         mShader = Shader::GetDefault3DMaterialShader();
-        if (!std::filesystem::is_regular_file(path)) return;
-        YAML::Node data = YAML::LoadFile(path.string());
+        YAML::Node data;
+
+        if (AssetManager::IsPakLoaded())
+        {
+            char* buffer;
+            uint64_t size;
+            std::string subPath = path.filename().string();
+            AssetManager::RetrieveFromPak(std::stoull(subPath), buffer, size);
+            std::string yamlContent(buffer, size);
+            data = YAML::Load(yamlContent);
+            delete[] buffer;
+        }
+        else
+        {
+            if (!std::filesystem::is_regular_file(path)) return;
+            data = YAML::LoadFile(path.string());
+        }
 
         mName = data["Name"].as<std::string>();
 

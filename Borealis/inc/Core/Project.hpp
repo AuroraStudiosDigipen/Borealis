@@ -103,7 +103,7 @@ namespace Borealis
 			\param[in] destination
 				Destination path
 		*************************************************************************/
-		static void CopyFolder(const std::filesystem::path& source, const std::filesystem::path& destination);
+		static void CopyFolder(const std::filesystem::path& source, const std::filesystem::path& destination, std::string filter = "");
 
 		/*!***********************************************************************
 			\brief

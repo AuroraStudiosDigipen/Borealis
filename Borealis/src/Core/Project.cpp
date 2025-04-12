@@ -234,7 +234,7 @@ namespace Borealis
 		outStream.close();
 
 	}
-	void Project::CopyFolder(const std::filesystem::path& source, const std::filesystem::path& destination)
+	void Project::CopyFolder(const std::filesystem::path& source, const std::filesystem::path& destination, std::string filter)
 	{
 
 		// Check if the source directory exists
@@ -255,11 +255,12 @@ namespace Borealis
 
 			if (std::filesystem::is_directory(path)) {
 				// Recursively copy the directory
-				CopyFolder(path, dest_path);
+				CopyFolder(path, dest_path, filter);
 			}
 			else {
 				// Copy the file
-				std::filesystem::copy(path, dest_path, std::filesystem::copy_options::overwrite_existing);
+				if (filter != "" && path.extension().string() == filter)
+					std::filesystem::copy(path, dest_path, std::filesystem::copy_options::overwrite_existing);
 			}
 
 

@@ -17,7 +17,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/SkinnedModel.hpp>
 
 #include <Core/LoggerSystem.hpp>
-
+#include <Assets/AssetManager.hpp>
 namespace Borealis
 {
 	void Model::Draw(const glm::mat4& transform, Ref<Shader> shader, int entityID, bool posOnly)
@@ -30,7 +30,25 @@ namespace Borealis
 
 	void Model::LoadModel(std::filesystem::path const& path)
 	{
-		std::ifstream inFile(path, std::ios::binary);
+		std::stringstream inFile;
+		if (AssetManager::IsPakLoaded())
+		{
+			std::string subPath = path.filename().string();
+			uint64_t id = std::stoull(subPath);
+			char* buffer;
+			uint64_t size;
+			AssetManager::RetrieveFromPak(id, buffer, size);
+			inFile << std::string(buffer, size);
+			delete[] buffer;
+		}
+		else
+		{
+			std::ifstream actualFile(path, std::ios::binary);
+			inFile << actualFile.rdbuf();
+			actualFile.close();
+		}
+
+		
 
 		uint32_t meshCount;
 		inFile.read(reinterpret_cast<char*>(&meshCount), sizeof(meshCount));
@@ -96,8 +114,6 @@ namespace Borealis
 
 		GenerateRitterBoundingSphere();
 		GenerateAABB();
-
-		inFile.close();
 	}
 
 	void Model::SaveModel()

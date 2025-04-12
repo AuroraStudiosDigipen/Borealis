@@ -21,9 +21,124 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/Material.hpp>
 #include <Graphics/Animation/Animation.hpp>
 #include <Scripting/ScriptingSystem.hpp>
-
+#include <map>
 namespace Borealis
 {
+	struct AssetEntry
+	{
+		uint64_t id;
+		uint64_t offset;
+		uint32_t size;
+	};
+
+	struct AssetEntryValue
+	{
+		uint64_t offset;
+		uint32_t size;
+	};
+
+	void AssetManager::BuildPak(std::filesystem::path folderPath, std::filesystem::path location)
+	{
+		
+		std::vector<AssetEntry> entries;
+		uint64_t offset = 0;
+		std::ofstream out(location, std::ios::binary);
+
+		for (const auto& entry : std::filesystem::directory_iterator(folderPath)) {
+			if (!entry.is_regular_file()) continue;
+
+			try
+			{
+				uint64_t hashId = std::stoull(entry.path().filename().string()); // assumes filename is hex
+	
+				std::ifstream in(entry.path(), std::ios::binary | std::ios::ate);
+				if (!in) continue;
+
+				uint32_t size = static_cast<uint32_t>(in.tellg());
+				in.seekg(0);
+				std::vector<char> buffer(size);
+				in.read(buffer.data(), size);
+				out.write(buffer.data(), size);
+
+				entries.push_back({ hashId, offset, size });
+				offset += size;
+			}
+			catch (const std::invalid_argument& e)
+			{
+				continue; // Skip this file if the filename is not a valid hex string
+			}
+			catch (const std::out_of_range& e)
+			{
+				continue; // Skip this file if the filename is out of range
+			}
+		}
+
+		uint32_t count = entries.size();
+		out.write((char*)&count, sizeof(count));
+		out.write((char*)entries.data(), sizeof(AssetEntry)* entries.size());
+		out.close();
+	}
+	std::map<uint64_t, AssetEntryValue> entryMap;
+
+	void AssetManager::ReadPak(std::filesystem::path folderPath)
+	{
+		std::vector<AssetEntry> entries;
+		std::ifstream in(folderPath, std::ios::binary);
+		if (!in) return;
+		uint64_t fileSize = in.tellg();
+		in.seekg(fileSize -sizeof(uint32_t), std::ios::end);
+		uint32_t count;
+		in.read(reinterpret_cast<char*>(&count), sizeof(count));
+
+		// Read asset entries into memor
+		in.seekg(fileSize - sizeof(uint32_t) - count * sizeof(AssetEntry));
+		entries.resize(count);
+		in.read(reinterpret_cast<char*>(entries.data()), count * sizeof(AssetEntry));
+
+		for (const AssetEntry& entry : entries)
+		{
+			entryMap[entry.id] = { entry.offset, entry.size };
+		}
+		PakPath = folderPath;
+		PakLoaded = true;
+	}
+
+	void AssetManager::RetrieveFromPak(uint64_t id, char*& buffer, uint64_t& size)
+	{
+		auto it = entryMap.find(id);
+		if (it != entryMap.end())
+		{
+			AssetEntryValue entry = it->second;
+			size = entry.size;
+			buffer = new char[size];
+			std::ifstream in(PakPath, std::ios::binary);
+			in.seekg(entry.offset);
+			in.read(buffer, size);
+			in.close();
+		}
+		else
+		{
+			std::cerr << "Asset ID not found in pak file." << std::endl;
+		}
+	}
+
+	static void ReadEntry(uint64_t id, uint8_t* data, uint64_t size)
+	{
+		auto it = entryMap.find(id);
+		if (it != entryMap.end())
+		{
+			AssetEntryValue entry = it->second;
+			std::ifstream in("assets.pak", std::ios::binary);
+			in.seekg(entry.offset);
+			in.read(reinterpret_cast<char*>(data), entry.size);
+			in.close();
+		}
+		else
+		{
+			std::cerr << "Asset ID not found in pak file." << std::endl;
+		}
+	}
+
 	void AssetManager::RegisterAllAssetType()
 	{
 		std::vector<AssetInfo> infos

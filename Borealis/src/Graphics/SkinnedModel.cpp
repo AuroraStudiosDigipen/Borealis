@@ -15,7 +15,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <BorealisPCH.hpp>
 
 #include <Graphics/SkinnedModel.hpp>
-
+#include <Assets/AssetManager.hpp>
 namespace Borealis
 {
 	void SkinnedModel::Draw(const glm::mat4& transform, Ref<Shader> shader, int entityID)
@@ -28,7 +28,24 @@ namespace Borealis
 
 	void SkinnedModel::LoadModel(std::filesystem::path const& path)
 	{
-		std::ifstream inFile(path, std::ios::binary);
+		std::stringstream inFile;
+		if (AssetManager::IsPakLoaded())
+		{
+			std::string subPath = path.filename().string();
+			uint64_t id = std::stoull(subPath);
+			char* buffer;
+			uint64_t size;
+			AssetManager::RetrieveFromPak(id, buffer, size);
+			inFile << std::string(buffer, size);
+			delete[] buffer;
+		}
+		else
+		{
+			std::ifstream actualFile(path, std::ios::binary);
+			inFile << actualFile.rdbuf();
+			actualFile.close();
+		}
+
 
 		uint32_t meshCount;
 		inFile.read(reinterpret_cast<char*>(&meshCount), sizeof(meshCount));
@@ -107,8 +124,6 @@ namespace Borealis
 
 		// Load bone counter
 		inFile.read(reinterpret_cast<char*>(&mBoneCounter), sizeof(mBoneCounter));
-
-		inFile.close();
 	}
 
 	void SkinnedModel::AssignAnimation(Ref<Animation> animation)

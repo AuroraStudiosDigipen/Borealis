@@ -87,8 +87,7 @@ namespace Borealis
 		{
 			AssetManager::RegisterAllAssetType();
 			Project::GetEditorAssetsManager()->Init(Project::GetProjectInfo());
-			Project::GetEditorAssetsManager()->LoadAssetRegistryRunTime("AssetRegistry.brdb");
-			std::string item = Project::GetProjectInfo().ProjectPath.string() + "\\Data.pak";
+			Project::GetEditorAssetsManager()->LoadAssetRegistryRunTime("AssetRegistry.brdb", true);
 			AssetManager::ReadPak(Project::GetProjectInfo().ProjectPath.string() + "\\Data.pak");
 			ScriptingSystem::LoadScriptAssembliesNonThreaded("CSharp_Assembly.dll");
 		}

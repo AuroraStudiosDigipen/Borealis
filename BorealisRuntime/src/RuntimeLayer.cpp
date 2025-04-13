@@ -57,7 +57,7 @@ namespace BorealisRuntime
 		BOREALIS_CORE_ASSERT(found, "No Project File found!");
 
 		std::string activeSceneName;
-		if (Borealis::Project::SetProjectPath(projectPath, activeSceneName))
+		if (Borealis::Project::SetProjectPath(projectPath, activeSceneName, true))
 		{
 			// Load Asset Registry here
 			Borealis::AssetManager::SetRunTime();

@@ -44,6 +44,85 @@ namespace Borealis
 	static const uint8_t iv_part4[] = { 0xD6, 0xE7, 0xF8, 0x09 };
 
 
+	static bool decryptFileToStream(const std::string& inputPath,
+		unsigned char* key, unsigned char* iv,
+		std::stringstream& decryptedStream) {
+		std::ifstream inFile(inputPath, std::ios::binary);
+		if (!inFile) return false;
+
+		EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
+		if (!ctx) return false;
+
+		EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), nullptr, key, iv);
+
+		const size_t bufferSize = 4096;
+		std::vector<unsigned char> inBuf(bufferSize);
+		std::vector<unsigned char> outBuf(bufferSize);
+
+		int outLen = 0;
+		while (inFile.good()) {
+			inFile.read(reinterpret_cast<char*>(inBuf.data()), bufferSize);
+			std::streamsize readBytes = inFile.gcount();
+
+			if (!EVP_DecryptUpdate(ctx, outBuf.data(), &outLen, inBuf.data(), static_cast<int>(readBytes))) {
+				EVP_CIPHER_CTX_free(ctx);
+				return false;
+			}
+
+			// Write decrypted data to stringstream
+			decryptedStream.write(reinterpret_cast<char*>(outBuf.data()), outLen);
+		}
+
+		if (!EVP_DecryptFinal_ex(ctx, outBuf.data(), &outLen)) {
+			EVP_CIPHER_CTX_free(ctx);
+			return false;
+		}
+
+		// Write the final decrypted data to stringstream
+		decryptedStream.write(reinterpret_cast<char*>(outBuf.data()), outLen);
+
+		EVP_CIPHER_CTX_free(ctx);
+		return true;
+	}
+
+	static bool encryptString(const std::string& inputString, const std::string& outputPath,
+		unsigned char* key, unsigned char* iv)
+	{
+		std::istringstream inFile(inputString);
+		std::ofstream outFile(outputPath, std::ios::binary);
+		if (!outFile) return false;
+
+		EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
+		if (!ctx) return false;
+
+		EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), nullptr, key, iv);
+
+		const size_t bufferSize = 4096;
+		std::vector<unsigned char> inBuf(bufferSize);
+		std::vector<unsigned char> outBuf(bufferSize + EVP_CIPHER_block_size(EVP_aes_256_cbc()));
+
+		int outLen = 0;
+		while (inFile.good()) {
+			inFile.read(reinterpret_cast<char*>(inBuf.data()), bufferSize);
+			std::streamsize readBytes = inFile.gcount();
+
+			if (!EVP_EncryptUpdate(ctx, outBuf.data(), &outLen, inBuf.data(), static_cast<int>(readBytes))) {
+				EVP_CIPHER_CTX_free(ctx);
+				return false;
+			}
+			outFile.write(reinterpret_cast<char*>(outBuf.data()), outLen);
+		}
+
+		if (!EVP_EncryptFinal_ex(ctx, outBuf.data(), &outLen)) {
+			EVP_CIPHER_CTX_free(ctx);
+			return false;
+		}
+		outFile.write(reinterpret_cast<char*>(outBuf.data()), outLen);
+
+		EVP_CIPHER_CTX_free(ctx);
+		return true;
+	}
+
 
 	static bool encryptFile(const std::string& inputPath, const std::string& outputPath,
 			unsigned char* key, unsigned char* iv) {
@@ -115,7 +194,7 @@ namespace Borealis
 		mProjectInfo.ProjectName = name;
 	}
 
-	bool Project::SetProjectPath(std::string path, std::string& activeSceneName)
+	bool Project::SetProjectPath(std::string path, std::string& activeSceneName, bool encrypt)
 	{
 		// check if project path exists
 		std::string retScene = "";
@@ -135,11 +214,18 @@ namespace Borealis
 				LayerList::Reset();
 				////pass in project info
 				//GetEditorAssetsManager()->LoadRegistry(mProjectInfo);
-
-				std::ifstream inStream(projectFile);
 				std::stringstream ss;
-				ss << inStream.rdbuf();
-				inStream.close();
+				if (encrypt)
+				{
+					decryptFileToStream(projectFile, assembleKey().data(), assembleIV().data(), ss);
+				}
+				else
+				{
+					std::ifstream inStream(projectFile);
+					ss << inStream.rdbuf();
+					inStream.close();
+				}
+				
 
 				YAML::Node data = YAML::Load(ss.str());
 				mProjectInfo.ProjectName = data["ProjectName"].as<std::string>();
@@ -253,7 +339,7 @@ namespace Borealis
 		return mProjectInfo;
 	}
 
-	void Project::BuildExportSettings(std::string buildPath, std::string buildName)
+	void Project::BuildExportSettings(std::string buildPath, std::string buildName, bool encrypt)
 	{
 		buildPath += "/" + buildName + ".brls";
 
@@ -284,9 +370,14 @@ namespace Borealis
 		}
 		out << YAML::EndMap;
 
-		std::ofstream outStream(buildPath);
-		outStream << out.c_str();
-		outStream.close();
+		if (encrypt)
+			encryptString(out.c_str(), buildPath, assembleKey().data(), assembleIV().data());
+		else
+		{
+			std::ofstream outStream(buildPath);
+			outStream << out.c_str();
+			outStream.close();
+		}
 
 	}
 
@@ -358,9 +449,22 @@ namespace Borealis
 	}
 
 
-	void Project::CopyIndividualFile(const std::filesystem::path& source, const std::filesystem::path& destination)
+	void Project::CopyIndividualFile(const std::filesystem::path& source, const std::filesystem::path& destination, bool encrypt)
 	{
-		std::filesystem::copy(source, destination, std::filesystem::copy_options::overwrite_existing);
+		if (!std::filesystem::exists(destination.parent_path()))
+		{
+			std::filesystem::create_directories(destination.parent_path());
+		}
+		if (encrypt)
+		{
+			std::vector<uint8_t> key = assembleKey();
+			std::vector<uint8_t> iv = assembleIV();
+			encryptFile(source.string(), destination.string(), key.data(), iv.data());
+		}
+		else
+		{
+			std::filesystem::copy(source, destination, std::filesystem::copy_options::overwrite_existing);
+		}
 	}
 
 	std::shared_ptr<EditorAssetManager> Project::GetEditorAssetsManager()

@@ -1403,7 +1403,7 @@ namespace Borealis {
 			Project::CopyFolder(Project::GetProjectPath() + "\\Assets", filepath + "\\Assets", ".sc", true);
 			AssetManager::BuildPak(Project::GetProjectPath() + "\\Cache", filepath + "\\Data.pak");
 			Project::CopyIndividualFile(Project::GetProjectPath() + "\\Cache\\CSharp_Assembly.dll", filepath + "\\CSharp_Assembly.dll");
-			Project::CopyIndividualFile(Project::GetProjectPath() + "\\AssetRegistry.brdb", filepath + "\\AssetRegistry.brdb");
+			Project::CopyIndividualFile(Project::GetProjectPath() + "\\AssetRegistry.brdb", filepath + "\\AssetRegistry.brdb", true);
 			Project::CopyIndividualFile(Project::GetProjectPath() + "\\Master.bank", filepath + "\\Master.bank");
 			Project::CopyIndividualFile(Project::GetProjectPath() + "\\Master.strings.bank", filepath + "\\Master.strings.bank");
 

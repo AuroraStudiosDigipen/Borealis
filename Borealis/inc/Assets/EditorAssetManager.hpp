@@ -35,7 +35,7 @@ namespace Borealis
 
 		//TEMP
 		//===================================
-		void LoadAssetRegistryRunTime(std::string path);
+		void LoadAssetRegistryRunTime(std::string path, bool encrypt = false);
 		//===================================
 
 		void RegisterAsset(AssetType type, AssetLoaderFunc loadFunc, AssetReloadFunc reloadFunc);

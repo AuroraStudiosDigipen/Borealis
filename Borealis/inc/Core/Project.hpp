@@ -47,7 +47,7 @@ namespace Borealis
 			\return
 				True if the project is loaded successfully, false otherwise
 		*************************************************************************/
-		static bool SetProjectPath(std::string path, std::string& activeSceneName);
+		static bool SetProjectPath(std::string path, std::string& activeSceneName, bool encrypt = false);
 
 		/*!***********************************************************************
 			\brief
@@ -93,7 +93,7 @@ namespace Borealis
 			\param[in] buildName
 				Name of the build
 		*************************************************************************/
-		static void BuildExportSettings(std::string buildPath, std::string buildName);
+		static void BuildExportSettings(std::string buildPath, std::string buildName, bool encrypt = true);
 
 		/*!***********************************************************************
 			\brief
@@ -114,7 +114,7 @@ namespace Borealis
 			\param[in] destination
 				Destination path
 		*************************************************************************/
-		static void CopyIndividualFile(const std::filesystem::path& source, const std::filesystem::path& destination);
+		static void CopyIndividualFile(const std::filesystem::path& source, const std::filesystem::path& destination, bool encrypt = false);
 
 		/*!***********************************************************************
 			\brief

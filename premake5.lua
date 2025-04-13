@@ -28,6 +28,7 @@ workspace "Borealis"
 	IncludeDir["xproperty"] = "Borealis/lib/xproperty/include"
 	IncludeDir["Gli"] = "Borealis/lib/gli"
 	IncludeDir["RTTR"] = "Borealis/lib/RTTR/include"
+	IncludeDir["OpenSSL"] = "Borealis/lib/OpenSSL/include"
 
 	IncludeDir["assimp"] = "BorealisEditor/lib/assimp/include"
 	IncludeDir["ImGuiNodeEditor"] = "BorealisEditor/lib/imgui-node-editor"
@@ -63,8 +64,14 @@ workspace "Borealis"
 	LibraryDir["IMGUI_Release"] = "lib/IMGUI/lib/Rel"
 	LibraryDir["RTTR_Debug"] = "lib/RTTR/lib/Deb"
 	LibraryDir["RTTR_Release"] = "lib/RTTR/lib/Rel"
+	LibraryDir["OpenSSL_Debug"] = "lib/OpenSSL/lib/Deb"
+	LibraryDir["OpenSSL_Release"] = "lib/OpenSSL/lib/Rel"
 
 	Library = {}
+	Library["OpenSSL_Debug"] = "%{LibraryDir.OpenSSL_Debug}/libssl_static.lib"
+	Library["OpenSSL_Release"] = "%{LibraryDir.OpenSSL_Release}/libssl_static.lib"
+	Library["Crypto_Debug"] = "%{LibraryDir.OpenSSL_Debug}/libcrypto_static.lib"
+	Library["Crypto_Release"] = "%{LibraryDir.OpenSSL_Release}/libcrypto_static.lib"
 	Library["FMOD_Debug"] = "%{LibraryDir.FMOD}/fmodL_vc.lib"
 	Library["FMOD_Release"] = "%{LibraryDir.FMOD}/fmod_vc.lib"
 	Library["FMODStudio_Debug"] = "%{LibraryDir.FMOD}/fmodstudioL_vc.lib"
@@ -163,13 +170,15 @@ workspace "Borealis"
 			"%{IncludeDir.Mono}",
 			"%{IncludeDir.xproperty}",
 			"%{IncludeDir.Gli}",
-			"%{IncludeDir.RTTR}"
+			"%{IncludeDir.RTTR}",
+			"%{IncludeDir.OpenSSL}"
 		}
 
 
 		links
 		{
 			"opengl32.lib",
+			"crypt32.lib",
 			"Tracy",
 		}
 
@@ -203,7 +212,10 @@ workspace "Borealis"
 				"%{Library.Jolt_Debug}",
 				"%{Library.YAML_Debug}",
 				"%{Library.IMGUI_Debug}",
-				"%{Library.RTTR_Debug}"
+				"%{Library.RTTR_Debug}",
+				"%{Library.OpenSSL_Debug}",
+				"%{Library.Crypto_Debug}"
+				
 			}
 			postbuildcommands {
 				"{COPY} \"engineResources\" \"../BorealisEditor/engineResources\""
@@ -223,7 +235,9 @@ workspace "Borealis"
 				"%{Library.Jolt_Release}",
 				"%{Library.YAML_Release}",
 				"%{Library.IMGUI_Release}",
-				"%{Library.RTTR_Release}"
+				"%{Library.RTTR_Release}",
+				"%{Library.OpenSSL_Release}",
+				"%{Library.Crypto_Release}"
 			}
 			postbuildcommands {
 				"{COPY} \"engineResources\" \"../BorealisEditor/engineResources\""
@@ -243,7 +257,9 @@ workspace "Borealis"
 				"%{Library.Jolt_Release}",
 				"%{Library.YAML_Release}",
 				"%{Library.IMGUI_Release}",
-				"%{Library.RTTR_Release}"
+				"%{Library.RTTR_Release}",
+				"%{Library.OpenSSL_Release}",
+				"%{Library.Crypto_Release}"
 			}
 			postbuildcommands {
 				"{COPY} \"engineResources\" \"../BorealisEditor/engineResources\""

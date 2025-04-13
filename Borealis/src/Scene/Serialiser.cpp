@@ -32,6 +32,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Core/Project.hpp>
 #include <Audio/AudioEngine.hpp>
 #include <Core/Utils.hpp>
+#include <openssl/evp.h>
 namespace Borealis
 {
 
@@ -1151,13 +1152,65 @@ namespace Borealis
 		return loadedEntity;
 	}
 
-	bool Serialiser::DeserialiseScene(const std::string& filepath)
+	static bool decryptFileToStream(const std::string& inputPath,
+		unsigned char* key, unsigned char* iv,
+		std::stringstream& decryptedStream) {
+		std::ifstream inFile(inputPath, std::ios::binary);
+		if (!inFile) return false;
+
+		EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
+		if (!ctx) return false;
+
+		EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), nullptr, key, iv);
+
+		const size_t bufferSize = 4096;
+		std::vector<unsigned char> inBuf(bufferSize);
+		std::vector<unsigned char> outBuf(bufferSize);
+
+		int outLen = 0;
+		while (inFile.good()) {
+			inFile.read(reinterpret_cast<char*>(inBuf.data()), bufferSize);
+			std::streamsize readBytes = inFile.gcount();
+
+			if (!EVP_DecryptUpdate(ctx, outBuf.data(), &outLen, inBuf.data(), static_cast<int>(readBytes))) {
+				EVP_CIPHER_CTX_free(ctx);
+				return false;
+			}
+
+			// Write decrypted data to stringstream
+			decryptedStream.write(reinterpret_cast<char*>(outBuf.data()), outLen);
+		}
+
+		if (!EVP_DecryptFinal_ex(ctx, outBuf.data(), &outLen)) {
+			EVP_CIPHER_CTX_free(ctx);
+			return false;
+		}
+
+		// Write the final decrypted data to stringstream
+		decryptedStream.write(reinterpret_cast<char*>(outBuf.data()), outLen);
+
+		EVP_CIPHER_CTX_free(ctx);
+		return true;
+	}
+
+	bool Serialiser::DeserialiseScene(const std::string& filepath, bool encrypt)
 	{
-		TagList::Clear();
-		std::ifstream inStream(filepath);
 		std::stringstream ss;
-		ss << inStream.rdbuf();
-		inStream.close();
+		TagList::Clear();
+
+		if (encrypt)
+		{
+			auto IV = Project::assembleIV();
+			auto Key = Project::assembleKey();
+			decryptFileToStream(filepath, Key.data(), IV.data(), ss);
+		}
+		else
+		{
+			std::ifstream inStream(filepath);
+			ss << inStream.rdbuf();
+			inStream.close();
+		}
+		
 
 		YAML::Node data = YAML::Load(ss.str());
 		if (!data["Scene"])

@@ -20,12 +20,67 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Scene/SceneManager.hpp>
 #include <Core/LayerList.hpp>
 #include <Audio/AudioEngine.hpp>
-
+#include <openssl/evp.h>
+#include <cstdint>
+#include <cstring>
 namespace Borealis
 {
 	ProjectInfo Project::mProjectInfo;
 
 	std::shared_ptr<IAssetManager> Project::mAssetManager = nullptr;
+
+	static const uint8_t key_part1[] = { 0xA3, 0x1F, 0x56, 0x90 };
+	static const uint8_t key_part2[] = { 0xDE, 0x34, 0x12, 0x78 };
+	static const uint8_t key_part3[] = { 0xC0, 0xFF, 0xEE, 0x11 };
+	static const uint8_t key_part4[] = { 0x22, 0x33, 0x44, 0x55 };
+	static const uint8_t key_part5[] = { 0x66, 0x77, 0x88, 0x99 };
+	static const uint8_t key_part6[] = { 0xAB, 0xCD, 0xEF, 0x01 };
+	static const uint8_t key_part7[] = { 0x23, 0x45, 0x67, 0x89 };
+	static const uint8_t key_part8[] = { 0x10, 0x20, 0x30, 0x40 };
+
+	static const uint8_t iv_part1[] = { 0x1A, 0x2B, 0x3C, 0x4D };
+	static const uint8_t iv_part2[] = { 0x5E, 0x6F, 0x70, 0x81 };
+	static const uint8_t iv_part3[] = { 0x92, 0xA3, 0xB4, 0xC5 };
+	static const uint8_t iv_part4[] = { 0xD6, 0xE7, 0xF8, 0x09 };
+
+
+
+	static bool encryptFile(const std::string& inputPath, const std::string& outputPath,
+			unsigned char* key, unsigned char* iv) {
+		std::ifstream inFile(inputPath, std::ios::binary);
+		std::ofstream outFile(outputPath, std::ios::binary);
+		if (!inFile || !outFile) return false;
+
+		EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
+		if (!ctx) return false;
+
+		EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), nullptr, key, iv);
+
+		const size_t bufferSize = 4096;
+		std::vector<unsigned char> inBuf(bufferSize);
+		std::vector<unsigned char> outBuf(bufferSize + EVP_CIPHER_block_size(EVP_aes_256_cbc()));
+
+		int outLen = 0;
+		while (inFile.good()) {
+			inFile.read(reinterpret_cast<char*>(inBuf.data()), bufferSize);
+			std::streamsize readBytes = inFile.gcount();
+
+			if (!EVP_EncryptUpdate(ctx, outBuf.data(), &outLen, inBuf.data(), static_cast<int>(readBytes))) {
+				EVP_CIPHER_CTX_free(ctx);
+				return false;
+			}
+			outFile.write(reinterpret_cast<char*>(outBuf.data()), outLen);
+		}
+
+		if (!EVP_EncryptFinal_ex(ctx, outBuf.data(), &outLen)) {
+			EVP_CIPHER_CTX_free(ctx);
+			return false;
+		}
+		outFile.write(reinterpret_cast<char*>(outBuf.data()), outLen);
+
+		EVP_CIPHER_CTX_free(ctx);
+		return true;
+	}
 
 	void Project::CreateProject(std::string name, std::string path)
 	{
@@ -234,7 +289,31 @@ namespace Borealis
 		outStream.close();
 
 	}
-	void Project::CopyFolder(const std::filesystem::path& source, const std::filesystem::path& destination, std::string filter)
+
+	std::vector<uint8_t> Project::assembleKey() {
+		std::vector<uint8_t> key(32);
+		memcpy(key.data(), key_part1, 4);
+		memcpy(key.data() + 4, key_part2, 4);
+		memcpy(key.data() + 8, key_part3, 4);
+		memcpy(key.data() + 12, key_part4, 4);
+		memcpy(key.data() + 16, key_part5, 4);
+		memcpy(key.data() + 20, key_part6, 4);
+		memcpy(key.data() + 24, key_part7, 4);
+		memcpy(key.data() + 28, key_part8, 4);
+		return key;
+	}
+
+	std::vector<uint8_t> Project::assembleIV() {
+		std::vector<uint8_t> iv(16);
+		memcpy(iv.data(), iv_part1, 4);
+		memcpy(iv.data() + 4, iv_part2, 4);
+		memcpy(iv.data() + 8, iv_part3, 4);
+		memcpy(iv.data() + 12, iv_part4, 4);
+		return iv;
+	}
+
+	void Project::CopyFolder(const std::filesystem::path& source, const std::filesystem::path& destination, std::string filter,
+		bool encrypt)
 	{
 
 		// Check if the source directory exists
@@ -261,7 +340,16 @@ namespace Borealis
 					{
 						std::filesystem::create_directories(dest_path.parent_path());
 					}
-					std::filesystem::copy(path, dest_path, std::filesystem::copy_options::overwrite_existing);
+					if (!encrypt)
+					{
+						std::filesystem::copy(path, dest_path, std::filesystem::copy_options::overwrite_existing);
+					}
+					else
+					{
+						std::vector<uint8_t> key = assembleKey();
+						std::vector<uint8_t> iv = assembleIV();
+						encryptFile(path.string(), dest_path.string(), key.data(), iv.data());
+					}
 				}
 			}
 

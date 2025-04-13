@@ -62,7 +62,7 @@ namespace BorealisRuntime
 			// Load Asset Registry here
 			Borealis::AssetManager::SetRunTime();
 			Borealis::Serialiser serialiser(nullptr);
-			Borealis::SceneManager::SetActiveScene(activeSceneName, serialiser);
+			Borealis::SceneManager::SetActiveScene(activeSceneName, serialiser, true);
 
 			auto view = Borealis::SceneManager::GetActiveScene()->GetRegistry().view<Borealis::CameraComponent>();
 			for (auto entity : view)
@@ -170,7 +170,7 @@ namespace BorealisRuntime
 		{
 			Borealis::SceneManager::GetActiveScene()->RuntimeEnd();
 			Borealis::Serialiser serialiser(nullptr);
-			Borealis::SceneManager::SetActiveScene(Borealis::SceneManager::NextSceneName, serialiser);
+			Borealis::SceneManager::SetActiveScene(Borealis::SceneManager::NextSceneName, serialiser, true);
 			Borealis::SceneManager::ToNextScene = false;
 			Borealis::SceneManager::NextSceneName = "";
 			Borealis::SceneManager::GetActiveScene()->RuntimeStart();

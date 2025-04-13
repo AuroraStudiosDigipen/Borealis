@@ -52,7 +52,7 @@ namespace Borealis
         else
             BOREALIS_CORE_ERROR("Scene {0} not found in Scene Library", sceneName);
     }
-    void SceneManager::SetActiveScene(std::string sceneName, Serialiser& serialiser)
+    void SceneManager::SetActiveScene(std::string sceneName, Serialiser& serialiser, bool encrypt)
     {
 		std::transform(sceneName.begin(), sceneName.end(), sceneName.begin(), ::tolower);
         if (mSceneLibrary.find(sceneName) != mSceneLibrary.end())
@@ -61,7 +61,7 @@ namespace Borealis
             if (mSceneLibrary[sceneName] != "")
             {
                 serialiser(newScene);
-                serialiser.DeserialiseScene(SceneManager::GetSceneLibrary()[sceneName]);
+                serialiser.DeserialiseScene(SceneManager::GetSceneLibrary()[sceneName], encrypt);
             }
             if (mActiveScene)
             {

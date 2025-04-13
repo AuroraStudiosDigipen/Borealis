@@ -103,7 +103,8 @@ namespace Borealis
 			\param[in] destination
 				Destination path
 		*************************************************************************/
-		static void CopyFolder(const std::filesystem::path& source, const std::filesystem::path& destination, std::string filter = "");
+		static void CopyFolder(const std::filesystem::path& source, const std::filesystem::path& destination, std::string filter = ""
+			,bool encrypt = false);
 
 		/*!***********************************************************************
 			\brief
@@ -122,6 +123,12 @@ namespace Borealis
 				Asset Manager
 		*************************************************************************/
 		static std::shared_ptr<EditorAssetManager> GetEditorAssetsManager();
+
+		static std::vector<uint8_t> assembleKey();
+		
+
+		static std::vector<uint8_t> assembleIV();
+
 	private:
 		static ProjectInfo mProjectInfo; //!< Project Info
 

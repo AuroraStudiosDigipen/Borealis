@@ -1400,7 +1400,7 @@ namespace Borealis {
 			Project::BuildExportSettings(filepath, projectName);
 			// Copy and paste assets
 			std::filesystem::create_directory(filepath + "\\Assets");
-			Project::CopyFolder(Project::GetProjectPath() + "\\Assets", filepath + "\\Assets", ".sc");
+			Project::CopyFolder(Project::GetProjectPath() + "\\Assets", filepath + "\\Assets", ".sc", true);
 			AssetManager::BuildPak(Project::GetProjectPath() + "\\Cache", filepath + "\\Data.pak");
 			Project::CopyIndividualFile(Project::GetProjectPath() + "\\Cache\\CSharp_Assembly.dll", filepath + "\\CSharp_Assembly.dll");
 			Project::CopyIndividualFile(Project::GetProjectPath() + "\\AssetRegistry.brdb", filepath + "\\AssetRegistry.brdb");

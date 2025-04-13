@@ -63,7 +63,7 @@ namespace Borealis
 			\return
 				True if the deserialisation was successful, false otherwise
 		*************************************************************************/
-		bool DeserialiseScene(const std::string& filepath);
+		bool DeserialiseScene(const std::string& filepath, bool encrypt = false);
 
 		virtual void SerialiseAbstractItems(YAML::Emitter& out, Entity& entity) {};
 		virtual void DeserialiseAbstractItems(YAML::detail::iterator_value& data, Entity& entity) {};

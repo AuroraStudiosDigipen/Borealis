@@ -126,7 +126,7 @@ namespace Borealis
                 data = YAML::Load(yamlContent);
                 delete[] buffer;
             }
-            catch(const std::exception& e)
+            catch(...)
             {
                 if (!std::filesystem::is_regular_file(path)) return;
                 data = YAML::LoadFile(path.string());

@@ -130,7 +130,7 @@ namespace Borealis
 			 auto parent = SceneManager::GetActiveScene()->GetEntityByUUID(ParentID);
 			 auto& parentTC = parent.GetComponent<TransformComponent>();
 			auto pos = std::find(parentTC.ChildrenID.begin(), parentTC.ChildrenID.end(), entity.GetUUID());
-			return std::distance(parentTC.ChildrenID.begin(), pos) + 1;
+			return (int)std::distance(parentTC.ChildrenID.begin(), pos) + 1;
 		 }
 	 }
 

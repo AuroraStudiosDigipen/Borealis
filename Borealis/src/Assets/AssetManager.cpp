@@ -62,11 +62,8 @@ namespace Borealis
 				entries.push_back({ hashId, offset, size });
 				offset += size;
 			}
-			catch (const std::invalid_argument& e) {
+			catch (...) {
 				continue; // Skip if filename isn't a valid hex string
-			}
-			catch (const std::out_of_range& e) {
-				continue; // Skip if filename is out of range
 			}
 		}
 
@@ -77,22 +74,24 @@ namespace Borealis
 	}
 	std::map<uint64_t, AssetEntryValue> entryMap;
 
+	static std::ifstream pakStream;
+
 	void AssetManager::ReadPak(std::filesystem::path folderPath)
 	{
-		std::ifstream in(folderPath, std::ios::binary);
-		if (!in) return;
+		pakStream.open(folderPath, std::ios::binary);
+		if (!pakStream) return;
 
 		// Seek to the end of the file to determine the total size
-		in.seekg(0, std::ios::end);
-		uint64_t fileSize = in.tellg();
+		pakStream.seekg(0, std::ios::end);
+		uint64_t fileSize = pakStream.tellg();
 
 		// Ensure the file has at least the size for a count and entries
 		if (fileSize < sizeof(uint64_t)) return;
 
 		// Read count first (4 bytes) from the end of the file
-		in.seekg(-static_cast<std::streamoff>(sizeof(uint64_t)), std::ios::end);
+		pakStream.seekg(-static_cast<std::streamoff>(sizeof(uint64_t)), std::ios::end);
 		uint64_t count = 0;
-		in.read(reinterpret_cast<char*>(&count), sizeof(count));
+		pakStream.read(reinterpret_cast<char*>(&count), sizeof(count));
 
 		//in.seekg(-32, std::ios::end);  // 4 * sizeof(uint32_t) = 16 bytes
 
@@ -101,17 +100,17 @@ namespace Borealis
 		//in.read(reinterpret_cast<char*>(values), sizeof(values));
 
 
-		if (!in) return;
+		if (!pakStream) return;
 
 		// Ensure there is enough room in the file for the entries (count * sizeof(AssetEntry))
 		uint64_t entriesSize = static_cast<uint64_t>(count) * sizeof(AssetEntry);
 		if (fileSize < sizeof(uint64_t) + entriesSize) return;
 
 		// Read the AssetEntry array (entries metadata) from the file, just before the count
-		in.seekg(-static_cast<std::streamoff>(sizeof(uint64_t) + entriesSize), std::ios::end);
+		pakStream.seekg(-static_cast<std::streamoff>(sizeof(uint64_t) + entriesSize), std::ios::end);
 		std::vector<AssetEntry> entries(count);
-		in.read(reinterpret_cast<char*>(entries.data()), entriesSize);
-		if (!in) return;
+		pakStream.read(reinterpret_cast<char*>(entries.data()), entriesSize);
+		if (!pakStream) return;
 
 		// Map entries (id -> {offset, size})
 		for (const AssetEntry& entry : entries) {
@@ -119,6 +118,7 @@ namespace Borealis
 		}
 
 		PakPath = folderPath;
+		
 		PakLoaded = true;
 	}
 
@@ -130,27 +130,8 @@ namespace Borealis
 			AssetEntryValue entry = it->second;
 			size = entry.size;
 			buffer = new char[size];
-			std::ifstream in(PakPath, std::ios::binary);
-			in.seekg(entry.offset);
-			in.read(buffer, size);
-			in.close();
-		}
-		else
-		{
-			std::cerr << "Asset ID not found in pak file." << std::endl;
-		}
-	}
-
-	static void ReadEntry(uint64_t id, uint8_t* data, uint64_t size)
-	{
-		auto it = entryMap.find(id);
-		if (it != entryMap.end())
-		{
-			AssetEntryValue entry = it->second;
-			std::ifstream in("assets.pak", std::ios::binary);
-			in.seekg(entry.offset);
-			in.read(reinterpret_cast<char*>(data), entry.size);
-			in.close();
+			pakStream.seekg(entry.offset);
+			pakStream.read(buffer, size);
 		}
 		else
 		{

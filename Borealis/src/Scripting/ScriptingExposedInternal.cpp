@@ -1662,7 +1662,7 @@ namespace Borealis
 	}
 	void LayerMask_GetMask(int* layer, MonoArray* stringArray)
 	{
-		int size = mono_array_length(stringArray);
+		int size = (int)mono_array_length(stringArray);
 		std::vector<std::string> layerNames;
 		for (int i = 0; i < size; i++)
 		{

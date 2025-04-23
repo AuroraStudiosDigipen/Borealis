@@ -201,7 +201,7 @@ namespace Borealis
         auto result = klass->InvokeMethod(mInstance->GetInstance(), method, nullptr);
 
         MonoArray* monoArray = (MonoArray*)result;
-        int length = mono_array_length(monoArray);
+        int length = (int)mono_array_length(monoArray);
 
         for (int i = 0; i < length; ++i) {
             // Retrieve the element at index 'i'

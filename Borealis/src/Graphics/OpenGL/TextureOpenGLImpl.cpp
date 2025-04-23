@@ -36,7 +36,7 @@ namespace Borealis
 				Texture = gli::load(buffer, size);
 				delete[] buffer;
 			}
-			catch (const std::exception& e)
+			catch (...)
 			{
 				Texture = gli::load(path);
 			}
@@ -134,7 +134,7 @@ namespace Borealis
 				Texture = gli::load(buffer, size);
 				delete[] buffer;
 			}
-			catch(const std::exception& e)
+			catch(...)
 			{
 				Texture = gli::load(path);
 			}
@@ -399,7 +399,7 @@ namespace Borealis
 				Texture = gli::load(buffer, size);
 				delete[] buffer;
 			}
-			catch (const std::exception& e)
+			catch (...)
 			{
 				Texture = gli::load(path.string());
 			}

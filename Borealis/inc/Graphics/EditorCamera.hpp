@@ -258,7 +258,7 @@ namespace Borealis
 		*************************************************************************/
 		float ZoomSpeed() const;
 
-		glm::mat4 mViewMatrix; /*!< View Matrix of Editor Camera */
+		glm::mat4 mViewMatrix{1.f}; /*!< View Matrix of Editor Camera */
 		glm::vec3 mPosition = { 0.0f, 0.0f, 0.0f }; /*!< Position of Editor Camera */
 		glm::vec3 mFocalPoint = { 0.0f, 0.0f, 0.0f }; /*!< Focal Point of Editor Camera */
 		glm::vec2 mInitialMousePosition = { 0.0f, 0.0f }; /*!< Initial Mouse Position */

@@ -84,6 +84,7 @@ namespace Borealis
 		default:
 			break;
 		}
+		return "Invalid";
 	}
 
 	void SerializeTextureConfig(YAML::Emitter& out, TextureConfig const& textureConfig)

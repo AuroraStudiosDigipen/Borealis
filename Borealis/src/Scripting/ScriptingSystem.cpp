@@ -129,7 +129,7 @@ namespace Borealis
 
 		if (success) {
 			MonoArray* byteArray = (MonoArray*)result;
-			int length = mono_array_length(byteArray);
+			int length = (int)mono_array_length(byteArray);
 			void* data = mono_array_addr_with_size(byteArray, 0, 0);
 
 			std::ofstream file(cSharpPath, std::ios::binary);
@@ -165,7 +165,7 @@ namespace Borealis
 
 		if (success) {
 			MonoArray* byteArray = (MonoArray*)result;
-			int length = mono_array_length(byteArray);
+			int length = (int)mono_array_length(byteArray);
 			void* data = mono_array_addr_with_size(byteArray, 0, 0);
 
 			std::ofstream file(cSharpPath, std::ios::binary);

@@ -41,7 +41,7 @@ namespace Borealis
 				inFile << std::string(buffer, size);
 				delete[] buffer;
 			}
-			catch (const std::exception& e)
+			catch (...)
 			{
 				std::ifstream actualFile(path, std::ios::binary);
 				inFile << actualFile.rdbuf();

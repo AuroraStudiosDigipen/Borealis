@@ -22,7 +22,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Events/EventWindow.hpp>
 #include <Events/EventInput.hpp>
 #include <Graphics/OpenGL/GraphicsContextOpenGLImpl.hpp>
-
+#include <Audio/AudioEngine.hpp>
 namespace Borealis
 {
 	static bool sGLFWInitialized = false;
@@ -307,6 +307,25 @@ namespace Borealis
 			data.mEventCallback(event);
 		});
 
+		glfwSetWindowFocusCallback((GLFWwindow*)mWindow, [](GLFWwindow* window, int focused)
+			{			
+				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+				if (focused == GLFW_TRUE)
+				{
+
+					// Window gained focus
+					data.mIsWindowFocused = true;
+					AudioEngine::SetPaused(false);
+					//glfwRestoreWindow(window);
+				}
+				else
+				{
+					// Window lost focus
+					data.mIsWindowFocused = false;
+					AudioEngine::SetPaused(true);
+					//glfwIconifyWindow(window);
+				}
+		});
 
 	}
 

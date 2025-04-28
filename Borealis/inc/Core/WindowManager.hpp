@@ -133,6 +133,7 @@ namespace Borealis
 
 		void SetFullScreen(bool on);
 
+		bool GetWindowFocused() const { return mData.mIsWindowFocused; }
 	private:
 		/*!***********************************************************************
 			\brief
@@ -160,7 +161,7 @@ namespace Borealis
 			unsigned mPosY;
 			bool mIsFullScreen;
 			bool mIsVSync;		// Whether VSync is enabled
-
+			bool mIsWindowFocused = true;
 			EventCallbackFn mEventCallback; // Callback function for events
 		};
 

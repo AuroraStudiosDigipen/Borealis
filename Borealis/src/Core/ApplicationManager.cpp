@@ -86,44 +86,52 @@ namespace Borealis
 		//AudioEngine::ApplyFadeIn(ch, 3.f, 1.f);
 
 		//float count = 0.f;
-
 		while (mIsRunning)
 		{
-			if (InputSystem::IsKeyPressed(GLFW_KEY_1) && InputSystem::IsKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
-
-				TracyProfiler::toggleProfiler();
-			}
-
-			PROFILE_SCOPE("ApplicationManager Run Loop");
-
-			ULONGLONG currentTickCount = GetTickCount64();
-			ULONGLONG deltaTime = currentTickCount - prevTickCount;
-			prevTickCount = currentTickCount;
-
-			TimeManager::SetDeltaTime(static_cast<float>(deltaTime) / 1000.0f);
-			AudioEngine::Update();
-
-			if (!mIsMinimized)
+			if (mWindowManager->GetWindowFocused())
 			{
-				InputSystem::PollInput();
-				{
-					PROFILE_SCOPE("LayerStack Updates");
-					for (Layer* layer : mLayerSystem)
-						layer->UpdateFn(TimeManager::GetDeltaTime());
+				if (InputSystem::IsKeyPressed(GLFW_KEY_1) && InputSystem::IsKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
+
+					TracyProfiler::toggleProfiler();
 				}
 
+				PROFILE_SCOPE("ApplicationManager Run Loop");
 
-				mImGuiLayer->BeginFrame();
+				ULONGLONG currentTickCount = GetTickCount64();
+				ULONGLONG deltaTime = currentTickCount - prevTickCount;
+				prevTickCount = currentTickCount;
+
+				TimeManager::SetDeltaTime(static_cast<float>(deltaTime) / 1000.0f);
+				AudioEngine::Update();
+
+				if (!mIsMinimized)
 				{
-					PROFILE_SCOPE("LayerStack ImGuiRender");
-					for (Layer* layer : mLayerSystem)
-						layer->ImGuiRender(TimeManager::GetDeltaTime());
+					InputSystem::PollInput();
+					{
+						PROFILE_SCOPE("LayerStack Updates");
+						for (Layer* layer : mLayerSystem)
+							layer->UpdateFn(TimeManager::GetDeltaTime());
+					}
+
+
+					mImGuiLayer->BeginFrame();
+					{
+						PROFILE_SCOPE("LayerStack ImGuiRender");
+						for (Layer* layer : mLayerSystem)
+							layer->ImGuiRender(TimeManager::GetDeltaTime());
+					}
+					mImGuiLayer->EndFrame();
 				}
-				mImGuiLayer->EndFrame();
+
+				InputSystem::ResetScroll();
+				mWindowManager->OnUpdate();
 			}
-
-			InputSystem::ResetScroll();
-			mWindowManager->OnUpdate();
+			else
+			{
+				std::this_thread::sleep_for(std::chrono::milliseconds(100));
+				glfwWaitEvents();
+				prevTickCount = GetTickCount64();
+			}
 		}
 		
 	}

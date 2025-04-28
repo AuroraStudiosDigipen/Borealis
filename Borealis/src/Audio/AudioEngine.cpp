@@ -232,6 +232,7 @@ namespace Borealis
         FMOD::Studio::System* mpStudioSystem;
         FMOD::Studio::Bank* mpMasterBank = nullptr;
         FMOD::Studio::Bank* mpStringsBank = nullptr;
+        FMOD::ChannelGroup* mainChannel = nullptr;
         std::set<std::string> mAudioList;
         DirectoryTree treeData;
 
@@ -296,6 +297,7 @@ namespace Borealis
 
         HasFileChanged(std::filesystem::path(path + "\\" + "Master.bank"), lastWriteTime1);
         HasFileChanged(std::filesystem::path(path + "\\" + "Master.strings.bank"), lastWriteTime2);
+        mpSystem->getMasterChannelGroup(&mainChannel);
     }
 
     Implementation::~Implementation()
@@ -341,6 +343,12 @@ namespace Borealis
             sgpImplementation->treeData.insertPath(eventPath.substr(7));
         }
         delete[] eventArray;
+    }
+
+    void AudioEngine::SetPaused(bool state)
+    {
+        if (sgpImplementation)
+            sgpImplementation->mainChannel->setPaused(state);
     }
 
 

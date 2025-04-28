@@ -75,6 +75,8 @@ namespace Borealis
 
         static void Reload(std::string path);
 
+        static void SetPaused(bool state);
+
         /*!***********************************************************************
         \brief
             Updates the audio engine, managing the state of currently playing sounds.

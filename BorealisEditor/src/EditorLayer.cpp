@@ -29,6 +29,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <EditorLayer.hpp>
 #include <Prefab.hpp>
 #include <PrefabManager.hpp>
+#include <Core/TimeManager.hpp>
 //	#include <Project/Project.hpp>
 #include "Audio/AudioEngine.hpp"
 #include <ResourceManager.hpp>
@@ -477,6 +478,7 @@ namespace Borealis {
 		{
 			if (mSceneState != SceneState::Edit)
 			{
+				ULONGLONG currentTickCount = GetTickCount64();
 				Borealis::SceneManager::GetActiveScene()->RuntimeEnd();
 				SCPanel.SetSelectedEntity({});
 				std::string tmpName = SceneManager::GetActiveScene()->GetName();
@@ -485,9 +487,14 @@ namespace Borealis {
 				SceneManager::RemoveScene(tmpName, serialiser);
 				SceneManager::GetActiveScene()->ResizeViewport((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
 				SCPanel.SetContext(SceneManager::GetActiveScene());
-				SceneManager::GetActiveScene()->RuntimeStart();
-				serialiser.DeserializeEditorCameraProp(mEditorCamera, Project::GetProjectPath() + "/cameras.props");
 				SceneManager::GetActiveScene()->SetName(SceneManager::NextSceneName + "-runtime");
+				serialiser.DeserializeEditorCameraProp(mEditorCamera, Project::GetProjectPath() + "/cameras.props");
+				ULONGLONG deltaTime = GetTickCount64() - currentTickCount;
+				float loadDt = static_cast<float>(deltaTime) / 1000.0f;
+				loadDt -= TimeManager::GetDeltaTime();
+				TimeManager::SetDeltaTime(loadDt);
+				
+				SceneManager::GetActiveScene()->RuntimeStart();
 
 				AddScene(SceneManager::GetActiveScene()->GetName(), "");
 

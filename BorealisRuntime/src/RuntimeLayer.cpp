@@ -20,6 +20,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <Graphics/UI/Button.hpp>
 #include <Graphics/Font.hpp>
 #include <Windows.h>
+#include <Core/TimeManager.hpp>
 
 #define HIDE_CONSOLE 1
 
@@ -168,11 +169,16 @@ namespace BorealisRuntime
 
 		if (Borealis::SceneManager::ToNextScene)
 		{
+			ULONGLONG currTime = GetTickCount64();
 			Borealis::SceneManager::GetActiveScene()->RuntimeEnd();
 			Borealis::Serialiser serialiser(nullptr);
 			Borealis::SceneManager::SetActiveScene(Borealis::SceneManager::NextSceneName, serialiser, true);
 			Borealis::SceneManager::ToNextScene = false;
 			Borealis::SceneManager::NextSceneName = "";
+			ULONGLONG deltaTime = GetTickCount64() - currTime;
+			float loadDt = static_cast<float>(deltaTime) / 1000.0f;
+			loadDt -= Borealis::TimeManager::GetDeltaTime();
+			Borealis::TimeManager::SetDeltaTime(loadDt);
 			Borealis::SceneManager::GetActiveScene()->RuntimeStart();
 		}
 

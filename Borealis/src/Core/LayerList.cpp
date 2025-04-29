@@ -188,13 +188,6 @@ namespace Borealis
 
 	void TagList::Clear()
 	{
-		for (auto& [tag, entities] : mTagEntities)
-		{
-			for (auto id : entities)
-			{
-				SceneManager::GetActiveScene()->GetEntityByUUID(id).GetComponent<TagComponent>().Tag = "";
-			}
-		}
 		mTagEntities.clear();
 		mKeys.clear();
 	}

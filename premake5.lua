@@ -320,7 +320,8 @@ workspace "Borealis"
 			"ImGuiNodeEditor",
 			"BorealisScriptCore",
 			"BorealisRuntime",
-			"Assimp"
+			"Assimp",
+			"Ws2_32.lib"
 		}
 
 		filter "configurations:Debug"
@@ -498,7 +499,8 @@ workspace "Borealis"
 
 		links
 		{
-			"Borealis"
+			"Borealis",
+			"Ws2_32.lib"
 		}
 
 		filter "configurations:Debug"
@@ -569,7 +571,7 @@ workspace "Borealis"
 		links
 		{
 			"Assimp",
-			"ispc_texcomp"
+			"ispc_texcomp"		
 		}
 
 		postbuildcommands {
